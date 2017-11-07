@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Input &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
@@ -24,61 +20,118 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../index.html">
-              <img class="logo" src="../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../../index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">Input</a><ul>
 <li><a class="reference internal" href="#module-abipy.htc.input"><code class="docutils literal"><span class="pre">input</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../../_sources/api/htc/input.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/api/htc/input.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="input">
 <h1>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-abipy.htc.input">
@@ -120,10 +173,10 @@ be consistent.  It is better to use <code class="docutils literal"><span class="
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>start</strong> &#8211; Start of interval. The interval includes this value. The default start value is 0.</li>
-<li><strong>stop</strong> &#8211; End of interval.  The interval does not include this value, except
+<li><strong>start</strong> – Start of interval. The interval includes this value. The default start value is 0.</li>
+<li><strong>stop</strong> – End of interval.  The interval does not include this value, except
 in some cases where <cite>step</cite> is not an integer and floating point</li>
-<li><strong>step</strong> &#8211; Spacing between values.  For any output <cite>out</cite>, this is the distance
+<li><strong>step</strong> – Spacing between values.  For any output <cite>out</cite>, this is the distance
 between two adjacent values, <code class="docutils literal"><span class="pre">out[i+1]</span> <span class="pre">-</span> <span class="pre">out[i]</span></code>.  The default
 step size is 1.  If <cite>step</cite> is specified, <cite>start</cite> must also be given.</li>
 </ul>
@@ -173,11 +226,11 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; Shiftks (default None i.e. use shiftk from self)</li>
-<li><strong>qpoint</strong> &#8211; qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
+<li><strong>qpoint</strong> – qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -206,19 +259,19 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; Shiftks (default None i.e. use shiftk from self)</li>
-<li><strong>qpoint</strong> &#8211; qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
+<li><strong>qpoint</strong> – qpoint in reduced coordinates. Used to shift the k-mesh (default None i.e no shift)</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>List of dictionaries with the Abinit variables defining the irreducible perturbation
 .. rubric:: Example</p>
 <dl class="docutils">
-<dt>[{&#8216;idir&#8217;: 1, &#8216;ipert&#8217;: 1, &#8216;qpt&#8217;: [0.25, 0.0, 0.0]},</dt>
-<dd><p class="first last">{&#8216;idir&#8217;: 2, &#8216;ipert&#8217;: 1, &#8216;qpt&#8217;: [0.25, 0.0, 0.0]}]</p>
+<dt>[{‘idir’: 1, ‘ipert’: 1, ‘qpt’: [0.25, 0.0, 0.0]},</dt>
+<dd><p class="first last">{‘idir’: 2, ‘ipert’: 1, ‘qpt’: [0.25, 0.0, 0.0]}]</p>
 </dd>
 </dl>
 </p>
@@ -260,8 +313,8 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>start</strong> &#8211; The starting value of the sequence.</li>
-<li><strong>stop</strong> &#8211; The end value of the sequence, unless <cite>endpoint</cite> is set to False.
+<li><strong>start</strong> – The starting value of the sequence.</li>
+<li><strong>stop</strong> – The end value of the sequence, unless <cite>endpoint</cite> is set to False.
 In that case, the sequence consists of all but the last of <code class="docutils literal"><span class="pre">ndtset</span> <span class="pre">+</span> <span class="pre">1</span></code>
 evenly spaced samples, so that <cite>stop</cite> is excluded.  Note that the step
 size changes when <cite>endpoint</cite> is False.</li>
@@ -339,8 +392,8 @@ self is not changed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dtset</strong> &#8211; Int with the index of the dataset, slice object of iterable</li>
-<li><strong>keys</strong> &#8211; List of variables to remove.</li>
+<li><strong>dtset</strong> – Int with the index of the dataset, slice object of iterable</li>
+<li><strong>keys</strong> – List of variables to remove.</li>
 </ul>
 </td>
 </tr>
@@ -357,8 +410,8 @@ self is not changed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>nksmall</strong> &#8211; Number of k-points used to sample the smallest lattice vector.</li>
-<li><strong>kptopt</strong> &#8211; Option for the generation of the mesh (ABINIT variable).</li>
+<li><strong>nksmall</strong> – Number of k-points used to sample the smallest lattice vector.</li>
+<li><strong>kptopt</strong> – Option for the generation of the mesh (ABINIT variable).</li>
 </ul>
 </td>
 </tr>
@@ -395,10 +448,10 @@ The list of K-points is taken from the pymatgen database if <cite>kptbounds</cit
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ndivsm</strong> &#8211; Number of divisions for the smallest segment.</li>
-<li><strong>kptbounds</strong> &#8211; k-points defining the path in k-space.</li>
-<li><strong>iscf</strong> &#8211; iscf variable.</li>
-<li><strong>dtset</strong> &#8211; Index of the dataset. 0 for global variables.</li>
+<li><strong>ndivsm</strong> – Number of divisions for the smallest segment.</li>
+<li><strong>kptbounds</strong> – k-points defining the path in k-space.</li>
+<li><strong>iscf</strong> – iscf variable.</li>
+<li><strong>dtset</strong> – Index of the dataset. 0 for global variables.</li>
 </ul>
 </td>
 </tr>
@@ -443,8 +496,8 @@ The list of K-points is taken from the pymatgen database if <cite>kptbounds</cit
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dtset</strong> &#8211; Int with the index of the dataset, slice object of iterable</li>
-<li><strong>kwargs</strong> &#8211; Dictionary with the variables.</li>
+<li><strong>dtset</strong> – Int with the index of the dataset, slice object of iterable</li>
+<li><strong>kwargs</strong> – Dictionary with the variables.</li>
 </ul>
 </td>
 </tr>
@@ -527,11 +580,11 @@ U value of 5 eV applied on the nickel atoms:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>symbol</strong> &#8211; Chemical symbol of the atoms on which LDA+U should be applied.</li>
-<li><strong>l</strong> &#8211; Angular momentum.</li>
-<li><strong>u</strong> &#8211; Value of U.</li>
-<li><strong>j</strong> &#8211; Value of J.</li>
-<li><strong>unit</strong> &#8211; Energy unit of U and J.</li>
+<li><strong>symbol</strong> – Chemical symbol of the atoms on which LDA+U should be applied.</li>
+<li><strong>l</strong> – Angular momentum.</li>
+<li><strong>u</strong> – Value of U.</li>
+<li><strong>j</strong> – Value of J.</li>
+<li><strong>unit</strong> – Energy unit of U and J.</li>
 </ul>
 </td>
 </tr>
@@ -577,8 +630,8 @@ channel of the nickel atoms:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>symbol</strong> &#8211; Chemical symbol of the atoms on which LEXX should be applied.</li>
-<li><strong>l</strong> &#8211; Angular momentum.</li>
+<li><strong>symbol</strong> – Chemical symbol of the atoms on which LEXX should be applied.</li>
+<li><strong>l</strong> – Angular momentum.</li>
 </ul>
 </td>
 </tr>
@@ -609,8 +662,8 @@ new inputs by replacing the variables specified in kwargs.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>inp</strong> &#8211; <a class="reference internal" href="#abipy.htc.input.AbiInput" title="abipy.htc.input.AbiInput"><code class="xref py py-class docutils literal"><span class="pre">AbiInput</span></code></a> file.</li>
-<li><strong>kwargs</strong> &#8211; keyword arguments with the values used for each variable.</li>
+<li><strong>inp</strong> – <a class="reference internal" href="#abipy.htc.input.AbiInput" title="abipy.htc.input.AbiInput"><code class="xref py py-class docutils literal"><span class="pre">AbiInput</span></code></a> file.</li>
+<li><strong>kwargs</strong> – keyword arguments with the values used for each variable.</li>
 </ul>
 </td>
 </tr>
@@ -633,29 +686,22 @@ new inputs by replacing the variables specified in kwargs.</p>
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="../../_sources/api/htc/input.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

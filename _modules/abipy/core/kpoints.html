@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.core.kpoints &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.core.kpoints</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;This module defines objects describing the sampling of the Brillouin Zone.&quot;&quot;&quot;</span>
@@ -83,9 +139,16 @@
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
-<span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
-<span class="kn">from</span> <span class="nn">pymatgen.serializers.pickle_coders</span> <span class="k">import</span> <span class="n">SlotPickleMixin</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">SlotPickleMixin</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.serializers.pickle_coders</span> <span class="k">import</span> <span class="n">SlotPickleMixin</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.derivatives</span> <span class="k">import</span> <span class="n">finite_diff</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">add_periodic_replicas</span>
@@ -687,8 +750,8 @@
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">[</span><span class="nb">slice</span><span class="p">]</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Kpoint.as_kpoint"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpoint.as_kpoint">[docs]</a>    <span class="k">def</span> <span class="nf">as_kpoint</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">lattice</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpoint.as_kpoint"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpoint.as_kpoint">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">as_kpoint</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">lattice</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert obj into a Kpoint instance.</span>
 
@@ -703,8 +766,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Kpoint.gamma"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpoint.gamma">[docs]</a>    <span class="k">def</span> <span class="nf">gamma</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpoint.gamma"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpoint.gamma">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">gamma</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Constructor for the Gamma point.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">lattice</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Gamma$&quot;</span><span class="p">)</span></div>
 
@@ -847,7 +910,8 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">) </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="n">kpoint</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
     <span class="c1"># Sequence protocol.</span>
@@ -991,6 +1055,16 @@
         <span class="sd">&quot;&quot;&quot;Returns the sum of the weights.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">check_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if weights are normalized to one. Raise ValueError.&quot;&quot;&quot;</span>
+        <span class="c1"># Weights must be normalized to one.</span>
+        <span class="n">wsum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_weights</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">wsum</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.e-6</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="s2">&quot;Kpoint weights should sum up to one while sum_weights is </span><span class="si">%.3f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">wsum</span>
+            <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;The list of kpoints does not represent a homogeneous sampling of the BZ</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">remove_duplicated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove duplicated k-points from self. Returns new KpointList instance.</span>
@@ -1100,8 +1174,8 @@
 <span class="sd">    The k-points do not have weights so Kpath should not be used to compute integral in the BZ.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Kpath.from_vertices_and_names"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.from_vertices_and_names">[docs]</a>    <span class="k">def</span> <span class="nf">from_vertices_and_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpath.from_vertices_and_names"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.from_vertices_and_names">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_vertices_and_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">vertices_names</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate K-path from a list of vertices and the corresponding labels.</span>
 
@@ -1149,16 +1223,15 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Kpath.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpath.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            verbose: Verbosity level. Default: 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-path contains </span><span class="si">%s</span><span class="s2"> lines. Number of k-points in each line: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">),</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">]))</span>
         <span class="c1">#for i, line in enumerate(self.lines):</span>
@@ -1181,8 +1254,8 @@
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">header</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">)])</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="Kpath.ds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.ds">[docs]</a>    <span class="k">def</span> <span class="nf">ds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpath.ds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.ds">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        numpy array of len(self)-1 elements giving the distance between two</span>
 <span class="sd">        consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]|| for i=0,1,...,n-1</span>
@@ -1192,8 +1265,8 @@
             <span class="n">ds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">kpoint</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span>
         <span class="k">return</span> <span class="n">ds</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="Kpath.versors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.versors">[docs]</a>    <span class="k">def</span> <span class="nf">versors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpath.versors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.versors">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">versors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1202,8 +1275,8 @@
             <span class="n">versors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">kpt</span><span class="p">)</span><span class="o">.</span><span class="n">versor</span><span class="p">()</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">versors</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="Kpath.lines"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.lines">[docs]</a>    <span class="k">def</span> <span class="nf">lines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Kpath.lines"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.lines">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">lines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Nested list containing the indices of the points belonging to the same line.</span>
 <span class="sd">        Used for extracting the eigenvalues while looping over the lines.</span>
@@ -1309,9 +1382,10 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="IrredZone.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.IrredZone.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="IrredZone.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.IrredZone.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mpmesh</span><span class="p">:</span>
             <span class="n">mpdivs</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpdivs_shifts</span>
@@ -1319,7 +1393,8 @@
             <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%.1f</span><span class="s2">, </span><span class="si">%.1f</span><span class="s2">, </span><span class="si">%.1f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shifts</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-mesh with divisions: </span><span class="si">%s</span><span class="s2">, shifts: </span><span class="si">%s</span><span class="s2">, kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;nkpt: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div></div>
 
@@ -1464,24 +1539,28 @@
                 <span class="c1"># We have a sampling</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">):</span>
                     <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span>
-
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;monkhorst_pack_folding variables has not been written to netcdf file.&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
-                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Received </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]),</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
-                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Set mpdivs to None, this could create problems in post-processing tools.&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
-                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;If needed, use python netcdf to change the value of `monkhorst_pack_folding`&quot;</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
+                    <span class="kn">import</span> <span class="nn">warnings</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">monkhorst_pack_folding variables has not been written to netcdf file.</span>
+<span class="s2">Received </span><span class="si">{mpdivs}</span><span class="s2"></span>
+<span class="s2">Setting mpdivs to None, this could create problems in post-processing tools.</span>
+<span class="s2">If needed, use python netcdf to change the value of `monkhorst_pack_folding`&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]))</span>
                     <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt:</span><span class="se">\n</span><span class="s2">  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;mpdivs: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts_orig</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt_orig:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts_orig:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts_orig</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
@@ -1648,10 +1727,11 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Ktables.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Ktables.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Ktables.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Ktables.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation&quot;&quot;&quot;</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">()</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">();</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;mesh </span><span class="si">%s</span><span class="s2">, shift </span><span class="si">%s</span><span class="s2">, time-reversal: </span><span class="si">%s</span><span class="s2">, Irred points: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kshift</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_timrev</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nibz</span><span class="p">))</span>
 
@@ -1663,9 +1743,9 @@
 
 <div class="viewcode-block" id="Ktables.print_bz2ibz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Ktables.print_bz2ibz">[docs]</a>    <span class="k">def</span> <span class="nf">print_bz2ibz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Print BZ --&gt; IBZ mapping.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BZ points --&gt; IBZ points&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BZ points --&gt; IBZ points mapping&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ik_bz</span><span class="p">,</span> <span class="n">ik_ibz</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bz2ibz</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">], ====&gt; </span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">],&quot;</span> <span class="o">%</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">], ===&gt; </span><span class="si">%6d</span><span class="s2">) [</span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">, </span><span class="si">%9.6f</span><span class="s2">],&quot;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">ik_bz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
                 <span class="n">ik_ibz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibz</span><span class="p">[</span><span class="n">ik_ibz</span><span class="p">][</span><span class="mi">2</span><span class="p">]),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div></div>
 
@@ -1730,26 +1810,22 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">klines</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_list</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span></div>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

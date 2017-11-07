@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.dfpt.phonons &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.dfpt.phonons</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
@@ -95,7 +151,6 @@
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span>
 
 
-
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;frame_from_phbands&quot;</span><span class="p">,</span>
     <span class="s2">&quot;PhononBands&quot;</span><span class="p">,</span>
@@ -107,7 +162,7 @@
     <span class="s2">&quot;PhdosFile&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return conversion factor eV --&gt; units (case-insensitive)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -121,7 +176,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown</span><span class="se">\n</span><span class="s1">Possible values are:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
 
 
-<span class="k">def</span> <span class="nf">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
     <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;[eV]&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;[meV]&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;[Ha]&#39;</span><span class="p">,</span>
          <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;[cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;[cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;[Thz]&#39;</span><span class="p">,</span>
          <span class="p">}</span>
@@ -131,7 +186,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown</span><span class="se">\n</span><span class="s1">Possible values are:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
 
 
-<span class="k">def</span> <span class="nf">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
     <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/eV]&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/meV]&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;[states/Ha]&#39;</span><span class="p">,</span>
          <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;[states/cm$^{-1}$]&quot;</span><span class="p">,</span>
          <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;[states/Thz]&#39;</span><span class="p">,</span>
@@ -212,8 +267,8 @@
 
 <span class="sd">        Frequencies are in eV. Cartesian displacements are in Angstrom.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="PhononBands.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create the object from a netCDF file.&quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">PHBST_Reader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
             <span class="n">structure</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
@@ -240,8 +295,8 @@
                        <span class="n">phdispl_cart</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">read_phdispl_cart</span><span class="p">(),</span>
                        <span class="n">amu</span><span class="o">=</span><span class="n">amu</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="PhononBands.as_phbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.as_phbands">[docs]</a>    <span class="k">def</span> <span class="nf">as_phbands</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.as_phbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.as_phbands">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">as_phbands</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an instance of :class:`PhononBands` from a generic obj.</span>
 <span class="sd">        Supports:</span>
@@ -269,12 +324,12 @@
 
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to extract a PhononBands from type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
 
-    <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="PhononBands.factor_ev2units"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.factor_ev2units">[docs]</a>    <span class="k">def</span> <span class="nf">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.factor_ev2units"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.factor_ev2units">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return conversion factor eV --&gt; units (case-insensitive)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PhononBands.read_non_anal_from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.read_non_anal_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">read_non_anal_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -325,7 +380,7 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="PhononBands.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_qpoints</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_qpoints</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Human-readable string with useful information such as structure, q-points, ...</span>
 
@@ -338,11 +393,10 @@
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">with_structure</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-            <span class="n">app</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Phonon Bands&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="c1">#app(marquee(&quot;Phonon Bands&quot;, mark=&quot;=&quot;))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of q-points: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Atomic mass units: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amu</span><span class="p">))</span>
         <span class="n">has_dipdip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_anal_ph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -351,8 +405,7 @@
             <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">non_anal_ph</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">with_qpoints</span><span class="p">:</span>
-            <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Q-points&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-            <span class="n">app</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Q-points&quot;</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
@@ -445,8 +498,8 @@
         <span class="sd">&quot;&quot;&quot;Shape of the array with the eigenvalues.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_qpoints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhononBands.dyn_mat_eigenvect"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.dyn_mat_eigenvect">[docs]</a>    <span class="k">def</span> <span class="nf">dyn_mat_eigenvect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.dyn_mat_eigenvect"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.dyn_mat_eigenvect">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">dyn_mat_eigenvect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Eigenvalues of the dynamical matrix.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">get_dyn_mat_eigenvec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phdispl_cart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amu</span><span class="p">)</span></div>
 
@@ -495,7 +548,7 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">wqnu_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phfreqs</span> <span class="o">*</span> <span class="n">factor</span>
 
         <span class="kn">import</span> <span class="nn">datetime</span>
@@ -534,7 +587,7 @@
 
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@xaxis  ticklabel char size 1.500000&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  tick major 10&#39;</span><span class="p">)</span>
-        <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  label &quot;Phonon </span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  label &quot;Phonon </span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  label char size 1.500000&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  ticklabel char size 1.500000&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
@@ -761,10 +814,43 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="PhononBands.create_phononwebsite_json"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.create_phononwebsite_json">[docs]</a>    <span class="k">def</span> <span class="nf">create_phononwebsite_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repetitions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">highsym_qpts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                  <span class="n">highsym_qpts_mode</span><span class="o">=</span><span class="s2">&quot;split&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.view_phononwebsite"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.view_phononwebsite">[docs]</a>    <span class="k">def</span> <span class="nf">view_phononwebsite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">open_browser</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Writes a json file that can be parsed from phononwebsite https://github.com/henriquemiranda/phononwebsite</span>
+<span class="sd">        Produce json file that can be parsed from the phononwebsite. Contact the server, get</span>
+<span class="sd">        the url of the webpage and open it in the browser if `open_browser`.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            Exit status</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">tempfile</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.json&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing json file&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_phononwebsite_json</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;http://henriquemiranda.github.io/phononwebsite/phonon.html&quot;</span>
+        <span class="kn">import</span> <span class="nn">requests</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;file-input&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">f</span><span class="p">)}</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">)</span>
+            <span class="c1"># @Henrique: the response should contain the url of the bandstructure plot</span>
+            <span class="c1"># so that I can open it in the browser.</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phonon band structure available at:&quot;</span><span class="p">,</span> <span class="n">phbst_url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">open_browser</span><span class="p">:</span>
+           <span class="kn">import</span> <span class="nn">webbrowser</span>
+           <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">phbst_url</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="PhononBands.create_phononwebsite_json"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.create_phononwebsite_json">[docs]</a>    <span class="k">def</span> <span class="nf">create_phononwebsite_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repetitions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">highsym_qpts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                  <span class="n">highsym_qpts_mode</span><span class="o">=</span><span class="s2">&quot;split&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes a json file that can be parsed from the phononwebsite. See &lt;https://github.com/henriquemiranda/phononwebsite&gt;</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            filename: name of the json file that will be created</span>
@@ -775,16 +861,17 @@
 <span class="sd">            match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.</span>
 <span class="sd">            highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.</span>
 <span class="sd">                Accepts the following values:</span>
-<span class="sd">                    &#39;split&#39; will split the path based on points where the path changes direction in the Brillouin zone.</span>
-<span class="sd">                        Similar to the what is done in phononwebsite. Only Gamma will be labeled.</span>
-<span class="sd">                    &#39;std&#39; uses the standard generation procedure for points and labels used in PhononBands.</span>
-<span class="sd">                    None does not set any point.</span>
+<span class="sd">                &#39;split&#39; will split the path based on points where the path changes direction in the Brillouin zone.</span>
+<span class="sd">                Similar to the what is done in phononwebsite. Only Gamma will be labeled.</span>
+<span class="sd">                &#39;std&#39; uses the standard generation procedure for points and labels used in PhononBands.</span>
+<span class="sd">                None does not set any point.</span>
+<span class="sd">            indent: Indentation level, passed to json.dump</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">split_non_collinear</span><span class="p">(</span><span class="n">qpts</span><span class="p">):</span>
             <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            function that splits the list of qpoints at repetitions (only the first point will be considered as</span>
-<span class="sd">            high symm) and where the direction changes. Also sets $\Gamma$ for [0,0,0].</span>
+<span class="sd">            high symm) and where the direction changes. Also sets $\Gamma$ for [0, 0, 0].</span>
 <span class="sd">            Similar to what is done in phononwebsite.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">h</span> <span class="o">=</span> <span class="p">[]</span>
@@ -805,7 +892,7 @@
 
             <span class="k">return</span> <span class="n">h</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;natoms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;lattice&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
@@ -814,7 +901,7 @@
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;chemical_symbols&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;atomic_numbers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">atomic_numbers</span><span class="p">))</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;formula&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;repetitions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repetitions</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;repetitions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repetitions</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;atom_pos_car&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">cart_coords</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;atom_pos_red&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
@@ -833,7 +920,7 @@
             <span class="n">data</span><span class="p">[</span><span class="s2">&quot;highsym_qpts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">highsym_qpts</span>
 
         <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpoints</span><span class="p">)):</span>
             <span class="n">q_coord_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">qpoints</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
             <span class="n">q_coord_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">qpoints</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q_coord_1</span><span class="o">-</span><span class="n">q_coord_2</span><span class="p">))</span>
@@ -874,9 +961,13 @@
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;vectors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vectors</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
-            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">json_file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">json_file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PhononBands.decorate_ax"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.decorate_ax">[docs]</a>    <span class="k">def</span> <span class="nf">decorate_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add k-labels, title and unit name to axis ax.</span>
+<span class="sd">        Use units = &quot;&quot; to add k-labels without adding unit name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -895,7 +986,8 @@
         <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;thz&#39;</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Frequency [Thz]&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
         <span class="c1"># Set ticks and labels.</span>
         <span class="n">ticks</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_ticks_and_labels</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;qlabels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
@@ -903,14 +995,15 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBands.plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon band structure.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
+<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;).</span>
+<span class="sd">                Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
 <span class="sd">                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}.</span>
 <span class="sd">            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).</span>
@@ -959,7 +1052,7 @@
         <span class="n">first_xx</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_phfreqs</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">match_bands</span><span class="p">:</span>
@@ -973,8 +1066,8 @@
 
         <span class="k">return</span> <span class="n">lines</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBands.plot_colored_matched"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_colored_matched">[docs]</a>    <span class="k">def</span> <span class="nf">plot_colored_matched</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="PhononBands.plot_colored_matched"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_colored_matched">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_colored_matched</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                              <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;rainbow&quot;</span><span class="p">,</span> <span class="n">max_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon band structure with different color for each line.</span>
@@ -1007,7 +1100,7 @@
 
         <span class="n">first_xx</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">max_colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">max_colors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">branch_range</span><span class="p">)</span>
@@ -1213,8 +1306,8 @@
         <span class="c1"># Return ticks, labels</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBands.plot_fatbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_fatbands">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="PhononBands.plot_fatbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_fatbands">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">max_stripe_width_mev</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                       <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1241,7 +1334,7 @@
 <span class="sd">            `matplotlib` figure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">ntypat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">ntypesp</span>
 
         <span class="c1"># Prepare PJDOS.</span>
@@ -1285,7 +1378,7 @@
             <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="n">ax_row</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">sharex</span><span class="o">=</span><span class="n">ax00</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax00</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ax_row</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ax00</span> <span class="o">=</span> <span class="n">ax</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">)</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ax_row</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ax_row</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
 
             <span class="c1"># dir_indices lists the coordinate indices for the atoms of the same type.</span>
             <span class="n">atom_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">indices_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
@@ -1323,7 +1416,7 @@
         <span class="k">if</span> <span class="n">phdos_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ax01</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">ax_row</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">):</span>
-                <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ax_row</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ax_row</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="n">ax_row</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">sharex</span><span class="o">=</span><span class="n">ax01</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax00</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">ax_row</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ax01</span> <span class="o">=</span> <span class="n">ax</span>
 
@@ -1343,8 +1436,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBands.plot_with_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_with_phdos">[docs]</a>    <span class="k">def</span> <span class="nf">plot_with_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.plot_with_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.plot_with_phdos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_with_phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phdos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon band structure with the phonon DOS.</span>
 
@@ -1367,8 +1460,7 @@
         <span class="k">if</span> <span class="n">axlist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Build axes and align bands and DOS.</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
             <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1383,7 +1475,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">)</span>
 
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">emin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minfreq</span><span class="p">)</span>
         <span class="n">emin</span> <span class="o">-=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">emin</span><span class="p">)</span>
         <span class="n">emin</span> <span class="o">*=</span> <span class="n">factor</span>
@@ -1431,8 +1523,8 @@
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBands.boxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.boxplot">[docs]</a>    <span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBands.boxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.boxplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the mode index.</span>
 
@@ -1451,8 +1543,8 @@
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
-        <span class="n">yname</span> <span class="o">=</span> <span class="s2">&quot;freq </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">yname</span> <span class="o">=</span> <span class="s2">&quot;freq </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">frame</span><span class="p">[</span><span class="n">yname</span><span class="p">]</span> <span class="o">=</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">frame</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span>
 
         <span class="kn">import</span> <span class="nn">seaborn.apionly</span> <span class="k">as</span> <span class="nn">sns</span>
@@ -1664,9 +1756,9 @@
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.phbands.plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.phbands.qpoints.plot()&quot;</span><span class="p">),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = ncfile.phbands.get_phdos().plot()&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.phbands.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.phbands.qpoints.plot();&quot;</span><span class="p">),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;ncfile.phbands.get_phdos().plot();&quot;),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -1693,8 +1785,8 @@
     <span class="c1">#    super(PhononDos, self).__init__(mesh, values)</span>
     <span class="c1">#    self.qmesh = qmesh</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="PhononDos.as_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.as_phdos">[docs]</a>    <span class="k">def</span> <span class="nf">as_phdos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">phdos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDos.as_phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.as_phdos">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">as_phdos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">phdos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an instance of :class:`PhononDOS` from a generic obj.</span>
 <span class="sd">        Supports:</span>
@@ -1740,8 +1832,8 @@
 
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to create `PhononDos` from </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhononDos.iw0"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.iw0">[docs]</a>    <span class="k">def</span> <span class="nf">iw0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDos.iw0"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.iw0">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">iw0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        index of the first point in the mesh whose value is &gt;= 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1750,13 +1842,13 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find zero in energy mesh&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">iw0</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhononDos.idos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.idos">[docs]</a>    <span class="k">def</span> <span class="nf">idos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDos.idos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.idos">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">idos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Integrated DOS.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">()</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhononDos.zero_point_energy"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.zero_point_energy">[docs]</a>    <span class="k">def</span> <span class="nf">zero_point_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDos.zero_point_energy"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.zero_point_energy">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">zero_point_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Zero point energy in eV per unit cell.&quot;&quot;&quot;</span>
         <span class="n">iw0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iw0</span>
         <span class="k">return</span> <span class="n">Energy</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="n">iw0</span><span class="p">:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">iw0</span><span class="p">:],</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="n">iw0</span><span class="p">:]),</span> <span class="s2">&quot;eV&quot;</span><span class="p">)</span></div>
@@ -1782,7 +1874,7 @@
 
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">idos</span><span class="p">}[</span><span class="n">c</span><span class="p">]</span>
-            <span class="n">xfactor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+            <span class="n">xfactor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
             <span class="c1"># Don&#39;t rescale IDOS</span>
             <span class="n">yfactor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">xfactor</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;d&quot;</span> <span class="k">else</span> <span class="mi">1</span>
 
@@ -1791,8 +1883,9 @@
 
         <span class="k">return</span> <span class="n">lines</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDos.plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># TODO: This should be called plot_dos_idos!</span>
+<div class="viewcode-block" id="PhononDos.plot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot Phonon DOS and IDOS on two distict plots.</span>
 
@@ -1814,9 +1907,9 @@
         <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">):</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
         <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;IDOS [states]&quot;</span><span class="p">)</span>
-        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;DOS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;DOS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_dos_idos</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_dos_idos</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1887,7 +1980,8 @@
 
 <div class="viewcode-block" id="PhononDos.get_cv"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_cv">[docs]</a>    <span class="k">def</span> <span class="nf">get_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the constant-volume specific heat, in eV/K, in the harmonic approximation for different temperatures</span>
+<span class="sd">        Returns the constant-volume specific heat, in eV/K, in the harmonic approximation</span>
+<span class="sd">        for different temperatures</span>
 
 <span class="sd">        tstart: The starting value (in Kelvin) of the temperature mesh.</span>
 <span class="sd">        tstop: The end value (in Kelvin) of the mesh.</span>
@@ -1907,8 +2001,8 @@
 
         <span class="k">return</span> <span class="n">Function1D</span><span class="p">(</span><span class="n">tmesh</span><span class="p">,</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">vals</span><span class="p">)</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDos.plot_harmonic_thermo"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo">[docs]</a>    <span class="k">def</span> <span class="nf">plot_harmonic_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="PhononDos.plot_harmonic_thermo"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_harmonic_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                              <span class="n">quantities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot thermodinamic properties from the phonon DOSes within the harmonic approximation.</span>
@@ -1969,13 +2063,13 @@
 
 <span class="sd">            Frequencies are in eV, DOSes are in states/eV.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosReader.structure"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.structure">[docs]</a>    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosReader.structure"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.structure">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The crystalline structure.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosReader.wmesh"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.wmesh">[docs]</a>    <span class="k">def</span> <span class="nf">wmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosReader.wmesh"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosReader.wmesh">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">wmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The frequency mesh for the PH-DOS in eV.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;wmesh&quot;</span><span class="p">)</span></div>
 
@@ -2049,9 +2143,9 @@
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Invoked by str&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
-<div class="viewcode-block" id="PhdosFile.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Human-readable string with useful information such as structure...</span>
 
@@ -2063,24 +2157,23 @@
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosFile.structure"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.structure">[docs]</a>    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.structure"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.structure">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the :class:`Structure` object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">structure</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosFile.phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.phdos">[docs]</a>    <span class="k">def</span> <span class="nf">phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.phdos"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.phdos">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:class:`PhononDos` object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_phdos</span><span class="p">()</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="PhdosFile.pjdos_symbol"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.pjdos_symbol">[docs]</a>    <span class="k">def</span> <span class="nf">pjdos_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PhdosFile.pjdos_symbol"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.pjdos_symbol">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">pjdos_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ordered dictionary mapping element symbol --&gt; `PhononDos`</span>
 <span class="sd">        where PhononDos is the contribution to the total DOS summed over atoms</span>
@@ -2088,8 +2181,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_pjdos_symbol_dict</span><span class="p">()</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhdosFile.plot_pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_type">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+<div class="viewcode-block" id="PhdosFile.plot_pjdos_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_type">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_pjdos_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
                         <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot type-projected phonon DOS.</span>
@@ -2110,7 +2203,7 @@
 <span class="sd">            matplotlib figure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
@@ -2118,8 +2211,8 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PJDOS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PJDOS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
         <span class="c1"># Type projected DOSes.</span>
         <span class="n">num_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pjdos_symbol</span><span class="p">)</span>
@@ -2142,8 +2235,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_type">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+<div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_type"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_type">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
                                <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot type-projected phonon DOS decomposed along the three reduced directions.</span>
@@ -2166,7 +2259,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">ntypat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">ntypesp</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
 
         <span class="c1"># Three rows for each reduced direction.</span>
         <span class="c1"># Each row shows the contribution of each atomic type + Total PH DOS.</span>
@@ -2191,12 +2284,12 @@
             <span class="k">if</span> <span class="n">idir</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;PJDOS along $L_{</span><span class="si">%d</span><span class="s1">}$&#39;</span> <span class="o">%</span> <span class="n">idir</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">idir</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
             <span class="c1"># Plot Type projected DOSes along reduced direction idir</span>
             <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">chemical_symbols</span><span class="p">):</span>
-                <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">itype</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">itype</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">yy</span> <span class="o">=</span> <span class="n">pjdos_symbol_rc</span><span class="p">[</span><span class="n">symbol</span><span class="p">][</span><span class="n">idir</span><span class="p">]</span> <span class="o">/</span> <span class="n">factor</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">stacked</span><span class="p">:</span>
@@ -2212,8 +2305,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_site"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_site">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+<div class="viewcode-block" id="PhdosFile.plot_pjdos_redirs_site"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_site">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_pjdos_redirs_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
                                <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot phonon PJDOS for each atom in the unit cell. By default, only &quot;inequivalent&quot; atoms are shown.</span>
@@ -2234,7 +2327,7 @@
 <span class="sd">            `matplotlib` figure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Define num_plots and ax2atom depending on view.</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">natom</span><span class="p">,</span> <span class="n">ntypat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">ntypesp</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
@@ -2271,7 +2364,7 @@
             <span class="k">if</span> <span class="n">idir</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;PJDOS along $L_{</span><span class="si">%d</span><span class="s1">}$&#39;</span> <span class="o">%</span> <span class="n">idir</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">idir</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
             <span class="c1"># Plot Type projected DOSes along reduced direction idir</span>
             <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">))</span>
@@ -2304,10 +2397,10 @@
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.phdos.plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_pjdos_type()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_pjdos_redirs_type()&quot;</span><span class="p">),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = ncfile.plot_pjdos_redirs_site()&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.phdos.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_pjdos_type();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_pjdos_redirs_type();&quot;</span><span class="p">),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;ncfile.plot_pjdos_redirs_site();&quot;),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -2389,14 +2482,14 @@
     <span class="k">return</span> <span class="n">fig</span>
 
 
-<div class="viewcode-block" id="frame_from_phbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.frame_from_phbands">[docs]</a><span class="k">def</span> <span class="nf">frame_from_phbands</span><span class="p">(</span><span class="n">phbands_objects</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">dataframe_from_phbands</span><span class="p">(</span><span class="n">phbands_objects</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a pandas dataframe with the most important results available in a list of band structures.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        phbands_objects: List of objects that can be converted to structure.</span>
+<span class="sd">        phbands_objects: List of objects that can be converted to phonon bands objects..</span>
 <span class="sd">            Support netcdf filenames or :class:`PhononBands` objects</span>
-<span class="sd">            See `PhononBands.as_ebands` for the complete list.</span>
+<span class="sd">            See `PhononBands.as_phbands` for the complete list.</span>
 <span class="sd">        index: Index of the dataframe.</span>
 <span class="sd">        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.</span>
 
@@ -2409,7 +2502,11 @@
 
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">odict_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
-                        <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">odict_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">odict_list</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span></div>
+                        <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">odict_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">odict_list</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="c1"># To maintain old interface</span>
+<span class="n">frame_from_phbands</span> <span class="o">=</span> <span class="n">dataframe_from_phbands</span>
 
 
 <div class="viewcode-block" id="PhononBandsPlotter"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter">[docs]</a><span class="k">class</span> <span class="nc">PhononBandsPlotter</span><span class="p">(</span><span class="n">NotebookWriter</span><span class="p">):</span>
@@ -2459,6 +2556,16 @@
         <span class="sd">&quot;&quot;&quot;Invoked by str&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Merge two plotters, return new plotter.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know to to add </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">))</span>
+
+        <span class="n">key_phbands</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bands_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_bands_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">key_phdos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phdoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_phdoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">key_phbands</span><span class="o">=</span><span class="n">key_phbands</span><span class="p">,</span> <span class="n">key_phdos</span><span class="o">=</span><span class="n">key_phdos</span><span class="p">)</span>
+
 <div class="viewcode-block" id="PhononBandsPlotter.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2476,8 +2583,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a pandas dataframe with the most important results available in the band structures.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">frame_from_phbands</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
-                                 <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">dataframe_from_phbands</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                                      <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">phbands_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2564,8 +2671,8 @@
 
     <span class="c1">#    return &quot;\n\n&quot;.join(text)</span>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the band structure and the DOS on the same figure.</span>
 <span class="sd">        Use `gridplot` to plot band structures on different figures.</span>
@@ -2586,8 +2693,7 @@
         <span class="c1"># Build grid of plots.</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdoses_dict</span><span class="p">:</span>
-            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
             <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="c1"># Align bands and DOS.</span>
             <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
@@ -2640,8 +2746,8 @@
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBandsPlotter.gridplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.gridplot">[docs]</a>    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_dos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBandsPlotter.gridplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.gridplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_dos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot multiple electron bandstructures and optionally DOSes on a grid.</span>
 
@@ -2660,8 +2766,8 @@
 
         <span class="k">return</span> <span class="n">phbands_gridplot</span><span class="p">(</span><span class="n">phb_objects</span><span class="p">,</span> <span class="n">titles</span><span class="o">=</span><span class="n">titles</span><span class="p">,</span> <span class="n">phdos_objects</span><span class="o">=</span><span class="n">phdos_objects</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBandsPlotter.boxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.boxplot">[docs]</a>    <span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBandsPlotter.boxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.boxplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.</span>
 <span class="sd">        Band structures are drawn on different subplots.</span>
@@ -2690,8 +2796,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononBandsPlotter.combiboxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiboxplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiboxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononBandsPlotter.combiboxplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononBandsPlotter.combiboxplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">combiboxplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">swarm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use seaborn to draw a box plot comparing the distributions of the frequencies.</span>
 <span class="sd">        Phonon Band structures are drawn on the same plot.</span>
@@ -2721,8 +2827,8 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Create column with frequencies in `units`.</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">_factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
-        <span class="n">yname</span> <span class="o">=</span> <span class="s2">&quot;freq </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">yname</span> <span class="o">=</span> <span class="s2">&quot;freq </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="n">yname</span><span class="p">]</span> <span class="o">=</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span>
 
         <span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">yname</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -2776,8 +2882,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Animation with band structures + DOS.</span>
             <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
-            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">)</span>
-            <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
             <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
             <span class="n">phbands_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">)</span>
@@ -2882,8 +2987,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_phdoses_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">PhononDos</span><span class="o">.</span><span class="n">as_phdos</span><span class="p">(</span><span class="n">phdos</span><span class="p">,</span> <span class="n">phdos_kwargs</span><span class="p">)</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDosPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.combiplot">[docs]</a>    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDosPlotter.combiplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.combiplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.</span>
 
@@ -2899,8 +3004,8 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
 
         <span class="n">lines</span><span class="p">,</span> <span class="n">legends</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">dos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phdoses_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -2917,8 +3022,8 @@
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDosPlotter.gridplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.gridplot">[docs]</a>    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PhononDosPlotter.gridplot"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.gridplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot multiple DOSes on a grid.</span>
 
@@ -2950,8 +3055,8 @@
             <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">phdos</span><span class="o">.</span><span class="n">plot_dos_idos</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
 
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;DOS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">unit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;DOS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
@@ -2961,8 +3066,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="PhononDosPlotter.plot_harmonic_thermo"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.plot_harmonic_thermo">[docs]</a>    <span class="k">def</span> <span class="nf">plot_harmonic_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<div class="viewcode-block" id="PhononDosPlotter.plot_harmonic_thermo"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.phonons.PhononDosPlotter.plot_harmonic_thermo">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_harmonic_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">formula_units</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                              <span class="n">quantities</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot thermodinamic properties from the phonon DOS within the harmonic approximation.</span>
@@ -3076,7 +3181,7 @@
 <span class="sd">            structure: :class:`Structure` object.</span>
 <span class="sd">            directions: Cartesian directions along which the non analytical frequencies have been calculated</span>
 <span class="sd">            phfreqs: Phonon frequencies with non analytical contribution in eV along directions</span>
-<span class="sd">            phdispl_cart: Displacement in Angstromg in Cartesian coordinates with non analytical contribution</span>
+<span class="sd">            phdispl_cart: Displacement in Angstrom in Cartesian coordinates with non analytical contribution</span>
 <span class="sd">                along directions</span>
 <span class="sd">            amu: dictionary that associates the atomic species present in the structure to the values of the atomic</span>
 <span class="sd">                mass units used for the calculation</span>
@@ -3106,6 +3211,7 @@
 
             <span class="n">amu_list</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;atomic_mass_units&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">amu_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># ntypat arrays</span>
                 <span class="n">atom_species</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;atomic_numbers&quot;</span><span class="p">)</span>
                 <span class="n">amu</span> <span class="o">=</span> <span class="p">{</span><span class="n">at</span><span class="p">:</span> <span class="n">a</span> <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">atom_species</span><span class="p">,</span> <span class="n">amu_list</span><span class="p">)}</span>
             <span class="k">else</span><span class="p">:</span>
@@ -3448,7 +3554,7 @@
 <span class="sd">            size 3*(num atoms), but the rest of the shape is arbitrary. If qpts is not None the first dimension</span>
 <span class="sd">            should match the q points.</span>
 <span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        amu: dictionary that associates the atomic species present in the structure to the values of the atomic</span>
+<span class="sd">        amu: dictionary that associates the atomic numbers present in the structure to the values of the atomic</span>
 <span class="sd">            mass units used for the calculation. If None, values from pymatgen will be used. Note that this will</span>
 <span class="sd">            almost always lead to inaccuracies in the conversion.</span>
 
@@ -3488,28 +3594,64 @@
                 <span class="k">break</span>
 
     <span class="k">return</span> <span class="n">indices</span>
+
+
+<span class="k">class</span> <span class="nc">RobotWithPhbands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for robots associated to files with `PhononBands`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_phbands_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_abifile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build and return an instance of `PhononBandsPlotter` or a subclass is cls is not None.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filter_abifile: Function that receives an `abifile` object and returns</span>
+<span class="sd">                True if the file should be added to the plotter.</span>
+<span class="sd">            cls: subclass of `PhononBandsPlotter`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">PhononBandsPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">abifile</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filter_abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filter_abifile</span><span class="p">(</span><span class="n">abifile</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">abifile</span><span class="o">.</span><span class="n">phbands</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">plotter</span>
+
+    <span class="k">def</span> <span class="nf">get_phbands_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a pandas dataframe with the most important results available in the band structures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">dataframe_from_phbands</span><span class="p">([</span><span class="n">nc</span><span class="o">.</span><span class="n">phbands</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">],</span>
+                                      <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_phbands_code_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return list of notebook cells.&quot;&quot;&quot;</span>
+        <span class="c1"># Try not pollute namespace with lots of variables.</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv</span><span class="p">()</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;## Code to compare multiple PhononBands objects&quot;</span> <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="n">title</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.get_phbands_plotter().ipw_select_plot();&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

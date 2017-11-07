@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>dfpt Package &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -24,71 +20,133 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="dynamics Package" href="dynamics_api.html" />
-    <link rel="prev" title="data Package" href="data_api.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+    <link rel="prev" title="display Package" href="display_api.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">dfpt Package</a><ul>
 <li><a class="reference internal" href="#module-abipy.dfpt"><code class="docutils literal"><span class="pre">dpft</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.anaddbnc"><code class="docutils literal"><span class="pre">anaddbnc</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.ddb"><code class="docutils literal"><span class="pre">ddb</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.eph"><code class="docutils literal"><span class="pre">eph</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.gruneisen"><code class="docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.tensors"><code class="docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="data_api.html" title="previous chapter">data Package</a></li>
-      <li>Next: <a href="dynamics_api.html" title="next chapter">dynamics Package</a></li>
-  </ul></li>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/dfpt_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+  <li>
+    <a href="display_api.html" title="Previous Chapter: display Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; display Package</span>
+    </a>
+  </li>
+  <li>
+    <a href="dynamics_api.html" title="Next Chapter: dynamics Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">dynamics Package &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/api/dfpt_api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="dfpt-package">
 <h1>dfpt Package<a class="headerlink" href="#dfpt-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-abipy.dfpt">
@@ -103,7 +161,7 @@
 <em class="property">class </em><code class="descclassname">abipy.dfpt.anaddbnc.</code><code class="descname">AnaddbNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
-This object is usually instanciated with <cite>abiopen(&#8220;anaddb.nc&#8221;)</cite>.</p>
+This object is usually instanciated with <cite>abiopen(“anaddb.nc”)</cite>.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.structure">
 <code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.structure" title="Permalink to this definition">¶</a></dt>
@@ -126,7 +184,7 @@ This object is usually instanciated with <cite>abiopen(&#8220;anaddb.nc&#8221;)<
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.ifc">
 <code class="descname">ifc</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.ifc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.ifc" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">InteratomicForceConstants</span></code> object with the interatomic force constants calculated by anaddb.
-None, if the netcdf file does not contain the IFCs,</p>
+None, if the netcdf file does not contain the IFCs.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -152,10 +210,9 @@ Returns a NLOpticalSusceptibilityTensor or None if the file does not contain thi
 <code class="descname">dchidt</code><a class="reference internal" href="../_modules/abipy/dfpt/anaddbnc.html#AnaddbNcFile.dchidt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.anaddbnc.AnaddbNcFile.dchidt" title="Permalink to this definition">¶</a></dt>
 <dd><p>First-order change in the linear dielectric susceptibility.
 Returns a list of lists of 3x3 Tensor object with shape (number of atoms, 3).
-The [i][j] element of the list contains the Tensor representing the change due to the</p>
-<blockquote>
-<div>displacement of the ith atom in the jth direction.</div></blockquote>
-<p>None if the file does not contain this information.</p>
+The [i][j] element of the list contains the Tensor representing the change due to the
+displacement of the ith atom in the jth direction.
+None if the file does not contain this information.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -205,7 +262,7 @@ None if the file does not contain this information.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; verbosity level.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> – verbosity level.</td>
 </tr>
 </tbody>
 </table>
@@ -272,7 +329,7 @@ the error messages of the run.</p>
 <em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">DdbFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.TextFile</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>This object provides an interface to the DDB file produced by ABINIT
-as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...</p>
+as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties …</p>
 <dl class="exception">
 <dt id="abipy.dfpt.ddb.DdbFile.AnaddbError">
 <em class="property">exception </em><code class="descname">AnaddbError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.AnaddbError" title="Permalink to this definition">¶</a></dt>
@@ -292,21 +349,21 @@ the error messages of the run.</p>
 <dt id="abipy.dfpt.ddb.DdbFile.anacompare_phdos">
 <code class="descname">anacompare_phdos</code><span class="sig-paren">(</span><em>nqsmalls</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>ngqpt=None</em>, <em>num_cpus=1</em>, <em>stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anacompare_phdos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anacompare_phdos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
-reported in the DDB file will be Fourier-interpolated on the list of qmeshes specified
-by <a href="#id1"><span class="problematic" id="id2">`</span></a>nqsmalls. Useful to perform covergence studies.</p>
+reported in the DDB file will be Fourier-interpolated on the list of q-meshes specified
+by <cite>nqsmalls</cite>. Useful to perform covergence studies.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nqsmalls</strong> &#8211; List of integers defining the q-mesh for the DOS. Each integer gives</li>
-<li><strong>number of divisions to be used to sample the smallest reciprocal lattice vector.</strong> (<em>the</em>) &#8211; </li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>dos_method</strong> &#8211; Technique for DOS computation in  Possible choices: &#8220;tetra&#8221;, &#8220;gaussian&#8221; or &#8220;gaussian:0.001 eV&#8221;.
+<li><strong>nqsmalls</strong> – List of integers defining the q-mesh for the DOS. Each integer gives</li>
+<li><strong>number of divisions to be used to sample the smallest reciprocal lattice vector.</strong> (<em>the</em>) – </li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>dos_method</strong> – Technique for DOS computation in  Possible choices: “tetra”, “gaussian” or “gaussian:0.001 eV”.
 In the later case, the value 0.001 eV is used as gaussian broadening</li>
-<li><strong>ngqpt</strong> &#8211; Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)</li>
-<li><strong>num_cpus</strong> &#8211; Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.</li>
-<li><strong>stream</strong> &#8211; File-like object used for printing.</li>
+<li><strong>ngqpt</strong> – Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)</li>
+<li><strong>num_cpus</strong> – Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.</li>
+<li><strong>stream</strong> – File-like object used for printing.</li>
 </ul>
 </td>
 </tr>
@@ -334,10 +391,10 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>chneut</strong> &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
-<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
-<li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
+<li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
 </td>
 </tr>
@@ -357,14 +414,14 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ifcout</strong> &#8211; Number of neighbouring atoms for which the ifc&#8217;s will be output. If None all the atoms in the big box.</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>ngqpt</strong> &#8211; Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
-<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
-<li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
-<li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
-<li><strong>anaddb_kwargs</strong> &#8211; additional kwargs for anaddb</li>
+<li><strong>ifcout</strong> – Number of neighbouring atoms for which the ifc’s will be output. If None all the atoms in the big box.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
+<li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
+<li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
 </td>
 </tr>
@@ -384,21 +441,21 @@ plotter: <code class="xref py py-class docutils literal"><span class="pre">Phono
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nqsmall</strong> &#8211; Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
+<li><strong>nqsmall</strong> – Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
 used to sample the smallest lattice vector.</li>
-<li><strong>ndivsm</strong> &#8211; Number of division used for the smallest segment of the q-path</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>dos_method</strong> &#8211; Technique for DOS computation in  Possible choices: &#8220;tetra&#8221;, &#8220;gaussian&#8221; or &#8220;gaussian:0.001 eV&#8221;.
+<li><strong>ndivsm</strong> – Number of division used for the smallest segment of the q-path</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>dos_method</strong> – Technique for DOS computation in  Possible choices: “tetra”, “gaussian” or “gaussian:0.001 eV”.
 In the later case, the value 0.001 eV is used as gaussian broadening</li>
-<li><strong>lo_to_splitting</strong> &#8211; if True the LO-TO splitting will be calculated and included in the band structure</li>
-<li><strong>ngqpt</strong> &#8211; Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
-<li><strong>qptbounds</strong> &#8211; Boundaries of the path. If None, the path is generated from an internal database
+<li><strong>lo_to_splitting</strong> – if True the LO-TO splitting will be calculated and included in the band structure</li>
+<li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
+<li><strong>qptbounds</strong> – Boundaries of the path. If None, the path is generated from an internal database
 depending on the input structure.</li>
-<li><strong>anaddb_kwargs</strong> &#8211; additional kwargs for anaddb</li>
-<li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
-<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
-<li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
+<li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
+<li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
 </ul>
 </td>
 </tr>
@@ -419,17 +476,17 @@ depending on the input structure.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qpoint</strong> &#8211; Reduced coordinates of the qpoint where phonon modes are computed.</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>workdir</strong> &#8211; Working directory. If None, a temporary directory is created.</li>
-<li><strong>mpi_procs</strong> &#8211; Number of MPI processes to use.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
-<li><strong>verbose</strong> &#8211; verbosity level. Set it to a value &gt; 0 to get more information</li>
-<li><strong>lo_to_splitting</strong> &#8211; if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
+<li><strong>qpoint</strong> – Reduced coordinates of the qpoint where phonon modes are computed.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
+<li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> object. If None, the object is initialized from the configuration file</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
+<li><strong>lo_to_splitting</strong> – if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
 non_anal_phfreqs attributes will be added to the returned object</li>
-<li><strong>directions</strong> &#8211; list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+<li><strong>directions</strong> – list of 3D directions along which the LO-TO splitting will be calculated. If None the three
 cartesian direction will be used</li>
-<li><strong>anaddb_kwargs</strong> &#8211; additional kwargs for anaddb</li>
+<li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
 </td>
 </tr>
@@ -443,8 +500,8 @@ cartesian direction will be used</li>
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.blocks">
 <code class="descname">blocks</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.blocks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.blocks" title="Permalink to this definition">¶</a></dt>
-<dd><p>DDB blocks. List of dictionaries, Each dictionary contains &#8220;qpt&#8221;
-with the reduced coordinates of the q-point and &#8220;data&#8221; that is a list of strings
+<dd><p>DDB blocks. List of dictionaries, Each dictionary contains “qpt”
+with the reduced coordinates of the q-point and “data” that is a list of strings
 with the entries of the dynamical matrix for this q-point.</p>
 </dd></dl>
 
@@ -488,7 +545,7 @@ Use ddb.header.ecut to access its values</p>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.params">
-<code class="descname">params</code><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.params" title="Permalink to this definition">¶</a></dt>
+<code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary with the parameters that are usually tested for convergence.</p>
 </dd></dl>
 
@@ -533,6 +590,13 @@ Note that the DDB file should be written and reopened in order to call methods t
 <dd><p>String representation.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbFile.update_header">
+<code class="descname">update_header</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.update_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.update_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the header.lines with the variables contained in the header dictionary
+The variables are written from a list in the correct order (check if this is necessary)</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.version">
 <code class="descname">version</code><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.version" title="Permalink to this definition">¶</a></dt>
@@ -551,6 +615,69 @@ Only the information stored in self.header.lines and in self.blocks will be used
 <dt id="abipy.dfpt.ddb.DdbFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.ddb.DdbRobot">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">DdbRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a></p>
+<p>This robot analyzes the results contained in multiple DDB files.</p>
+<dl class="attribute">
+<dt id="abipy.dfpt.ddb.DdbRobot.EXT">
+<code class="descname">EXT</code><em class="property"> = 'DDB'</em><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.EXT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.anaget_phonon_plotters">
+<code class="descname">anaget_phonon_plotters</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.anaget_phonon_plotters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.anaget_phonon_plotters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.
+Collect results and return <cite>namedtuple</cite> with the following attributes:</p>
+<blockquote>
+<div>phbands_plotter: <cite>PhononBandsPlotter</cite> object.
+phdos_plotter: <cite>PhononDosPlotter</cite> object.</div></blockquote>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.ddb.DdbRobot.class_handles_filename">
+<em class="property">classmethod </em><code class="descname">class_handles_filename</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.class_handles_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.class_handles_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude DDB.nc files. Override base class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint">
+<code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
+by the robot and the given anaddb input arguments.
+Build and return a pandas dataframe with results</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qpoint</strong> – Reduced coordinates of the qpoint where phonon modes are computed</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
+Each function receives a <code class="xref py py-class docutils literal"><span class="pre">DDBFile</span></code> object and returns a tuple (key, value)
+where key is a string with the name of column and value is the value to be inserted.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas DataFrame</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -591,9 +718,9 @@ num: number of values of the frequencies between w_min and w_max
 component: determine which components of the tensor will be displayed. Can be a list/tuple of two</p>
 <blockquote>
 <div>elements, indicating the indices [i, j] of the desired component or a string among
-&#8216;diag&#8217;: plots the elements on diagonal
-&#8216;all&#8217;: plots all the components
-&#8216;diag_av&#8217;: plots the average of the components on the diagonal</div></blockquote>
+‘diag’: plots the elements on diagonal
+‘all’: plots all the components
+‘diag_av’: plots the average of the components on the diagonal</div></blockquote>
 <p class="last">units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</p>
 </dd>
 </dl>
@@ -617,14 +744,14 @@ component: determine which components of the tensor will be displayed. Can be a 
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -639,9 +766,19 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt id="abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency">
 <code class="descname">tensor_at_frequency</code><span class="sig-paren">(</span><em>w</em>, <em>units='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DielectricTensorGenerator.tensor_at_frequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DielectricTensorGenerator.tensor_at_frequency" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a DielectricTensor object representing
-the dielectric tensor in atomic units at the specified frequency w.
-:param w: frequency
-:param units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</p>
+the dielectric tensor in atomic units at the specified frequency w.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> – frequency</li>
+<li><strong>units</strong> – string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -685,25 +822,252 @@ the dielectric tensor in atomic units at the specified frequency w.
 </dd></dl>
 
 </div>
-<div class="section" id="module-abipy.dfpt.eph">
-<span id="eph-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Module<a class="headerlink" href="#module-abipy.dfpt.eph" title="Permalink to this headline">¶</a></h2>
-<p>This module contains objects for the postprocessing of EPH calculations.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Work in progress, DO NOT USE IT</p>
-</div>
+<div class="section" id="module-abipy.dfpt.gruneisen">
+<span id="gruneisen-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module<a class="headerlink" href="#module-abipy.dfpt.gruneisen" title="Permalink to this headline">¶</a></h2>
+<p>Objects to analyze the results stored in the GRUNS.nc file produced by anaddb.</p>
 <dl class="class">
-<dt id="abipy.dfpt.eph.EliashbergFunction">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.eph.</code><code class="descname">EliashbergFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/eph.html#EliashbergFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.eph.EliashbergFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Eliashberg function a2F(w).</p>
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.gruneisen.</code><code class="descname">GrunsNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<p>This object provides an interface to the <cite>GRUNS.nc</cite> file produced by abinit.
+This file contains Grunesein parameters computed via finite difference.</p>
+<p>Usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">GrunsNcFile</span><span class="p">(</span><span class="s2">&quot;foo_GRUNS.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.doses">
+<code class="descname">doses</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.doses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.doses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary with the phonon doses.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the object from a Netcdf file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.get_plotter">
+<code class="descname">get_plotter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.get_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.get_plotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an instance of <code class="xref py py-class docutils literal"><span class="pre">PhononBandsPlotter</span></code> that can be use to plot
+multiple phonon bands or animate the bands</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.iv0">
+<code class="descname">iv0</code><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.iv0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.phbands_qpath_vol">
+<code class="descname">phbands_qpath_vol</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.phbands_qpath_vol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.phbands_qpath_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id1"><span class="problematic" id="id2">**</span></a>List of* – class* – <a href="#id3"><span class="problematic" id="id4">`</span></a>PhononBands objects corresponding to the different volumes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.plot_doses">
+<code class="descname">plot_doses</code><span class="sig-paren">(</span><em>xlims=None</em>, <em>dos_names='all'</em>, <em>with_idos=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_doses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_doses" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot the different doses stored in the GRUNS file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. <cite>(left, right)</cite></dt>
+<dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
+</dl>
+<p class="last">dos_names: List of strings defining the DOSes to plot. Use <cite>all</cite> to plot all DOSes available.
+with_idos: True to display integrated doses</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns">
+<code class="descname">plot_phbands_with_gruns</code><span class="sig-paren">(</span><em>fill_with='gruns'</em>, <em>gamma_fact=1</em>, <em>alpha=0.6</em>, <em>with_doses='all'</em>, <em>units='eV'</em>, <em>ylims=None</em>, <em>match_bands=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_phbands_with_gruns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot the phonon bands corresponding to V0 (the central point) with markers
+showing the value and the sign of the Grunesein parameters.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>fill_with: Define the quantity used to plot stripes. “gruns” for Grunesein parameters,</dt>
+<dd>“groupv” for phonon group velocities.</dd>
+<dt>gamma_fact: Scaling factor for Grunesein parameters.</dt>
+<dd>Up triangle for positive values, down triangles for negative values.</dd>
+</dl>
+<p>alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)
+with_doses: “all” to plot all DOSes available, <cite>None</cite> to disable DOS plotting,</p>
+<blockquote>
+<div>else list of strings with the name of the DOSes to plot.</div></blockquote>
+<p>units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
+ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. <cite>(left, right)</cite></p>
+<blockquote>
+<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
+<p class="last">match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.structure">
+<code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Crystalline structure corresponding to the central point V0.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
+<code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pandas DataFrame with the following columns:</p>
+<blockquote>
+<div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
+<p>where:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>qidx</td>
+<td>q-point index.</td>
+</tr>
+<tr class="row-odd"><td>mode</td>
+<td>phonon branch index.</td>
+</tr>
+<tr class="row-even"><td>grun</td>
+<td>Gruneisen parameter.</td>
+</tr>
+<tr class="row-odd"><td>groupv</td>
+<td>Group velocity.</td>
+</tr>
+<tr class="row-even"><td>freq</td>
+<td>Phonon frequency in eV.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
-<dt id="abipy.dfpt.eph.EphReader">
-<em class="property">class </em><code class="descclassname">abipy.dfpt.eph.</code><code class="descname">EphReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/eph.html#EphReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.eph.EphReader" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.dfpt.gruneisen.GrunsReader">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.gruneisen.</code><code class="descname">GrunsReader</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="iotools_api.html#abipy.iotools.ETSF_Reader" title="abipy.iotools.ETSF_Reader"><code class="xref py py-class docutils literal"><span class="pre">abipy.iotools.ETSF_Reader</span></code></a></p>
-<p>Reads data from file and constructs objects.</p>
+<p>This object reads the results stored in the GRUNS file produced by ABINIT.
+It provides helper functions to access the most important quantities.</p>
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsReader.read_amuz_dict">
+<code class="descname">read_amuz_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_amuz_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_amuz_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictionary that associates the atomic number to the values of the atomic
+mass units used for the calculation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsReader.read_doses">
+<code class="descname">read_doses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_doses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_doses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <code class="xref py py-class docutils literal"><span class="pre">AttrDict</span></code> with the DOSes available in the file. Empty dict if
+DOSes are not available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsReader.read_phbands_on_qpath">
+<code class="descname">read_phbands_on_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_phbands_on_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_phbands_on_qpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of <code class="xref py py-class docutils literal"><span class="pre">PhononBands</span></code> computed at the different volumes.
+The <cite>iv0</cite> entry corresponds to the central point used to compute Grunesein parameters
+with finite differences. This object stores the Grunesein parameters in <cite>grun_vals</cite>.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -711,18 +1075,18 @@ the dielectric tensor in atomic units at the specified frequency w.
 <span id="phonons-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">phonons</span></code> Module<a class="headerlink" href="#module-abipy.dfpt.phonons" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="abipy.dfpt.phonons.frame_from_phbands">
-<code class="descclassname">abipy.dfpt.phonons.</code><code class="descname">frame_from_phbands</code><span class="sig-paren">(</span><em>phbands_objects</em>, <em>index=None</em>, <em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#frame_from_phbands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.frame_from_phbands" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.dfpt.phonons.</code><code class="descname">frame_from_phbands</code><span class="sig-paren">(</span><em>phbands_objects</em>, <em>index=None</em>, <em>with_spglib=True</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.dfpt.phonons.frame_from_phbands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a pandas dataframe with the most important results available in a list of band structures.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>phbands_objects</strong> &#8211; List of objects that can be converted to structure.
+<li><strong>phbands_objects</strong> – List of objects that can be converted to phonon bands objects..
 Support netcdf filenames or <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">PhononBands</span></code></a> objects
-See <cite>PhononBands.as_ebands</cite> for the complete list.</li>
-<li><strong>index</strong> &#8211; Index of the dataframe.</li>
-<li><strong>with_spglib</strong> &#8211; If True, spglib is invoked to get the spacegroup symbol and number.</li>
+See <cite>PhononBands.as_phbands</cite> for the complete list.</li>
+<li><strong>index</strong> – Index of the dataframe.</li>
+<li><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number.</li>
 </ul>
 </td>
 </tr>
@@ -764,7 +1128,7 @@ Supports:</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 mode_range: Only modes such as <cite>mode_range[0] &lt;= mode_index &lt; mode_range[1]</cite> are included in the plot.
 swarm: True to show the datapoints on top of the boxes
 kwargs: Keyword arguments passed to seaborn boxplot.</dd>
@@ -789,14 +1153,14 @@ kwargs: Keyword arguments passed to seaborn boxplot.</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -812,10 +1176,10 @@ This format can be read with V_sim or ascii-phonons.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>iqpts</strong> &#8211; an index or a list of indices of the qpoints in self. Note that at present only V_sim supports
+<li><strong>iqpts</strong> – an index or a list of indices of the qpoints in self. Note that at present only V_sim supports
 an ascii file with multiple qpoints.</li>
-<li><strong>filename</strong> &#8211; name of the ascii file that will be created.</li>
-<li><strong>pre_factor</strong> &#8211; Multiplication factor of the eigendisplacements.</li>
+<li><strong>filename</strong> – name of the ascii file that will be created.</li>
+<li><strong>pre_factor</strong> – Multiplication factor of the eigendisplacements.</li>
 </ul>
 </td>
 </tr>
@@ -825,30 +1189,26 @@ an ascii file with multiple qpoints.</li>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.create_phononwebsite_json">
-<code class="descname">create_phononwebsite_json</code><span class="sig-paren">(</span><em>filename</em>, <em>name=None</em>, <em>repetitions=None</em>, <em>highsym_qpts=None</em>, <em>match_bands=True</em>, <em>highsym_qpts_mode='split'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.create_phononwebsite_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.create_phononwebsite_json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes a json file that can be parsed from phononwebsite <a class="reference external" href="https://github.com/henriquemiranda/phononwebsite">https://github.com/henriquemiranda/phononwebsite</a></p>
+<code class="descname">create_phononwebsite_json</code><span class="sig-paren">(</span><em>filename</em>, <em>name=None</em>, <em>repetitions=None</em>, <em>highsym_qpts=None</em>, <em>match_bands=True</em>, <em>highsym_qpts_mode='split'</em>, <em>indent=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.create_phononwebsite_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.create_phononwebsite_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a json file that can be parsed from the phononwebsite. See &lt;<a class="reference external" href="https://github.com/henriquemiranda/phononwebsite">https://github.com/henriquemiranda/phononwebsite</a>&gt;</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filename</strong> &#8211; name of the json file that will be created</li>
-<li><strong>name</strong> &#8211; name associated with the data.</li>
-<li><strong>repetitions</strong> &#8211; number of repetitions of the cell. List of three integers. Defaults to [3,3,3].</li>
-<li><strong>highsym_qpts</strong> &#8211; list of tuples. The first element of each tuple should be a list with the coordinates
+<li><strong>filename</strong> – name of the json file that will be created</li>
+<li><strong>name</strong> – name associated with the data.</li>
+<li><strong>repetitions</strong> – number of repetitions of the cell. List of three integers. Defaults to [3,3,3].</li>
+<li><strong>highsym_qpts</strong> – list of tuples. The first element of each tuple should be a list with the coordinates
 of a high symmetry point, the second element of the tuple should be its label.</li>
-<li><strong>match_bands</strong> &#8211; if True tries to follow the band along the path based on the scalar product of the eigenvectors.</li>
-<li><strong>highsym_qpts_mode</strong> &#8211; <p>if highsym_qpts is None high symmetry q-points can be automatically determined.
-Accepts the following values:</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>&#8216;split&#8217; will split the path based on points where the path changes direction in the Brillouin zone.</dt>
-<dd>Similar to the what is done in phononwebsite. Only Gamma will be labeled.</dd>
-</dl>
-<p>&#8216;std&#8217; uses the standard generation procedure for points and labels used in PhononBands.
-None does not set any point.</p>
-</div></blockquote>
-</li>
+<li><strong>match_bands</strong> – if True tries to follow the band along the path based on the scalar product of the eigenvectors.</li>
+<li><strong>highsym_qpts_mode</strong> – if highsym_qpts is None high symmetry q-points can be automatically determined.
+Accepts the following values:
+‘split’ will split the path based on points where the path changes direction in the Brillouin zone.
+Similar to the what is done in phononwebsite. Only Gamma will be labeled.
+‘std’ uses the standard generation procedure for points and labels used in PhononBands.
+None does not set any point.</li>
+<li><strong>indent</strong> – Indentation level, passed to json.dump</li>
 </ul>
 </td>
 </tr>
@@ -865,12 +1225,12 @@ None does not set any point.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>iqpt</strong> &#8211; index of qpoint in self</li>
-<li><strong>filename</strong> &#8211; name of the XYZ file that will be created</li>
-<li><strong>pre_factor</strong> &#8211; Multiplication factor of the eigendisplacements</li>
-<li><strong>do_real</strong> &#8211; True if we want only real part of the displacement, False means imaginary part</li>
-<li><strong>scale_matrix</strong> &#8211; Scaling matrix of the supercell</li>
-<li><strong>max_supercell</strong> &#8211; Maximum size of the supercell with respect to primitive cell</li>
+<li><strong>iqpt</strong> – index of qpoint in self</li>
+<li><strong>filename</strong> – name of the XYZ file that will be created</li>
+<li><strong>pre_factor</strong> – Multiplication factor of the eigendisplacements</li>
+<li><strong>do_real</strong> – True if we want only real part of the displacement, False means imaginary part</li>
+<li><strong>scale_matrix</strong> – Scaling matrix of the supercell</li>
+<li><strong>max_supercell</strong> – Maximum size of the supercell with respect to primitive cell</li>
 </ul>
 </td>
 </tr>
@@ -881,7 +1241,9 @@ None does not set any point.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.decorate_ax">
 <code class="descname">decorate_ax</code><span class="sig-paren">(</span><em>ax</em>, <em>units='eV'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.decorate_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.decorate_ax" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Add k-labels, title and unit name to axis ax.
+Use units = “” to add k-labels without adding unit name.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBands.displ_shape">
@@ -898,7 +1260,7 @@ None does not set any point.</p>
 <dl class="staticmethod">
 <dt id="abipy.dfpt.phonons.PhononBands.factor_ev2units">
 <em class="property">static </em><code class="descname">factor_ev2units</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.factor_ev2units"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.factor_ev2units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return conversion factor eV &#8211;&gt; units (case-insensitive)</p>
+<dd><p>Return conversion factor eV –&gt; units (case-insensitive)</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -924,7 +1286,7 @@ None does not set any point.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_spglib</strong> &#8211; If True, spglib is invoked to get the spacegroup symbol and number</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number</td>
 </tr>
 </tbody>
 </table>
@@ -951,9 +1313,9 @@ None does not set any point.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>method</strong> &#8211; String defining the method</li>
-<li><strong>step</strong> &#8211; Energy step (eV) of the linear mesh.</li>
-<li><strong>width</strong> &#8211; Standard deviation (eV) of the gaussian.</li>
+<li><strong>method</strong> – String defining the method</li>
+<li><strong>step</strong> – Energy step (eV) of the linear mesh.</li>
+<li><strong>width</strong> – Standard deviation (eV) of the gaussian.</li>
 </ul>
 </td>
 </tr>
@@ -1020,10 +1382,13 @@ and modes with lowest frequency come first.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
-qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).</p>
 <blockquote>
-<div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}.</div></blockquote>
+<div>Case-insensitive.</div></blockquote>
+<dl class="docutils">
+<dt>qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</dt>
+<dd>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): “$Gamma$”, (0.5,0,0): “L”}.</dd>
+</dl>
 <p class="last">branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
 match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.</p>
 </dd>
@@ -1050,14 +1415,14 @@ match_bands: if True the bands will be matched based on the scalar product betwe
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1072,7 +1437,7 @@ If branch is None, all phonon branches are plotted.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The list of &#8216;matplotlib&#8217; lines added.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The list of ‘matplotlib’ lines added.</td>
 </tr>
 </tbody>
 </table>
@@ -1086,10 +1451,10 @@ If branch is None, all phonon branches are plotted.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
 <blockquote>
-<div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}</div></blockquote>
+<div>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): “$Gamma$”, (0.5,0,0): “L”}</div></blockquote>
 <p>branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
 colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a</p>
 <blockquote>
@@ -1123,14 +1488,14 @@ colormap: matplotlib colormap to determine the colors available. The colors will
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1143,7 +1508,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <div><p>Plot phonon fatbands and, optionally, atom-projected DOS.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+<dd><p class="first">units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 colormap: Have a look at the colormaps here and decide which one you like:</p>
 <blockquote>
 <div><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></div></blockquote>
@@ -1160,7 +1525,7 @@ width_ratios: Ratios between the width of the fatbands plots and the DOS plots.<
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
 <dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
 <dt>qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</dt>
-<dd>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}.</dd>
+<dd>The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): “$Gamma$”, (0.5,0,0): “L”}.</dd>
 </dl>
 </dd>
 <dt>Returns:</dt>
@@ -1186,14 +1551,14 @@ width_ratios: Ratios between the width of the fatbands plots and the DOS plots.<
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1207,10 +1572,10 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">phdos: An instance of <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a> or netcdf file providing a PhononDos object.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
 <blockquote>
-<div>The values are the labels e.g. qlabels = {(0.0,0.0,0.0):&#8221;$Gamma$&#8221;, (0.5,0,0):&#8221;L&#8221;}.</div></blockquote>
+<div>The values are the labels e.g. qlabels = {(0.0,0.0,0.0):”$Gamma$”, (0.5,0,0):”L”}.</div></blockquote>
 <dl class="last docutils">
 <dt>axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure</dt>
 <dd>is created and the two axes are automatically generated.</dd>
@@ -1239,14 +1604,14 @@ qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1305,7 +1670,7 @@ Lazy property.</p>
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.to_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pandas DataFrame with the following columns:</p>
 <blockquote>
-<div>[&#8216;qidx&#8217;, &#8216;mode&#8217;, &#8216;freq&#8217;, &#8216;qpoint&#8217;]</div></blockquote>
+<div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1342,8 +1707,8 @@ Lazy property.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qlabels</strong> &#8211; dictionary whose keys are tuples with the reduced coordinates of the q-points.
-The values are the labels e.g. qlabels = {(0.0,0.0,0.0):&#8221;$Gamma$&#8221;, (0.5,0,0):&#8221;L&#8221;}.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
+The values are the labels e.g. qlabels = {(0.0,0.0,0.0):”$Gamma$”, (0.5,0,0):”L”}.
 If None labels will be determined automatically.</td>
 </tr>
 </tbody>
@@ -1352,16 +1717,16 @@ If None labels will be determined automatically.</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>with_structure=True</em>, <em>with_qpoints=False</em>, <em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Human-readable string with useful information such as structure, q-points, ...</p>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>with_structure=True</em>, <em>with_qpoints=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Human-readable string with useful information such as structure, q-points, …</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>with_structure</strong> &#8211; False if structural info shoud not be displayed.</li>
-<li><strong>with_qpoints</strong> &#8211; False if q-point info shoud not be displayed.</li>
-<li><strong>verbose</strong> &#8211; Verbosity level.</li>
+<li><strong>with_structure</strong> – False if structural info shoud not be displayed.</li>
+<li><strong>with_qpoints</strong> – False if q-point info shoud not be displayed.</li>
+<li><strong>verbose</strong> – Verbosity level.</li>
 </ul>
 </td>
 </tr>
@@ -1378,10 +1743,25 @@ If None labels will be determined automatically.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filepath</strong> &#8211; Filename</li>
-<li><strong>units</strong> &#8211; Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.</li>
+<li><strong>filepath</strong> – Filename</li>
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhononBands.view_phononwebsite">
+<code class="descname">view_phononwebsite</code><span class="sig-paren">(</span><em>open_browser=True</em>, <em>verbose=1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.view_phononwebsite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.view_phononwebsite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce json file that can be parsed from the phononwebsite. Contact the server, get
+the url of the webpage and open it in the browser if <cite>open_browser</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Exit status</td>
 </tr>
 </tbody>
 </table>
@@ -1411,10 +1791,10 @@ Supports plots on the same graph or separated plots.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>label</strong> &#8211; label for the bands. Must be unique.</li>
-<li><strong>bands</strong> &#8211; <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">PhononBands</span></code></a> object.</li>
-<li><strong>phdos</strong> &#8211; <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a> object.</li>
-<li><strong>phdos_kwargs</strong> &#8211; optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.
+<li><strong>label</strong> – label for the bands. Must be unique.</li>
+<li><strong>bands</strong> – <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">PhononBands</span></code></a> object.</li>
+<li><strong>phdos</strong> – <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a> object.</li>
+<li><strong>phdos_kwargs</strong> – optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.
 Used only if <cite>phdos</cite> is not None.</li>
 </ul>
 </td>
@@ -1437,12 +1817,12 @@ Used only if <cite>phdos</cite> is not None.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>interval</strong> &#8211; draws a new frame every interval milliseconds.</li>
-<li><strong>savefile</strong> &#8211; Use e.g. &#8216;myanimation.mp4&#8217; to save the animation in mp4 format.</li>
-<li><strong>units</strong> &#8211; Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.</li>
-<li><strong>width_ratios</strong> &#8211; Defines the ratio between the band structure plot and the dos plot.
+<li><strong>interval</strong> – draws a new frame every interval milliseconds.</li>
+<li><strong>savefile</strong> – Use e.g. ‘myanimation.mp4’ to save the animation in mp4 format.</li>
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
+<li><strong>width_ratios</strong> – Defines the ratio between the band structure plot and the dos plot.
 Used when there are DOS stored in the plotter.</li>
-<li><strong>show</strong> &#8211; True if the animation should be shown immediately</li>
+<li><strong>show</strong> – True if the animation should be shown immediately</li>
 </ul>
 </td>
 </tr>
@@ -1467,7 +1847,7 @@ See: <a class="reference external" href="http://stackoverflow.com/questions/1755
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.bands_dict">
 <code class="descname">bands_dict</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.bands_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary with the mapping label &#8211;&gt; phbands.</p>
+<dd><p>Dictionary with the mapping label –&gt; phbands.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1479,7 +1859,7 @@ Band structures are drawn on different subplots.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>mode_range: Only bands such as <cite>mode_range[0] &lt;= nu_index &lt; mode_range[1]</cite> are included in the plot.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 swarm: True to show the datapoints on top of the boxes
 kwargs: Keywork arguments passed to seaborn boxplot.</dd>
 </dl>
@@ -1503,14 +1883,14 @@ kwargs: Keywork arguments passed to seaborn boxplot.</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1525,7 +1905,7 @@ Phonon Band structures are drawn on the same plot.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>mode_range: Only bands such as <cite>mode_range[0] &lt;= nu_index &lt; mode_range[1]</cite> are included in the plot.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 swarm: True to show the datapoints on top of the boxes
 ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
 kwargs: Keyword arguments passed to seaborn boxplot.</dd>
@@ -1550,14 +1930,14 @@ kwargs: Keyword arguments passed to seaborn boxplot.</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1571,10 +1951,10 @@ example: size_kwargs=dict(w=3, h=4)</td>
 Use <cite>gridplot</cite> to plot band structures on different figures.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+<dd><p class="first">units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.</p>
 <blockquote>
-<div>The values are the labels e.g. klabels = {(0.0,0.0,0.0): &#8220;$Gamma$&#8221;, (0.5,0,0): &#8220;L&#8221;}.</div></blockquote>
+<div>The values are the labels e.g. klabels = {(0.0,0.0,0.0): “$Gamma$”, (0.5,0,0): “L”}.</div></blockquote>
 <dl class="last docutils">
 <dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
 <dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
@@ -1603,14 +1983,14 @@ qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1629,7 +2009,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <div><p>Plot multiple electron bandstructures and optionally DOSes on a grid.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+<dd>units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 with_dos: True if DOS should be printed.</dd>
 <dt>Returns:</dt>
 <dd>matplotlib figure.</dd>
@@ -1654,14 +2034,14 @@ with_dos: True if DOS should be printed.</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -1682,25 +2062,25 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.phbands_dict">
 <code class="descname">phbands_dict</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.phbands_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary with the mapping label &#8211;&gt; phbands.</p>
+<dd><p>Dictionary with the mapping label –&gt; phbands.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.phbands_list">
 <code class="descname">phbands_list</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.phbands_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;List of ` &#8211; class &#8211; PhononBands`.</p>
+<dd><p>“List of ` – class – PhononBands`.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.phdoses_dict">
 <code class="descname">phdoses_dict</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.phdoses_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary with the mapping label &#8211;&gt; phdos.</p>
+<dd><p>Dictionary with the mapping label –&gt; phdos.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.phdoses_list">
 <code class="descname">phdoses_list</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.phdoses_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;List of <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a>.</p>
+<dd><p>“List of <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1743,8 +2123,8 @@ information on the crystal structure (used for convergence studies).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>qpoint</strong> &#8211; integer, vector of reduced coordinates or <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object.</li>
-<li><strong>with_structure</strong> &#8211; True to add structural parameters.</li>
+<li><strong>qpoint</strong> – integer, vector of reduced coordinates or <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object.</li>
+<li><strong>with_structure</strong> – True to add structural parameters.</li>
 </ul>
 </td>
 </tr>
@@ -1761,9 +2141,9 @@ information on the crystal structure (used for convergence studies).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qpoint</strong> &#8211; Either a vector with the reduced components of the q-point
+<li><strong>qpoint</strong> – Either a vector with the reduced components of the q-point
 or an integer giving the sequential index (C-convention).</li>
-<li><strong>branch</strong> &#8211; branch index (C-convention)</li>
+<li><strong>branch</strong> – branch index (C-convention)</li>
 </ul>
 </td>
 </tr>
@@ -1812,7 +2192,7 @@ or an integer giving the sequential index (C-convention).</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; verbosity level.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> – verbosity level.</td>
 </tr>
 </tbody>
 </table>
@@ -1852,7 +2232,7 @@ Supports:</p>
 </dl>
 </li>
 <li>instances of <cite>PhononBands</cite></li>
-<li>objects providing a <a href="#id3"><span class="problematic" id="id4">`</span></a>phbands`attribute.</li>
+<li>objects providing a <a href="#id5"><span class="problematic" id="id6">`</span></a>phbands`attribute.</li>
 </ul>
 </div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1860,8 +2240,8 @@ Supports:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phdos_kwargs</strong> &#8211; optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.</li>
-<li><strong>when obj is not already an instance of cls</strong><strong> or </strong><strong>when we have to compute the DOS from obj.</strong> (<em>Used</em>) &#8211; </li>
+<li><strong>phdos_kwargs</strong> – optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.</li>
+<li><strong>when obj is not already an instance of cls</strong><strong> or </strong><strong>when we have to compute the DOS from obj.</strong> (<em>Used</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -1872,7 +2252,8 @@ Supports:</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononDos.get_cv">
 <code class="descname">get_cv</code><span class="sig-paren">(</span><em>tstart=5</em>, <em>tstop=300</em>, <em>num=50</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.get_cv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.get_cv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the constant-volume specific heat, in eV/K, in the harmonic approximation for different temperatures</p>
+<dd><p>Returns the constant-volume specific heat, in eV/K, in the harmonic approximation
+for different temperatures</p>
 <p>tstart: The starting value (in Kelvin) of the temperature mesh.
 tstop: The end value (in Kelvin) of the mesh.
 num: int, optional Number of samples to generate. Default is 50.</p>
@@ -1958,7 +2339,7 @@ num: int, optional Number of samples to generate. Default is 50.</p>
 <div><p>Plot Phonon DOS and IDOS on two distict plots.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+<dd>units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 kwargs: Keyword arguments passed to <code class="xref py py-mod docutils literal"><span class="pre">matplotlib</span></code>.</dd>
 <dt>Returns:</dt>
 <dd><cite>matplotlib</cite> figure.</dd>
@@ -1983,14 +2364,14 @@ kwargs: Keyword arguments passed to <code class="xref py py-mod docutils literal
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2005,13 +2386,13 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ax</strong> &#8211; matplotlib axis</li>
-<li><strong>what</strong> &#8211; string selecting the quantity to plot:
-&#8220;d&#8221; for DOS, &#8220;i&#8221; for IDOS. chars can be concatenated
-hence what=&#8221;id&#8221; plots both IDOS and DOS. (default &#8220;d&#8221;).</li>
-<li><strong>exchange_xy</strong> &#8211; True to exchange axis</li>
-<li><strong>units</strong> &#8211; Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.</li>
-<li><strong>kwargs</strong> &#8211; Options passed to matplotlib plot method.</li>
+<li><strong>ax</strong> – matplotlib axis</li>
+<li><strong>what</strong> – string selecting the quantity to plot:
+“d” for DOS, “i” for IDOS. chars can be concatenated
+hence what=”id” plots both IDOS and DOS. (default “d”).</li>
+<li><strong>exchange_xy</strong> – True to exchange axis</li>
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
+<li><strong>kwargs</strong> – Options passed to matplotlib plot method.</li>
 </ul>
 </td>
 </tr>
@@ -2034,7 +2415,7 @@ tstop: The end value (in Kelvin) of the mesh.
 num: int, optional Number of samples to generate. Default is 50.
 quantities: List of strings specifying the thermodinamic quantities to plot.</p>
 <blockquote>
-<div>Possible values: [&#8220;internal_energy&#8221;, &#8220;free_energy&#8221;, &#8220;entropy&#8221;, &#8220;c_v&#8221;].
+<div>Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].
 None means all.</div></blockquote>
 <p>units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
 formula_units:</p>
@@ -2065,14 +2446,14 @@ thermodynamic quantities will be given on a per-unit-cell basis.</div></blockquo
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2107,9 +2488,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>label</strong> &#8211; label for the phonon DOS. Must be unique.</li>
-<li><strong>phdos</strong> &#8211; <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a> object.</li>
-<li><strong>phdos_kwargs</strong> &#8211; optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.
+<li><strong>label</strong> – label for the phonon DOS. Must be unique.</li>
+<li><strong>phdos</strong> – <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">PhononDos</span></code></a> object.</li>
+<li><strong>phdos_kwargs</strong> – optional dictionary with the options passed to <cite>get_phdos</cite> to compute the phonon DOS.
 Used when phdos is not already an instance of <cite>cls</cite> or when we have to compute the DOS from obj.</li>
 </ul>
 </td>
@@ -2126,7 +2507,7 @@ Used when phdos is not already an instance of <cite>cls</cite> or when we have t
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
 <blockquote>
 <div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
@@ -2153,14 +2534,14 @@ xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2201,14 +2582,14 @@ xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2255,7 +2636,7 @@ formula_units:</p>
 thermodynamic quantities will be given on a per-unit-cell basis.</div></blockquote>
 <dl class="last docutils">
 <dt>quantities: List of strings specifying the thermodinamic quantities to plot.</dt>
-<dd>Possible values: [&#8220;internal_energy&#8221;, &#8220;free_energy&#8221;, &#8220;entropy&#8221;, &#8220;c_v&#8221;].</dd>
+<dd>Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].</dd>
 </dl>
 </dd>
 <dt>Returns:</dt>
@@ -2281,14 +2662,14 @@ thermodynamic quantities will be given on a per-unit-cell basis.</div></blockquo
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2327,7 +2708,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhdosReader.read_pjdos_symbol_dict">
 <code class="descname">read_pjdos_symbol_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosReader.read_pjdos_symbol_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosReader.read_pjdos_symbol_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ordered dictionary mapping element symbol &#8211;&gt; <cite>PhononDos</cite>
+<dd><p>Ordered dictionary mapping element symbol –&gt; <cite>PhononDos</cite>
 where PhononDos is the contribution to the total DOS summed over atoms
 with chemical symbol <cite>symbol</cite>.</p>
 </dd></dl>
@@ -2335,7 +2716,7 @@ with chemical symbol <cite>symbol</cite>.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhdosReader.read_pjdos_symbol_rc_dict">
 <code class="descname">read_pjdos_symbol_rc_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosReader.read_pjdos_symbol_rc_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosReader.read_pjdos_symbol_rc_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <cite>OrderedDict</cite> mapping element symbol &#8211;&gt; [3, nomega] array
+<dd><p>Return <cite>OrderedDict</cite> mapping element symbol –&gt; [3, nomega] array
 with the the phonon DOSes summed over atom-types and decomposed along
 the three reduced directions.</p>
 </dd></dl>
@@ -2382,7 +2763,7 @@ to visualize/extract data.</p>
 <dl class="attribute">
 <dt id="abipy.dfpt.phonons.PhdosFile.pjdos_symbol">
 <code class="descname">pjdos_symbol</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.pjdos_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.pjdos_symbol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ordered dictionary mapping element symbol &#8211;&gt; <cite>PhononDos</cite>
+<dd><p>Ordered dictionary mapping element symbol –&gt; <cite>PhononDos</cite>
 where PhononDos is the contribution to the total DOS summed over atoms
 with chemical symbol <cite>symbol</cite>.</p>
 </dd></dl>
@@ -2391,11 +2772,11 @@ with chemical symbol <cite>symbol</cite>.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_site">
 <code class="descname">plot_pjdos_redirs_site</code><span class="sig-paren">(</span><em>view='inequivalent'</em>, <em>units='eV'</em>, <em>stacked=True</em>, <em>colormap='jet'</em>, <em>alpha=0.7</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>axlist=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.plot_pjdos_redirs_site"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.plot_pjdos_redirs_site" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
-<div><p>Plot phonon PJDOS for each atom in the unit cell. By default, only &#8220;inequivalent&#8221; atoms are shown.</p>
+<div><p>Plot phonon PJDOS for each atom in the unit cell. By default, only “inequivalent” atoms are shown.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">view: &#8220;inequivalent&#8221;, &#8220;all&#8221;
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+<dd><p class="first">view: “inequivalent”, “all”
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 stacked: True if DOS partial contributions should be stacked on top of each other.
 colormap: matplotlib colormap.
 alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
@@ -2431,14 +2812,14 @@ xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2452,12 +2833,12 @@ example: size_kwargs=dict(w=3, h=4)</td>
 Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+<dd><p class="first">units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 stacked: True if DOS partial contributions should be stacked on top of each other.
 colormap: Have a look at the colormaps</p>
 <blockquote>
 <div><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">here</a>
-and decide which one you&#8217;d like:</div></blockquote>
+and decide which one you’d like:</div></blockquote>
 <p>alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
 xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
 <blockquote>
@@ -2488,14 +2869,14 @@ axlist: List of matplotlib <code class="xref py py-class docutils literal"><span
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2510,11 +2891,11 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt>Args:</dt>
 <dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
 stacked: True if DOS partial contributions should be stacked on top of each other.
-units: Units for phonon plots. Possible values in (&#8220;eV&#8221;, &#8220;meV&#8221;, &#8220;Ha&#8221;, &#8220;cm-1&#8221;, &#8220;Thz&#8221;). Case-insensitive.
+units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.
 colormap: Have a look at the colormaps</p>
 <blockquote>
 <div><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">here</a>
-and decide which one you&#8217;d like:</div></blockquote>
+and decide which one you’d like:</div></blockquote>
 <p>alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
 xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
 <blockquote>
@@ -2544,14 +2925,14 @@ xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2565,8 +2946,8 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhdosFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Human-readable string with useful information such as structure...</p>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Human-readable string with useful information such as structure…</p>
 <blockquote>
 <div>verbose: Verbosity level.</div></blockquote>
 </dd></dl>
@@ -2581,32 +2962,59 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-abipy.dfpt.tensors">
+<span id="tensors-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module<a class="headerlink" href="#module-abipy.dfpt.tensors" title="Permalink to this headline">¶</a></h2>
+<p>This modules provides tensors objects extracted from dfpt calculations.</p>
+<dl class="class">
+<dt id="abipy.dfpt.tensors.DielectricTensor">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
+<p>Subclass of pymatgen.analysis.elasticity.tensors.SquareTensor describing
+a dielectric tensor.</p>
+<dl class="method">
+<dt id="abipy.dfpt.tensors.DielectricTensor.reflectivity">
+<code class="descname">reflectivity</code><span class="sig-paren">(</span><em>tol=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor.reflectivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor.reflectivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the tensor is diagonal (with off diagonal elements smaller than tol)
+returns the three components of the reflectivity.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
+<p>Subclass of pymatgen.analysis.elasticity.tensors.Tensor containing the
+non-linear optical susceptibility tensor.</p>
+<dl class="classmethod">
+<dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the tensor from a anaddb.nc netcdf file that contains the dchide.
+This requires to run anaddb with tnlflag &gt; 0</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="../_sources/api/dfpt_api.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

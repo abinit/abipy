@@ -1,0 +1,997 @@
+:orphan:
+
+AbiPy gallery
+=============
+
+There are a variety of ways to use AbiPy, and most of them are
+illustrated in the examples in this directory.
+Execute the `_runplots.py` script for an overview of the AbiPy capabilities.
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="There are a variety of ways to use AbiPy, and most of them are illustrated in the examples in t...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr___init___thumb.png
+
+        :ref:`sphx_glr_gallery___init__.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/__init__
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the GW self-energy and the spectral function of Al at the gamma...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_sigmaw_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_sigmaw.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_sigmaw
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a particular &quot;band&quot; in 3D  with matplotlib scatter3D. The color ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_scatter3d_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ebands_scatter3d.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ebands_scatter3d
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the Brillouin zone with pymatgen and matplotlib. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_bz_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_bz.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_bz
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_xrd_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_xrd.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_xrd
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point, for the fi...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_spectral_functions_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_spectral_functions.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_spectral_functions
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use seaborn to draw a box plot  showing the distributions of eigenval...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_boxplot_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ebands_boxplot.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ebands_boxplot
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results  stored in the SIGRES produced by the GW cod...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qps_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qps.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qps
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpscfgw_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpscfgw.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpscfgw
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze DDK.nc files  containing the velocity matrix elements. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr__plot_ddk_thumb.png
+
+        :ref:`sphx_glr_gallery__plot_ddk.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/_plot_ddk
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Kohn-Sham energies with markers providing a graphical repres...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpmarkers_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpmarkers.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpmarkers
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results produced by fold2bloch. &lt;http://www.abinit.org/doc/h...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_fold2bloch_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_fold2bloch.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_fold2bloch
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS from the eigenvalues stored in the WFK file with the ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_edos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_edos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of a  structure relaxation run using the HIST.nc ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_hist_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_hist.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_hist
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the DFPT self-consistent cycle reported in the ma...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_dfpt_cycle_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_dfpt_cycle.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_dfpt_cycle
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_fatbands_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonon_fatbands.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonon_fatbands
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Fermi surface with matplotlib ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_fermisurface_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_fermisurface.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_fermisurface
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the GS self-consistent cycle reported in the main...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_gscycle_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_gscycle.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_gscycle
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the macroscopic dielectric function computed in the GW code (op...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_scr_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_scr.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_scr
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w)  and the e-ph coupling strenght i...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_a2f_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_a2f.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_a2f
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file  p...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ebands.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ebands
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot multiple electron DOSes obtained with different valu...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_vs_broad_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_edos_vs_broad.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_edos_vs_broad
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze multiple MDF files. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_mdf_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_multiple_mdf.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_multiple_mdf
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the Gruneisen parameters computed by anaddb via finite differ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_gruneisen_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_gruneisen.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_gruneisen
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how plot the different contributions to the electronic joint density of stat...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ejdos_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ejdos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ejdos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the convergence of the QP results stored in the SIGRES prod...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconverge_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpconverge.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpconverge
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the projected phonon DOS of AlAs. See tutorial/lesson_rf2.html ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_pjdos_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonon_pjdos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonon_pjdos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS and plot a band structure with DOS using two GSR file...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_edos_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ebands_edos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ebands_edos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot thermodinamic properties within the harmonic approxi...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phthermo_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phthermo.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phthermo
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the matrix elements of the  inverse dielectric function stored ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_scr_matrix_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_scr_matrix.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_scr_matrix
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the electronic density stored in the DEN.nc file. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_den_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_den.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_den
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the LM-projected fatbands. The FATBANDS file must have benn prod...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_lm_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_efatbands_lm.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_efatbands_lm
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the Function1D object to analyze and plot results. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_funcs_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_funcs.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_funcs
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the macroscopic dielectric function (MDF) computed in the Bethe-...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_mdf_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_mdf.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_mdf
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonons.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonons
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs. See tutorial/lesson_rf2.html ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_and_dos_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phbands_and_dos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phbands_and_dos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs  including the LO-TO splitting...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonons_lo_to_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonons_lo_to.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonons_lo_to
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several band structures on a grid">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_grid_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ebands_grid.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ebands_grid
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot the derivatives of the KS eigenvalues along a high s...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ederivatives_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ederivatives.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ederivatives
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the optical properties computed by optic within the independent-...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_optic_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_optic.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_optic
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several phonon band structures on a grid.">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_grid_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phbands_grid.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phbands_grid
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the potentials stored in netcdf files. Use the input variables `...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_potentials_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_potentials.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_potentials
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the wavefunctions stored in the WFK.nc file. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_wfk_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_wfk.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_wfk
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the band structure of nickel using the eigenvalues stored in the...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_spin_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_ebands_spin.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_ebands_spin
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate an energy-dependent scissors operator by fitting the GW QPSt...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_scissor_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpbands_with_scissor
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of MgB2 using the FATBANDS.nc files pro...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_efatbands.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_efatbands
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of Ni using the results stored in the F...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_spin_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_efatbands_spin.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_efatbands_spin
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to interpolate the GW corrections and use the interpolated values to cor...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_interpolation_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpbands_with_interpolation.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpbands_with_interpolation
+.. raw:: html
+
+    <div style='clear:both'></div>
+
+
+
+.. only :: html
+
+ .. container:: sphx-glr-footer
+
+
+  .. container:: sphx-glr-download
+
+    :download:`Download all examples in Python source code: gallery_python.zip <//Users/gmatteo/git_repos/abipy/docs/gallery/gallery_python.zip>`
+
+
+
+  .. container:: sphx-glr-download
+
+    :download:`Download all examples in Jupyter notebooks: gallery_jupyter.zip <//Users/gmatteo/git_repos/abipy/docs/gallery/gallery_jupyter.zip>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_

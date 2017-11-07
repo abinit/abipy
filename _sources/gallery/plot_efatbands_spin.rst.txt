@@ -1,0 +1,181 @@
+
+
+.. _sphx_glr_gallery_plot_efatbands_spin.py:
+
+
+spin-polarized fatbands
+=======================
+
+This example shows how to plot the L-projected fatbands of Ni
+using the results stored in the FATBANDS.nc files produced with prtdos 3.
+
+
+
+
+.. rst-class:: sphx-glr-horizontal
+
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_spin_001.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_spin_002.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_spin_003.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_spin_004.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_spin_005.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_spin_006.png
+            :scale: 47
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out::
+
+    ================================= File Info =================================
+    Name: ni_kpath_FATBANDS.nc
+    Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/ni_ebands
+    Size: 619.35 kb
+    Access Time: Tue Nov  7 23:57:12 2017
+    Modification Time: Fri Jul 14 14:34:02 2017
+    Change Time: Fri Jul 14 14:34:02 2017
+
+    ================================= Structure =================================
+    Full Formula (Ni1)
+    Reduced Formula: Ni
+    abc   :   2.489016   2.489016   2.489016
+    angles:  60.000000  60.000000  60.000000
+    Sites (1)
+      #  SP      a    b    c
+    ---  ----  ---  ---  ---
+      0  Ni      0    0    0
+
+    Abinit Spacegroup: spgid: 225, num_spatial_symmetries: 48, has_timerev: True, symmorphic: False
+
+    ============================== Electronic Bands ==============================
+    ================================= Structure =================================
+    Full Formula (Ni1)
+    Reduced Formula: Ni
+    abc   :   2.489016   2.489016   2.489016
+    angles:  60.000000  60.000000  60.000000
+    Sites (1)
+      #  SP      a    b    c
+    ---  ----  ---  ---  ---
+      0  Ni      0    0    0
+
+    Abinit Spacegroup: spgid: 225, num_spatial_symmetries: 48, has_timerev: True, symmorphic: False
+
+    Number of electrons: 18.0, Fermi level: 11.296 [eV]
+    nsppol: 2, nkpt: 101, mband: 12, nspinor: 1, nspden: 2
+    smearing scheme: gaussian, tsmear_eV: 0.204, occopt: 7
+
+    =============================== Fatbands Info ===============================
+    prtdos=3, prtdosm=1, mbesslang=5, pawprtdos=0, usepaw=0
+    nsppol=2, nkpt=101, mband=12
+
+      Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
+    -----  --------  -----------------------  ------  ---------------  ----------
+        0  Ni        0.00000 0.00000 0.00000       4                2  Yes
+
+
+
+
+|
+
+
+.. code-block:: python
+
+    import abipy.abilab as abilab
+    import abipy.data as abidata
+
+    # Open the file (alternatively one can use the shell and `abiopen.py FILE -nb` 
+    # to open the file in a jupyter notebook
+    # This file has been produced on a k-path so it's not suitable for DOS calculations.
+    fbnc_kpath = abilab.abiopen(abidata.ref_file("ni_kpath_FATBANDS.nc"))
+
+    # NC files have contributions up to L = 4 (g channel)
+    # but here we are intererested in s,p,d terms only so we use the optional argument lmax
+    lmax = 2
+
+    # Energy limits in eV for plots. The pseudo contains semi-core states but
+    # we are not interested in this energy region. Fermi level set to zero.
+    elims = [-10, 2]
+
+    # Print file info (dimensions, variables ...)
+    # Note that prtdos = 3, so LM decomposition is not available.
+    print(fbnc_kpath)
+
+    # Plot the k-points belonging to the path.
+    #fbnc_kpath.ebands.kpoints.plot()
+
+    # Plot the electronic fatbands grouped by atomic type.
+    fbnc_kpath.plot_fatbands_typeview(ylims=elims, lmax=lmax, tight_layout=True)
+
+    # Plot the electronic fatbands grouped by L.
+    fbnc_kpath.plot_fatbands_lview(ylims=elims, lmax=lmax, tight_layout=True)
+
+    # Now we read another FATBANDS file produced on 18x18x18 k-mesh
+    fbnc_kmesh = abilab.abiopen(abidata.ref_file("ni_666k_FATBANDS.nc"))
+
+    # Plot the L-PJDOS grouped by atomic type.
+    fbnc_kmesh.plot_pjdos_typeview(xlims=elims, lmax=lmax, tight_layout=True)
+
+    # Plot the L-PJDOS grouped by L.
+    fbnc_kmesh.plot_pjdos_lview(xlims=elims, lmax=lmax, tight_layout=True)
+
+    # Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.
+    # The data for the DOS is taken from pjdosfile.
+    fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, 
+                                        lmax=lmax, view="type", tight_layout=True)
+
+    # fatbands + PJDOS grouped by L
+    fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, 
+                                        lmax=lmax, view="lview", tight_layout=True)
+
+    # Close files.
+    fbnc_kpath.close()
+    fbnc_kmesh.close()
+
+**Total running time of the script:** ( 0 minutes  11.549 seconds)
+
+
+
+.. only :: html
+
+ .. container:: sphx-glr-footer
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Python source code: plot_efatbands_spin.py <plot_efatbands_spin.py>`
+
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Jupyter notebook: plot_efatbands_spin.ipynb <plot_efatbands_spin.ipynb>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_

@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.electrons.fatbands &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.electrons.fatbands</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;Classes for the analysis of electronic fatbands and projected DOSes.&quot;&quot;&quot;</span>
@@ -81,7 +137,7 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">gaussian</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span>
@@ -94,7 +150,7 @@
     <span class="k">return</span> <span class="n">dos</span></div>
 
 
-<div class="viewcode-block" id="FatBandsFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile">[docs]</a><span class="k">class</span> <span class="nc">FatBandsFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile">[docs]</a><span class="k">class</span> <span class="nc">FatBandsFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Provides methods to analyze the data stored in the FATBANDS.nc file.</span>
 
@@ -152,8 +208,8 @@
     <span class="n">linecolor</span> <span class="o">=</span> <span class="s2">&quot;grey&quot;</span>
     <span class="c1">#klabel_size = None</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="FatBandsFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
@@ -222,26 +278,26 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Use colormap. Color will now be an RGBA tuple</span>
             <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-            <span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
             <span class="n">nsymb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">symb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">symbol2color</span><span class="p">[</span><span class="n">symb</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">nsymb</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">symbol2color</span><span class="p">[</span><span class="n">symb</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">nsymb</span><span class="p">)</span>
 
         <span class="c1"># Array dimensioned with natom. Set to true if iatom has been calculated</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">natom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iatsph</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="FatBandsFile.wal_sbk"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.wal_sbk">[docs]</a>    <span class="k">def</span> <span class="nf">wal_sbk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.wal_sbk"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.wal_sbk">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">wal_sbk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Numpy array of shape [natom, mbesslang, nsppol, mband, nkpt]</span>
 <span class="sd">        with the L-contributions. Present only if prtdos == 3.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_wal_sbk</span><span class="p">()</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="FatBandsFile.walm_sbk"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.walm_sbk">[docs]</a>    <span class="k">def</span> <span class="nf">walm_sbk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.walm_sbk"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.walm_sbk">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">walm_sbk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Numpy array of shape [natom, mbesslang**2, nsppol, mband, nkpt]</span>
 <span class="sd">        with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0</span>
@@ -359,10 +415,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 
 <div class="viewcode-block" id="FatBandsFile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
 
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -385,6 +444,10 @@
                     <span class="s2">&quot;Yes&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;No&quot;</span><span class="p">,</span>
                 <span class="p">])</span>
             <span class="n">app</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s2">&quot;firstrow&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hdr</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Abinit Header&quot;</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
@@ -478,8 +541,8 @@
             <span class="c1">#klabel_size=self.klabel_size,</span>
         <span class="p">)</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_siteview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_siteview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_siteview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_siteview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_siteview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_siteview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                                <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot fatbands for each atom in the unit cell. By default, only the &quot;inequivalent&quot; atoms are shown.</span>
@@ -566,8 +629,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by L.</span>
@@ -634,8 +697,8 @@
         <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_mview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_mview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_mview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_mview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by LM.</span>
@@ -670,8 +733,7 @@
         <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span><span class="p">,</span> <span class="n">GridSpecFromSubplotSpec</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">mylmax</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">mylmax</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">)</span>
-        <span class="n">gspec</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
         <span class="c1"># Build plot grid (L along the column, each L has 2L+1 subplots).</span>
         <span class="c1"># ax_lim[(l, im)] gives the axis.</span>
@@ -720,8 +782,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by atomic type.</span>
 
@@ -787,8 +849,8 @@
         <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_spilling"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_spilling">[docs]</a>    <span class="k">def</span> <span class="nf">plot_spilling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.plot_spilling"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_spilling">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_spilling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands</span>
 
@@ -998,8 +1060,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached_dos_integrators</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">intg</span>
         <span class="k">return</span> <span class="n">intg</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pjdos_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_pjdos_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_pjdos_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
                          <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                          <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1156,8 +1218,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pjdos_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pjdos_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_pjdos_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_pjdos_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
                             <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                             <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1313,8 +1375,8 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_fatbands_with_pjdos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
+<div class="viewcode-block" id="FatBandsFile.plot_fatbands_with_pjdos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
                                  <span class="n">pjdosfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                                  <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1407,8 +1469,8 @@
         <span class="k">if</span> <span class="n">closeit</span><span class="p">:</span> <span class="n">pjdosfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
-    <span class="nd">@add_fig_kwargs</span>
-<div class="viewcode-block" id="FatBandsFile.plot_pawdos_terms"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pawdos_terms">[docs]</a>    <span class="k">def</span> <span class="nf">plot_pawdos_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="FatBandsFile.plot_pawdos_terms"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pawdos_terms">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_pawdos_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot ...</span>
 
@@ -1606,37 +1668,37 @@
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">print(fbnc)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.structure&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# fig = fbnc.ebands.kpoints.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fbnc.ebands.kpoints.plot();&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;xlims = (None, None)</span><span class="se">\n</span><span class="s2">ylims = (None, None)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# fig = fbnc.ebands.plot(ylims=ylims)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.ebands.boxplot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fbnc.ebands.plot(ylims=ylims);&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.ebands.boxplot();&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
                 <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Fatbands plots with L-character </span><span class="se">\n</span><span class="s2">(require `prtdos=3`)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_fatbands_typeview(ylims=ylims)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_fatbands_lview(ylims=ylims)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_fatbands_siteview(ylims=ylims)&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_fatbands_typeview(ylims=ylims);&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_fatbands_lview(ylims=ylims);&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_fatbands_siteview(ylims=ylims);&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdosm</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
                 <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Fatbands plots with LM-character </span><span class="se">\n</span><span class="s2">(require `prtdos = 3 and prtdosm != 0`)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_fatbands_mview(iatom=0, ylims=ylims)&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_fatbands_mview(iatom=0, ylims=ylims);&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">5</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
                 <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Fatbands plots with Spin-character </span><span class="se">\n</span><span class="s2">(require `prtdos = 5 and nspinor == 2`)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_fatbands_spinor(ylims=ylims)&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_fatbands_spinor(ylims=ylims);&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_mpmesh</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
                 <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## L-DOSes plots </span><span class="se">\n</span><span class="s2">(require `prtdos = 3` and BZ sampling)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_pjdos_lview(xlims=xlims)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_pjdos_typeview(xlims=xlims)&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_pjdos_lview(xlims=xlims);&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_pjdos_typeview(xlims=xlims);&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
@@ -1644,13 +1706,13 @@
                 <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## L-DOSes with fatbands</span><span class="se">\n</span><span class="s2">&quot;</span>
                                      <span class="s2">&quot;(require `prtdos=3`, `fbnc` must contain a k-path, &quot;</span>
                                      <span class="s2">&quot;`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view=&#39;type&#39;)&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view=&#39;type&#39;);&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">usepaw</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">prtdos</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
                 <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## PAW L-DOS decomposed into smooth PW part, AE and PS terms&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = fbnc.plot_pawdos_terms()&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fbnc.plot_pawdos_terms();&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -1738,26 +1800,22 @@
         <span class="k">return</span> <span class="n">lso</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

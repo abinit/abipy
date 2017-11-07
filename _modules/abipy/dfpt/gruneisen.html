@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.dfpt.gruneisen &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.dfpt.gruneisen</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Objects to analyze the results stored in the GRUNS.nc file produced by anaddb.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpath</span><span class="p">,</span> <span class="n">IrredZone</span><span class="p">,</span> <span class="n">KSamplingInfo</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span>
+<span class="c1">#from abipy.tools import duck</span>
+
+
+<span class="c1"># DOS name --&gt; meta-data</span>
+<span class="n">_ALL_DOS_NAMES</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+    <span class="p">(</span><span class="s2">&quot;gruns_wdos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS$&quot;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s2">&quot;gruns_grdos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS_{\gamma}$&quot;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s2">&quot;gruns_gr2dos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS_{\gamma^2}$&quot;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s2">&quot;gruns_vdos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS_v$&quot;</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s2">&quot;gruns_v2dos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS_{v^2}$&quot;</span><span class="p">)),</span>
+<span class="p">])</span>
+
+
+<div class="viewcode-block" id="GrunsNcFile"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile">[docs]</a><span class="k">class</span> <span class="nc">GrunsNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object provides an interface to the `GRUNS.nc` file produced by abinit.</span>
+<span class="sd">    This file contains Grunesein parameters computed via finite difference.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with GrunsNcFile(&quot;foo_GRUNS.nc&quot;) as ncfile:</span>
+<span class="sd">            print(ncfile)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="GrunsNcFile.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GrunsNcFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">GrunsReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GrunsNcFile.close"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close file.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GrunsNcFile.to_string"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Phonon Bands at V0&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of Volumes: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">num_volumes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Crystalline structure corresponding to the central point V0.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">structure</span>
+
+    <span class="c1">#@property</span>
+    <span class="c1">#def volumes(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Volumes of the unit cell in Angstrom**3&quot;&quot;&quot;</span>
+    <span class="c1">#    return self.reader.volumes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">iv0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">iv0</span>
+
+<div class="viewcode-block" id="GrunsNcFile.doses"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.doses">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">doses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;Dictionary with the phonon doses.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_doses</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.phbands_qpath_vol"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.phbands_qpath_vol">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">phbands_qpath_vol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of :class:`PhononBands objects corresponding to the different volumes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_phbands_on_qpath</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.to_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a pandas DataFrame with the following columns:</span>
+
+<span class="sd">            [&#39;qidx&#39;, &#39;mode&#39;, &#39;freq&#39;, &#39;qpoint&#39;]</span>
+
+<span class="sd">        where:</span>
+
+<span class="sd">        ==============  ==========================</span>
+<span class="sd">        Column          Meaning</span>
+<span class="sd">        ==============  ==========================</span>
+<span class="sd">        qidx            q-point index.</span>
+<span class="sd">        mode            phonon branch index.</span>
+<span class="sd">        grun            Gruneisen parameter.</span>
+<span class="sd">        groupv          Group velocity.</span>
+<span class="sd">        freq            Phonon frequency in eV.</span>
+<span class="sd">        ==============  ==========================</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;gruns_gvals_qibz&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;GRUNS.nc file does not contain `gruns_gvals_qibz`.&quot;</span>
+                               <span class="s2">&quot;Use prtdos in anaddb input file to compute these values in the IBZ&quot;</span><span class="p">)</span>
+
+        <span class="n">grun_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_gvals_qibz&quot;</span><span class="p">)</span>
+        <span class="n">nqibz</span><span class="p">,</span> <span class="n">natom3</span> <span class="o">=</span> <span class="n">grun_vals</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">phfreqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;gruns_wvols_qibz&quot;</span><span class="p">][:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span>
+        <span class="c1"># TODO: units?</span>
+        <span class="n">dwdq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_dwdq_qibz&quot;</span><span class="p">)</span>
+        <span class="n">groupv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dwdq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">iq</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nqibz</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natom3</span><span class="p">):</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([</span>
+                           <span class="p">(</span><span class="s2">&quot;qidx&quot;</span><span class="p">,</span> <span class="n">iq</span><span class="p">),</span>
+                           <span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="n">nu</span><span class="p">),</span>
+                           <span class="p">(</span><span class="s2">&quot;grun&quot;</span><span class="p">,</span> <span class="n">grun_vals</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="n">nu</span><span class="p">]),</span>
+                           <span class="p">(</span><span class="s2">&quot;groupv&quot;</span><span class="p">,</span> <span class="n">groupv</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="n">nu</span><span class="p">]),</span>
+                           <span class="p">(</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span> <span class="n">phfreqs</span><span class="p">[</span><span class="n">iq</span><span class="p">,</span> <span class="n">nu</span><span class="p">]),</span>
+                           <span class="c1">#(&quot;qpoint&quot;, self.qpoints[iq]),</span>
+                        <span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.plot_doses"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_doses">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_doses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_names</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">with_idos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the different doses stored in the GRUNS file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            dos_names: List of strings defining the DOSes to plot. Use `all` to plot all DOSes available.</span>
+<span class="sd">            with_idos: True to display integrated doses</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1">#write(unt,&#39;(a)&#39;)&#39;# Phonon density of states, Gruneisen DOS and phonon group velocity DOS&#39;</span>
+        <span class="c1">#write(unt,&#39;(a)&#39;)&quot;# Energy in Hartree, DOS in states/Hartree&quot;</span>
+        <span class="c1">#write(unt,&#39;(a,i0)&#39;)&#39;# Tetrahedron method with nqibz= &#39;,nqibz</span>
+        <span class="c1">#write(unt,&quot;(a,f8.5)&quot;)&quot;# Average Gruneisen parameter:&quot;, gavg</span>
+        <span class="c1">#write(unt,&#39;(5a)&#39;) &amp;</span>
+        <span class="c1">#  &quot;# omega PH_DOS Gruns_DOS Gruns**2_DOS Vel_DOS  Vel**2_DOS  PH_IDOS Gruns_IDOS Gruns**2_IDOS Vel_IDOS Vel**2_IDOS&quot;</span>
+
+        <span class="n">dos_names</span> <span class="o">=</span> <span class="n">_ALL_DOS_NAMES</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">dos_names</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span>
+        <span class="n">wmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s2">&quot;wmesh&quot;</span><span class="p">]</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dos_names</span><span class="p">,</span> <span class="n">axes</span><span class="p">)):</span>
+            <span class="n">dos</span><span class="p">,</span> <span class="n">idos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">dos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">_ALL_DOS_NAMES</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;latex&quot;</span><span class="p">])</span>
+            <span class="c1">#ax.yaxis.set_ticks_position(&quot;right&quot;)</span>
+
+            <span class="k">if</span> <span class="n">with_idos</span><span class="p">:</span>
+                <span class="n">other_ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+                <span class="n">other_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wmesh</span><span class="p">,</span> <span class="n">idos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+                <span class="n">other_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">_ALL_DOS_NAMES</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;latex&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;DOS&quot;</span><span class="p">,</span> <span class="s2">&quot;IDOS&quot;</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
+            <span class="c1">#ax.legend(loc=&quot;best&quot;)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.get_plotter"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.get_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an instance of :class:`PhononBandsPlotter` that can be use to plot</span>
+<span class="sd">        multiple phonon bands or animate the bands</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">PhononBandsPlotter</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">iv</span><span class="p">,</span> <span class="n">phbands</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;V=</span><span class="si">%.2f</span><span class="s2"> $A^3$ &quot;</span> <span class="o">%</span> <span class="n">phbands</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span>
+            <span class="n">plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbands</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">plotter</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.plot_phbands_with_gruns"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_phbands_with_gruns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill_with</span><span class="o">=</span><span class="s2">&quot;gruns&quot;</span><span class="p">,</span> <span class="n">gamma_fact</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">with_doses</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span>
+                                <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the phonon bands corresponding to V0 (the central point) with markers</span>
+<span class="sd">        showing the value and the sign of the Grunesein parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fill_with: Define the quantity used to plot stripes. &quot;gruns&quot; for Grunesein parameters,</span>
+<span class="sd">                &quot;groupv&quot; for phonon group velocities.</span>
+<span class="sd">            gamma_fact: Scaling factor for Grunesein parameters.</span>
+<span class="sd">                Up triangle for positive values, down triangles for negative values.</span>
+<span class="sd">            alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">            with_doses: &quot;all&quot; to plot all DOSes available, `None` to disable DOS plotting,</span>
+<span class="sd">                else list of strings with the name of the DOSes to plot.</span>
+<span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
+<span class="sd">            ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">phbands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">factor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="c1"># Build axes (ax_bands and ax_doses)</span>
+        <span class="k">if</span> <span class="n">with_doses</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax_bands</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+            <span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+            <span class="n">dos_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_ALL_DOS_NAMES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">with_doses</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">with_doses</span><span class="p">)</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">width_ratios</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">]</span>
+            <span class="n">gspec</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="n">width_ratios</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="n">ax_bands</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ax_doses</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)):</span>
+                <span class="n">ax_doses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax_bands</span><span class="p">))</span>
+
+        <span class="c1"># Plot phonon bands.</span>
+        <span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax_bands</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="n">match_bands</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fill_with</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
+            <span class="n">max_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">grun_vals</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">fill_with</span> <span class="o">==</span> <span class="s2">&quot;groupv&quot;</span><span class="p">:</span>
+            <span class="c1"># TODO: units?</span>
+            <span class="n">dwdq_qpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_dwdq_qpath&quot;</span><span class="p">)</span>
+            <span class="n">groupv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dwdq_qpath</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">max_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">groupv</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported fill_with: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">fill_with</span><span class="p">)</span>
+
+        <span class="c1"># Plot gruneisen markers on top of band structure.</span>
+        <span class="n">xvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">))</span>
+        <span class="n">max_omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">phbands</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">omegas</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="n">factor</span>
+
+            <span class="k">if</span> <span class="n">fill_with</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
+                <span class="c1"># Must handle positive-negative values</span>
+                <span class="n">sizes</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">grun_vals</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma_fact</span> <span class="o">*</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">max_omega</span> <span class="o">/</span> <span class="n">max_gamma</span><span class="p">)</span>
+                <span class="n">yup</span> <span class="o">=</span> <span class="n">omegas</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sizes</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sizes</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">ydown</span> <span class="o">=</span> <span class="n">omegas</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sizes</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sizes</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">ax_bands</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">omegas</span><span class="p">,</span> <span class="n">yup</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="n">ax_bands</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">ydown</span><span class="p">,</span> <span class="n">omegas</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">fill_with</span> <span class="o">==</span> <span class="s2">&quot;groupv&quot;</span><span class="p">:</span>
+                <span class="n">sizes</span> <span class="o">=</span> <span class="n">groupv</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma_fact</span> <span class="o">*</span> <span class="mf">0.04</span> <span class="o">*</span> <span class="n">max_omega</span> <span class="o">/</span> <span class="n">max_gamma</span><span class="p">)</span>
+                <span class="n">ydown</span><span class="p">,</span> <span class="n">yup</span> <span class="o">=</span> <span class="n">omegas</span> <span class="o">-</span> <span class="n">sizes</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">omegas</span> <span class="o">+</span> <span class="n">sizes</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">ax_bands</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">ydown</span><span class="p">,</span> <span class="n">yup</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax_bands</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">with_doses</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fig</span>
+
+        <span class="c1"># Plot Doses.</span>
+        <span class="n">wmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s2">&quot;wmesh&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">factor</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dos_names</span><span class="p">,</span> <span class="n">ax_doses</span><span class="p">)):</span>
+            <span class="n">dos</span><span class="p">,</span> <span class="n">idos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dos</span><span class="p">,</span> <span class="n">wmesh</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+            <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelbottom</span><span class="o">=</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelleft</span><span class="o">=</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">_ALL_DOS_NAMES</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;latex&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.structure&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_doses()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_phbands_with_gruns()&quot;</span><span class="p">),</span>
+
+            <span class="c1">#nbv.new_code_cell(&quot;fig = phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile)&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = ncfile.get_plotter()</span><span class="se">\n</span><span class="s2">print(plotter)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df_phbands = plotter.get_phbands_frame()</span><span class="se">\n</span><span class="s2">display(df_phbands)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
+
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;gdata = ncfile.to_dataframe()</span><span class="se">\n</span><span class="s2">gdata.describe()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">#import df_widgets.seabornw as snsw</span>
+<span class="s2">#snsw.api_selector(gdata)&quot;&quot;&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="GrunsReader"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader">[docs]</a><span class="k">class</span> <span class="nc">GrunsReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object reads the results stored in the GRUNS file produced by ABINIT.</span>
+<span class="sd">    It provides helper functions to access the most important quantities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Fortran arrays (remember to transpose dimensions!)</span>
+    <span class="c1"># Remember: Atomic units are used everywhere in this file.</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_qptrlatt&quot;, &quot;int&quot;, &quot;three, three&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_shiftq&quot;, &quot;dp&quot;, &quot;three, gruns_nshiftq&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_qibz&quot;, &quot;dp&quot;, &quot;three, gruns_nqibz&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_wtq&quot;, &quot;dp&quot;, &quot;gruns_nqibz&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_gvals_qibz&quot;, &quot;dp&quot;, &quot;number_of_phonon_modes, gruns_nqibz&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_wvols_qibz&quot;, &quot;dp&quot;, &quot;number_of_phonon_modes, gruns_nvols, gruns_nqibz&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_dwdq_qibz&quot;, &quot;dp&quot;, &quot;three, number_of_phonon_modes, gruns_nqibz&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_omega_mesh&quot;, &quot;dp&quot;, &quot;gruns_nomega&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_wdos&quot;, &quot;dp&quot;, &quot;gruns_nomega, two&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_grdos&quot;, &quot;dp&quot;, &quot;gruns_nomega, two&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_gr2dos&quot;, &quot;dp&quot;, &quot;gruns_nomega, two&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_v2dos&quot;, &quot;dp&quot;, &quot;gruns_nomega, two&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_vdos&quot;, &quot;dp&quot;, &quot;gruns_nomega, two&quot;) &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_qpath&quot;, &quot;dp&quot;, &quot;three, gruns_nqpath&quot;)</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_gvals_qpath&quot;, &quot;dp&quot;, &quot;number_of_phonon_modes, gruns_nqpath&quot;)</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_wvols_qpath&quot;, &quot;dp&quot;, &quot;number_of_phonon_modes, gruns_nvols, gruns_nqpath&quot;)</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_dwdq_qpath&quot;, &quot;dp&quot;, &quot;three, number_of_phonon_modes, gruns_nqpath&quot;)</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_rprimd&quot;, &quot;dp&quot;, &quot;three, three, gruns_nvols&quot;), &amp;</span>
+    <span class="c1">#nctkarr_t(&quot;gruns_xred&quot;, &quot;dp&quot;, &quot;three, number_of_atoms, gruns_nvols&quot;) &amp;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GrunsReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Read and store important quantities.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_structure</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_volumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;gruns_nvols&quot;</span><span class="p">)</span>
+        <span class="c1"># The index of the volume used for the finite difference.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_iv0&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1">#  F --&gt; C</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span> <span class="o">==</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="GrunsReader.read_doses"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_doses">[docs]</a>    <span class="k">def</span> <span class="nf">read_doses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a :class:`AttrDict` with the DOSes available in the file. Empty dict if</span>
+<span class="sd">        DOSes are not available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;gruns_nomega&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;File `</span><span class="si">%s</span><span class="s2">` does not contain ph-DOSes, returning empty dict&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Read q-point sampling used to compute DOSes.</span>
+        <span class="n">qptrlatt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_qptrlatt&quot;</span><span class="p">)</span>
+        <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_shiftq&quot;</span><span class="p">)</span>
+        <span class="n">qsampling</span> <span class="o">=</span> <span class="n">KSamplingInfo</span><span class="o">.</span><span class="n">from_kptrlatt</span><span class="p">(</span><span class="n">qptrlatt</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">frac_coords_ibz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_qibz&quot;</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_wtq&quot;</span><span class="p">)</span>
+        <span class="n">qpoints</span> <span class="o">=</span> <span class="n">IrredZone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords_ibz</span><span class="p">,</span>
+                            <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">qsampling</span><span class="p">)</span>
+
+        <span class="c1"># DOSes are in 1/Hartree.</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">AttrDict</span><span class="p">(</span><span class="n">wmesh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_omega_mesh&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="n">qpoints</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">dos_name</span> <span class="ow">in</span> <span class="n">_ALL_DOS_NAMES</span><span class="p">:</span>
+            <span class="n">dos_idos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">dos_name</span><span class="p">)</span>
+            <span class="n">dos_idos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">abu</span><span class="o">.</span><span class="n">eV_Ha</span>  <span class="c1"># Here we convert to eV. IDOS are not changed.</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">dos_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dos_idos</span>
+
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="GrunsReader.read_phbands_on_qpath"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_phbands_on_qpath">[docs]</a>    <span class="k">def</span> <span class="nf">read_phbands_on_qpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of :class:`PhononBands` computed at the different volumes.</span>
+<span class="sd">        The `iv0` entry corresponds to the central point used to compute Grunesein parameters</span>
+<span class="sd">        with finite differences. This object stores the Grunesein parameters in `grun_vals`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;gruns_qpath&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;File `</span><span class="si">%s</span><span class="s2">` does not contain phonon bands, returning empty list.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">qfrac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_qpath&quot;</span><span class="p">)</span>
+        <span class="n">grun_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_gvals_qpath&quot;</span><span class="p">)</span>
+        <span class="n">freqs_vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_wvols_qpath&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span>
+        <span class="c1"># TODO: Convert?</span>
+        <span class="n">dwdq_qpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_dwdq_qpath&quot;</span><span class="p">)</span>
+
+        <span class="n">amuz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_amuz_dict</span><span class="p">()</span>
+        <span class="c1">#print(&quot;amuz&quot;, amuz)</span>
+
+        <span class="c1"># nctkarr_t(&quot;gruns_phdispl_cart_qpath&quot;, &quot;dp&quot;, &amp;</span>
+        <span class="c1"># &quot;two, number_of_phonon_modes, number_of_phonon_modes, gruns_nvols, gruns_nqpath&quot;) &amp;</span>
+        <span class="c1"># NOTE: in GRUNS the displacements are in Bohr. here we convert to Ang to be</span>
+        <span class="c1"># consistent with the PhononBands API.</span>
+        <span class="n">phdispl_cart_qptsvol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_phdispl_cart_qpath&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Bohr_Ang</span>
+
+        <span class="n">lattices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_rprimd&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Bohr_Ang</span> <span class="c1">#, &quot;dp&quot;, &quot;three, three, gruns_nvols&quot;)</span>
+        <span class="n">gruns_xred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_xred&quot;</span><span class="p">)</span>                <span class="c1">#, &quot;dp&quot;, &quot;three, number_of_atoms, gruns_nvols&quot;)</span>
+
+        <span class="n">phbands_qpath_vol</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ivol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_volumes</span><span class="p">):</span>
+            <span class="c1"># TODO structure depends on:</span>
+            <span class="c1"># volumes</span>
+            <span class="c1"># non_anal_ph</span>
+            <span class="c1"># amu: DONE</span>
+            <span class="c1"># phdispl_cart DONE</span>
+            <span class="k">if</span> <span class="n">ivol</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">:</span>
+                <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">lattices</span><span class="p">[</span><span class="n">ivol</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">gruns_xred</span><span class="p">[</span><span class="n">ivol</span><span class="p">])</span>
+
+            <span class="n">qpoints</span> <span class="o">=</span> <span class="n">Kpath</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">qfrac_coords</span><span class="p">)</span>
+            <span class="n">phdispl_cart</span> <span class="o">=</span> <span class="n">phdispl_cart_qptsvol</span><span class="p">[:,</span> <span class="n">ivol</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">phb</span> <span class="o">=</span> <span class="n">PhononBands</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">qpoints</span><span class="p">,</span> <span class="n">freqs_vol</span><span class="p">[:,</span> <span class="n">ivol</span><span class="p">],</span> <span class="n">phdispl_cart</span><span class="p">,</span> <span class="n">non_anal_ph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">amu</span><span class="o">=</span><span class="n">amuz</span><span class="p">)</span>
+            <span class="c1"># Add Grunesein parameters.</span>
+            <span class="k">if</span> <span class="n">ivol</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">:</span> <span class="n">phb</span><span class="o">.</span><span class="n">grun_vals</span> <span class="o">=</span> <span class="n">grun_vals</span>
+            <span class="n">phbands_qpath_vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phb</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">phbands_qpath_vol</span></div>
+
+<div class="viewcode-block" id="GrunsReader.read_amuz_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_amuz_dict">[docs]</a>    <span class="k">def</span> <span class="nf">read_amuz_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        dictionary that associates the atomic number to the values of the atomic</span>
+<span class="sd">        mass units used for the calculation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">amu_typat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;atomic_mass_units&quot;</span><span class="p">)</span>
+        <span class="n">znucl_typat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;atomic_numbers&quot;</span><span class="p">)</span>
+
+        <span class="n">amuz</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chemical_symbols</span><span class="p">:</span>
+           <span class="n">type_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">typeidx_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+           <span class="n">amuz</span><span class="p">[</span><span class="n">znucl_typat</span><span class="p">[</span><span class="n">type_idx</span><span class="p">]]</span> <span class="o">=</span> <span class="n">amu_typat</span><span class="p">[</span><span class="n">type_idx</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">amuz</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

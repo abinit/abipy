@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spin-polarized e-bands &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="GW with scissors operator" href="plot_qpbands_with_scissor.html" />
+    <link rel="prev" title="Wavefunction file" href="plot_wfk.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Spin-polarized e-bands</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_wfk.html" title="Previous Chapter: Wavefunction file"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Wavefunction file</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_qpbands_with_scissor.html" title="Next Chapter: GW with scissors operator"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">GW with sciss... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_ebands_spin.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="spin-polarized-e-bands">
+<span id="sphx-glr-gallery-plot-ebands-spin-py"></span><h1>Spin-polarized e-bands<a class="headerlink" href="#spin-polarized-e-bands" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to plot the band structure of nickel
+using the eigenvalues stored in the GSR file produced at the end of the GS run.</p>
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_spin_001.png"><img alt="../_images/sphx_glr_plot_ebands_spin_001.png" src="../_images/sphx_glr_plot_ebands_spin_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_spin_002.png"><img alt="../_images/sphx_glr_plot_ebands_spin_002.png" src="../_images/sphx_glr_plot_ebands_spin_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_spin_003.png"><img alt="../_images/sphx_glr_plot_ebands_spin_003.png" src="../_images/sphx_glr_plot_ebands_spin_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_spin_004.png"><img alt="../_images/sphx_glr_plot_ebands_spin_004.png" src="../_images/sphx_glr_plot_ebands_spin_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_spin_005.png"><img alt="../_images/sphx_glr_plot_ebands_spin_005.png" src="../_images/sphx_glr_plot_ebands_spin_005.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+
+<span class="c1"># Open the GSR file and extract the band structure.</span>
+<span class="c1"># (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook.</span>
+<span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_666k_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+    <span class="n">ni_ebands_kmesh</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span>
+
+<span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_kpath_GSR.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+    <span class="n">ni_ebands_kpath</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span>
+
+<span class="c1"># Energy limits in eV for plots. The pseudo contains semi-core states but</span>
+<span class="c1"># we are not interested in this energy region. Fermi level set to zero.</span>
+<span class="n">elims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+<span class="c1"># Plot band energies on k-path</span>
+<span class="n">ni_ebands_kpath</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Ni band structure&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compute DOS with Gaussian method.</span>
+<span class="n">ni_edos</span> <span class="o">=</span> <span class="n">ni_ebands_kmesh</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
+
+<span class="c1"># Plot energies on k-path + DOS</span>
+<span class="n">ni_ebands_kpath</span><span class="o">.</span><span class="n">plot_with_edos</span><span class="p">(</span><span class="n">ni_edos</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span>
+                               <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Ni band structure + DOS&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot electronic DOS.</span>
+<span class="c1">#ni_edos.plot_dos_idos(xlims=elims)</span>
+<span class="c1">#ni_edos.plot(xlims=elims)</span>
+<span class="c1">#ni_edos.plot_up_minus_down(xlims=elims)</span>
+
+
+<span class="c1"># Boxplot for 10 &gt; band &gt;= 5</span>
+<span class="n">ni_ebands_kpath</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">brange</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+                        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Boxplot for up and down spin and 10 &gt; band &gt;= 5&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Use ElectronBandsPlotter to analyze multiple ElectronBands object</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">ElectronBandsPlotter</span><span class="p">()</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;k-mesh&quot;</span><span class="p">,</span> <span class="n">ni_ebands_kmesh</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;k-path&quot;</span><span class="p">,</span> <span class="n">ni_ebands_kpath</span><span class="p">)</span>
+
+<span class="n">ylims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="c1">#plotter.combiplot(ylims=ylims)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">)</span>
+<span class="c1">#plotter.boxplot(brange=[5, 10])</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">combiboxplot</span><span class="p">(</span><span class="n">brange</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  9.153 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_ebands_spin.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ebands_spin.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_ebands_spin.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_ebands_spin.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,258 @@
+
+
+.. _sphx_glr_gallery_plot_efatbands.py:
+
+
+MgB2 fatbands
+=============
+
+This example shows how to plot the L-projected fatbands of MgB2
+using the FATBANDS.nc files produced by abinit with prtdos 3.
+See also PhysRevLett.86.4656
+
+
+
+
+.. rst-class:: sphx-glr-horizontal
+
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_001.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_002.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_003.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_004.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_005.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_006.png
+            :scale: 47
+
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_efatbands_007.png
+            :scale: 47
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out::
+
+    ================================= File Info =================================
+    Name: mgb2_kpath_FATBANDS.nc
+    Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
+    Size: 149.01 kb
+    Access Time: Wed Nov  8 00:08:16 2017
+    Modification Time: Fri Jul 14 14:34:02 2017
+    Change Time: Fri Jul 14 14:34:02 2017
+
+    ================================= Structure =================================
+    Full Formula (Mg1 B2)
+    Reduced Formula: MgB2
+    abc   :   3.086000   3.086000   3.523000
+    angles:  90.000000  90.000000 120.000000
+    Sites (3)
+      #  SP           a         b    c
+    ---  ----  --------  --------  ---
+      0  Mg    0         0         0
+      1  B     0.333333  0.666667  0.5
+      2  B     0.666667  0.333333  0.5
+
+    Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+    ============================== Electronic Bands ==============================
+    ================================= Structure =================================
+    Full Formula (Mg1 B2)
+    Reduced Formula: MgB2
+    abc   :   3.086000   3.086000   3.523000
+    angles:  90.000000  90.000000 120.000000
+    Sites (3)
+      #  SP           a         b    c
+    ---  ----  --------  --------  ---
+      0  Mg    0         0         0
+      1  B     0.333333  0.666667  0.5
+      2  B     0.666667  0.333333  0.5
+
+    Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+    Number of electrons: 8.0, Fermi level: 6.851 [eV]
+    nsppol: 1, nkpt: 78, mband: 8, nspinor: 1, nspden: 1
+    smearing scheme: none, tsmear_eV: 0.272, occopt: 1
+    Direct gap:
+        Energy: 0.312 [eV]
+        Initial state: spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=2, eig=6.621, occ=2.000
+        Final state:   spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=3, eig=6.933, occ=2.000
+    Fundamental gap:
+        Energy: 0.038 [eV]
+        Initial state: spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+        Final state:   spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
+    Bandwidth: 12.435 [eV]
+    Valence minimum located at:
+        spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=0, eig=-5.613, occ=2.000
+    Valence maximum located at:
+        spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+
+
+    =============================== Fatbands Info ===============================
+    prtdos=3, prtdosm=0, mbesslang=5, pawprtdos=0, usepaw=0
+    nsppol=1, nkpt=78, mband=8
+
+      Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
+    -----  --------  -----------------------  ------  ---------------  ----------
+        0  Mg        0.00000 0.00000 0.00000       4                2  Yes
+        1  B         0.33333 0.66667 0.50000       4                2  Yes
+        2  B         0.66667 0.33333 0.50000       4                2  Yes
+    ================================= File Info =================================
+    Name: mgb2_kmesh181818_FATBANDS.nc
+    Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
+    Size: 480.70 kb
+    Access Time: Wed Nov  8 00:08:19 2017
+    Modification Time: Fri Jul 14 14:34:02 2017
+    Change Time: Fri Jul 14 14:34:02 2017
+
+    ================================= Structure =================================
+    Full Formula (Mg1 B2)
+    Reduced Formula: MgB2
+    abc   :   3.086000   3.086000   3.523000
+    angles:  90.000000  90.000000 120.000000
+    Sites (3)
+      #  SP           a         b    c
+    ---  ----  --------  --------  ---
+      0  Mg    0         0         0
+      1  B     0.333333  0.666667  0.5
+      2  B     0.666667  0.333333  0.5
+
+    Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+    ============================== Electronic Bands ==============================
+    ================================= Structure =================================
+    Full Formula (Mg1 B2)
+    Reduced Formula: MgB2
+    abc   :   3.086000   3.086000   3.523000
+    angles:  90.000000  90.000000 120.000000
+    Sites (3)
+      #  SP           a         b    c
+    ---  ----  --------  --------  ---
+      0  Mg    0         0         0
+      1  B     0.333333  0.666667  0.5
+      2  B     0.666667  0.333333  0.5
+
+    Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+    Number of electrons: 8.0, Fermi level: 6.851 [eV]
+    nsppol: 1, nkpt: 370, mband: 8, nspinor: 1, nspden: 1
+    smearing scheme: cold smearing of N. Marzari with minimization of the bump, tsmear_eV: 0.816, occopt: 4
+
+    =============================== Fatbands Info ===============================
+    prtdos=3, prtdosm=0, mbesslang=5, pawprtdos=0, usepaw=0
+    nsppol=1, nkpt=370, mband=8
+
+      Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
+    -----  --------  -----------------------  ------  ---------------  ----------
+        0  Mg        0.00000 0.00000 0.00000       4                2  Yes
+        1  B         0.33333 0.66667 0.50000       4                2  Yes
+        2  B         0.66667 0.33333 0.50000       4                2  Yes
+
+
+
+
+|
+
+
+.. code-block:: python
+
+    import abipy.abilab as abilab
+    import abipy.data as abidata
+
+    # Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`
+    # to open the file in a jupyter notebook
+    # This file has been produced on a k-path so it's not suitable for DOS calculations.
+    fbnc_kpath = abilab.abiopen(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
+
+    # Print file info (dimensions, variables ...)
+    # Note that prtdos = 3, so LM decomposition is not available.
+    print(fbnc_kpath)
+
+
+    # Plot the k-points belonging to the path.
+    fbnc_kpath.ebands.kpoints.plot()
+
+    # NC files have contributions up to L=4 (g channel)
+    # but here we are intererested in s,p,d terms only so
+    # we use the optional argument lmax
+    lmax = 2
+
+    # Plot the electronic fatbands grouped by atomic type.
+    fbnc_kpath.plot_fatbands_typeview(lmax=lmax, tight_layout=True)
+
+    # Plot the electronic fatbands grouped by L.
+    fbnc_kpath.plot_fatbands_lview(lmax=lmax, tight_layout=True)
+
+    # Now we read another FATBANDS file produced on 18x18x18 k-mesh
+    fbnc_kmesh = abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc"))
+
+    print(fbnc_kmesh)
+    #fbnc_kmesh.ebands.kpoints.plot()
+
+    # Plot the L-PJDOS grouped by atomic type.
+    fbnc_kmesh.plot_pjdos_typeview(lmax=lmax, tight_layout=True)
+
+    # Plot the L-PJDOS grouped by L.
+    fbnc_kmesh.plot_pjdos_lview(lmax=lmax, tight_layout=True)
+
+    # Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.
+    # The data for the DOS is taken from pjdosfile.
+    # sphinx_gallery_thumbnail_number = 6
+    fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, lmax=lmax,
+                                        view="type", tight_layout=True)
+
+    # fatbands + PJDOS grouped by L
+    fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, lmax=lmax,
+                                        view="lview", tight_layout=True)
+
+    fbnc_kpath.close()
+    fbnc_kmesh.close()
+
+**Total running time of the script:** ( 0 minutes  10.881 seconds)
+
+
+
+.. only :: html
+
+ .. container:: sphx-glr-footer
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Python source code: plot_efatbands.py <plot_efatbands.py>`
+
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Jupyter notebook: plot_efatbands.ipynb <plot_efatbands.ipynb>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_

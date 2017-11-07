@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.flowtk.abiphonopy &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.flowtk.abiphonopy</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Interface between phonopy and abipy workflow model.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">phonopy</span> <span class="k">import</span> <span class="n">Phonopy</span><span class="p">,</span> <span class="n">file_IO</span>
+    <span class="kn">from</span> <span class="nn">phonopy.interface.vasp</span> <span class="k">import</span> <span class="n">read_vasp_from_strings</span>
+    <span class="kn">from</span> <span class="nn">phonopy.interface.abinit</span> <span class="k">import</span> <span class="n">parse_set_of_forces</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">warnings</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;phonopy is required by abiphonopy. Install it with conda or pip install phonopy&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.works</span> <span class="k">import</span> <span class="n">Work</span>
+<span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;atoms_from_structure&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;structure_from_atoms&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PhonopyWork&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PhonopyGruneisenWork&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="atoms_from_structure"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.atoms_from_structure">[docs]</a><span class="k">def</span> <span class="nf">atoms_from_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a pymatgen Structure into a phonopy Atoms object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;poscar&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">read_vasp_from_strings</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="structure_from_atoms"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.structure_from_atoms">[docs]</a><span class="k">def</span> <span class="nf">structure_from_atoms</span><span class="p">(</span><span class="n">atoms</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a phonopy Atoms object into a pymatgen Structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Structure</span><span class="p">(</span><span class="n">lattice</span><span class="o">=</span><span class="n">atoms</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span>
+                     <span class="n">species</span><span class="o">=</span><span class="n">atoms</span><span class="o">.</span><span class="n">symbols</span><span class="p">,</span>
+                     <span class="n">coords</span><span class="o">=</span><span class="n">atoms</span><span class="o">.</span><span class="n">scaled_positions</span><span class="p">,</span>
+                     <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                     <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">site_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PhonopyWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyWork">[docs]</a><span class="k">class</span> <span class="nc">PhonopyWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This work computes the inter-atomic force constants with phonopy.</span>
+
+<span class="sd">    .. attribute:: scdims(3)</span>
+
+<span class="sd">	numpy arrays with the number of cells in the supercell along the three reduced directions</span>
+
+<span class="sd">    .. attribute:: phonon</span>
+
+<span class="sd">	:class:`Phonopy` object used to construct the supercells with displaced atoms.</span>
+
+<span class="sd">    .. attribute:: phonopy_tasks</span>
+
+<span class="sd">	List of :class:`ScfTask`. Each task compute the forces in one perturbed supercell.</span>
+
+<span class="sd">    .. attribute:: bec_tasks</span>
+
+<span class="sd">    .. attribute:: cpdata2dst</span>
+
+<span class="sd">	If not None, the work will copy the output results to the outdir of the flow</span>
+<span class="sd">	once all_ok is invoked. Note that cpdata2dst must be an absolute path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PhonopyWork.from_gs_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyWork.from_gs_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_gs_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">scdims</span><span class="p">,</span> <span class="n">phonopy_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">displ_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the work from an :class:`AbinitInput` object representing a GS calculations.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">	    gsinp:</span>
+<span class="sd">		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
+<span class="sd">	    scdims:</span>
+<span class="sd">		Number of unit cell replicas along the three reduced directions.</span>
+<span class="sd">	    phonopy_kwargs:</span>
+<span class="sd">		(Optional) dictionary with arguments passed to Phonopy constructor.</span>
+<span class="sd">	    displ_kwargs:</span>
+<span class="sd">		(Optional) dictionary with arguments passed to generate_displacements.</span>
+
+<span class="sd">	Return:</span>
+<span class="sd">	    PhonopyWork instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">phonopy_tasks</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">bec_tasks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">cpdata2dst</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Initialize phonon. Supercell matrix has (3, 3) shape.</span>
+        <span class="n">unitcell</span> <span class="o">=</span> <span class="n">atoms_from_structure</span><span class="p">(</span><span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">scdims</span> <span class="o">=</span> <span class="n">scdims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scdims</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting 3 int in scdims but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scdims</span><span class="p">))</span>
+
+        <span class="n">supercell_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
+        <span class="n">phonopy_kwargs</span> <span class="o">=</span> <span class="n">phonopy_kwargs</span> <span class="k">if</span> <span class="n">phonopy_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">phonon</span> <span class="o">=</span> <span class="n">phonon</span> <span class="o">=</span> <span class="n">Phonopy</span><span class="p">(</span><span class="n">unitcell</span><span class="p">,</span> <span class="n">supercell_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">phonopy_kwargs</span><span class="p">)</span>
+
+        <span class="n">displ_kwargs</span> <span class="o">=</span> <span class="n">displ_kwargs</span> <span class="k">if</span> <span class="n">displ_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">phonon</span><span class="o">.</span><span class="n">generate_displacements</span><span class="p">(</span><span class="o">**</span><span class="n">displ_kwargs</span><span class="p">)</span>  <span class="c1"># distance=0.01,</span>
+
+        <span class="c1"># Obtain supercells containing respective displacements (list of Atoms objects).</span>
+        <span class="k">for</span> <span class="n">atoms</span> <span class="ow">in</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_supercells_with_displacements</span><span class="p">():</span>
+            <span class="n">sc_struct</span> <span class="o">=</span> <span class="n">structure_from_atoms</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span>
+            <span class="n">sc_gsinp</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">sc_struct</span><span class="p">,</span> <span class="n">scdims</span><span class="o">=</span><span class="n">new</span><span class="o">.</span><span class="n">scdims</span><span class="p">)</span>
+            <span class="n">sc_gsinp</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+            <span class="n">sc_gsinp</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;ionmov&quot;</span><span class="p">,</span> <span class="s2">&quot;optcell&quot;</span><span class="p">,</span> <span class="s2">&quot;ntime&quot;</span><span class="p">])</span>
+            <span class="n">sc_gsinp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">toldff</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)</span>
+            <span class="n">sc_gsinp</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">chkprim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">task</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">sc_gsinp</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">phonopy_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="PhonopyWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called once the `Work` is completed i.e. when all the tasks</span>
+<span class="sd">        have reached status S_OK. Here we get the forces from the output files, and</span>
+<span class="sd">        we call phonopy to compute the inter-atomic force constants.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phonon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phonon</span>
+
+	<span class="c1"># Write POSCAR with initial unit cell.</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">structure_from_atoms</span><span class="p">(</span><span class="n">phonon</span><span class="o">.</span><span class="n">get_primitive</span><span class="p">())</span>
+        <span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">))</span>
+
+	<span class="c1"># Write yaml file with displacements.</span>
+        <span class="n">supercell</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_supercell</span><span class="p">()</span>
+        <span class="n">displacements</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_displacements</span><span class="p">()</span>
+        <span class="n">directions</span> <span class="o">=</span> <span class="n">phonon</span><span class="o">.</span><span class="n">get_displacement_directions</span><span class="p">()</span>
+        <span class="n">file_IO</span><span class="o">.</span><span class="n">write_disp_yaml</span><span class="p">(</span><span class="n">displacements</span><span class="p">,</span> <span class="n">supercell</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="n">directions</span><span class="p">,</span>
+                                <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s1">&#39;disp.yaml&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Extract forces from the main output files.</span>
+        <span class="n">forces_filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">task</span><span class="o">.</span><span class="n">output_file</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">phonopy_tasks</span><span class="p">]</span>
+        <span class="n">num_atoms</span> <span class="o">=</span> <span class="n">supercell</span><span class="o">.</span><span class="n">get_number_of_atoms</span><span class="p">()</span>
+        <span class="n">force_sets</span> <span class="o">=</span> <span class="n">parse_set_of_forces</span><span class="p">(</span><span class="n">num_atoms</span><span class="p">,</span> <span class="n">forces_filenames</span><span class="p">)</span>
+
+	<span class="c1"># Write FORCE_SETS file.</span>
+        <span class="n">displacements</span> <span class="o">=</span> <span class="n">file_IO</span><span class="o">.</span><span class="n">parse_disp_yaml</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s1">&#39;disp.yaml&#39;</span><span class="p">))</span>
+        <span class="n">num_atoms</span> <span class="o">=</span> <span class="n">displacements</span><span class="p">[</span><span class="s1">&#39;natom&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">forces</span><span class="p">,</span> <span class="n">disp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">force_sets</span><span class="p">,</span> <span class="n">displacements</span><span class="p">[</span><span class="s1">&#39;first_atoms&#39;</span><span class="p">]):</span>
+            <span class="n">disp</span><span class="p">[</span><span class="s1">&#39;forces&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forces</span>
+        <span class="n">file_IO</span><span class="o">.</span><span class="n">write_FORCE_SETS</span><span class="p">(</span><span class="n">displacements</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s1">&#39;FORCE_SETS&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Write README and configuration files.</span>
+        <span class="n">examples_url</span> <span class="o">=</span> <span class="s2">&quot;http://atztogo.github.io/phonopy/examples.html&quot;</span>
+        <span class="n">doctags_url</span> <span class="o">=</span> <span class="s2">&quot;http://atztogo.github.io/phonopy/setting-tags.html#setting-tags&quot;</span>
+        <span class="n">kptbounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">])</span>
+        <span class="n">path_coords</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">rc</span><span class="p">)</span> <span class="k">for</span> <span class="n">rc</span> <span class="ow">in</span> <span class="n">kptbounds</span><span class="o">.</span><span class="n">flat</span><span class="p">)</span>
+        <span class="n">path_labels</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">)</span>
+        <span class="n">ngqpt</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nksmall</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;band.conf&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">doctags_url</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;DIM = </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scdims</span><span class="p">))</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BAND = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path_coords</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BAND_LABELS = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path_labels</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BAND_POINTS = 101</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#BAND_CONNECTION = .TRUE.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;dos.conf&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">doctags_url</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;DIM = </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scdims</span><span class="p">))</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MP = </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">))</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#GAMMA_CENTER = .TRUE.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;band-dos.conf&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="n">doctags_url</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;DIM = </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scdims</span><span class="p">))</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BAND = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path_coords</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BAND_LABELS = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path_labels</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BAND_POINTS = 101</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#BAND_CONNECTION = .TRUE.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MP = </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">))</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#GAMMA_CENTER = .TRUE.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="s2">&quot;README&quot;</span><span class="p">),</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;To plot bands, use: `phonopy -p band.conf`</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;To plot dos, use: `phonopy -p dos.conf`</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;To plot bands and dos, use: `phonopy -p band-dos.conf`</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;See also:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">examples_url</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">doctags_url</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpdata2dst</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">copy_r</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpdata2dst</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PhonopyWork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="PhonopyGruneisenWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork">[docs]</a><span class="k">class</span> <span class="nc">PhonopyGruneisenWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This work computes the Grüneisen parameters with phonopy. The workflow is as follows:</span>
+
+<span class="sd">    It is necessary to run three phonon calculations.</span>
+<span class="sd">    One is calculated at the equilibrium volume and the remaining two are calculated</span>
+<span class="sd">    at the slightly larger volume and smaller volume than the equilibrium volume.</span>
+<span class="sd">    The unitcells at these volumes have to be fully relaxed under the constraint of each volume.</span>
+
+<span class="sd">    .. attribute:: scdims(3)</span>
+
+<span class="sd">	numpy arrays with the number of cells in the supercell along the three reduced directions.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PhonopyGruneisenWork.from_gs_input"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.from_gs_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_gs_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gsinp</span><span class="p">,</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">scdims</span><span class="p">,</span> <span class="n">phonopy_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">displ_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the work from an :class:`AbinitInput` object representing a GS calculations.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">	    gsinp:</span>
+<span class="sd">		:class:`AbinitInput` object representing a GS calculation in the initial unit cell.</span>
+<span class="sd">	    voldelta:</span>
+<span class="sd">                Absolute increment for unit cell volume. The three volumes are:</span>
+<span class="sd">                     [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.</span>
+<span class="sd">	    scdims:</span>
+<span class="sd">		Number of unit cell replicas along the three reduced directions.</span>
+<span class="sd">	    phonopy_kwargs:</span>
+<span class="sd">		(Optional) dictionary with arguments passed to Phonopy constructor.</span>
+<span class="sd">	    displ_kwargs:</span>
+<span class="sd">		(Optional) dictionary with arguments passed to generate_displacements.</span>
+
+<span class="sd">	Return:</span>
+<span class="sd">	    `PhonopyGruneisenWork` instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+
+	<span class="c1"># Save arguments that will be used to call phonopy for creating</span>
+        <span class="c1"># the supercells with the displacements once the three volumes have been relaxed.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">scdims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scdims</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="n">scdims</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting 3 int in scdims but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">scdims</span><span class="p">))</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">phonopy_kwargs</span> <span class="o">=</span> <span class="n">phonopy_kwargs</span> <span class="k">if</span> <span class="n">phonopy_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">displ_kwargs</span> <span class="o">=</span> <span class="n">displ_kwargs</span> <span class="k">if</span> <span class="n">displ_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+
+        <span class="c1"># Build three tasks for structural optimization at constant volume.</span>
+        <span class="n">v0</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span>
+        <span class="k">if</span> <span class="n">voldelta</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;voldelta must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">voldelta</span><span class="p">)</span>
+        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">v0</span> <span class="o">-</span> <span class="n">voldelta</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v0</span>  <span class="o">+</span> <span class="n">voldelta</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;volumes must be &gt; 0 but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">volumes</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
+            <span class="c1"># Build new structure</span>
+            <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+            <span class="n">new_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">new_lattice</span><span class="p">,</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="n">new_input</span> <span class="o">=</span> <span class="n">gsinp</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">new_structure</span><span class="p">)</span>
+            <span class="c1"># Set variables for structural optimization at constant volume.</span>
+            <span class="n">new_input</span><span class="o">.</span><span class="n">pop_tolerances</span><span class="p">()</span>
+            <span class="n">new_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">optcell</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ionmov</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">toldff</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)</span>
+            <span class="n">new_input</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">new_input</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="PhonopyGruneisenWork.on_all_ok"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.on_all_ok">[docs]</a>    <span class="k">def</span> <span class="nf">on_all_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is called once the `Work` is completed i.e. when all the tasks</span>
+<span class="sd">        have reached status S_OK.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_phonopy_works_and_build</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PhonopyGruneisenWork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_all_ok</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PhonopyGruneisenWork.add_phonopy_works_and_build"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.add_phonopy_works_and_build">[docs]</a>    <span class="k">def</span> <span class="nf">add_phonopy_works_and_build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get relaxed structures from the tasks, build Phonopy works with supercells</span>
+<span class="sd">        constructed from the new structures, add them to the flow and build new directories.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">relaxed_structure</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_final_structure</span><span class="p">()</span>
+            <span class="n">gsinp</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">new_with_structure</span><span class="p">(</span><span class="n">relaxed_structure</span><span class="p">)</span>
+
+            <span class="n">work</span> <span class="o">=</span> <span class="n">PhonopyWork</span><span class="o">.</span><span class="n">from_gs_input</span><span class="p">(</span><span class="n">gsinp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scdims</span><span class="p">,</span>
+                                             <span class="n">phonopy_kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phonopy_kwargs</span><span class="p">,</span>
+                                             <span class="n">displ_kwargs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displ_kwargs</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+            <span class="c1"># Tell the work to copy the results to e.g. `flow/outdir/w0/minus`</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_str</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;minus&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;orig&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;plus&quot;</span><span class="p">}[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">work</span><span class="o">.</span><span class="n">cpdata2dst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">outdir</span><span class="o">.</span><span class="n">path_in</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+        <span class="c1"># Allocate new works and update the pickle database.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="o">.</span><span class="n">build_and_pickle_dump</span><span class="p">()</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

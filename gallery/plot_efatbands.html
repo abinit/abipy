@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MgB2 fatbands &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="spin-polarized fatbands" href="plot_efatbands_spin.html" />
+    <link rel="prev" title="GW with scissors operator" href="plot_qpbands_with_scissor.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">MgB2 fatbands</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_qpbands_with_scissor.html" title="Previous Chapter: GW with scissors operator"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; GW with sciss...</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_efatbands_spin.html" title="Next Chapter: spin-polarized fatbands"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">spin-polarize... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_efatbands.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="mgb2-fatbands">
+<span id="sphx-glr-gallery-plot-efatbands-py"></span><h1>MgB2 fatbands<a class="headerlink" href="#mgb2-fatbands" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to plot the L-projected fatbands of MgB2
+using the FATBANDS.nc files produced by abinit with prtdos 3.
+See also PhysRevLett.86.4656</p>
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_001.png"><img alt="../_images/sphx_glr_plot_efatbands_001.png" src="../_images/sphx_glr_plot_efatbands_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_002.png"><img alt="../_images/sphx_glr_plot_efatbands_002.png" src="../_images/sphx_glr_plot_efatbands_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_003.png"><img alt="../_images/sphx_glr_plot_efatbands_003.png" src="../_images/sphx_glr_plot_efatbands_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_004.png"><img alt="../_images/sphx_glr_plot_efatbands_004.png" src="../_images/sphx_glr_plot_efatbands_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_005.png"><img alt="../_images/sphx_glr_plot_efatbands_005.png" src="../_images/sphx_glr_plot_efatbands_005.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_006.png"><img alt="../_images/sphx_glr_plot_efatbands_006.png" src="../_images/sphx_glr_plot_efatbands_006.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_007.png"><img alt="../_images/sphx_glr_plot_efatbands_007.png" src="../_images/sphx_glr_plot_efatbands_007.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span>================================= File Info =================================
+Name: mgb2_kpath_FATBANDS.nc
+Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
+Size: 149.01 kb
+Access Time: Wed Nov  8 00:08:16 2017
+Modification Time: Fri Jul 14 14:34:02 2017
+Change Time: Fri Jul 14 14:34:02 2017
+
+================================= Structure =================================
+Full Formula (Mg1 B2)
+Reduced Formula: MgB2
+abc   :   3.086000   3.086000   3.523000
+angles:  90.000000  90.000000 120.000000
+Sites (3)
+  #  SP           a         b    c
+---  ----  --------  --------  ---
+  0  Mg    0         0         0
+  1  B     0.333333  0.666667  0.5
+  2  B     0.666667  0.333333  0.5
+
+Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+============================== Electronic Bands ==============================
+================================= Structure =================================
+Full Formula (Mg1 B2)
+Reduced Formula: MgB2
+abc   :   3.086000   3.086000   3.523000
+angles:  90.000000  90.000000 120.000000
+Sites (3)
+  #  SP           a         b    c
+---  ----  --------  --------  ---
+  0  Mg    0         0         0
+  1  B     0.333333  0.666667  0.5
+  2  B     0.666667  0.333333  0.5
+
+Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+Number of electrons: 8.0, Fermi level: 6.851 [eV]
+nsppol: 1, nkpt: 78, mband: 8, nspinor: 1, nspden: 1
+smearing scheme: none, tsmear_eV: 0.272, occopt: 1
+Direct gap:
+    Energy: 0.312 [eV]
+    Initial state: spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=2, eig=6.621, occ=2.000
+    Final state:   spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=3, eig=6.933, occ=2.000
+Fundamental gap:
+    Energy: 0.038 [eV]
+    Initial state: spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+    Final state:   spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
+Bandwidth: 12.435 [eV]
+Valence minimum located at:
+    spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=0, eig=-5.613, occ=2.000
+Valence maximum located at:
+    spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+
+
+=============================== Fatbands Info ===============================
+prtdos=3, prtdosm=0, mbesslang=5, pawprtdos=0, usepaw=0
+nsppol=1, nkpt=78, mband=8
+
+  Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
+-----  --------  -----------------------  ------  ---------------  ----------
+    0  Mg        0.00000 0.00000 0.00000       4                2  Yes
+    1  B         0.33333 0.66667 0.50000       4                2  Yes
+    2  B         0.66667 0.33333 0.50000       4                2  Yes
+================================= File Info =================================
+Name: mgb2_kmesh181818_FATBANDS.nc
+Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
+Size: 480.70 kb
+Access Time: Wed Nov  8 00:08:19 2017
+Modification Time: Fri Jul 14 14:34:02 2017
+Change Time: Fri Jul 14 14:34:02 2017
+
+================================= Structure =================================
+Full Formula (Mg1 B2)
+Reduced Formula: MgB2
+abc   :   3.086000   3.086000   3.523000
+angles:  90.000000  90.000000 120.000000
+Sites (3)
+  #  SP           a         b    c
+---  ----  --------  --------  ---
+  0  Mg    0         0         0
+  1  B     0.333333  0.666667  0.5
+  2  B     0.666667  0.333333  0.5
+
+Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+============================== Electronic Bands ==============================
+================================= Structure =================================
+Full Formula (Mg1 B2)
+Reduced Formula: MgB2
+abc   :   3.086000   3.086000   3.523000
+angles:  90.000000  90.000000 120.000000
+Sites (3)
+  #  SP           a         b    c
+---  ----  --------  --------  ---
+  0  Mg    0         0         0
+  1  B     0.333333  0.666667  0.5
+  2  B     0.666667  0.333333  0.5
+
+Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+
+Number of electrons: 8.0, Fermi level: 6.851 [eV]
+nsppol: 1, nkpt: 370, mband: 8, nspinor: 1, nspden: 1
+smearing scheme: cold smearing of N. Marzari with minimization of the bump, tsmear_eV: 0.816, occopt: 4
+
+=============================== Fatbands Info ===============================
+prtdos=3, prtdosm=0, mbesslang=5, pawprtdos=0, usepaw=0
+nsppol=1, nkpt=370, mband=8
+
+  Idx  Symbol    Reduced_Coords             Lmax    Ratsph [Bohr]  Has_Atom
+-----  --------  -----------------------  ------  ---------------  ----------
+    0  Mg        0.00000 0.00000 0.00000       4                2  Yes
+    1  B         0.33333 0.66667 0.50000       4                2  Yes
+    2  B         0.66667 0.33333 0.50000       4                2  Yes
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+
+<span class="c1"># Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook</span>
+<span class="c1"># This file has been produced on a k-path so it&#39;s not suitable for DOS calculations.</span>
+<span class="n">fbnc_kpath</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;mgb2_kpath_FATBANDS.nc&quot;</span><span class="p">))</span>
+
+<span class="c1"># Print file info (dimensions, variables ...)</span>
+<span class="c1"># Note that prtdos = 3, so LM decomposition is not available.</span>
+<span class="k">print</span><span class="p">(</span><span class="n">fbnc_kpath</span><span class="p">)</span>
+
+
+<span class="c1"># Plot the k-points belonging to the path.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+
+<span class="c1"># NC files have contributions up to L=4 (g channel)</span>
+<span class="c1"># but here we are intererested in s,p,d terms only so</span>
+<span class="c1"># we use the optional argument lmax</span>
+<span class="n">lmax</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># Plot the electronic fatbands grouped by atomic type.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Plot the electronic fatbands grouped by L.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Now we read another FATBANDS file produced on 18x18x18 k-mesh</span>
+<span class="n">fbnc_kmesh</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;mgb2_kmesh181818_FATBANDS.nc&quot;</span><span class="p">))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">fbnc_kmesh</span><span class="p">)</span>
+<span class="c1">#fbnc_kmesh.ebands.kpoints.plot()</span>
+
+<span class="c1"># Plot the L-PJDOS grouped by atomic type.</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Plot the L-PJDOS grouped by L.</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.</span>
+<span class="c1"># The data for the DOS is taken from pjdosfile.</span>
+<span class="c1"># sphinx_gallery_thumbnail_number = 6</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span>
+                                    <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># fatbands + PJDOS grouped by L</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span>
+                                    <span class="n">view</span><span class="o">=</span><span class="s2">&quot;lview&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  10.881 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_efatbands.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_efatbands.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_efatbands.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_efatbands.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

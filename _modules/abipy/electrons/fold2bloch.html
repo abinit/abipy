@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.electrons.fold2bloch &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.electrons.fold2bloch</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Fold2Bloch netcdf file.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span> <span class="c1"># is_string, list_strings,</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">units</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">KpointList</span><span class="p">,</span> <span class="n">is_diagonal</span><span class="p">,</span> <span class="n">find_points_along_path</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">gaussian</span>
+
+
+<div class="viewcode-block" id="Fold2BlochNcfile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile">[docs]</a><span class="k">class</span> <span class="nc">Fold2BlochNcfile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Netcdf file with output data produced by Fold2Bloch.</span>
+
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with Fold2BlochNcfile(&quot;foo_FOLD2BLOCH.nc&quot;) as fb:</span>
+<span class="sd">            fb.plot_unfolded()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Fold2BlochNcfile.from_wfkpath"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.from_wfkpath">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_wfkpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">wfkpath</span><span class="p">,</span> <span class="n">folds</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run fold2bloch in workdir.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wfkpath:</span>
+<span class="sd">            folds:</span>
+<span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            mpi_procs: Number of MPI processors to use.</span>
+<span class="sd">            verbose: Verbosity level.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Build a simple manager to run the job in a shell subprocess</span>
+        <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">flowtk</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">TaskManager</span><span class="o">.</span><span class="n">as_manager</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="n">to_shell_manager</span><span class="p">(</span><span class="n">mpi_procs</span><span class="o">=</span><span class="n">mpi_procs</span><span class="p">)</span>
+        <span class="n">fold2bloch</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Fold2Bloch</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="c1"># Create temporary directory and link to the WFK file</span>
+        <span class="kn">import</span> <span class="nn">tempfile</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+        <span class="n">wfkpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">wfkpath</span><span class="p">)</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">wfkpath</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">wfkpath</span><span class="p">,</span> <span class="n">link</span><span class="p">)</span>
+
+        <span class="c1"># Run fold2bloch</span>
+        <span class="n">ncpath</span> <span class="o">=</span> <span class="n">fold2bloch</span><span class="o">.</span><span class="n">unfold</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="n">folds</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ncpath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Fold2BlochNcfile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">ElectronsReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="c1"># Initialize the electron bands from file.</span>
+        <span class="c1"># Spectral weights are dimensioned with `nss`</span>
+	<span class="c1"># Fortran arrays.</span>
+	<span class="c1"># nctkarr_t(&quot;reduced_coordinates_of_unfolded_kpoints&quot;, &quot;dp&quot;, &quot;number_of_reduced_dimensions, nk_unfolded&quot;)</span>
+	<span class="c1"># nctkarr_t(&quot;unfolded_eigenvalues&quot;, &quot;dp&quot;, &quot;max_number_of_states, nk_unfolded, number_of_spins&quot;)</span>
+	<span class="c1"># nctkarr_t(&quot;spectral_weights&quot;, &quot;dp&quot;, &quot;max_number_of_states, nk_unfolded, nsppol_times_nspinor&quot;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nss</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fold_matrix&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute direct lattice of the primitive cell from fold_matrix.</span>
+        <span class="k">if</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span><span class="p">):</span>
+            <span class="n">folds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pc_lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">folds</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;non diagonal fold_matrix: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span><span class="p">))</span>
+
+        <span class="c1"># Read fold2bloch output data.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uf_kfrac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;reduced_coordinates_of_unfolded_kpoints&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span> <span class="o">=</span> <span class="n">KpointList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pc_lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_kfrac_coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uf_nkpt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.to_string"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
+
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Direct lattice of the primitive cell:&quot;</span><span class="p">)</span>
+        <span class="n">to_s</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%0.6f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">x</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;abc   : &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">to_s</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pc_lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">]))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;angles: &quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">to_s</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pc_lattice</span><span class="o">.</span><span class="n">angles</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span><span class="p">):</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Diagonal folding: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Folding matrix: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_matrix</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Unfolded k-points&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hdr</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Abinit Header&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object with folded band energies.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`Structure` object defining the supercell.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.uf_eigens"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.uf_eigens">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">uf_eigens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[nsppol, nk_unfolded, nband] array with unfolded eigenvalues in eV.&quot;&quot;&quot;</span>
+        <span class="c1"># nctkarr_t(&quot;unfolded_eigenvalues&quot;, &quot;dp&quot;, &quot;max_number_of_states, nk_unfolded, number_of_spins&quot;)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;unfolded_eigenvalues&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span></div>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.uf_weights"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.uf_weights">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">uf_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[nss, nk_unfolded, nband] array with spectral weights. nss = max(nspinor, nsppol).&quot;&quot;&quot;</span>
+        <span class="c1"># nctkarr_t(&quot;spectral_weights&quot;, &quot;dp&quot;, &quot;max_number_of_states, nk_unfolded, nsppol_times_nspinor&quot;)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;spectral_weights&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.get_spectral_functions"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.get_spectral_functions">[docs]</a>    <span class="k">def</span> <span class="nf">get_spectral_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.02</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            step: Energy step (eV) of the linear mesh.</span>
+<span class="sd">            width: Standard deviation (eV) of the gaussian.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            mesh, sfw, int_sfw</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Compute linear mesh.</span>
+        <span class="n">epad</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">width</span>
+        <span class="n">e_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_eigens</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="n">epad</span>
+        <span class="n">e_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_eigens</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">epad</span>
+        <span class="n">nw</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">e_max</span> <span class="o">-</span> <span class="n">e_min</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">e_min</span><span class="p">,</span> <span class="n">e_max</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">nw</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">retstep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">sfw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_nkpt</span><span class="p">,</span> <span class="n">nw</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nss</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">ik</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uf_nkpt</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">):</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="n">band</span><span class="p">]</span>
+                    <span class="n">sfw</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_weights</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik</span><span class="p">,</span> <span class="n">band</span><span class="p">]</span> <span class="o">*</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">cumtrapz</span>
+        <span class="n">int_sfw</span> <span class="o">=</span> <span class="n">cumtrapz</span><span class="p">(</span><span class="n">sfw</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">,</span> <span class="n">sfw</span><span class="o">=</span><span class="n">sfw</span><span class="p">,</span> <span class="n">int_sfw</span><span class="o">=</span><span class="n">int_sfw</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.plot_unfolded"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.plot_unfolded">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_unfolded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kbounds</span><span class="p">,</span> <span class="n">klabels</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dist_tol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                      <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;afmhot&quot;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot unfolded band structure with spectral weights.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.</span>
+<span class="sd">                The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}`.</span>
+<span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            dist_tol: A point is considered to be on the path if its distance from the line</span>
+<span class="sd">                is less than dist_tol.</span>
+<span class="sd">            verbose: Verbosity level.</span>
+<span class="sd">            colormap: Have a look at the colormaps here and decide which one you like:</span>
+<span class="sd">                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</span>
+<span class="sd">            facecolor:</span>
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            `matplotlib` figure</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+        <span class="n">cart_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pc_lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))]</span>
+        <span class="n">uf_cart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span><span class="o">.</span><span class="n">get_cart_coords</span><span class="p">()</span>
+
+        <span class="n">klines</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ticks</span> <span class="o">=</span> <span class="n">find_points_along_path</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">,</span> <span class="n">uf_cart</span><span class="p">,</span> <span class="n">dist_tol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">klines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">uf_frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">fcoords</span> <span class="o">=</span> <span class="n">uf_frac_coords</span><span class="p">[</span><span class="n">klines</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> points along input k-path&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcoords</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;k-points of path in reduced coordinates:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">fcoords</span><span class="p">)</span>
+
+        <span class="n">fact</span> <span class="o">=</span> <span class="mf">8.0</span>
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">fermie</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">facecolor</span><span class="p">)</span>
+
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">)</span>
+        <span class="n">marker_spin</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;v&quot;</span><span class="p">}</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nss</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;o&quot;</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nss</span><span class="p">):</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_eigens</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">klines</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">e0</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_weights</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">klines</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">fact</span> <span class="o">*</span> <span class="n">ws</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">ws</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                           <span class="n">marker</span><span class="o">=</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nss</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;spin </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span><span class="p">,</span>
+                           <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">klabels</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;klabel_size&quot;</span><span class="p">,</span> <span class="s2">&quot;large&quot;</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nss</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="Fold2BlochNcfile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fold2bloch.Fold2BlochNcfile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an ipython notebook to nbpath. If `nbpath` is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;f2b = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(f2b)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;f2b.ebands.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#f2b.unfolded_kpoints.plot();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&quot;&quot;\</span>
+<span class="s2"># kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]</span>
+<span class="s2"># klabels = [&quot;Y&quot;, &quot;$Gamma$&quot;, &quot;X&quot;]</span>
+<span class="s2"># f2b.plot_unfolded(kbounds, klabels);&quot;&quot;&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

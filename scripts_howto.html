@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>AbiPy Scripts Howto &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">AbiPy Scripts Howto</a><ul>
+<li><a class="reference internal" href="#structure">Structure</a></li>
+<li><a class="reference internal" href="#comparing-results">Comparing results</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/scripts_howto.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abipy-scripts-howto">
+<span id="scripts-howto"></span><h1>AbiPy Scripts Howto<a class="headerlink" href="#abipy-scripts-howto" title="Permalink to this headline">¶</a></h1>
+<p>At present you could start by using abiopen.py, abistruct.py, abicomp.py and abidoc.py.
+The “logic” within the use of all abipy scripts is always the same, as you can see
+if you issue <code class="docutils literal"><span class="pre">--help</span></code> after the scripts name.</p>
+<p>For example:
+<code class="docutils literal"><span class="pre">abistruct.py</span> <span class="pre">--help</span></code> to get the ‘HOWTO’ and usage examples of the script “abistruct.py”.
+and <code class="docutils literal"><span class="pre">abistruct.py</span> <span class="pre">COMMAND</span> <span class="pre">--help</span></code> to get the documentation for <code class="docutils literal"><span class="pre">COMMAND</span></code>
+I guess it’ll be clearer if you actually issue on the terminal “abistruct.py —help”</p>
+<p>Q: How can I get information about a <code class="docutils literal"><span class="pre">FILE</span></code></p>
+<p>Use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py FILE -p
+</pre></div>
+</div>
+<p>to print information about a file in the terminal.</p>
+<div class="section" id="structure">
+<h2>Structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h2>
+<p>Q: I have a <code class="docutils literal"><span class="pre">FILE</span></code> with geometrical information and I need to convert it
+to a different format e.g. Abinit input variables:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert FILE
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal"><span class="pre">-f</span></code> option to specify a different format e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert FILE -f cif
+</pre></div>
+</div>
+<p>will produce a CIF file. Use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert FILE --help
+</pre></div>
+</div>
+<p>to list the formats supported.
+It is also possible to export to <code class="docutils literal"><span class="pre">xsf</span></code> (Xcrysden) format with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert FILE -f xsf &gt; out.xsf
+</pre></div>
+</div>
+<p>and then open the file in a graphical software although <code class="docutils literal"><span class="pre">abistruct.py</span></code>
+already provides the handy command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py visualize FILE
+</pre></div>
+</div>
+<p>To search on the Materials Project database for structures corresponding to a
+chemical system or formula e.g. <code class="docutils literal"><span class="pre">Fe2O3</span></code> or <code class="docutils literal"><span class="pre">Li-Fe-O</span></code>, use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py mp_search LiF
+</pre></div>
+</div>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">#</span> Found <span class="m">2</span> structures in materials project database <span class="o">(</span>use <span class="sb">`</span>verbose<span class="sb">`</span> to get full info<span class="o">)</span>
+<span class="go">           pretty_formula  e_above_hull  energy_per_atom  \</span>
+<span class="go">mp-1138               LiF      0.000000        -4.845142</span>
+<span class="go">mp-1009009            LiF      0.273111        -4.572031</span>
+
+<span class="go">            formation_energy_per_atom  nsites     volume spacegroup.symbol  \</span>
+<span class="go">mp-1138                     -3.180439       2  17.022154             Fm-3m</span>
+<span class="go">mp-1009009                  -2.907328       2  16.768040             Pm-3m</span>
+
+<span class="go">            spacegroup.number  band_gap  total_magnetization material_id</span>
+<span class="go">mp-1138                   225    8.7161                  0.0     mp-1138</span>
+<span class="go">mp-1009009                221    7.5046                 -0.0  mp-1009009</span>
+</pre></div>
+</div>
+<p>It it possible to produce a Xmgrace file for electrons/phonons?</p>
+<p>Yes, both <code class="docutils literal"><span class="pre">ElectronBands</span></code> and <code class="docutils literal"><span class="pre">PhononBands</span></code> provide a <code class="docutils literal"><span class="pre">to_xmgrace</span></code> method to write Xmgrace files.
+Open the file with the electrons bands (GSR.nc. WFK.nc …) with <code class="docutils literal"><span class="pre">abiopen.py</span></code>
+and then execute</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">abifile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_xmgrace</span><span class="p">(</span><span class="s2">&quot;ebands.agr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>for electrons and</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">abifile</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">to_xmgrace</span><span class="p">(</span><span class="s2">&quot;phbands.agr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Is it possible to plot the Fermi Surface?</p>
+<p>Export the full band structure to <code class="docutils literal"><span class="pre">filepath</span></code> in BXSF format</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">abifile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_bxsf</span><span class="p">(</span><span class="s2">&quot;phbands.agr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the method requires k-points in the irreducible wedge and a gamma-centered k-mesh.
+Export the full band structure to <code class="docutils literal"><span class="pre">filepath</span></code> in BXSF format
+suitable for the visualization of the Fermi surface with Xcrysden (xcrysden –bxsf FILE).</p>
+<p>Effective masses</p>
+<p>How can I analyze the results of a structural relaxation?
+Use <code class="docutils literal"><span class="pre">abiopen.py</span></code> to open the <code class="docutils literal"><span class="pre">HIST.nc</span></code> file produce by Abinit and then, inside ipython, type</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span>
+<span class="k">print</span><span class="p">(</span><span class="n">abifile</span><span class="p">)</span>
+<span class="n">abifile</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">&quot;fundgap_spin0&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>My script is slow, how can I understand what’s happening
+All abipy script can be executed in profile mode by just prepending the <code class="docutils literal"><span class="pre">prof</span></code> keyword
+to the command line arguments.
+Just use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">prof</span> <span class="n">FILE</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">prof</span> <span class="n">COMMAND</span> <span class="n">FILE</span>
+</pre></div>
+</div>
+<p>if the script requires a <code class="docutils literal"><span class="pre">COMMAND</span></code> argument.</p>
+</div>
+<div class="section" id="comparing-results">
+<h2>Comparing results<a class="headerlink" href="#comparing-results" title="Permalink to this headline">¶</a></h2>
+<p>Remember that it is possible to use shell syntax <code class="docutils literal"><span class="pre">*_GSR.nc</span></code> to select all files
+with a given extension or <code class="docutils literal"><span class="pre">find</span> <span class="pre">.</span> <span class="pre">-name</span> <span class="pre">*_GSR.nc</span></code> to scan the current directory</p>
+<p>Q: I have multiple <code class="docutils literal"><span class="pre">GSR</span></code> files and I need to compare the electronic gaps
+Use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py ebands *_GSR.nc -ipy
+</pre></div>
+</div>
+<p>to build a <code class="docutils literal"><span class="pre">plotter</span></code> object and open the ipython terminal.
+Then, inside ipython, type</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">get_ebands_dataframe</span><span class="p">()</span>
+<span class="o">%</span><span class="k">matplotlib</span>
+<span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>to build a pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> and plot …</p>
+<p>Let’s take the case of Gd2SiO5 (GSO).
+I had to do some extra calculations and so I wanted to get the input structure somewhere.
+In our case, there was an abinit input file in your $HOME (leds/GSO/bulk/band/band.in).
+You can get the structure and the related abinit variables even from that file
+(any file containing structural infos can be used. For a list of (all) the supported files, issue “abiopen.py –help”)</p>
+<p>If we compare this structure with those we used in the case of LSO and YSO, we can see that
+it’s not the same structure: we take advantage of pymatgen StructureMatcher and the “anonymous”
+matching i.e. even structures which have different elements can be matched:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py structure GSO/bulk/band.in YSO/ysoo_GSR.nc --group --anonymous
+</pre></div>
+</div>
+<p>Grouping 2 structures by element
+Group 0:</p>
+<blockquote>
+<div><ul class="simple">
+<li>GSO/bulk/band.in (Gd8 Si4 O20), vol: 419.61 A^3, P2_1/c (14)</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Group 1:</dt>
+<dd><ul class="first last simple">
+<li>YSO/ysoo_GSR.nc (Y8 Si4 O20), vol: 439.11 A^3, C2/c (15)</li>
+</ul>
+</dd>
+</dl>
+<p>while:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py structure GSO/bulk/band.in YSO/ysoo_GSR.nc LSO/lsoo_GSR.nc --group --anonymous
+</pre></div>
+</div>
+<p>Grouping 3 structures by element
+Group 0:</p>
+<blockquote>
+<div><ul class="simple">
+<li>GSO/bulk/band.in (Gd8 Si4 O20), vol: 419.61 A^3, P2_1/c (14)</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Group 1:</dt>
+<dd><ul class="first last simple">
+<li>YSO/ysoo_GSR.nc (Y8 Si4 O20), vol: 439.11 A^3, C2/c (15)</li>
+<li>LSO/lsoo_GSR.nc (Lu8 Si4 O20), vol: 415.71 A^3, C2/c (15)</li>
+</ul>
+</dd>
+</dl>
+<p>Indeed, if you look for YSO on the Materials Project database, you find two phases: mp-3520  and mp-554420,
+both with 32 atoms per cell but different space group:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py mp_search Y2SiO5
+</pre></div>
+</div>
+<dl class="docutils">
+<dt># Found 2 structures in materials project database (use <cite>verbose</cite> to get full info)</dt>
+<dd>pretty_formula  e_above_hull  energy_per_atom  </dd>
+</dl>
+<p>mp-3520           Y2SiO5      0.000000        -8.749458
+mp-554420         Y2SiO5      0.025002        -8.724456</p>
+<blockquote>
+<div>formation_energy_per_atom  nsites      volume spacegroup.symbol  </div></blockquote>
+<p>mp-3520                    -3.808455      32  444.282737              C2/c
+mp-554420                  -3.783453      32  411.813392            P2_1/c</p>
+<blockquote>
+<div>spacegroup.number  band_gap  total_magnetization material_id</div></blockquote>
+<p>mp-3520                   15    4.8947                  0.0     mp-3520
+mp-554420                 14    4.7342                  0.0   mp-554420</p>
+<p>The former is the stable one , the latter has an energy above the hull of 0.025 eV/atom.
+(In the case of GSO, “abistruct.py mp_search Gd2SiO5” will give only one structure (mp-542831) with P2_1/c symmetry)</p>
+<p>You could, for example, download them as cif:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py pmgdata mp-554420 -f cif &gt; mp-554420.cif
+</pre></div>
+</div>
+<p>and then see if the structure are similar to the one than we obtained a while ago:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py structure GSO/bulk/band.in LSO/lsoo_GSR.nc YSO/* --group --anonymous
+</pre></div>
+</div>
+<p>Grouping 5 structures by element
+Group 0:</p>
+<blockquote>
+<div><ul class="simple">
+<li>GSO/bulk/band.in (Gd8 Si4 O20), vol: 419.61 A^3, P2_1/c (14)</li>
+<li>YSO/mp-554420.cif (Y8 Si4 O20), vol: 411.81 A^3, P2_1/c (14)</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Group 1:</dt>
+<dd><ul class="first last simple">
+<li>LSO/lsoo_GSR.nc (Lu8 Si4 O20), vol: 415.71 A^3, C2/c (15)</li>
+<li>YSO/mp-3520.cif (Y8 Si4 O20), vol: 444.28 A^3, C2/c (15)</li>
+<li>YSO/ysoo_GSR.nc (Y8 Si4 O20), vol: 439.11 A^3, C2/c (15)</li>
+</ul>
+</dd>
+</dl>
+<p>You might also want to compare the structures you obtained with those of the Materials Project:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py structure YSO/*cif YSO/ysoo_GSR.nc
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Lattice parameters:</dt>
+<dd>formula  natom     angle0      angle1      angle2  </dd>
+</dl>
+<p>YSO/mp-3520.cif    Y8 Si4 O20     32  72.253470   69.403142   64.857542
+YSO/mp-554420.cif  Y8 Si4 O20     32  90.000000  106.377942   90.000000
+YSO/ysoo_GSR.nc    Y8 Si4 O20     32  61.231899  118.768101  129.711417</p>
+<blockquote>
+<div>a         b          c      volume abispg_num  </div></blockquote>
+<p>YSO/mp-3520.cif    6.831769  8.039827   9.710002  444.282737       None
+YSO/mp-554420.cif  6.749247  6.955070   9.143946  411.813392       None
+YSO/ysoo_GSR.nc    8.008236  8.008236  10.508789  439.110049         15</p>
+<blockquote>
+<div>spglib_symb  spglib_num</div></blockquote>
+<p>YSO/mp-3520.cif          C2/c          15
+YSO/mp-554420.cif      P2_1/c          14
+YSO/ysoo_GSR.nc          C2/c          15</p>
+<p>Anyway, we’re interested in the environment /nearest neighbours of the oxygen atoms.
+We can easily identify the different coordination with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py neighbors YSO/mp-3520.cif -r 2.7
+</pre></div>
+</div>
+<p>Finding neighbors for each atom in the unit cell, out to a distance 2.7 [Angstrom]</p>
+<p>You’ll see that we can identify the Y lying at sites coordinated with 6 oxygens and those at sites with 7 oxygens.</p>
+<p>Finally, if you want to compare total energies of the two GSO phases:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc
+</pre></div>
+</div>
+<p>-17432.3600217 eV    # File:  GSO/C2c/bulk/gsoo_GSR.nc
+-17431.8874098 eV    # File:  GSO/P2_1c/bulk/gsoo_GSR.nc</p>
+<p>and optionally use <code class="docutils literal"><span class="pre">--plot</span></code> to plot the data.</p>
+<p>So the C2c phase is the most stable for GSO too.
+(In case one does not know which are the “attributes” you can extract from the files with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py attr   GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc —show )
+</pre></div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

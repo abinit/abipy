@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.abio.inputs &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.abio.inputs</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module defines objects to facilitate the creation of ABINIT input files.</span>
@@ -88,7 +144,10 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.json</span> <span class="k">import</span> <span class="n">MontyDecoder</span><span class="p">,</span> <span class="n">MSONable</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">Energy</span>
-<span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.serializers.json_coders</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">has_timrev_from_kptopt</span>
@@ -298,12 +357,12 @@
     <span class="k">def</span> <span class="nf">_check_varname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Check if key is a valid name. Raise self.Error if not valid.&quot;&quot;&quot;</span>
 
-    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="AbstractInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.to_string">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a string with the input.&quot;&quot;&quot;</span></div>
 
-    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="AbstractInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.abivalidate">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.abivalidate">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method should invoke the executable associated to the input object.</span>
 <span class="sd">        to test whether the input variables are correct and consistent.</span>
@@ -341,8 +400,9 @@
 <span class="sd">        Args:</span>
 <span class="sd">            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object</span>
 <span class="sd">            file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.</span>
-<span class="sd">            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings with the name</span>
-<span class="sd">                of the pseudopotential files, list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings</span>
+<span class="sd">                with the name of the pseudopotential files, list of :class:`Pseudo` objects</span>
+<span class="sd">                or :class:`PseudoTable` object.</span>
 <span class="sd">            pseudo_dir: Name of the directory where the pseudopotential files are located.</span>
 <span class="sd">            ndtset: Number of datasets.</span>
 <span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
@@ -428,8 +488,8 @@
 
         <span class="k">return</span> <span class="n">sha1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
 
-    <span class="nd">@pmg_serialize</span>
-<div class="viewcode-block" id="AbinitInput.as_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.as_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.as_dict">[docs]</a>    <span class="nd">@pmg_serialize</span>
+    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        JSON interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -451,8 +511,8 @@
     <span class="k">def</span> <span class="nf">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vars</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AbinitInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        JSON interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -606,6 +666,14 @@
 <span class="sd">            with_pseudos: False if JSON section with pseudo data should not be added.</span>
 <span class="sd">            exclude: List of variable names that should be ignored.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">cgi</span>
+            <span class="k">def</span> <span class="nf">escape</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">cgi</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">escape</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">text</span>
+
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
 
@@ -640,7 +708,7 @@
 
                 <span class="c1"># Build variable, convert to string and append it</span>
                 <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
-                <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
                 <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
         <span class="k">elif</span> <span class="n">sortmode</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span><span class="p">:</span>
@@ -657,11 +725,11 @@
                 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
 
                     <span class="c1"># Build variable, convert to string and append it</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
-                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
 
                     <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
@@ -671,9 +739,9 @@
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
-                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
                     <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -689,7 +757,7 @@
         <span class="n">ppinfo</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
         <span class="n">ppinfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&lt;/JSON&gt;&quot;</span><span class="p">)</span>
 
-        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ppinfo</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="n">escape</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ppinfo</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
@@ -737,6 +805,10 @@
         <span class="n">shiftk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shiftk</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span> <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="AbinitInput.set_gamma_sampling"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_gamma_sampling">[docs]</a>    <span class="k">def</span> <span class="nf">set_gamma_sampling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gamma-only sampling of the BZ.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="AbinitInput.set_autokmesh"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_autokmesh">[docs]</a>    <span class="k">def</span> <span class="nf">set_autokmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the variables (ngkpt, shift, kptopt) for the sampling of the BZ.</span>
@@ -749,9 +821,37 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nksmall</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>
                              <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="AbinitInput.set_phdos_qmesh"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_phdos_qmesh">[docs]</a>    <span class="k">def</span> <span class="nf">set_phdos_qmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">ph_qshift</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the variables (ngkpt, shift, kptopt) for the computation of the Phonon DOS in Abinit.</span>
+<span class="sd">        Remember that the Phdos is computed via Fourier interpolation so there&#39;s no costraint</span>
+<span class="sd">        of the q-mesh.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            nqsmall: Number of k-points used to sample the smallest lattice vector.</span>
+<span class="sd">            method: gaussian or tetra.</span>
+<span class="sd">            ph_qshift:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># q-mesh for Fourier interpolatation of IFC and a2F(w)</span>
+        <span class="n">ph_ngqpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
+        <span class="n">ph_qshift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ph_qshift</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># TODO: Test default values of wstep and smear</span>
+        <span class="n">ph_intmeth</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gaussian&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;tetra&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}[</span><span class="n">method</span><span class="p">]</span>
+        <span class="n">ph_smear</span> <span class="o">=</span> <span class="s2">&quot;0.001 eV&quot;</span> <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+            <span class="n">ph_intmeth</span><span class="o">=</span><span class="n">ph_intmeth</span><span class="p">,</span>
+            <span class="n">ph_smear</span><span class="o">=</span><span class="n">ph_smear</span><span class="p">,</span>
+            <span class="n">ph_wstep</span><span class="o">=</span><span class="s2">&quot;0.0001 eV&quot;</span><span class="p">,</span>
+            <span class="n">ph_ngqpt</span><span class="o">=</span><span class="n">ph_ngqpt</span><span class="p">,</span>
+            <span class="n">ph_qshift</span><span class="o">=</span><span class="n">ph_qshift</span><span class="p">,</span>
+            <span class="n">ph_nqshift</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ph_qshift</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
 <div class="viewcode-block" id="AbinitInput.set_kpath"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_kpath">[docs]</a>    <span class="k">def</span> <span class="nf">set_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">kptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the variables for the computation of the band structure.</span>
+<span class="sd">        Set the variables for the computation of the electronic band structure.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ndivsm: Number of divisions for the smallest segment.</span>
@@ -760,8 +860,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kptbounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">kptbounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_kptbounds</span><span class="p">()</span>
         <span class="n">kptbounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="c1">#self.pop_vars([&quot;ngkpt&quot;, &quot;shiftk&quot;]) ??</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">kptbounds</span><span class="o">=</span><span class="n">kptbounds</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=-</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">iscf</span><span class="o">=</span><span class="n">iscf</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitInput.set_qpath"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_qpath">[docs]</a>    <span class="k">def</span> <span class="nf">set_qpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the variables for the computation of the phonon band structure</span>
+<span class="sd">        and phonon linewidths.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ndivsm: Number of divisions for the smallest segment.</span>
+<span class="sd">            qptbounds: q-points defining the path in q-space.</span>
+<span class="sd">                If None, we use the default high-symmetry q-path defined in the pymatgen database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qptbounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">qptbounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_kptbounds</span><span class="p">()</span>
+        <span class="n">qptbounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ph_ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">ph_nqpath</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">qptbounds</span><span class="p">),</span> <span class="n">ph_qpath</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitInput.set_kptgw"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_kptgw">[docs]</a>    <span class="k">def</span> <span class="nf">set_kptgw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kptgw</span><span class="p">,</span> <span class="n">bdgw</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1171,12 +1287,13 @@
 
         <span class="k">return</span> <span class="n">ph_inputs</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_ddk_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ddk_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_ddk_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_ddk_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ddk_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_ddk_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return inputs for performing DDK calculations.</span>
 <span class="sd">        This functions should be called with an input the represents a GS run.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            kptopt: 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.</span>
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
 <span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
 
@@ -1194,7 +1311,7 @@
 
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
         <span class="c1">#perts = self.abiget_irred_phperts(qpt=qpt)</span>
-        <span class="c1"># TODO Add symmetries</span>
+        <span class="c1"># TODO Add symmetries when implemented.</span>
         <span class="n">ddk_rfdirs</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
@@ -1207,7 +1324,7 @@
                 <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>          <span class="c1"># Direction of the per ddk.</span>
                 <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>               <span class="c1"># One wavevector is to be considered</span>
                 <span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>        <span class="c1"># q-wavevector.</span>
-                <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>             <span class="c1"># Take into account time-reversal symmetry.</span>
+                <span class="n">kptopt</span><span class="o">=</span><span class="n">kptopt</span><span class="p">,</span>        <span class="c1"># 2 to take into account time-reversal symmetry.</span>
                 <span class="n">iscf</span><span class="o">=-</span><span class="mi">3</span><span class="p">,</span>              <span class="c1"># The d/dk perturbation must be treated in a non-self-consistent way</span>
             <span class="p">)</span>
 
@@ -1474,6 +1591,8 @@
         <span class="c1"># Avoid modifications in self.</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">tolsym</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;tolsym&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tolsym</span><span class="p">)</span>
+        <span class="c1"># Bypass Abinit check as we always want to return results.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Build a Task to run Abinit in --dry-run mode.</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -1509,6 +1628,8 @@
 
         <span class="c1"># The magic value that makes ABINIT print the ibz and then stop.</span>
         <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;prtkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+        <span class="c1"># Bypass Abinit check as we always want to return results.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="n">ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngkpt</span>
         <span class="k">if</span> <span class="n">shiftk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1603,6 +1724,9 @@
         <span class="n">qpt</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;qpt&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">qpt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">qpt</span>
         <span class="k">if</span> <span class="n">qpt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;qpt is not in the input and therefore it must be passed explicitly&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Bypass Abinit check as we always want to return results.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="n">ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngkpt</span>
         <span class="k">if</span> <span class="n">shiftk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1781,6 +1905,9 @@
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
         <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="n">autoparal</span><span class="p">,</span> <span class="n">max_ncpus</span><span class="o">=</span><span class="n">max_ncpus</span><span class="p">)</span>
 
+        <span class="c1"># Bypass Abinit check as we always want to return results.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="c1"># Run the job in a shell subprocess with mpi_procs = 1</span>
         <span class="c1"># Return code is always != 0</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -1860,8 +1987,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">AbinitInputError</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="MultiDataset.from_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.from_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">from_inputs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiDataset.from_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.from_inputs">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_inputs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build object from a list of :class:`AbinitInput` objects.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p1</span> <span class="o">!=</span> <span class="n">p2</span> <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)):</span>
@@ -1878,8 +2005,8 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="MultiDataset.replicate_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.replicate_input">[docs]</a>    <span class="k">def</span> <span class="nf">replicate_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">ndtset</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiDataset.replicate_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.replicate_input">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">replicate_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">ndtset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Construct a multidataset with ndtset from the :class:`AbinitInput` input.&quot;&quot;&quot;</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="n">ndtset</span><span class="p">)</span>
 
@@ -2087,7 +2214,7 @@
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;### Global Variables.&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">global_vars</span><span class="p">:</span>
-                    <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+                    <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
                     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">])))</span>
 
             <span class="n">has_same_structures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_same_structures</span>
@@ -2097,7 +2224,7 @@
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;#&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;STRUCTURE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+                    <span class="n">vname</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="n">var_database</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
                     <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2258,8 +2385,8 @@
                              <span class="s2">&quot;or use input.set_spell_check(False)</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;or modify the JSON file abipy/data/variables/anaddb_vars.json&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.modes_at_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes_at_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">modes_at_qpoint</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ifcflag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="AnaddbInput.modes_at_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes_at_qpoint">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">modes_at_qpoint</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ifcflag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Input file for the calculation of the phonon frequencies at a given q-point.</span>
@@ -2311,8 +2438,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.piezo_elastic"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.piezo_elastic">[docs]</a>    <span class="k">def</span> <span class="nf">piezo_elastic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbInput.piezo_elastic"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.piezo_elastic">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">piezo_elastic</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stress_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build Anaddb input file for the calculation of piezoelectric and elastic tensor calculations.&quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for piezoelectric and elastic tensor calculation&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
@@ -2333,8 +2460,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                         <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2413,8 +2540,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.thermo"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.thermo">[docs]</a>    <span class="k">def</span> <span class="nf">thermo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nchan</span><span class="o">=</span><span class="mi">1250</span><span class="p">,</span> <span class="n">nwchan</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">thmtol</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+<div class="viewcode-block" id="AnaddbInput.thermo"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.thermo">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">thermo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nchan</span><span class="o">=</span><span class="mi">1250</span><span class="p">,</span> <span class="n">nwchan</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">thmtol</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
                <span class="n">ntemper</span><span class="o">=</span><span class="mi">199</span><span class="p">,</span> <span class="n">temperinc</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tempermin</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ngrids</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
                <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
@@ -2493,8 +2620,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.modes"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes">[docs]</a>    <span class="k">def</span> <span class="nf">modes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">enunit</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbInput.modes"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">modes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">enunit</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build an anaddb input file for the computation of phonon modes.</span>
 
@@ -2547,8 +2674,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbInput.ifc"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.ifc">[docs]</a>    <span class="k">def</span> <span class="nf">ifc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">ifcout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="AnaddbInput.ifc"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.ifc">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ifc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">ifcout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build an anaddb input file for the computation of interatomic force constants.</span>
@@ -2616,8 +2743,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported value for sortmode </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sortmode</span><span class="p">))</span>
 
-        <span class="c1"># http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;http://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html&quot;</span>
+        <span class="c1"># https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html#mustar</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://www.abinit.org/doc/helpfiles/for-v8.4/users/anaddb_help.html&quot;</span>
         <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">varname</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">varname</span>
@@ -2685,16 +2812,13 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The url associated to the variable.&quot;&quot;&quot;</span>
-        <span class="c1">#http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html#num_lin_comp</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;http://www.abinit.org/doc/helpfiles/for-v8.4/users/optic_help.html&quot;</span>
+        <span class="c1"># TODO: root will change once we move to the new website.</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://www.abinit.org/sites/default/files/last/users/optic_help.html&quot;</span>
         <span class="k">return</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
-<div class="viewcode-block" id="OpticVar.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="OpticVar.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticVar.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String with the URL of the web page.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">label</span><span class="p">)</span></div></div>
 
 
 
@@ -2740,15 +2864,15 @@
 
         <span class="c1"># PARAMETERS section:</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;broadening&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
-                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Value of the *smearing factor*, in Hartree&quot;</span><span class="p">),</span>
+                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Value of the smearing factor, in Hartree&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;domega&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.010</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
-                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Frequency *step* (Ha)&quot;</span><span class="p">),</span>
+                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Frequency step (Ha)&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;maxomega&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
                  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum frequency (Ha)&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;scissor&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.000</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
-                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;*Scissor* shift if needed, in Hartree&quot;</span><span class="p">),</span>
+                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scissor shift if needed, in Hartree&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tolerance&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
-                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;*Tolerance* on closeness of singularities (in Hartree)&quot;</span><span class="p">),</span>
+                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Tolerance on closeness of singularities (in Hartree)&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;autoparal&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
                  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Autoparal option&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;max_ncpus&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;PARAMETERS&#39;</span><span class="p">,</span>
@@ -2756,9 +2880,9 @@
 
         <span class="c1"># COMPUTATIONS section:</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;num_lin_comp&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;COMPUTATIONS&#39;</span><span class="p">,</span>
-                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;*Number of components* of linear optic tensor to be computed&quot;</span><span class="p">),</span>
+                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of components of linear optic tensor to be computed&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;lin_comp&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;COMPUTATIONS&#39;</span><span class="p">,</span>
-                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Linear *coefficients* to be computed (x=1, y=2, z=3)&quot;</span><span class="p">),</span>
+                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Linear coefficients to be computed (x=1, y=2, z=3)&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;num_nonlin_comp&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;COMPUTATIONS&#39;</span><span class="p">,</span>
                  <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of components of nonlinear optic tensor to be computed&quot;</span><span class="p">),</span>
         <span class="n">OpticVar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;nonlin_comp&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;COMPUTATIONS&#39;</span><span class="p">,</span>
@@ -2810,8 +2934,8 @@
             <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">key</span><span class="p">:</span> <span class="k">return</span> <span class="n">var</span><span class="o">.</span><span class="n">default</span>
         <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Cannot find </span><span class="si">%s</span><span class="s2"> in _VARIABLES&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="OpticInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="OpticInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        JSON interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2871,6 +2995,52 @@
     <span class="c1">#    &quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
     <span class="c1">#    return self.to_string(mode=&quot;html&quot;)</span>
 
+<div class="viewcode-block" id="OpticInput.only_independent_chi_components"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.only_independent_chi_components">[docs]</a>    <span class="k">def</span> <span class="nf">only_independent_chi_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">assume_symmetric_tensor</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                        <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the crystal system returned by spglib to find the independent components</span>
+<span class="sd">        of the linear susceptibility tensor and set the appropriate variables.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            structure: Crystalline structure</span>
+<span class="sd">            assume_symmetric_tensor: True if tensor can be assumed symmetric.</span>
+<span class="sd">                Note that the tensor is symmetric only for a lossless and non-optically active material.</span>
+<span class="sd">            symprec, angle_tolerance: Parameters passed to spglib.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            Set internal variables and return list of components to compute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
+        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_crystal_system</span><span class="p">()</span>
+
+        <span class="c1"># Table 1.5.1 of https://booksite.elsevier.com/samplechapters/9780123694706/Sample_Chapters/02~Chapter_1.pdf.</span>
+        <span class="c1"># Note that the tensor is symmetric only for a lossless and non-optically active material.</span>
+        <span class="n">components_for_system</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;triclinic&quot;</span><span class="p">:</span> <span class="s2">&quot;xx yy zz xy yx xz zx yz zy&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;monoclinic&quot;</span><span class="p">:</span> <span class="s2">&quot;xx yy zz xz zx&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orthorhombic&quot;</span><span class="p">:</span> <span class="s2">&quot;xx yy zz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tetragonal&quot;</span><span class="p">:</span> <span class="s2">&quot;xx zz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cubic&quot;</span><span class="p">:</span> <span class="s2">&quot;xx&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">assume_symmetric_tensor</span><span class="p">:</span>
+            <span class="n">components_for_system</span><span class="p">[</span><span class="s2">&quot;triclinic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;xx yy zz xy xz yz&quot;</span>
+            <span class="n">components_for_system</span><span class="p">[</span><span class="s2">&quot;monoclinic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;xx yy zz xz&quot;</span>
+
+        <span class="n">components_for_system</span><span class="p">[</span><span class="s2">&quot;trigonal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">components_for_system</span><span class="p">[</span><span class="s2">&quot;tetragonal&quot;</span><span class="p">]</span>
+        <span class="n">components_for_system</span><span class="p">[</span><span class="s2">&quot;hexagonal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">components_for_system</span><span class="p">[</span><span class="s2">&quot;tetragonal&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">components_for_system</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">components_for_system</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="n">ind_comps</span> <span class="o">=</span> <span class="n">components_for_system</span><span class="p">[</span><span class="n">system</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;num_lin_comp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind_comps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lin_comp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span> <span class="o">*</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">ind_comps</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">ind_comps</span></div>
+
 <div class="viewcode-block" id="OpticInput.abivalidate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput.abivalidate">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run OPTIC in dry-run mode to validate the input file.</span>
@@ -2916,7 +3086,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infile_path</span> <span class="o">=</span> <span class="n">infile_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_filepath</span> <span class="o">=</span> <span class="n">output_filepath</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">options</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
@@ -2953,8 +3123,8 @@
         <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>  <span class="c1"># No more analysis</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="n">infile_path</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.den_to_3d_formatted"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_3d_formatted">[docs]</a>    <span class="k">def</span> <span class="nf">den_to_3d_formatted</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.den_to_3d_formatted"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_3d_formatted">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">den_to_3d_formatted</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the conversion to a 3D formatted format.</span>
 
@@ -2967,8 +3137,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.den_to_3d_indexed"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_3d_indexed">[docs]</a>    <span class="k">def</span> <span class="nf">den_to_3d_indexed</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.den_to_3d_indexed"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_3d_indexed">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">den_to_3d_indexed</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the conversion to a 3D indexed format.</span>
 
@@ -2981,8 +3151,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.den_to_molekel"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_molekel">[docs]</a>    <span class="k">def</span> <span class="nf">den_to_molekel</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.den_to_molekel"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_molekel">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">den_to_molekel</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the conversion to a Molekel format.</span>
 
@@ -2995,8 +3165,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.den_to_tecplot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_tecplot">[docs]</a>    <span class="k">def</span> <span class="nf">den_to_tecplot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.den_to_tecplot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_tecplot">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">den_to_tecplot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the conversion to a Tecplot format.</span>
 
@@ -3009,8 +3179,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.den_to_xsf"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_xsf">[docs]</a>    <span class="k">def</span> <span class="nf">den_to_xsf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.den_to_xsf"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_xsf">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">den_to_xsf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the conversion to an xsf format.</span>
 
@@ -3033,8 +3203,8 @@
         <span class="n">options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>  <span class="c1"># No more analysis</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.den_to_cube"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_cube">[docs]</a>    <span class="k">def</span> <span class="nf">den_to_cube</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.den_to_cube"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_cube">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">den_to_cube</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the conversion to a cube format.</span>
 
@@ -3047,8 +3217,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_convert</span><span class="p">(</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.hirshfeld"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.hirshfeld">[docs]</a>    <span class="k">def</span> <span class="nf">hirshfeld</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.hirshfeld"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.hirshfeld">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">hirshfeld</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the calculation of the Hirshfeld charges from the density.</span>
 
@@ -3056,7 +3226,7 @@
 <span class="sd">            density_filepath: absolute or relative path to the input density produced by abinit. Can be None to be</span>
 <span class="sd">                defined at a later time.</span>
 <span class="sd">            all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined</span>
-<span class="sd">                in the abinit input. See http://www.abinit.org/downloads/all_core_electron for files.</span>
+<span class="sd">                in the abinit input. See https://www.abinit.org/downloads/all_core_electron for files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;11&#39;</span><span class="p">]</span>  <span class="c1"># Option to convert _DEN file to a .cube file</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">all_el_dens_paths</span><span class="p">:</span>
@@ -3065,12 +3235,12 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.hirshfeld_from_fhi_path"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.hirshfeld_from_fhi_path">[docs]</a>    <span class="k">def</span> <span class="nf">hirshfeld_from_fhi_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">fhi_all_el_path</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.hirshfeld_from_fhi_path"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.hirshfeld_from_fhi_path">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">hirshfeld_from_fhi_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_filepath</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">fhi_all_el_path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Automatically</span>
 <span class="sd">        selects the all-electron density files from a folder containing the fhi all-electron density files:</span>
-<span class="sd">        http://www.abinit.org/downloads/all_core_electron</span>
+<span class="sd">        https://www.abinit.org/downloads/all_core_electron</span>
 
 <span class="sd">        This will work only if the input has been generated with AbinitInput and the Structure object is the same</span>
 <span class="sd">        provided to AbinitInput.</span>
@@ -3088,15 +3258,15 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">hirshfeld</span><span class="p">(</span><span class="n">density_filepath</span><span class="p">,</span> <span class="n">all_el_dens_paths</span><span class="p">)</span></div>
 
-    <span class="nd">@pmg_serialize</span>
-<div class="viewcode-block" id="Cut3DInput.as_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.as_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.as_dict">[docs]</a>    <span class="nd">@pmg_serialize</span>
+    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        JSON interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">infile_path</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_filepath</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Cut3DInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="Cut3DInput.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.Cut3DInput.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        JSON interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3104,26 +3274,22 @@
                    <span class="n">options</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

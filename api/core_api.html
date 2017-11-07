@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>core Package &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -24,39 +20,89 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="data Package" href="data_api.html" />
     <link rel="prev" title="abio Package" href="abio_api.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">core Package</a><ul>
 <li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">core</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.core.abinit_units"><code class="docutils literal"><span class="pre">abinit_units</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.fields"><code class="docutils literal"><span class="pre">fields</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.func1d"><code class="docutils literal"><span class="pre">func1d</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.gsphere"><code class="docutils literal"><span class="pre">gsphere</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.irrepsdb"><code class="docutils literal"><span class="pre">irrepsdb</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.kpoints"><code class="docutils literal"><span class="pre">kpoints</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.mesh3d"><code class="docutils literal"><span class="pre">mesh3d</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.mixins"><code class="docutils literal"><span class="pre">mixins</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.restapi"><code class="docutils literal"><span class="pre">restapi</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.irrepsdb"><code class="docutils literal"><span class="pre">irrepsdb</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.core.kpoints"><code class="docutils literal"><span class="pre">kpoints</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.core.skw"><code class="docutils literal"><span class="pre">skw</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.structure"><code class="docutils literal"><span class="pre">structure</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.symmetries"><code class="docutils literal"><span class="pre">symmetries</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.core.tensor"><code class="docutils literal"><span class="pre">tensor</span></code> Module</a></li>
@@ -65,40 +111,52 @@
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="abio_api.html" title="previous chapter">abio Package</a></li>
-      <li>Next: <a href="data_api.html" title="next chapter">data Package</a></li>
-  </ul></li>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/core_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+  <li>
+    <a href="abio_api.html" title="Previous Chapter: abio Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abio Package</span>
+    </a>
+  </li>
+  <li>
+    <a href="data_api.html" title="Next Chapter: data Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">data Package &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/api/core_api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="core-package">
 <h1>core Package<a class="headerlink" href="#core-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
@@ -145,8 +203,8 @@ in #/Bohr^3 multiplied by a factor 4pi.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>chgcar</strong> &#8211; Either string with the name of a CHGCAR file or <code class="xref py py-class docutils literal"><span class="pre">Chgcar</span></code> pymatgen object.</li>
-<li><strong>poscar</strong> &#8211; Either string with the name of a POSCAR file or <code class="xref py py-class docutils literal"><span class="pre">Poscar</span></code> pymatgen object.</li>
+<li><strong>chgcar</strong> – Either string with the name of a CHGCAR file or <code class="xref py py-class docutils literal"><span class="pre">Chgcar</span></code> pymatgen object.</li>
+<li><strong>poscar</strong> – Either string with the name of a POSCAR file or <code class="xref py py-class docutils literal"><span class="pre">Poscar</span></code> pymatgen object.</li>
 </ul>
 </td>
 </tr>
@@ -182,7 +240,7 @@ Scalar if collinear, vector with mx, my, mz components if non-collinear.</p>
 <dl class="attribute">
 <dt id="abipy.core.fields.Density.magnetization_field">
 <code class="descname">magnetization_field</code><a class="reference internal" href="../_modules/abipy/core/fields.html#Density.magnetization_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.fields.Density.magnetization_field" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>numpy array with the magnetization field in real space on the FFT mesh</em> &#8211;</p>
+<dd><p><em>numpy array with the magnetization field in real space on the FFT mesh</em> –</p>
 <ol class="arabic simple">
 <li>0 if spin-unpolarized calculation</li>
 <li>spin_up - spin_down if collinear spin-polarized</li>
@@ -325,7 +383,7 @@ and the magnetisation density in the x, y and z direction in this order.</p>
 <div class="section" id="module-abipy.core.func1d">
 <span id="func1d-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">func1d</span></code> Module<a class="headerlink" href="#module-abipy.core.func1d" title="Permalink to this headline">¶</a></h2>
 <p>Function1D describes a function of a single variable and provides an easy-to-use API
-for performing common tasks such as algebraic operations, integrations, differentiations, plots ...</p>
+for performing common tasks such as algebraic operations, integrations, differentiations, plots …</p>
 <dl class="class">
 <dt id="abipy.core.func1d.Function1D">
 <em class="property">class </em><code class="descclassname">abipy.core.func1d.</code><code class="descname">Function1D</code><span class="sig-paren">(</span><em>mesh</em>, <em>values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/func1d.html#Function1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.func1d.Function1D" title="Permalink to this definition">¶</a></dt>
@@ -378,8 +436,8 @@ consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>order</strong> &#8211; Order of the derivative.</li>
-<li><strong>acc</strong> &#8211; Accuracy. 4 is fine in many cases.</li>
+<li><strong>order</strong> – Order of the derivative.</li>
+<li><strong>acc</strong> – Accuracy. 4 is fine in many cases.</li>
 </ul>
 </td>
 </tr>
@@ -406,10 +464,10 @@ see also <code class="xref py py-func docutils literal"><span class="pre">np.loa
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path</strong> &#8211; Path to the file containing data.</li>
-<li><strong>comments</strong> &#8211; The character used to indicate the start of a comment; default: &#8216;#&#8217;.</li>
-<li><strong>delimiter</strong> &#8211; str, optional The string used to separate values. By default, this is any whitespace.</li>
-<li><strong>usecols</strong> &#8211; sequence, optional. Which columns to read, with 0 being the first.
+<li><strong>path</strong> – Path to the file containing data.</li>
+<li><strong>comments</strong> – The character used to indicate the start of a comment; default: ‘#’.</li>
+<li><strong>delimiter</strong> – str, optional The string used to separate values. By default, this is any whitespace.</li>
+<li><strong>usecols</strong> – sequence, optional. Which columns to read, with 0 being the first.
 For example, usecols = (1,4) will extract data from the 2nd, and 5th columns.</li>
 </ul>
 </td>
@@ -460,7 +518,7 @@ transform of a response function.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_div</strong> &#8211; True if the divergence should be treated numerically.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_div</strong> – True if the divergence should be treated numerically.
 If False, the divergence is ignored, results are less accurate
 but the calculation is faster.</td>
 </tr>
@@ -570,14 +628,14 @@ has an imaginary part equal to zero, <cite>iscomplexobj</cite> evaluates to True
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -592,11 +650,11 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> &#8211; <cite>matplotlib</cite> axis.</li>
-<li><strong>exchange_xy</strong> &#8211; True to exchange the axis in the plot</li>
-<li><strong>args</strong> &#8211; Positional arguments passed to ax.plot</li>
-<li><strong>kwargs</strong> &#8211; Keyword arguments passed to <cite>matplotlib</cite>.  Accepts also:</li>
-<li><strong>yfactor</strong> (<em>xfactor</em><em>,</em><em></em>) &#8211; xvalues and yvalues are multiplied by this factor before plotting.</li>
+<li><strong>ax</strong> – <cite>matplotlib</cite> axis.</li>
+<li><strong>exchange_xy</strong> – True to exchange the axis in the plot</li>
+<li><strong>args</strong> – Positional arguments passed to ax.plot</li>
+<li><strong>kwargs</strong> – Keyword arguments passed to <cite>matplotlib</cite>.  Accepts also:</li>
+<li><strong>yfactor</strong> (<em>xfactor</em><em>,</em>) – xvalues and yvalues are multiplied by this factor before plotting.</li>
 </ul>
 </td>
 </tr>
@@ -616,9 +674,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <tr class="row-even"><td>cplx_mode</td>
 <td>string defining the data to print.
 Possible choices are (case-insensitive): <cite>re</cite> for the real part
-&#8220;im&#8221; for the imaginary part, &#8220;abs&#8221; for the absolute value.
-&#8220;angle&#8221; to display the phase of the complex number in radians.
-Options can be concatenated with &#8220;-&#8220;</td>
+“im” for the imaginary part, “abs” for the absolute value.
+“angle” to display the phase of the complex number in radians.
+Options can be concatenated with “-“</td>
 </tr>
 </tbody>
 </table>
@@ -648,7 +706,7 @@ transform of a response function.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_div</strong> &#8211; True if the divergence should be treated numerically.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_div</strong> – True if the divergence should be treated numerically.
 If False, the divergence is ignored, results are less accurate
 but the calculation is faster.</td>
 </tr>
@@ -678,8 +736,8 @@ but the calculation is faster.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> &#8211; First point. mesh[0] if a is None</li>
-<li><strong>b</strong> &#8211; Last point. mesh[-1] if a is None</li>
+<li><strong>a</strong> – First point. mesh[0] if a is None</li>
+<li><strong>b</strong> – Last point. mesh[-1] if a is None</li>
 </ul>
 </td>
 </tr>
@@ -788,8 +846,8 @@ Raises ValueError if the value is not present.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mesh</strong> &#8211; </li>
-<li><strong>arr_on_sphere</strong> &#8211; </li>
+<li><strong>mesh</strong> – </li>
+<li><strong>arr_on_sphere</strong> – </li>
 </ul>
 </td>
 </tr>
@@ -811,6 +869,445 @@ Raises ValueError if the value is not present.</p>
 Extra dimensions can be added with <code class="docutils literal"><span class="pre">extra_dims</span></code>.</p>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.core.irrepsdb">
+<span id="irrepsdb-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">irrepsdb</span></code> Module<a class="headerlink" href="#module-abipy.core.irrepsdb" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abipy.core.kpoints">
+<span id="kpoints-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">kpoints</span></code> Module<a class="headerlink" href="#module-abipy.core.kpoints" title="Permalink to this headline">¶</a></h2>
+<p>This module defines objects describing the sampling of the Brillouin Zone.</p>
+<dl class="function">
+<dt id="abipy.core.kpoints.issamek">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">issamek</code><span class="sig-paren">(</span><em>k1</em>, <em>k2</em>, <em>atol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#issamek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.issamek" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if k1 and k2 are equal modulo a lattice vector.
+Use _ATOL_KDIFF is atol is None.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">issamek</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">issamek</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">issamek</span><span class="p">(</span><span class="mf">0.00003</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.kpoints.wrap_to_ws">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">wrap_to_ws</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#wrap_to_ws"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.wrap_to_ws" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms x in its corresponding reduced number in the interval ]-1/2,1/2].</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.kpoints.wrap_to_bz">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">wrap_to_bz</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#wrap_to_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.wrap_to_bz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms x in its corresponding reduced number in the interval [0,1[.”</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.kpoints.as_kpoints">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">as_kpoints</code><span class="sig-paren">(</span><em>obj</em>, <em>lattice</em>, <em>weights=None</em>, <em>names=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#as_kpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.as_kpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert obj into a list of k-points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> – <a class="reference internal" href="#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code></a> or list of Kpoint objects or array-like object.</li>
+<li><strong>lattice</strong> – Reciprocal lattice.</li>
+<li><strong>weights</strong> – k-point weights. Ignored if obj is already a <cite>Kpoint</cite> instance or a list
+of <cite>Kpoint</cite> items.</li>
+<li><strong>name</strong> – string with the name of the k-point. Ignored if obj is already a <cite>Kpoint</cite>
+instance or a list of <cite>Kpoint</cite> items.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.kpoints.Kpoint">
+<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpoint</code><span class="sig-paren">(</span><em>frac_coords</em>, <em>lattice</em>, <em>weight=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.serialization.html#pymatgen.util.serialization.SlotPickleMixin" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.serialization.SlotPickleMixin</span></code></a></p>
+<p>Class defining one k-point.</p>
+<dl class="classmethod">
+<dt id="abipy.core.kpoints.Kpoint.as_kpoint">
+<em class="property">classmethod </em><code class="descname">as_kpoint</code><span class="sig-paren">(</span><em>obj</em>, <em>lattice</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.as_kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.as_kpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert obj into a Kpoint instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> – <a class="reference internal" href="#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code></a> instance or array-like with the reduced coordinates.</li>
+<li><strong>lattice</strong> – <code class="xref py py-class docutils literal"><span class="pre">Lattice</span></code> object defining the reciprocal lattice.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.cart_coords">
+<code class="descname">cart_coords</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.cart_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cartesian coordinates of the k-point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.compute_star">
+<code class="descname">compute_star</code><span class="sig-paren">(</span><em>symmops</em>, <em>wrap_tows=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.compute_star"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.compute_star" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the star of the kpoint (tuple of <cite>Kpoint</cite> objects).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deep copy.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.frac_coords">
+<code class="descname">frac_coords</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.frac_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fractional coordinates of the k-points.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.core.kpoints.Kpoint.gamma">
+<em class="property">classmethod </em><code class="descname">gamma</code><span class="sig-paren">(</span><em>lattice</em>, <em>weight=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.gamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.gamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor for the Gamma point.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.lattice">
+<code class="descname">lattice</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reciprocal lattice.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.name">
+<code class="descname">name</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the k-point. None if not available.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.norm">
+<code class="descname">norm</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Norm of the kpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.on_border">
+<code class="descname">on_border</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.on_border" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the k-point is on the border of the BZ  (lattice translations are taken into account).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.set_name">
+<code class="descname">set_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.set_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.set_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the name of the k-point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.set_weight">
+<code class="descname">set_weight</code><span class="sig-paren">(</span><em>weight</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.set_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.set_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the weight of the k-point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.versor">
+<code class="descname">versor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.versor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.versor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the versor i.e. ||k|| = 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpoint.weight">
+<code class="descname">weight</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weight of the k-point. 0.0 if the weight is not defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.wrap_to_bz">
+<code class="descname">wrap_to_bz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.wrap_to_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.wrap_to_bz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new <cite>Kpoint</cite> in the first unit cell.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpoint.wrap_to_ws">
+<code class="descname">wrap_to_ws</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.wrap_to_ws"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.wrap_to_ws" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new <cite>Kpoint</cite> in the Wigner-Seitz zone.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.kpoints.Kpath">
+<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpath</code><span class="sig-paren">(</span><em>reciprocal_lattice</em>, <em>frac_coords</em>, <em>weights=None</em>, <em>names=None</em>, <em>ksampling=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.KpointList</span></code></p>
+<p>This object describes a k-path in reciprocal space.
+It provides methods to compute (line) derivatives along the path.
+The k-points do not have weights so Kpath should not be used to compute integral in the BZ.</p>
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpath.ds">
+<code class="descname">ds</code><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.ds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>numpy array of len(self)-1 elements giving the distance between two
+consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]|| for i=0,1,…,n-1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpath.finite_diff">
+<code class="descname">finite_diff</code><span class="sig-paren">(</span><em>values</em>, <em>order=1</em>, <em>acc=4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.finite_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.finite_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the derivatives of values by finite differences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>values</strong> – array-like object with shape=(nkpt) containing the values of the path.</li>
+<li><strong>order</strong> – Order of the derivative.</li>
+<li><strong>acc</strong> – Accuracy: 4 corresponds to a central difference with 5 points.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ragged numpy array. The i-th entry is a numpy array with the derivatives
+on the i-th line.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.core.kpoints.Kpath.from_vertices_and_names">
+<em class="property">classmethod </em><code class="descname">from_vertices_and_names</code><span class="sig-paren">(</span><em>structure</em>, <em>vertices_names</em>, <em>line_density=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.from_vertices_and_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.from_vertices_and_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate K-path from a list of vertices and the corresponding labels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>structure</strong> – Structure object.</li>
+<li><strong>vertices_names</strong> – List of tuple, each tuple is of the form (kfrac_coords, kname) where
+kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+the k-point. Each point represents a vertex of the k-path.</li>
+<li><strong>line_density</strong> – Number of points used to sample the smallest segment of the path</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpath.lines">
+<code class="descname">lines</code><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nested list containing the indices of the points belonging to the same line.
+Used for extracting the eigenvalues while looping over the lines.</p>
+<p class="rubric">Example</p>
+<dl class="docutils">
+<dt>for line in self.lines:</dt>
+<dd>vals_on_line = eigens[spin, line, band]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Kpath.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> – Verbosity level. Default: 0</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Kpath.versors">
+<code class="descname">versors</code><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.versors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.versors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.kpoints.IrredZone">
+<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">IrredZone</code><span class="sig-paren">(</span><em>reciprocal_lattice</em>, <em>frac_coords</em>, <em>weights=None</em>, <em>names=None</em>, <em>ksampling=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#IrredZone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.IrredZone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.KpointList</span></code></p>
+<p>An <a class="reference internal" href="#abipy.core.kpoints.IrredZone" title="abipy.core.kpoints.IrredZone"><code class="xref py py-class docutils literal"><span class="pre">IrredZone</span></code></a> is a (immutable) sequence of points in the irreducible wedge of the BZ.
+Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Abinit supports different options for the specification of the BZ sampling:</p>
+<blockquote>
+<div><ul class="simple">
+<li>kptrlatt(3,3) or ngkpt(3) for the definition grid.</li>
+<li>shiftk(3, nshiftk) for the definition of multiple shifts.</li>
+<li><cite>kptopt</cite> for the treatment of symmetry operations.</li>
+</ul>
+</div></blockquote>
+<p>All these possibilities complicate the internal implementation in particular when
+we need to recostruct the full BZ and take into account the presence of multiple shifts
+since kptrlatt may have non-zero off-diagonal components. Client code that needs to know
+how the mesh was generated can rely on the following checks:</p>
+<p>if not self.ibz: raise(“Need an IBZ sampling”)</p>
+<p class="last">mpdivs, shifts = self.mpdivs_shifts
+if mpdivs is None: raise ValueError(“Cannot handle kptrlatt with non-zero off-diagonal elements”)
+if len(shifts) &gt; 1: raise ValueError(“Multiple shifts are not supported”)
+# Code for mesh defined in terms of mpdivs and one shift.</p>
+</div>
+<dl class="method">
+<dt id="abipy.core.kpoints.IrredZone.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#IrredZone.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.IrredZone.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.kpoints.rc_list">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">rc_list</code><span class="sig-paren">(</span><em>mp</em>, <em>sh</em>, <em>pbc=False</em>, <em>order='bz'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#rc_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.rc_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <cite>ndarray</cite> with the linear mesh used to sample one dimension of the reciprocal space.
+Note that the coordinates are always ordered so that rc[i+1] &gt; rc[i].
+so that we can easily plot quantities defined on the 3D multidimensional mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mp</strong> – Number of Monkhorst-Pack divisions along this direction.</li>
+<li><strong>sh</strong> – Shift</li>
+<li><strong>pbc</strong> – if pbc is True, periodic boundary conditions are enforced.</li>
+<li><strong>order</strong> – Possible values [“bz”, “unit_cell”].
+if “bz”, the coordinates are forced to be in [-1/2, 1/2)
+if “unit_cell”, the coordinates are forced to be in [0, 1).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.kpoints.kmesh_from_mpdivs">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">kmesh_from_mpdivs</code><span class="sig-paren">(</span><em>mpdivs</em>, <em>shifts</em>, <em>pbc=False</em>, <em>order='bz'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#kmesh_from_mpdivs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.kmesh_from_mpdivs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <cite>ndarray</cite> with the reduced coordinates of the
+k-points from the MP divisions and the shifts.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mpdivs</strong> – The three MP divisions.</li>
+<li><strong>shifts</strong> – Array-like object with the MP shift.</li>
+<li><strong>pbc</strong> – If True, periodic images of the k-points will be included i.e. closed mesh.</li>
+<li><strong>order</strong> – “unit_cell” if the kpoint coordinates must be in [0,1)
+“bz” if the kpoint coordinates must be in [-1/2, +1/2)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.kpoints.Ktables">
+<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Ktables</code><span class="sig-paren">(</span><em>structure</em>, <em>mesh</em>, <em>is_shift</em>, <em>has_timrev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Ktables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Ktables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Call spglib to compute the k-points in the IBZ with the corresponding weights
+as well as the mapping BZ –&gt; IBZ.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> – </li>
+<li><strong>is_shift</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.mesh">
+<code class="descname">mesh</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.mesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.is_shift">
+<code class="descname">is_shift</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.is_shift" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.ibz">
+<code class="descname">ibz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.ibz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.nibz">
+<code class="descname">nibz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.nibz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.weights">
+<code class="descname">weights</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.weights" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.bz">
+<code class="descname">bz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.bz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.nbz">
+<code class="descname">nbz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.nbz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.kpoints.Ktables.grid">
+<code class="descname">grid</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Ktables.print_bz2ibz">
+<code class="descname">print_bz2ibz</code><span class="sig-paren">(</span><em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Ktables.print_bz2ibz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Ktables.print_bz2ibz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print BZ –&gt; IBZ mapping.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.kpoints.Ktables.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Ktables.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Ktables.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.kpoints.find_points_along_path">
+<code class="descclassname">abipy.core.kpoints.</code><code class="descname">find_points_along_path</code><span class="sig-paren">(</span><em>cart_bounds</em>, <em>cart_coords</em>, <em>dist_tol</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#find_points_along_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.find_points_along_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find points in <cite>cart_coords</cite> lying on the path defined by <cite>cart_bounds</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cart_bounds</strong> – [N, 3] array with the boundaries of the path in Cartesian coordinates.</li>
+<li><strong>cart_coords</strong> – [M, 3] array with the points in Cartesian coordinate</li>
+<li><strong>dist_tol</strong> – A point is considered to be on the path if its distance from the line
+is less than dist_tol.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>(klines, dist_list, ticks)</p>
+<p>klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
+dist_list: numpy array with the distance of the points along the line.
+ticks:</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -986,13 +1483,20 @@ Extra dimensions can be added with <cite>extra_dims</cite>.</p>
 </div>
 <div class="section" id="module-abipy.core.mixins">
 <span id="mixins-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">mixins</span></code> Module<a class="headerlink" href="#module-abipy.core.mixins" title="Permalink to this headline">¶</a></h2>
-<p>This module ...</p>
+<p>This module …</p>
 <dl class="class">
 <dt id="abipy.core.mixins.AbinitNcFile">
 <em class="property">class </em><code class="descclassname">abipy.core.mixins.</code><code class="descname">AbinitNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#AbinitNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.AbinitNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins._File</span></code></p>
 <p>Abstract class representing a Netcdf file with data saved
-according to the ETSF-IO specifications (when available).</p>
+according to the ETSF-IO specifications (when available).
+A AbinitNcFile has a netcdf reader to read data from file and build objects.</p>
+<dl class="attribute">
+<dt id="abipy.core.mixins.AbinitNcFile.abinit_version">
+<code class="descname">abinit_version</code><a class="reference internal" href="../_modules/abipy/core/mixins.html#AbinitNcFile.abinit_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.AbinitNcFile.abinit_version" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>String with abinit version</em> – three digits separated by comma.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.core.mixins.AbinitNcFile.ncdump">
 <code class="descname">ncdump</code><span class="sig-paren">(</span><em>*nc_args</em>, <em>**nc_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#AbinitNcFile.ncdump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.AbinitNcFile.ncdump" title="Permalink to this definition">¶</a></dt>
@@ -1133,7 +1637,7 @@ according to the ETSF-IO specifications (when available).</p>
 <dl class="method">
 <dt id="abipy.core.mixins.Has_PhononBands.plot_phbands">
 <code class="descname">plot_phbands</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#Has_PhononBands.plot_phbands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.Has_PhononBands.plot_phbands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the electron energy bands. See the <code class="xref py py-func docutils literal"><span class="pre">PhononBands.plot()</span></code> for the signature.&#8221;&#8220;</p>
+<dd><p>Plot the electron energy bands. See the <code class="xref py py-func docutils literal"><span class="pre">PhononBands.plot()</span></code> for the signature.”“</p>
 </dd></dl>
 
 </dd></dl>
@@ -1145,9 +1649,17 @@ according to the ETSF-IO specifications (when available).</p>
 <p>Mixin class for objects that are able to generate jupyter notebooks.
 Subclasses must provide a concrete implementation of <cite>write_notebook</cite>.</p>
 <dl class="method">
+<dt id="abipy.core.mixins.NotebookWriter.get_nbformat_nbv">
+<code class="descname">get_nbformat_nbv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#NotebookWriter.get_nbformat_nbv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.NotebookWriter.get_nbformat_nbv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return nbformat module, notebook version module</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb">
 <code class="descname">get_nbformat_nbv_nb</code><span class="sig-paren">(</span><em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/mixins.html#NotebookWriter.get_nbformat_nbv_nb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return nbformat module, notebook version module
+and new notebook with title and import section</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.core.mixins.NotebookWriter.make_and_open_notebook">
@@ -1158,9 +1670,9 @@ Subclasses must provide a concrete implementation of <cite>write_notebook</cite>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nbpath</strong> &#8211; If nbpath is None, a temporay file is created.</li>
-<li><strong>foreground</strong> &#8211; By default, jupyter is executed in background and stdout, stderr are redirected</li>
-<li><strong>devnull. Use foreground to run the process in foreground</strong> (<a class="reference internal" href="#abipy.core.structure.Structure.to" title="abipy.core.structure.Structure.to"><em>to</em></a>) &#8211; </li>
+<li><strong>nbpath</strong> – If nbpath is None, a temporay file is created.</li>
+<li><strong>foreground</strong> – By default, jupyter is executed in background and stdout, stderr are redirected</li>
+<li><strong>devnull. Use foreground to run the process in foreground</strong> (<a class="reference internal" href="#abipy.core.structure.Structure.to" title="abipy.core.structure.Structure.to"><em>to</em></a>) – </li>
 </ul>
 </td>
 </tr>
@@ -1236,7 +1748,8 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <dl class="method">
 <dt id="abipy.core.restapi.DatabaseStructures.print_results">
 <code class="descname">print_results</code><span class="sig-paren">(</span><em>fmt='abivars'</em>, <em>verbose=0</em>, <em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#DatabaseStructures.print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.DatabaseStructures.print_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print pandas dataframe, structures using format <cite>fmt, and data to file `file</cite>.</p>
+<dd><p>Print pandas dataframe, structures using format <cite>fmt</cite>, and data to file <cite>file</cite>.
+<cite>fmt</cite> is automaticall set to <cite>cif</cite> if structure is disordered.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1254,7 +1767,7 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <dl class="method">
 <dt id="abipy.core.restapi.Dotdict.dotget">
 <code class="descname">dotget</code><span class="sig-paren">(</span><em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#Dotdict.dotget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.Dotdict.dotget" title="Permalink to this definition">¶</a></dt>
-<dd><p>d.dotget[&#8220;foo.bar&#8221;] &#8211;&gt; d[&#8220;foo&#8221;][&#8220;bar&#8221;] if &#8220;foo.bar&#8221; not in self</p>
+<dd><p>d.dotget[“foo.bar”] –&gt; d[“foo”][“bar”] if “foo.bar” not in self</p>
 </dd></dl>
 
 </dd></dl>
@@ -1280,7 +1793,7 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <dl class="class">
 <dt id="abipy.core.restapi.MyMPRester">
 <em class="property">class </em><code class="descclassname">abipy.core.restapi.</code><code class="descname">MyMPRester</code><span class="sig-paren">(</span><em>api_key=None</em>, <em>endpoint='https://www.materialsproject.org/rest/v2'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/restapi.html#MyMPRester"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.MyMPRester" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.ext.matproj.html#pymatgen.ext.matproj.MPRester" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.ext.matproj.MPRester</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.ext.matproj.html#pymatgen.ext.matproj.MPRester" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.ext.matproj.MPRester</span></code></a></p>
 <dl class="attribute">
 <dt id="abipy.core.restapi.MyMPRester.Error">
 <code class="descname">Error</code><a class="headerlink" href="#abipy.core.restapi.MyMPRester.Error" title="Permalink to this definition">¶</a></dt>
@@ -1295,7 +1808,7 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>elements</strong> &#8211; List of chemical elements.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>elements</strong> – List of chemical elements.</td>
 </tr>
 </tbody>
 </table>
@@ -1320,8 +1833,10 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>show_unstable</strong> &#8211; Show all phases, including unstable ones</li>
-<li><strong>show</strong> &#8211; True to show plot.</li>
+<li><strong>show_unstable</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) – Whether unstable phases will be plotted as
+well as red crosses. If a number &gt; 0 is entered, all phases with
+ehull &lt; show_unstable will be shown.</li>
+<li><strong>show</strong> – True to show plot.</li>
 </ul>
 </td>
 </tr>
@@ -1341,9 +1856,9 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>with_spglib</strong> &#8211; True to compute spacegroup with spglib.</li>
-<li><strong>file</strong> &#8211; Output stream.</li>
-<li><strong>verbose</strong> &#8211; Verbosity level.</li>
+<li><strong>with_spglib</strong> – True to compute spacegroup with spglib.</li>
+<li><strong>file</strong> – Output stream.</li>
+<li><strong>verbose</strong> – Verbosity level.</li>
 </ul>
 </td>
 </tr>
@@ -1367,14 +1882,14 @@ the creation of data structures and pymatgen objects using Materials Project dat
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
 REST interface. Please apply on the Materials Project website for one.
 If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in
 your .pmgrc.yaml. If so, it will use that environment
 This makes easier for heavy users to simply add
 this environment variable to their setups and MPRester can
 then be called without any arguments.</li>
-<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.
 Defaults to the standard Materials Project REST address, but
 can be changed to other urls implementing a similar interface.</li>
 </ul>
@@ -1385,438 +1900,680 @@ can be changed to other urls implementing a similar interface.</li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-abipy.core.irrepsdb">
-<span id="irrepsdb-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">irrepsdb</span></code> Module<a class="headerlink" href="#module-abipy.core.irrepsdb" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-abipy.core.kpoints">
-<span id="kpoints-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">kpoints</span></code> Module<a class="headerlink" href="#module-abipy.core.kpoints" title="Permalink to this headline">¶</a></h2>
-<p>This module defines objects describing the sampling of the Brillouin Zone.</p>
+<div class="section" id="module-abipy.core.skw">
+<span id="skw-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">skw</span></code> Module<a class="headerlink" href="#module-abipy.core.skw" title="Permalink to this headline">¶</a></h2>
+<p>Shankland-Koelling-Wood Fourier interpolation scheme.</p>
+<dl class="class">
+<dt id="abipy.core.skw.EDOS">
+<em class="property">class </em><code class="descclassname">abipy.core.skw.</code><code class="descname">EDOS</code><span class="sig-paren">(</span><em>mesh</em>, <em>values</em>, <em>integral</em>, <em>is_shift</em>, <em>method</em>, <em>step</em>, <em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#EDOS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.EDOS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.skw.ElectronInterpolator">
+<em class="property">class </em><code class="descclassname">abipy.core.skw.</code><code class="descname">ElectronInterpolator</code><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="abipy.core.skw.ElectronInterpolator.angle_tolerance">
+<code class="descname">angle_tolerance</code><em class="property"> = -1.0</em><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.angle_tolerance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.calc_occfacts">
+<code class="descname">calc_occfacts</code><span class="sig-paren">(</span><em>eigens</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.calc_occfacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.calc_occfacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute occupation factors from the eigenvalues <cite>eigens</cite> and
+the temperature <cite>temp</cite> in K. occfacts in [0, 1].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.get_edos">
+<code class="descname">get_edos</code><span class="sig-paren">(</span><em>kmesh</em>, <em>is_shift=None</em>, <em>method='gaussian'</em>, <em>step=0.1</em>, <em>width=0.2</em>, <em>wmesh=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.get_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.get_edos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the electron DOS on a linear mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kmesh</strong> – Three integers with the number of divisions along the reciprocal primitive axes.</li>
+<li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
+<li><strong>method</strong> – String defining the method for the computation of the DOS.</li>
+<li><strong>step</strong> – Energy step (eV) of the linear mesh.</li>
+<li><strong>width</strong> – Standard deviation (eV) of the gaussian.</li>
+<li><strong>mesh</strong> – Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(mesh, values, integral)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.get_jdos_q0">
+<code class="descname">get_jdos_q0</code><span class="sig-paren">(</span><em>kmesh</em>, <em>is_shift=None</em>, <em>method='gaussian'</em>, <em>step=0.1</em>, <em>width=0.2</em>, <em>wmesh=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.get_jdos_q0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.get_jdos_q0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the join density of states at q==0</p>
+<blockquote>
+<div><img src="../_images/mathmpl/math-409d93a935.png" style="position: relative; bottom: -21px"/></div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>kmesh</strong> – Three integers with the number of divisions along the reciprocal primitive axes.</li>
+<li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
+<li><strong>method</strong> – String defining the method.</li>
+<li><strong>step</strong> – Energy step (eV) of the linear mesh.</li>
+<li><strong>width</strong> – Standard deviation (eV) of the gaussian.</li>
+<li><strong>wmesh</strong> – Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.get_nesting_at_e0">
+<code class="descname">get_nesting_at_e0</code><span class="sig-paren">(</span><em>qpoints</em>, <em>kmesh</em>, <em>e0</em>, <em>width=0.2</em>, <em>is_shift=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.get_nesting_at_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.get_nesting_at_e0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the nesting factor with gaussian broadening for an arbitrary list of q-points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qpoints</strong> – List of q-points in reduced coordinates.</li>
+<li><strong>kmesh</strong> – Three integers with the number of divisions along the reciprocal primitive axes.</li>
+<li><strong>e0</strong> – Energy level in eV.</li>
+<li><strong>width</strong> – Standard deviation (eV) of the gaussian.</li>
+<li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy array of shape [self.nsppol, len(qpoints)]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.get_sampling">
+<code class="descname">get_sampling</code><span class="sig-paren">(</span><em>mesh</em>, <em>is_shift</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.get_sampling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.get_sampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use spglib to compute the k-points in the IBZ with the corresponding weights
+as well as the k-points in the full BZ.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> – </li>
+<li><strong>is_shift</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: named tuple with the following attributes:</p>
+<blockquote>
+<div>ibz:
+nibz
+weights:
+bz:
+nbz
+grid:</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.skw.ElectronInterpolator.occtype">
+<code class="descname">occtype</code><em class="property"> = 'insulator'</em><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.occtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.pickle_dump">
+<code class="descname">pickle_dump</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.pickle_dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.pickle_dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the status of the object in pickle format.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.core.skw.ElectronInterpolator.pickle_load">
+<em class="property">classmethod </em><code class="descname">pickle_load</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.pickle_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.pickle_load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the object from a pickle file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.plot_dos_vs_kmeshes">
+<code class="descname">plot_dos_vs_kmeshes</code><span class="sig-paren">(</span><em>kmeshes</em>, <em>is_shift=None</em>, <em>method='gaussian'</em>, <em>step=0.1</em>, <em>width=0.2</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.plot_dos_vs_kmeshes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.plot_dos_vs_kmeshes" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) DOSes computed with different meshes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>kmeshes: List of kmeshes. Each item is given by three integers with the number of</dt>
+<dd>divisions along the reciprocal primitive axes.</dd>
+<dt>is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</dt>
+<dd>the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</dd>
+</dl>
+<p class="last">method: String defining the method for the computation of the DOS.
+step: Energy step (eV) of the linear mesh.
+width: Standard deviation (eV) of the gaussian.
+ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.plot_group_velocites">
+<code class="descname">plot_group_velocites</code><span class="sig-paren">(</span><em>vertices_names=None</em>, <em>line_density=20</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.plot_group_velocites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.plot_group_velocites" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) group velocities computed along an arbitrary k-path.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>vertices_names
+line_density:
+ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.plot_jdosq0_vs_kmeshes">
+<code class="descname">plot_jdosq0_vs_kmeshes</code><span class="sig-paren">(</span><em>kmeshes</em>, <em>is_shift=None</em>, <em>method='gaussian'</em>, <em>step=0.1</em>, <em>width=0.2</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.plot_jdosq0_vs_kmeshes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.plot_jdosq0_vs_kmeshes" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) Joint DOSes at q=0 computed with different meshes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>kmeshes: List of kmeshes. Each item is given by three integers with the number of</dt>
+<dd>divisions along the reciprocal primitive axes.</dd>
+<dt>is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</dt>
+<dd>the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</dd>
+</dl>
+<p class="last">method: String defining the method for the computation of the DOS.
+step: Energy step (eV) of the linear mesh.
+width: Standard deviation (eV) of the gaussian.
+ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.plot_nesting_vs_kmeshes">
+<code class="descname">plot_nesting_vs_kmeshes</code><span class="sig-paren">(</span><em>width</em>, <em>kmeshes</em>, <em>e0=None</em>, <em>qvertices_names=None</em>, <em>line_density=20</em>, <em>is_shift=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.plot_nesting_vs_kmeshes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.plot_nesting_vs_kmeshes" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) nesting factor computed with different k-meshes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">width: Gaussian broadening (eV).
+kmeshes: List of kmeshes. Each item is given by three integers with the number of</p>
+<blockquote>
+<div>divisions along the reciprocal primitive axes.</div></blockquote>
+<p>e0: Energy level in eV.
+qvertices_names
+line_density:
+is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</p>
+<blockquote>
+<div>the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</div></blockquote>
+<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.plot_nesting_vs_widths">
+<code class="descname">plot_nesting_vs_widths</code><span class="sig-paren">(</span><em>widths</em>, <em>kmesh</em>, <em>e0=None</em>, <em>qvertices_names=None</em>, <em>line_density=20</em>, <em>is_shift=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.plot_nesting_vs_widths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.plot_nesting_vs_widths" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot (interpolated) nesting factor computed with different broadening.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">widths: List of standard deviations (eV) of the gaussian.
+kmeshes: List of kmeshes. Each item is given by three integers with the number of</p>
+<blockquote>
+<div>divisions along the reciprocal primitive axes.</div></blockquote>
+<p>e0: Energy level in eV.
+qvertices_names
+line_density:
+is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</p>
+<blockquote>
+<div>the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</div></blockquote>
+<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.set_fermie">
+<code class="descname">set_fermie</code><span class="sig-paren">(</span><em>fermie</em>, <em>kmesh</em>, <em>is_shift=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.set_fermie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.set_fermie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the Fermi level. Use the IDOS computed on the k-grid specifined by
+<cite>kmesh</cite> and <cite>is_shift</cite> to recompute the total number of electrons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fermie</strong> – New Fermi level in eV</li>
+<li><strong>kmesh</strong> – Three integers with the number of divisions along the reciprocal primitive axes.</li>
+<li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">New value of <cite>self.nelect</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.ElectronInterpolator.set_nelect">
+<code class="descname">set_nelect</code><span class="sig-paren">(</span><em>nelect</em>, <em>kmesh</em>, <em>is_shift=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#ElectronInterpolator.set_nelect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.set_nelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the total number of electrons. Use the IDOS computed on the k-grid specifined by
+<cite>kmesh</cite> and <cite>is_shift</cite> to recompute the new Fermi level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nelect</strong> – New numbre of electrons.</li>
+<li><strong>kmesh</strong> – Three integers with the number of divisions along the reciprocal primitive axes.</li>
+<li><strong>is_shift</strong> – three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">New value of <cite>self.fermie</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.skw.ElectronInterpolator.symprec">
+<code class="descname">symprec</code><em class="property"> = 1e-05</em><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.symprec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.skw.ElectronInterpolator.use_cache">
+<code class="descname">use_cache</code><em class="property"> = True</em><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.use_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.core.skw.ElectronInterpolator.val_ib">
+<code class="descname">val_ib</code><a class="headerlink" href="#abipy.core.skw.ElectronInterpolator.val_ib" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the valence band.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.core.skw.SkwInterpolator">
+<em class="property">class </em><code class="descclassname">abipy.core.skw.</code><code class="descname">SkwInterpolator</code><span class="sig-paren">(</span><em>lpratio</em>, <em>kpts</em>, <em>eigens</em>, <em>fermie</em>, <em>nelect</em>, <em>cell</em>, <em>symrel</em>, <em>has_timrev</em>, <em>filter_params=None</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.core.skw.ElectronInterpolator" title="abipy.core.skw.ElectronInterpolator"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.skw.ElectronInterpolator</span></code></a></p>
+<p>This object implements the Shankland-Koelling-Wood Fourier interpolation scheme.
+It can be used to interpolate functions in k-space with the periodicity of the
+reciprocal lattice and satisfying F(k) = F(Sk) for each rotation S
+belonging to the point group of the crystal. For readability reason,
+the names of the variables are chosen assuming we are interpolating electronic eigenvalues
+but the same object can be used to interpolate other quantities. Just set the first dimension to 1.</p>
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.eval_sk">
+<code class="descname">eval_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpt</em>, <em>der1=None</em>, <em>der2=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.eval_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.eval_sk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate eigenvalues for all bands at a given (spin, k-point).
+Optionally compute gradients and Hessian matrices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>spin</strong> – Spin index.</li>
+<li><strong>kpt</strong> – K-point in reduced coordinates.</li>
+<li><strong>der1</strong> – If not None, ouput gradient is stored in der1[nband, 3].</li>
+<li><strong>der2</strong> – If not None, output Hessian is der2[nband, 3, 3].</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">oeigs[nband]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.get_stark">
+<code class="descname">get_stark</code><span class="sig-paren">(</span><em>kpt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.get_stark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.get_stark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the star function for k-point <cite>kpt</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kpt</strong> – K-point in reduced coordinates.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">complex array of shape [self.nr]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.get_stark_dk1">
+<code class="descname">get_stark_dk1</code><span class="sig-paren">(</span><em>kpt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.get_stark_dk1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.get_stark_dk1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the 1st-order derivative of the star function wrt k</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kpt</strong> – K-point in reduced coordinates.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">complex array [3, self.nr]  with the derivative of the
+star function wrt k in reduced coordinates.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.get_stark_dk2">
+<code class="descname">get_stark_dk2</code><span class="sig-paren">(</span><em>kpt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.get_stark_dk2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.get_stark_dk2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the 2nd-order derivatives of the star function wrt k.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kpt</strong> – K-point in reduced coordinates.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Complex numpy array of shape [3, 3, self.nr] with the 2nd-order derivatives
+of the star function wrt k in reduced coordinates.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.interp_kpts">
+<code class="descname">interp_kpts</code><span class="sig-paren">(</span><em>kfrac_coords</em>, <em>dk1=False</em>, <em>dk2=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.interp_kpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.interp_kpts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate energies on an arbitrary set of k-points. Optionally, compute
+gradients and Hessian matrices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kfrac_coords</strong> – K-points in reduced coordinates.</li>
+<li><strong>dk1</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – True if gradient is wanted.</li>
+<li><strong>dk2</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – True to compute 2nd order derivatives.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>interpolated energies in eigens[nsppol, len(kfrac_coords), nband]
+gradient in dedk[self.nsppol, len(kfrac_coords), self.nband, 3))
+hessian in dedk2[self.nsppol, len(kfrac_coords), self.nband, 3, 3))</p>
+<p>gradient and hessian are set to None if not computed.</p>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">namedtuple with</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.interp_kpts_and_enforce_degs">
+<code class="descname">interp_kpts_and_enforce_degs</code><span class="sig-paren">(</span><em>kfrac_coords</em>, <em>ref_eigens</em>, <em>atol=0.0001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.interp_kpts_and_enforce_degs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.interp_kpts_and_enforce_degs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate energies on an arbitrary set of k-points. Use <cite>ref_eigens</cite>
+to detect degeneracies and average the interpolated values in the degenerate subspace.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.skw.SkwInterpolator.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#SkwInterpolator.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.SkwInterpolator.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
-<dt id="abipy.core.kpoints.issamek">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">issamek</code><span class="sig-paren">(</span><em>k1</em>, <em>k2</em>, <em>atol=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#issamek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.issamek" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if k1 and k2 are equal modulo a lattice vector.
-Use _ATOL_KDIFF is atol is None.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">issamek</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">issamek</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">issamek</span><span class="p">(</span><span class="mf">0.00003</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<dt id="abipy.core.skw.extract_point_group">
+<code class="descclassname">abipy.core.skw.</code><code class="descname">extract_point_group</code><span class="sig-paren">(</span><em>symrel</em>, <em>has_timrev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#extract_point_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.extract_point_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the point group rotations from the spacegroup. Add time-reversal
+if spatial inversion is not present and <cite>has_timrev</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(ptg_symrel, ptg_symrec) with rotations in real- and reciprocal-space.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.skw.find_degs_sk">
+<code class="descclassname">abipy.core.skw.</code><code class="descname">find_degs_sk</code><span class="sig-paren">(</span><em>enesb</em>, <em>atol</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#find_degs_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.find_degs_sk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of lists with the indices of the degenerated bands.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>enesb</strong> – Iterable with energies for the different bands.
+Energies are assumed to be ordered.</li>
+<li><strong>atol</strong> – Absolute tolerance. Two states are degerated if they differ by less than <cite>atol</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>List of lists. The i-th item contains the indices of the degenerates states</dt>
+<dd><p class="first last">for the i-th degenerated set.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Examples:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">find_degs_sk</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">,</span> <span class="mf">3.401</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="go">[[0, 1], [2], [3, 4]]</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.core.kpoints.wrap_to_ws">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">wrap_to_ws</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#wrap_to_ws"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.wrap_to_ws" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transforms x in its corresponding reduced number in the interval ]-1/2,1/2].</p>
-</dd></dl>
+<dt id="abipy.core.skw.map_bz2ibz">
+<code class="descclassname">abipy.core.skw.</code><code class="descname">map_bz2ibz</code><span class="sig-paren">(</span><em>structure</em>, <em>ibz</em>, <em>ngkpt</em>, <em>has_timrev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#map_bz2ibz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.map_bz2ibz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
-<dt id="abipy.core.kpoints.wrap_to_bz">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">wrap_to_bz</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#wrap_to_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.wrap_to_bz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transforms x in its corresponding reduced number in the interval [0,1[.&#8221;</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.core.kpoints.as_kpoints">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">as_kpoints</code><span class="sig-paren">(</span><em>obj</em>, <em>lattice</em>, <em>weights=None</em>, <em>names=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#as_kpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.as_kpoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert obj into a list of k-points.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>obj</strong> &#8211; <a class="reference internal" href="#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code></a> or list of Kpoint objects or array-like object.</li>
-<li><strong>lattice</strong> &#8211; Reciprocal lattice.</li>
-<li><strong>weights</strong> &#8211; k-point weights. Ignored if obj is already a <cite>Kpoint</cite> instance or a list
-of <cite>Kpoint</cite> items.</li>
-<li><strong>name</strong> &#8211; string with the name of the k-point. Ignored if obj is already a <cite>Kpoint</cite>
-instance or a list of <cite>Kpoint</cite> items.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.core.kpoints.Kpoint">
-<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpoint</code><span class="sig-paren">(</span><em>frac_coords</em>, <em>lattice</em>, <em>weight=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.serializers.pickle_coders.html#pymatgen.serializers.pickle_coders.SlotPickleMixin" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.serializers.pickle_coders.SlotPickleMixin</span></code></a></p>
-<p>Class defining one k-point.</p>
-<dl class="classmethod">
-<dt id="abipy.core.kpoints.Kpoint.as_kpoint">
-<em class="property">classmethod </em><code class="descname">as_kpoint</code><span class="sig-paren">(</span><em>obj</em>, <em>lattice</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.as_kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.as_kpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert obj into a Kpoint instance.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>obj</strong> &#8211; <a class="reference internal" href="#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code></a> instance or array-like with the reduced coordinates.</li>
-<li><strong>lattice</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Lattice</span></code> object defining the reciprocal lattice.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.cart_coords">
-<code class="descname">cart_coords</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.cart_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cartesian coordinates of the k-point.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.compute_star">
-<code class="descname">compute_star</code><span class="sig-paren">(</span><em>symmops</em>, <em>wrap_tows=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.compute_star"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.compute_star" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the star of the kpoint (tuple of <cite>Kpoint</cite> objects).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deep copy.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.frac_coords">
-<code class="descname">frac_coords</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.frac_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fractional coordinates of the k-points.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.core.kpoints.Kpoint.gamma">
-<em class="property">classmethod </em><code class="descname">gamma</code><span class="sig-paren">(</span><em>lattice</em>, <em>weight=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.gamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.gamma" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructor for the Gamma point.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.lattice">
-<code class="descname">lattice</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reciprocal lattice.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.name">
-<code class="descname">name</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Name of the k-point. None if not available.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.norm">
-<code class="descname">norm</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.norm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Norm of the kpoint.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.on_border">
-<code class="descname">on_border</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.on_border" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if the k-point is on the border of the BZ  (lattice translations are taken into account).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.set_name">
-<code class="descname">set_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.set_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.set_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the name of the k-point.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.set_weight">
-<code class="descname">set_weight</code><span class="sig-paren">(</span><em>weight</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.set_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.set_weight" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the weight of the k-point.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.versor">
-<code class="descname">versor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.versor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.versor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the versor i.e. ||k|| = 1</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpoint.weight">
-<code class="descname">weight</code><a class="headerlink" href="#abipy.core.kpoints.Kpoint.weight" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weight of the k-point. 0.0 if the weight is not defined.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.wrap_to_bz">
-<code class="descname">wrap_to_bz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.wrap_to_bz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.wrap_to_bz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new <cite>Kpoint</cite> in the first unit cell.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpoint.wrap_to_ws">
-<code class="descname">wrap_to_ws</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpoint.wrap_to_ws"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpoint.wrap_to_ws" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new <cite>Kpoint</cite> in the Wigner-Seitz zone.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.core.kpoints.Kpath">
-<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Kpath</code><span class="sig-paren">(</span><em>reciprocal_lattice</em>, <em>frac_coords</em>, <em>weights=None</em>, <em>names=None</em>, <em>ksampling=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.KpointList</span></code></p>
-<p>This object describes a k-path in reciprocal space.
-It provides methods to compute (line) derivatives along the path.
-The k-points do not have weights so Kpath should not be used to compute integral in the BZ.</p>
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpath.ds">
-<code class="descname">ds</code><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.ds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.ds" title="Permalink to this definition">¶</a></dt>
-<dd><p>numpy array of len(self)-1 elements giving the distance between two
-consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]|| for i=0,1,...,n-1</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpath.finite_diff">
-<code class="descname">finite_diff</code><span class="sig-paren">(</span><em>values</em>, <em>order=1</em>, <em>acc=4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.finite_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.finite_diff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the derivatives of values by finite differences.</p>
+<dt id="abipy.core.skw.n_fermi_dirac">
+<code class="descclassname">abipy.core.skw.</code><code class="descname">n_fermi_dirac</code><span class="sig-paren">(</span><em>enes</em>, <em>mu</em>, <em>temp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/skw.html#n_fermi_dirac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.skw.n_fermi_dirac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fermi-Dirac distribution.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>values</strong> &#8211; array-like object with shape=(nkpt) containing the values of the path.</li>
-<li><strong>order</strong> &#8211; Order of the derivative.</li>
-<li><strong>acc</strong> &#8211; Accuracy: 4 corresponds to a central difference with 5 points.</li>
+<li><strong>enes</strong> – Energies in eV</li>
+<li><strong>mu</strong> – Chemical potential in eV.</li>
+<li><strong>temp</strong> – Temperature in Kelvin.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ragged numpy array. The i-th entry is a numpy array with the derivatives
-on the i-th line.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.core.kpoints.Kpath.from_vertices_and_names">
-<em class="property">classmethod </em><code class="descname">from_vertices_and_names</code><span class="sig-paren">(</span><em>structure</em>, <em>vertices_names</em>, <em>line_density=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.from_vertices_and_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.from_vertices_and_names" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate K-path from a list of vertices and the corresponding labels.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; Structure object.</li>
-<li><strong>vertices_names</strong> &#8211; List of tuple, each tuple is of the form (kfrac_coords, kname) where
-kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
-the k-point. Each point represents a vertex of the k-path.</li>
-<li><strong>line_density</strong> &#8211; Number of points used to sample the smallest segment of the path</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpath.lines">
-<code class="descname">lines</code><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.lines" title="Permalink to this definition">¶</a></dt>
-<dd><p>Nested list containing the indices of the points belonging to the same line.
-Used for extracting the eigenvalues while looping over the lines.</p>
-<p class="rubric">Example</p>
-<dl class="docutils">
-<dt>for line in self.lines:</dt>
-<dd>vals_on_line = eigens[spin, line, band]</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Kpath.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; Verbosity level. Default: 0</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Kpath.versors">
-<code class="descname">versors</code><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Kpath.versors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Kpath.versors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tuple of len(self)-1 elements with the versors connecting k[i] to k[i+1].</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.core.kpoints.IrredZone">
-<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">IrredZone</code><span class="sig-paren">(</span><em>reciprocal_lattice</em>, <em>frac_coords</em>, <em>weights=None</em>, <em>names=None</em>, <em>ksampling=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#IrredZone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.IrredZone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.KpointList</span></code></p>
-<p>An <a class="reference internal" href="#abipy.core.kpoints.IrredZone" title="abipy.core.kpoints.IrredZone"><code class="xref py py-class docutils literal"><span class="pre">IrredZone</span></code></a> is a (immutable) sequence of points in the irreducible wedge of the BZ.
-Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>Abinit supports different options for the specification of the BZ sampling:</p>
-<blockquote>
-<div><ul class="simple">
-<li>kptrlatt(3,3) or ngkpt(3) for the definition grid.</li>
-<li>shiftk(3, nshiftk) for the definition of multiple shifts.</li>
-<li><cite>kptopt</cite> for the treatment of symmetry operations.</li>
-</ul>
-</div></blockquote>
-<p>All these possibilities complicate the internal implementation in particular when
-we need to recostruct the full BZ and take into account the presence of multiple shifts
-since kptrlatt may have non-zero off-diagonal components. Client code that needs to know
-how the mesh was generated can rely on the following checks:</p>
-<p>if not self.ibz: raise(&#8220;Need an IBZ sampling&#8221;)</p>
-<p class="last">mpdivs, shifts = self.mpdivs_shifts
-if mpdivs is None: raise ValueError(&#8220;Cannot handle kptrlatt with non-zero off-diagonal elements&#8221;)
-if len(shifts) &gt; 1: raise ValueError(&#8220;Multiple shifts are not supported&#8221;)
-# Code for mesh defined in terms of mpdivs and one shift.</p>
-</div>
-<dl class="method">
-<dt id="abipy.core.kpoints.IrredZone.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#IrredZone.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.IrredZone.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.core.kpoints.rc_list">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">rc_list</code><span class="sig-paren">(</span><em>mp</em>, <em>sh</em>, <em>pbc=False</em>, <em>order='bz'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#rc_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.rc_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a <cite>ndarray</cite> with the linear mesh used to sample one dimension of the reciprocal space.
-Note that the coordinates are always ordered so that rc[i+1] &gt; rc[i].
-so that we can easily plot quantities defined on the 3D multidimensional mesh.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mp</strong> &#8211; Number of Monkhorst-Pack divisions along this direction.</li>
-<li><strong>sh</strong> &#8211; Shift</li>
-<li><strong>pbc</strong> &#8211; if pbc is True, periodic boundary conditions are enforced.</li>
-<li><strong>order</strong> &#8211; Possible values [&#8220;bz&#8221;, &#8220;unit_cell&#8221;].
-if &#8220;bz&#8221;, the coordinates are forced to be in [-1/2, 1/2)
-if &#8220;unit_cell&#8221;, the coordinates are forced to be in [0, 1).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.core.kpoints.kmesh_from_mpdivs">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">kmesh_from_mpdivs</code><span class="sig-paren">(</span><em>mpdivs</em>, <em>shifts</em>, <em>pbc=False</em>, <em>order='bz'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#kmesh_from_mpdivs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.kmesh_from_mpdivs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a <cite>ndarray</cite> with the reduced coordinates of the
-k-points from the MP divisions and the shifts.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mpdivs</strong> &#8211; The three MP divisions.</li>
-<li><strong>shifts</strong> &#8211; Array-like object with the MP shift.</li>
-<li><strong>pbc</strong> &#8211; If True, periodic images of the k-points will be included i.e. closed mesh.</li>
-<li><strong>order</strong> &#8211; &#8220;unit_cell&#8221; if the kpoint coordinates must be in [0,1)
-&#8220;bz&#8221; if the kpoint coordinates must be in [-1/2, +1/2)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.core.kpoints.Ktables">
-<em class="property">class </em><code class="descclassname">abipy.core.kpoints.</code><code class="descname">Ktables</code><span class="sig-paren">(</span><em>structure</em>, <em>mesh</em>, <em>is_shift</em>, <em>has_timrev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Ktables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Ktables" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Call spglib to compute the k-points in the IBZ with the corresponding weights
-as well as the mapping BZ &#8211;&gt; IBZ.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mesh</strong> &#8211; </li>
-<li><strong>is_shift</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.mesh">
-<code class="descname">mesh</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.mesh" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.is_shift">
-<code class="descname">is_shift</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.is_shift" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.ibz">
-<code class="descname">ibz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.ibz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.nibz">
-<code class="descname">nibz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.nibz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.weights">
-<code class="descname">weights</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.weights" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.bz">
-<code class="descname">bz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.bz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.nbz">
-<code class="descname">nbz</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.nbz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.core.kpoints.Ktables.grid">
-<code class="descname">grid</code><a class="headerlink" href="#abipy.core.kpoints.Ktables.grid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Ktables.print_bz2ibz">
-<code class="descname">print_bz2ibz</code><span class="sig-paren">(</span><em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Ktables.print_bz2ibz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Ktables.print_bz2ibz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print BZ &#8211;&gt; IBZ mapping.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.kpoints.Ktables.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#Ktables.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.Ktables.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.core.kpoints.find_points_along_path">
-<code class="descclassname">abipy.core.kpoints.</code><code class="descname">find_points_along_path</code><span class="sig-paren">(</span><em>cart_bounds</em>, <em>cart_coords</em>, <em>dist_tol</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/kpoints.html#find_points_along_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.kpoints.find_points_along_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find points in <cite>cart_coords</cite> lying on the path defined by <cite>cart_bounds</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cart_bounds</strong> &#8211; [N, 3] array with the boundaries of the path in Cartesian coordinates.</li>
-<li><strong>cart_coords</strong> &#8211; [M, 3] array with the points in Cartesian coordinate</li>
-<li><strong>dist_tol</strong> &#8211; A point is considered to be on the path if its distance from the line
-is less than dist_tol.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>(klines, dist_list, ticks)</p>
-<p>klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
-dist_list: numpy array with the distance of the points along the line.
-ticks:</p>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy array with occupations in [0, 1].</p>
 </td>
 </tr>
 </tbody>
@@ -1836,11 +2593,11 @@ ticks:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>obj</strong> &#8211; filename or Structure object.</li>
-<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
+<li><strong>obj</strong> – filename or Structure object.</li>
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
 REST interface.</li>
-<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.</li>
-<li><strong>final</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to get the final structure, or the initial
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.</li>
+<li><strong>final</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether to get the final structure, or the initial
 (pre-relaxation) structure. Defaults to True.</li>
 </ul>
 </td>
@@ -1867,11 +2624,11 @@ Get a list of structures corresponding to a chemical system, formula, or materia
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>chemsys_formula_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A chemical system (e.g., Li-Fe-O),
+<li><strong>chemsys_formula_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A chemical system (e.g., Li-Fe-O),
 or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).</li>
-<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject REST interface.
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A String API key for accessing the MaterialsProject REST interface.
 If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in your .pmgrc.yaml.</li>
-<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.</li>
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.</li>
 </ul>
 </td>
 </tr>
@@ -1899,8 +2656,8 @@ Get a list of structures corresponding to a chemical formula</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>formula</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Chemical formula (e.g., Fe2O3)</li>
-<li><strong>primitive</strong> &#8211; True if primitive structures are wanted. Note that many COD structures are not primitive.</li>
+<li><strong>formula</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Chemical formula (e.g., Fe2O3)</li>
+<li><strong>primitive</strong> – True if primitive structures are wanted. Note that many COD structures are not primitive.</li>
 </ul>
 </td>
 </tr>
@@ -1921,7 +2678,7 @@ and List of dictionaries with COD data (same order as structures).</p>
 <dl class="class">
 <dt id="abipy.core.structure.Structure">
 <em class="property">class </em><code class="descclassname">abipy.core.structure.</code><code class="descname">Structure</code><span class="sig-paren">(</span><em>lattice</em>, <em>species</em>, <em>coords</em>, <em>validate_proximity=False</em>, <em>to_unit_cell=False</em>, <em>coords_are_cartesian=False</em>, <em>site_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.core.structure.html#pymatgen.core.structure.Structure" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.structure.Structure</span></code></a>, <a class="reference internal" href="#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Extends <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code> with Abinit-specific methods.</p>
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.ABO3">
@@ -1950,12 +2707,12 @@ and List of dictionaries with COD data (same order as structures).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>symprec</strong> &#8211; Symmetry precision used to refine the structure.</li>
-<li><strong>angle_tolerance</strong> &#8211; Tolerance on anglese
+<li><strong>symprec</strong> – Symmetry precision used to refine the structure.</li>
+<li><strong>angle_tolerance</strong> – Tolerance on anglese
 if <cite>symprec</cite> is None and <cite>angle_tolerance</cite> is None, no structure refinement is peformed.</li>
-<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to convert to a primitive cell following
+<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether to convert to a primitive cell following
 Setyawan, W., &amp; Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010</li>
-<li><strong>primitive_standard</strong> &#8211; Returns most primitive structure found.</li>
+<li><strong>primitive_standard</strong> – Returns most primitive structure found.</li>
 </ul>
 </td>
 </tr>
@@ -2000,10 +2757,10 @@ from a CIF file.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> &#8211; Lattice parameter in Angstrom.</li>
-<li><strong>species</strong> &#8211; Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structue</span></code></li>
-<li><strong>primitive</strong> &#8211; if True a primitive cell will be produced, otherwise a conventional one</li>
-<li><strong>kwargs</strong> &#8211; All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structue</span></code></li>
+<li><strong>a</strong> – Lattice parameter in Angstrom.</li>
+<li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structue</span></code></li>
+<li><strong>primitive</strong> – if True a primitive cell will be produced, otherwise a conventional one</li>
+<li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structue</span></code></li>
 </ul>
 </td>
 </tr>
@@ -2020,9 +2777,9 @@ from a CIF file.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>pseudo</strong> &#8211; Pseudopotential object.</li>
-<li><strong>cart_coords</strong> &#8211; Cartesian coordinates in Angstrom</li>
-<li><strong>acell</strong> &#8211; Lengths of the box in <em>Bohr</em> (Abinit input variable)</li>
+<li><strong>pseudo</strong> – Pseudopotential object.</li>
+<li><strong>cart_coords</strong> – Cartesian coordinates in Angstrom</li>
+<li><strong>acell</strong> – Lengths of the box in <em>Bohr</em> (Abinit input variable)</li>
 </ul>
 </td>
 </tr>
@@ -2039,9 +2796,9 @@ from a CIF file.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>pseudos</strong> &#8211; List of pseudopotentials</li>
-<li><strong>cart_coords</strong> &#8211; Cartesian coordinates</li>
-<li><strong>acell</strong> &#8211; Lengths of the box in <em>Bohr</em></li>
+<li><strong>pseudos</strong> – List of pseudopotentials</li>
+<li><strong>cart_coords</strong> – Cartesian coordinates</li>
+<li><strong>acell</strong> – Lengths of the box in <em>Bohr</em></li>
 </ul>
 </td>
 </tr>
@@ -2070,7 +2827,7 @@ the smallest reciprocal lattice vector.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nksmall</strong> &#8211; Number of division for the smallest lattice vector.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nksmall</strong> – Number of division for the smallest lattice vector.</td>
 </tr>
 </tbody>
 </table>
@@ -2138,7 +2895,7 @@ to keep the shift along the symmetry axis.</p>
 <dt id="abipy.core.structure.Structure.convert">
 <code class="descname">convert</code><span class="sig-paren">(</span><em>fmt='cif'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.convert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return string with the structure in the given format <cite>fmt</cite>
-Options include &#8220;abivars&#8221;, &#8220;cif&#8221;, &#8220;xsf&#8221;, &#8220;poscar&#8221;, &#8220;cssr&#8221;, &#8220;json&#8221;.</p>
+Options include “abivars”, “cif”, “xsf”, “poscar”, “cssr”, “json”.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2153,9 +2910,9 @@ all the atoms so that the maximum atomic displacement is 0.001 Angstrom.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>displ</strong> &#8211; Displacement vector with 3*len(self) entries (fractional coordinates).</li>
-<li><strong>eta</strong> &#8211; Scaling factor.</li>
-<li><strong>frac_coords</strong> &#8211; Boolean stating whether the vector corresponds to fractional or cartesian coordinates.</li>
+<li><strong>displ</strong> – Displacement vector with 3*len(self) entries (fractional coordinates).</li>
+<li><strong>eta</strong> – Scaling factor.</li>
+<li><strong>frac_coords</strong> – Boolean stating whether the vector corresponds to fractional or cartesian coordinates.</li>
 </ul>
 </td>
 </tr>
@@ -2173,9 +2930,9 @@ reciprocal space.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>coords</strong> (<em>3x1 array</em>) &#8211; Array-like object with the coordinates.</li>
-<li><strong>space</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;r&#8221; for real space, &#8220;g&#8221; for reciprocal space.</li>
-<li><strong>frac_coords</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether the vector corresponds to fractional or
+<li><strong>coords</strong> (<em>3x1 array</em>) – Array-like object with the coordinates.</li>
+<li><strong>space</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – “r” for real space, “g” for reciprocal space.</li>
+<li><strong>frac_coords</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether the vector corresponds to fractional or
 cartesian coordinates.</li>
 </ul>
 </td>
@@ -2196,10 +2953,10 @@ cartesian coordinates.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filename</strong> &#8211; String specifying the file path and the file format.
-The format is defined by the file extension. filename=&#8221;prefix.xsf&#8221;, for example,
-will produce a file in XSF format. An <em>empty</em> prefix, e.g. &#8221;.xsf&#8221; makes the code use a temporary file.</li>
-<li><strong>visu</strong> &#8211; <cite>Visualizer</cite> subclass. By default, this method returns the first available
+<li><strong>filename</strong> – String specifying the file path and the file format.
+The format is defined by the file extension. filename=”prefix.xsf”, for example,
+will produce a file in XSF format. An <em>empty</em> prefix, e.g. “.xsf” makes the code use a temporary file.</li>
+<li><strong>visu</strong> – <cite>Visualizer</cite> subclass. By default, this method returns the first available
 visualizer that supports the given file format. If visu is not None, an
 instance of visu is returned. See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of applications and formats supported.</li>
 </ul>
@@ -2219,10 +2976,10 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> &#8211; Lattice parameter in Angstrom.</li>
-<li><strong>species</strong> &#8211; Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
-<li><strong>primitive</strong> &#8211; if True a primitive cell will be produced, otherwise a conventional one</li>
-<li><strong>kwargs</strong> &#8211; All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+<li><strong>a</strong> – Lattice parameter in Angstrom.</li>
+<li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+<li><strong>primitive</strong> – if True a primitive cell will be produced, otherwise a conventional one</li>
+<li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
 </ul>
 </td>
 </tr>
@@ -2264,7 +3021,7 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>atoms</strong> &#8211; ASE Atoms object</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>atoms</strong> – ASE Atoms object</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Equivalent Structure</td>
 </tr>
@@ -2281,9 +3038,9 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cod_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; COD id.</li>
-<li><strong>primitive</strong> &#8211; True if primitive structures are wanted. Note that many COD structures are not primitive.</li>
-<li><strong>kwargs</strong> &#8211; Arguments passed to <cite>get_structure_by_id</cite></li>
+<li><strong>cod_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – COD id.</li>
+<li><strong>primitive</strong> – True if primitive structures are wanted. Note that many COD structures are not primitive.</li>
+<li><strong>kwargs</strong> – Arguments passed to <cite>get_structure_by_id</cite></li>
 </ul>
 </td>
 </tr>
@@ -2298,9 +3055,9 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 <dt id="abipy.core.structure.Structure.from_file">
 <em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em>, <em>primitive=False</em>, <em>sort=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads a structure from a file. For example, anything ending in
-a &#8220;cif&#8221; is assumed to be a Crystallographic Information Format file.
+a “cif” is assumed to be a Crystallographic Information Format file.
 Supported formats include CIF, POSCAR/CONTCAR, CHGCAR, LOCPOT,
-vasprun.xml, CSSR, Netcdf and pymatgen&#8217;s JSON serialized structures.</p>
+vasprun.xml, CSSR, Netcdf and pymatgen’s JSON serialized structures.</p>
 <dl class="docutils">
 <dt>Netcdf files supported:</dt>
 <dd>All files produced by ABINIT with info of the crystalline geometry
@@ -2311,11 +3068,11 @@ HIST_FILEs, in this case the last structure of the history is returned.</dd>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The filename to read from.</li>
-<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to convert to a primitive cell
+<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The filename to read from.</li>
+<li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether to convert to a primitive cell
 Only available for cifs, POSCAR, CSSR, JSON, YAML
 Defaults to True.</li>
-<li><strong>sort</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to sort sites. Default to False.</li>
+<li><strong>sort</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether to sort sites. Default to False.</li>
 </ul>
 </td>
 </tr>
@@ -2335,16 +3092,16 @@ Defaults to True.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Materials Project material_id (a string, e.g., mp-1234).</li>
-<li><strong>final</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether to get the final structure, or the initial
+<li><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Materials Project material_id (a string, e.g., mp-1234).</li>
+<li><strong>final</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether to get the final structure, or the initial
 (pre-relaxation) structure. Defaults to True.</li>
-<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A String API key for accessing the MaterialsProject
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A String API key for accessing the MaterialsProject
 REST interface. Please apply on the Materials Project website for one.
 If this is None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in your .pmgrc.yaml.
 If so, it will use that environment
 This makes easier for heavy users to simply add this environment variable
 to their setups and MPRester can then be called without any arguments.</li>
-<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of endpoint to access the MaterialsProject REST interface.
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.
 Defaults to the standard Materials Project REST address, but
 can be changed to other urls implementing a similar interface.</li>
 </ul>
@@ -2366,10 +3123,10 @@ can be changed to other urls implementing a similar interface.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>qpoint</strong> &#8211; q vector in reduced coordinate in reciprocal space.</li>
-<li><strong>displ</strong> &#8211; displacement in real space of the atoms, will be normalized to 1 Angstrom.</li>
-<li><strong>eta</strong> &#8211; pre-factor multiplying the displacement.</li>
-<li><strong>do_real</strong> &#8211; true if we want only the real part of the displacement.</li>
+<li><strong>qpoint</strong> – q vector in reduced coordinate in reciprocal space.</li>
+<li><strong>displ</strong> – displacement in real space of the atoms, will be normalized to 1 Angstrom.</li>
+<li><strong>eta</strong> – pre-factor multiplying the displacement.</li>
+<li><strong>do_real</strong> – true if we want only the real part of the displacement.</li>
 </ul>
 </td>
 </tr>
@@ -2386,10 +3143,10 @@ can be changed to other urls implementing a similar interface.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>qpoint</strong> &#8211; q vector in reduced coordinate in reciprocal space.</li>
-<li><strong>displ</strong> &#8211; displacement in real space of the atoms, will be normalized to 1 Angstrom.</li>
-<li><strong>eta</strong> &#8211; pre-factor multiplying the displacement.</li>
-<li><strong>do_real</strong> &#8211; true if we want only the real part of the displacement.</li>
+<li><strong>qpoint</strong> – q vector in reduced coordinate in reciprocal space.</li>
+<li><strong>displ</strong> – displacement in real space of the atoms, will be normalized to 1 Angstrom.</li>
+<li><strong>eta</strong> – pre-factor multiplying the displacement.</li>
+<li><strong>do_real</strong> – true if we want only the real part of the displacement.</li>
 </ul>
 </td>
 </tr>
@@ -2426,7 +3183,7 @@ norm(a1)&lt;norm(a2)&lt;norm(a3)</p>
 <li>Chemical formula and number of atoms.</li>
 <li>Lattice lengths, angles and volume.</li>
 <li>The spacegroup number computed by Abinit (set to None if not available).</li>
-<li>The spacegroup number and symbol computed by spglib (set to None not <cite>with_spglib</cite>).</li>
+<li>The spacegroup number and symbol computed by spglib (if <cite>with_spglib</cite>).</li>
 </ul>
 </div></blockquote>
 <p>Useful to construct pandas DataFrames</p>
@@ -2434,7 +3191,7 @@ norm(a1)&lt;norm(a2)&lt;norm(a3)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_spglib</strong> &#8211; If True, spglib is invoked to get the spacegroup symbol and number</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number</td>
 </tr>
 </tbody>
 </table>
@@ -2450,7 +3207,7 @@ This currently works only for ordered structures only.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Arguments passed to BVAnalyzer</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> – Arguments passed to BVAnalyzer</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A modified structure that is oxidation state decorated.</td>
 </tr>
@@ -2466,8 +3223,8 @@ This currently works only for ordered structures only.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>qpoint</strong> &#8211; q vector in reduced coordinate in reciprocal space</li>
-<li><strong>max_supercell</strong> &#8211; vector with the maximum supercell size</li>
+<li><strong>qpoint</strong> – q vector in reduced coordinate in reciprocal space</li>
+<li><strong>max_supercell</strong> – vector with the maximum supercell size</li>
 </ul>
 </td>
 </tr>
@@ -2496,7 +3253,7 @@ This currently works only for ordered structures only.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scale_matrix</strong> &#8211; Scale matrix defining the new lattice vectors in term of the old ones</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scale_matrix</strong> – Scale matrix defining the new lattice vectors in term of the old ones</td>
 </tr>
 </tbody>
 </table>
@@ -2537,7 +3294,7 @@ present in the <cite>pymatgen</cite> database.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>space</strong> &#8211; &#8220;r&#8221; for real space vectors, &#8220;g&#8221; for reciprocal space basis vectors.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>space</strong> – “r” for real space vectors, “g” for reciprocal space basis vectors.</td>
 </tr>
 </tbody>
 </table>
@@ -2558,9 +3315,9 @@ present in the <cite>pymatgen</cite> database.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>coords</strong> (<em>3x1 array</em>) &#8211; Array-like object with the coordinates.</li>
-<li><strong>space</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;r&#8221; for real space, &#8220;g&#8221; for reciprocal space.</li>
-<li><strong>frac_coords</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Whether the vector corresponds to fractional or
+<li><strong>coords</strong> (<em>3x1 array</em>) – Array-like object with the coordinates.</li>
+<li><strong>space</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – “r” for real space, “g” for reciprocal space.</li>
+<li><strong>frac_coords</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether the vector corresponds to fractional or
 cartesian coordinates.</li>
 </ul>
 </td>
@@ -2580,7 +3337,7 @@ cartesian coordinates.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> &#8211; List of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or list of filenames.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> – List of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or list of filenames.</td>
 </tr>
 </tbody>
 </table>
@@ -2618,14 +3375,14 @@ with_labels: True to plot k-point labels.</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2644,7 +3401,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 supported definitions in the AVAILABLE_RADIATION class
 variable, which provides useful commonly used wavelengths.
 If it is a float, it is interpreted as a wavelength in
-angstroms. Defaults to &#8220;CuKa&#8221;, i.e, Cu K_alpha radiation.</dd>
+angstroms. Defaults to “CuKa”, i.e, Cu K_alpha radiation.</dd>
 <dt>symprec (float): Symmetry precision for structure refinement. If</dt>
 <dd>set to 0, no refinement is done. Otherwise, refinement is
 performed using spglib with provided precision.</dd>
@@ -2679,14 +3436,14 @@ sphere of radius 2 / wavelength.</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -2714,9 +3471,9 @@ Print results.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> &#8211; Lattice parameter in Angstrom.</li>
-<li><strong>species</strong> &#8211; Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
-<li><strong>kwargs</strong> &#8211; All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+<li><strong>a</strong> – Lattice parameter in Angstrom.</li>
+<li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+<li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
 </ul>
 </td>
 </tr>
@@ -2736,48 +3493,8 @@ Print results.</p>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.show_bz">
-<code class="descname">show_bz</code><span class="sig-paren">(</span><em>ax=None</em>, <em>pmg_path=True</em>, <em>with_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.core.structure.Structure.show_bz" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-pmg_path: True if the default path used in pymatgen should be show.
-with_labels: True to plot k-point labels.</dd>
-</dl>
-<p>Returns: <cite>matplotlib</cite> figure.</p>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<code class="descname">show_bz</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.core.structure.Structure.show_bz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.spget_equivalent_atoms">
@@ -2788,9 +3505,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>symprec</strong> &#8211; Symmetry precision for distance</li>
-<li><strong>angle_tolerance</strong> &#8211; Tolerance on anglese</li>
-<li><strong>printout</strong> &#8211; True to print symmetry tables.</li>
+<li><strong>symprec</strong> – Symmetry precision for distance</li>
+<li><strong>angle_tolerance</strong> – Tolerance on anglese</li>
+<li><strong>printout</strong> – True to print symmetry tables.</li>
 </ul>
 </td>
 </tr>
@@ -2800,7 +3517,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dd><p class="first last">The number of irred atoms is len(irred_pos)</p>
 </dd>
 </dl>
-<p>eqmap: Mapping irred atom position &#8211;&gt; list with positions of symmetrical atoms
+<p>eqmap: Mapping irred atom position –&gt; list with positions of symmetrical atoms
 spgdata: spglib dataset with additional data reported by spglib.</p>
 </p>
 </td>
@@ -2827,9 +3544,9 @@ space group, point group, wyckoff positions, equivalent sites.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>symprec</strong> &#8211; Symmetry precision for distance</li>
-<li><strong>angle_tolerance</strong> &#8211; Tolerance on anglese</li>
-<li><strong>verbose</strong> &#8211; Verbosity level.</li>
+<li><strong>symprec</strong> – Symmetry precision for distance</li>
+<li><strong>angle_tolerance</strong> – Tolerance on anglese</li>
+<li><strong>verbose</strong> – Verbosity level.</li>
 </ul>
 </td>
 </tr>
@@ -2852,8 +3569,8 @@ space group, point group, wyckoff positions, equivalent sites.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>has_timerev</strong> &#8211; True if time-reversal can be used.</li>
-<li><strong>overwrite</strong> &#8211; By default, the method raises <cite>ValueError</cite> if the object
+<li><strong>has_timerev</strong> – True if time-reversal can be used.</li>
+<li><strong>overwrite</strong> – By default, the method raises <cite>ValueError</cite> if the object
 already has the list of symmetries found by Abinit.</li>
 </ul>
 </td>
@@ -2892,7 +3609,7 @@ already has the list of symmetries found by Abinit.</li>
 
 <dl class="method">
 <dt id="abipy.core.structure.Structure.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -2904,7 +3621,7 @@ already has the list of symmetries found by Abinit.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> &#8211; List of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or list of filenames.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pseudos</strong> – List of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or list of filenames.</td>
 </tr>
 </tbody>
 </table>
@@ -2926,8 +3643,8 @@ See <code class="xref py py-class docutils literal"><span class="pre">Visualizer
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>show</strong> &#8211; True to show structure immediately.</li>
-<li><strong>kwargs</strong> &#8211; keyword arguments passed to <code class="xref py py-class docutils literal"><span class="pre">StructureVis</span></code>.</li>
+<li><strong>show</strong> – True to show structure immediately.</li>
+<li><strong>kwargs</strong> – keyword arguments passed to <code class="xref py py-class docutils literal"><span class="pre">StructureVis</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -2954,13 +3671,13 @@ working directory is created. Return path to the notebook.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>xyz_file</strong> &#8211; file_descriptor</li>
-<li><strong>qpoint</strong> &#8211; qpoint to be analyzed</li>
-<li><strong>displ</strong> &#8211; eigendisplacements to be analyzed</li>
-<li><strong>do_real</strong> &#8211; True if you want to get only real part, False means imaginary part</li>
-<li><strong>frac_coords</strong> &#8211; True if the eigendisplacements are given in fractional coordinates</li>
-<li><strong>scale_matrix</strong> &#8211; Scale matrix for supercell</li>
-<li><strong>max_supercell</strong> &#8211; Maximum size of supercell vectors with respect to primitive cell</li>
+<li><strong>xyz_file</strong> – file_descriptor</li>
+<li><strong>qpoint</strong> – qpoint to be analyzed</li>
+<li><strong>displ</strong> – eigendisplacements to be analyzed</li>
+<li><strong>do_real</strong> – True if you want to get only real part, False means imaginary part</li>
+<li><strong>frac_coords</strong> – True if the eigendisplacements are given in fractional coordinates</li>
+<li><strong>scale_matrix</strong> – Scale matrix for supercell</li>
+<li><strong>max_supercell</strong> – Maximum size of supercell vectors with respect to primitive cell</li>
 </ul>
 </td>
 </tr>
@@ -2972,7 +3689,7 @@ working directory is created. Return path to the notebook.</p>
 
 <dl class="function">
 <dt id="abipy.core.structure.frames_from_structures">
-<code class="descclassname">abipy.core.structure.</code><code class="descname">frames_from_structures</code><span class="sig-paren">(</span><em>struct_objects</em>, <em>index=None</em>, <em>with_spglib=True</em>, <em>cart_coords=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#frames_from_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.frames_from_structures" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.core.structure.</code><code class="descname">frames_from_structures</code><span class="sig-paren">(</span><em>struct_objects</em>, <em>index=None</em>, <em>with_spglib=True</em>, <em>cart_coords=False</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.core.structure.frames_from_structures" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build two pandas dataframes with the most important geometrical parameters associated to
 a list of structures or a list of objects that can be converted into structures.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2980,12 +3697,12 @@ a list of structures or a list of objects that can be converted into structures.
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>struct_objects</strong> &#8211; List of objects that can be converted to structure.
+<li><strong>struct_objects</strong> – List of objects that can be converted to structure.
 Support filenames, structure objects, Abinit input files, dicts and many more types.
 See <cite>Structure.as_structure</cite> for the complete list.</li>
-<li><strong>index</strong> &#8211; Index of the dataframe.</li>
-<li><strong>with_spglib</strong> &#8211; If True, spglib is invoked to get the spacegroup symbol and number.</li>
-<li><strong>cart_coords</strong> &#8211; True if the <cite>coords</cite> dataframe should contain Cartesian cordinates
+<li><strong>index</strong> – Index of the dataframe.</li>
+<li><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number.</li>
+<li><strong>cart_coords</strong> – True if the <cite>coords</cite> dataframe should contain Cartesian cordinates
 instead of Reduced coordinates.</li>
 </ul>
 </td>
@@ -2995,7 +3712,7 @@ instead of Reduced coordinates.</li>
 <dd><p class="first last"><cite>coords</cite> the atomic positions.</p>
 </dd>
 </dl>
-<p>The list of structures is available in the <cite>structures</cite> entry:</p>
+<p>The list of structures is available in the <cite>structures</cite> entry.</p>
 </p>
 </td>
 </tr>
@@ -3005,7 +3722,51 @@ instead of Reduced coordinates.</li>
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">frames_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+<span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span>
+<span class="n">dfs</span><span class="o">.</span><span class="n">coords</span>
+<span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">dfs</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.core.structure.dataframes_from_structures">
+<code class="descclassname">abipy.core.structure.</code><code class="descname">dataframes_from_structures</code><span class="sig-paren">(</span><em>struct_objects</em>, <em>index=None</em>, <em>with_spglib=True</em>, <em>cart_coords=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#dataframes_from_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.dataframes_from_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build two pandas dataframes with the most important geometrical parameters associated to
+a list of structures or a list of objects that can be converted into structures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>struct_objects</strong> – List of objects that can be converted to structure.
+Support filenames, structure objects, Abinit input files, dicts and many more types.
+See <cite>Structure.as_structure</cite> for the complete list.</li>
+<li><strong>index</strong> – Index of the dataframe.</li>
+<li><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number.</li>
+<li><strong>cart_coords</strong> – True if the <cite>coords</cite> dataframe should contain Cartesian cordinates
+instead of Reduced coordinates.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt><cite>lattice</cite> contains the lattice parameters,</dt>
+<dd><p class="first last"><cite>coords</cite> the atomic positions.</p>
+</dd>
+</dl>
+<p>The list of structures is available in the <cite>structures</cite> entry.</p>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">namedtuple with two pandas <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
 <span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span>
 <span class="n">dfs</span><span class="o">.</span><span class="n">coords</span>
 <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">dfs</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
@@ -3107,7 +3868,7 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kpoint</strong> &#8211; Accept vector with the reduced coordinates or <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kpoint</strong> – Accept vector with the reduced coordinates or <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">LittleGroup</span></code> object.</td>
 </tr>
@@ -3136,10 +3897,10 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
-<li><strong>has_timerev</strong> &#8211; True is time-reversal symmetry is included.</li>
-<li><strong>symprec</strong> &#8211; Tolerance for symmetry finding</li>
-<li><strong>angle_tolerance</strong> &#8211; Angle tolerance for symmetry finding.</li>
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
+<li><strong>has_timerev</strong> – True is time-reversal symmetry is included.</li>
+<li><strong>symprec</strong> – Tolerance for symmetry finding</li>
+<li><strong>angle_tolerance</strong> – Angle tolerance for symmetry finding.</li>
 </ul>
 </td>
 </tr>
@@ -3160,7 +3921,7 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 <dl class="attribute">
 <dt id="abipy.core.symmetries.AbinitSpaceGroup.is_symmorphic">
 <code class="descname">is_symmorphic</code><a class="reference internal" href="../_modules/abipy/core/symmetries.html#AbinitSpaceGroup.is_symmorphic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.symmetries.AbinitSpaceGroup.is_symmorphic" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if there&#8217;s at least one operation with non-zero fractional translation.</p>
+<dd><p>True if there’s at least one operation with non-zero fractional translation.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3181,8 +3942,8 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>time_sign</strong> &#8211; If specified, only symmetries with time-reversal sign time_sign are returned.</li>
-<li><strong>afm_sign</strong> &#8211; If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.</li>
+<li><strong>time_sign</strong> – If specified, only symmetries with time-reversal sign time_sign are returned.</li>
+<li><strong>afm_sign</strong> – If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.</li>
 </ul>
 </td>
 </tr>
@@ -3276,11 +4037,11 @@ Note use of integer arithmetic. Raise ValueError if not invertible.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>qpoints</strong> &#8211; fractional coordinates of 6 independent q-directions</li>
-<li><strong>values</strong> &#8211; values of (q^T E q)/(q^T q) along the 6 qpoints</li>
-<li><strong>lattice</strong> &#8211; <cite>Lattice</cite> object defining the reference system</li>
-<li><strong>space</strong> &#8211; &#8220;r&#8221; if the lattice is a real space lattice
-&#8220;g&#8221; if the lattice is a reciprocal space lattice</li>
+<li><strong>qpoints</strong> – fractional coordinates of 6 independent q-directions</li>
+<li><strong>values</strong> – values of (q^T E q)/(q^T q) along the 6 qpoints</li>
+<li><strong>lattice</strong> – <cite>Lattice</cite> object defining the reference system</li>
+<li><strong>space</strong> – “r” if the lattice is a real space lattice
+“g” if the lattice is a reciprocal space lattice</li>
 </ul>
 </td>
 </tr>
@@ -3299,7 +4060,7 @@ in a single location, so that test scripts can just import it and work right awa
 <dl class="class">
 <dt id="abipy.core.testing.AbipyTest">
 <em class="property">class </em><code class="descclassname">abipy.core.testing.</code><code class="descname">AbipyTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.util.testing.html#pymatgen.util.testing.PymatgenTest" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.util.testing.PymatgenTest</span></code></a></p>
 <p>Extends PymatgenTest with Abinit-specific methods</p>
 <dl class="exception">
 <dt id="abipy.core.testing.AbipyTest.SkipTest">
@@ -3314,7 +4075,7 @@ instead of raising this directly.</p>
 <dt id="abipy.core.testing.AbipyTest.abivalidate_input">
 <code class="descname">abivalidate_input</code><span class="sig-paren">(</span><em>abinput</em>, <em>must_fail=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.abivalidate_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.abivalidate_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invoke Abinit to test validity of an Input object
-Print info to stdout if failuer before raising AssertionError.</p>
+Print info to stdout if failure before raising AssertionError.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3322,11 +4083,6 @@ Print info to stdout if failuer before raising AssertionError.</p>
 <code class="descname">abivalidate_multi</code><span class="sig-paren">(</span><em>multi</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.abivalidate_multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.abivalidate_multi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invoke Abinit to test validity of a <cite>MultiDataset</cite> or a list of input objects.</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="abipy.core.testing.AbipyTest.assertFwSerializable">
-<code class="descname">assertFwSerializable</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyTest.assertFwSerializable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyTest.assertFwSerializable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="abipy.core.testing.AbipyTest.assert_almost_equal">
@@ -3475,13 +4231,13 @@ Use <cite>version</cite> and <cite>op</cite> to ask for a specific version</p>
 <em class="property">class </em><code class="descclassname">abipy.core.testing.</code><code class="descname">AbipyFileTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyFileTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyFileTest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.core.testing.AbipyTest" title="abipy.core.testing.AbipyTest"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.testing.AbipyTest</span></code></a></p>
 <p>Test class for files with a __str__ attribute.
-At setup, must set the &#8216;file&#8217; attribute of the AbipyFileTest.</p>
+At setup, must set the ‘file’ attribute of the AbipyFileTest.</p>
 <dl class="method">
 <dt id="abipy.core.testing.AbipyFileTest.assertContains">
 <code class="descname">assertContains</code><span class="sig-paren">(</span><em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyFileTest.assertContains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyFileTest.assertContains" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assert that the string representation of the file contains &#8216;expression&#8217;
-&#8216;expression&#8217; is trimmed of leading new line.
-Each line of &#8216;expression&#8217; is trimmed of blank spaces.
+<dd><p>Assert that the string representation of the file contains ‘expression’
+‘expression’ is trimmed of leading new line.
+Each line of ‘expression’ is trimmed of blank spaces.
 Empty lines are ignored.</p>
 </dd></dl>
 
@@ -3489,7 +4245,7 @@ Empty lines are ignored.</p>
 <dt id="abipy.core.testing.AbipyFileTest.assertContainsNot">
 <code class="descname">assertContainsNot</code><span class="sig-paren">(</span><em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyFileTest.assertContainsNot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyFileTest.assertContainsNot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assert that the string representation of the file does not contain
-&#8216;expression&#8217;.</p>
+‘expression’.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3502,7 +4258,7 @@ Empty lines are ignored.</p>
 <dt id="abipy.core.testing.AbipyFileTest.assertOrder">
 <code class="descname">assertOrder</code><span class="sig-paren">(</span><em>expression1</em>, <em>expression2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/testing.html#AbipyFileTest.assertOrder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.testing.AbipyFileTest.assertOrder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assert that the string representation of the file
-contains &#8216;expression1&#8217; before &#8216;expression2&#8217;.</p>
+contains ‘expression1’ before ‘expression2’.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3593,29 +4349,22 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="../_sources/api/core_api.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

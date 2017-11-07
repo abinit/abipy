@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Wavefunction file &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Spin-polarized e-bands" href="plot_ebands_spin.html" />
+    <link rel="prev" title="Potentials" href="plot_potentials.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Wavefunction file</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_potentials.html" title="Previous Chapter: Potentials"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Potentials</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_ebands_spin.html" title="Next Chapter: Spin-polarized e-bands"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Spin-polarize... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_wfk.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="wavefunction-file">
+<span id="sphx-glr-gallery-plot-wfk-py"></span><h1>Wavefunction file<a class="headerlink" href="#wavefunction-file" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to analyze the wavefunctions
+stored in the WFK.nc file.</p>
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_wfk_001.png"><img alt="../_images/sphx_glr_plot_wfk_001.png" src="../_images/sphx_glr_plot_wfk_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_wfk_002.png"><img alt="../_images/sphx_glr_plot_wfk_002.png" src="../_images/sphx_glr_plot_wfk_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span>================================= File Info =================================
+Name: si_nscf_WFK.nc
+Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
+Size: 389.84 kb
+Access Time: Tue Nov  7 21:57:38 2017
+Modification Time: Fri Jul 14 14:34:02 2017
+Change Time: Fri Jul 14 14:34:02 2017
+
+================================= Structure =================================
+Full Formula (Si2)
+Reduced Formula: Si
+abc   :   3.866975   3.866975   3.866975
+angles:  60.000000  60.000000  60.000000
+Sites (2)
+  #  SP       a     b     c
+---  ----  ----  ----  ----
+  0  Si    0     0     0
+  1  Si    0.25  0.25  0.25
+
+Abinit Spacegroup: spgid: 0, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True
+============================== Electronic Bands ==============================
+Number of electrons: 8.0, Fermi level: 5.598 [eV]
+nsppol: 1, nkpt: 14, mband: 8, nspinor: 1, nspden: 1
+smearing scheme: none, tsmear_eV: 0.272, occopt: 1
+Direct gap:
+    Energy: 2.532 [eV]
+    Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
+    Final state:   spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=4, eig=8.130, occ=0.000
+Fundamental gap:
+    Energy: 0.524 [eV]
+    Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
+    Final state:   spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
+Bandwidth: 11.856 [eV]
+Valence minimum located at:
+    spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=0, eig=-6.258, occ=2.000
+Valence maximum located at:
+    spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
+
+PWWaveFunction: nspinor: 1, spin: 0, band: 0
+&lt;class &#39;abipy.core.gsphere.GSphere&#39;&gt;: kpoint: [+0.500, +0.000, +0.000], name: L, weight: 0.000, ecut: 6.000000, npw: 180, istwfk: 1
+Mesh3D: nx=18, ny=18, nz=18
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+
+<span class="c1"># Open the DEN.nc file</span>
+<span class="n">ncfile</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_WFK.nc&quot;</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+
+<span class="c1"># The DEN file has a `Structure` an `ElectronBands` object and wavefunctions.</span>
+<span class="c1">#print(ncfile.structure)</span>
+
+<span class="c1"># To plot the KS eigenvalues.</span>
+<span class="c1">#ncfile.ebands.plot()</span>
+
+<span class="c1"># Extract the wavefunction for the first spin, the first band and k=[0.5, 0, 0]</span>
+<span class="n">wave</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">get_wave</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+
+<span class="c1"># This is equivalent to</span>
+<span class="c1">#wave = ncfile.get_wave(spin=0, kpoint=0, band=0)</span>
+<span class="c1"># because [0.5, 0, 0] is the first k-point in the WFK file</span>
+
+<span class="c1"># To visualize the total charge wih vesta</span>
+<span class="c1">#visu = wave.visualize_ur2(&quot;vesta&quot;); visu()</span>
+
+<span class="c1"># To plot the wavefunction along the line connecting</span>
+<span class="c1"># the first and the second in the structure:</span>
+<span class="c1">#wave.plot_line(point1=0, point2=1)</span>
+
+<span class="c1">#wave.plot_line(point1=0, point2=1, with_krphase=True)</span>
+
+<span class="c1"># alternatively, one can define the line in terms of two points</span>
+<span class="c1"># in fractional coordinates:</span>
+<span class="n">wave</span><span class="o">.</span><span class="n">plot_line</span><span class="p">(</span><span class="n">point1</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">point2</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">with_krphase</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">wave</span><span class="o">.</span><span class="n">plot_line</span><span class="p">(</span><span class="n">point1</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">point2</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">with_krphase</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+
+<span class="c1"># To plot the wavefunction along the lines connect the firt atom in the structure</span>
+<span class="c1"># and all the neighbors within a sphere of radius 3 Angstrom:</span>
+<span class="c1">#wave.plot_line_neighbors(site_index=0, radius=3)</span>
+
+<span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  1.557 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_wfk.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_wfk.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_wfk.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_wfk.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

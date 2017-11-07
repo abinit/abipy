@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>spin-polarized fatbands &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="GW corrections" href="plot_qpbands_with_interpolation.html" />
+    <link rel="prev" title="MgB2 fatbands" href="plot_efatbands.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">spin-polarized fatbands</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_efatbands.html" title="Previous Chapter: MgB2 fatbands"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; MgB2 fatbands</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_qpbands_with_interpolation.html" title="Next Chapter: GW corrections"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">GW corrections &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_efatbands_spin.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="spin-polarized-fatbands">
+<span id="sphx-glr-gallery-plot-efatbands-spin-py"></span><h1>spin-polarized fatbands<a class="headerlink" href="#spin-polarized-fatbands" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to plot the L-projected fatbands of Ni
+using the results stored in the FATBANDS.nc files produced with prtdos 3.</p>
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_spin_001.png"><img alt="../_images/sphx_glr_plot_efatbands_spin_001.png" src="../_images/sphx_glr_plot_efatbands_spin_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_spin_002.png"><img alt="../_images/sphx_glr_plot_efatbands_spin_002.png" src="../_images/sphx_glr_plot_efatbands_spin_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_spin_003.png"><img alt="../_images/sphx_glr_plot_efatbands_spin_003.png" src="../_images/sphx_glr_plot_efatbands_spin_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_spin_004.png"><img alt="../_images/sphx_glr_plot_efatbands_spin_004.png" src="../_images/sphx_glr_plot_efatbands_spin_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_spin_005.png"><img alt="../_images/sphx_glr_plot_efatbands_spin_005.png" src="../_images/sphx_glr_plot_efatbands_spin_005.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_efatbands_spin_006.png"><img alt="../_images/sphx_glr_plot_efatbands_spin_006.png" src="../_images/sphx_glr_plot_efatbands_spin_006.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="o">=================================</span> <span class="n">File</span> <span class="n">Info</span> <span class="o">=================================</span>
+<span class="n">Name</span><span class="p">:</span> <span class="n">ni_kpath_FATBANDS</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Directory</span><span class="p">:</span> <span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">gmatteo</span><span class="o">/</span><span class="n">git_repos</span><span class="o">/</span><span class="n">abipy</span><span class="o">/</span><span class="n">abipy</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">ni_ebands</span>
+<span class="n">Size</span><span class="p">:</span> <span class="mf">619.35</span> <span class="n">kb</span>
+<span class="n">Access</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Tue</span> <span class="n">Nov</span>  <span class="mi">7</span> <span class="mi">23</span><span class="p">:</span><span class="mi">57</span><span class="p">:</span><span class="mi">12</span> <span class="mi">2017</span>
+<span class="n">Modification</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Fri</span> <span class="n">Jul</span> <span class="mi">14</span> <span class="mi">14</span><span class="p">:</span><span class="mi">34</span><span class="p">:</span><span class="mi">02</span> <span class="mi">2017</span>
+<span class="n">Change</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Fri</span> <span class="n">Jul</span> <span class="mi">14</span> <span class="mi">14</span><span class="p">:</span><span class="mi">34</span><span class="p">:</span><span class="mi">02</span> <span class="mi">2017</span>
+
+<span class="o">=================================</span> <span class="n">Structure</span> <span class="o">=================================</span>
+<span class="n">Full</span> <span class="n">Formula</span> <span class="p">(</span><span class="n">Ni1</span><span class="p">)</span>
+<span class="n">Reduced</span> <span class="n">Formula</span><span class="p">:</span> <span class="n">Ni</span>
+<span class="n">abc</span>   <span class="p">:</span>   <span class="mf">2.489016</span>   <span class="mf">2.489016</span>   <span class="mf">2.489016</span>
+<span class="n">angles</span><span class="p">:</span>  <span class="mf">60.000000</span>  <span class="mf">60.000000</span>  <span class="mf">60.000000</span>
+<span class="n">Sites</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="c1">#  SP      a    b    c</span>
+<span class="o">---</span>  <span class="o">----</span>  <span class="o">---</span>  <span class="o">---</span>  <span class="o">---</span>
+  <span class="mi">0</span>  <span class="n">Ni</span>      <span class="mi">0</span>    <span class="mi">0</span>    <span class="mi">0</span>
+
+<span class="n">Abinit</span> <span class="n">Spacegroup</span><span class="p">:</span> <span class="n">spgid</span><span class="p">:</span> <span class="mi">225</span><span class="p">,</span> <span class="n">num_spatial_symmetries</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">symmorphic</span><span class="p">:</span> <span class="kc">False</span>
+
+<span class="o">==============================</span> <span class="n">Electronic</span> <span class="n">Bands</span> <span class="o">==============================</span>
+<span class="o">=================================</span> <span class="n">Structure</span> <span class="o">=================================</span>
+<span class="n">Full</span> <span class="n">Formula</span> <span class="p">(</span><span class="n">Ni1</span><span class="p">)</span>
+<span class="n">Reduced</span> <span class="n">Formula</span><span class="p">:</span> <span class="n">Ni</span>
+<span class="n">abc</span>   <span class="p">:</span>   <span class="mf">2.489016</span>   <span class="mf">2.489016</span>   <span class="mf">2.489016</span>
+<span class="n">angles</span><span class="p">:</span>  <span class="mf">60.000000</span>  <span class="mf">60.000000</span>  <span class="mf">60.000000</span>
+<span class="n">Sites</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="c1">#  SP      a    b    c</span>
+<span class="o">---</span>  <span class="o">----</span>  <span class="o">---</span>  <span class="o">---</span>  <span class="o">---</span>
+  <span class="mi">0</span>  <span class="n">Ni</span>      <span class="mi">0</span>    <span class="mi">0</span>    <span class="mi">0</span>
+
+<span class="n">Abinit</span> <span class="n">Spacegroup</span><span class="p">:</span> <span class="n">spgid</span><span class="p">:</span> <span class="mi">225</span><span class="p">,</span> <span class="n">num_spatial_symmetries</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">symmorphic</span><span class="p">:</span> <span class="kc">False</span>
+
+<span class="n">Number</span> <span class="n">of</span> <span class="n">electrons</span><span class="p">:</span> <span class="mf">18.0</span><span class="p">,</span> <span class="n">Fermi</span> <span class="n">level</span><span class="p">:</span> <span class="mf">11.296</span> <span class="p">[</span><span class="n">eV</span><span class="p">]</span>
+<span class="n">nsppol</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nkpt</span><span class="p">:</span> <span class="mi">101</span><span class="p">,</span> <span class="n">mband</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nspden</span><span class="p">:</span> <span class="mi">2</span>
+<span class="n">smearing</span> <span class="n">scheme</span><span class="p">:</span> <span class="n">gaussian</span><span class="p">,</span> <span class="n">tsmear_eV</span><span class="p">:</span> <span class="mf">0.204</span><span class="p">,</span> <span class="n">occopt</span><span class="p">:</span> <span class="mi">7</span>
+
+<span class="o">===============================</span> <span class="n">Fatbands</span> <span class="n">Info</span> <span class="o">===============================</span>
+<span class="n">prtdos</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">prtdosm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mbesslang</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pawprtdos</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">usepaw</span><span class="o">=</span><span class="mi">0</span>
+<span class="n">nsppol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nkpt</span><span class="o">=</span><span class="mi">101</span><span class="p">,</span> <span class="n">mband</span><span class="o">=</span><span class="mi">12</span>
+
+  <span class="n">Idx</span>  <span class="n">Symbol</span>    <span class="n">Reduced_Coords</span>             <span class="n">Lmax</span>    <span class="n">Ratsph</span> <span class="p">[</span><span class="n">Bohr</span><span class="p">]</span>  <span class="n">Has_Atom</span>
+<span class="o">-----</span>  <span class="o">--------</span>  <span class="o">-----------------------</span>  <span class="o">------</span>  <span class="o">---------------</span>  <span class="o">----------</span>
+    <span class="mi">0</span>  <span class="n">Ni</span>        <span class="mf">0.00000</span> <span class="mf">0.00000</span> <span class="mf">0.00000</span>       <span class="mi">4</span>                <span class="mi">2</span>  <span class="n">Yes</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+
+<span class="c1"># Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`</span>
+<span class="c1"># to open the file in a jupyter notebook</span>
+<span class="c1"># This file has been produced on a k-path so it&#39;s not suitable for DOS calculations.</span>
+<span class="n">fbnc_kpath</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_kpath_FATBANDS.nc&quot;</span><span class="p">))</span>
+
+<span class="c1"># NC files have contributions up to L = 4 (g channel)</span>
+<span class="c1"># but here we are intererested in s,p,d terms only so we use the optional argument lmax</span>
+<span class="n">lmax</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># Energy limits in eV for plots. The pseudo contains semi-core states but</span>
+<span class="c1"># we are not interested in this energy region. Fermi level set to zero.</span>
+<span class="n">elims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+<span class="c1"># Print file info (dimensions, variables ...)</span>
+<span class="c1"># Note that prtdos = 3, so LM decomposition is not available.</span>
+<span class="k">print</span><span class="p">(</span><span class="n">fbnc_kpath</span><span class="p">)</span>
+
+<span class="c1"># Plot the k-points belonging to the path.</span>
+<span class="c1">#fbnc_kpath.ebands.kpoints.plot()</span>
+
+<span class="c1"># Plot the electronic fatbands grouped by atomic type.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Plot the electronic fatbands grouped by L.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Now we read another FATBANDS file produced on 18x18x18 k-mesh</span>
+<span class="n">fbnc_kmesh</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;ni_666k_FATBANDS.nc&quot;</span><span class="p">))</span>
+
+<span class="c1"># Plot the L-PJDOS grouped by atomic type.</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Plot the L-PJDOS grouped by L.</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">xlims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.</span>
+<span class="c1"># The data for the DOS is taken from pjdosfile.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span>
+                                    <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># fatbands + PJDOS grouped by L</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="n">pjdosfile</span><span class="o">=</span><span class="n">fbnc_kmesh</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">elims</span><span class="p">,</span>
+                                    <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;lview&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Close files.</span>
+<span class="n">fbnc_kpath</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">fbnc_kmesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  11.549 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_efatbands_spin.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_efatbands_spin.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_efatbands_spin.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_efatbands_spin.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

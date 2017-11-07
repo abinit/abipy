@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.abio.abivars_db &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.abio.abivars_db</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Database with the names of the input variables used in Abinit and in other main programs.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
@@ -174,8 +230,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Variable.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="Variable.from_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
@@ -211,8 +267,8 @@
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">astr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">}</span> <span class="c1">#if getattr(self, k) is not None}</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="Variable.isarray"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.isarray">[docs]</a>    <span class="k">def</span> <span class="nf">isarray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Variable.isarray"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.isarray">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">isarray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if the variable is an array.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
             <span class="c1"># FIXME: Improve treatment of ValueWithConditions.</span>
@@ -238,15 +294,14 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The url associated to the variable.&quot;&quot;&quot;</span>
-        <span class="c1"># https://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/varbas.html#acell</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;http://www.abinit.org/doc/helpfiles/for-v8.4/input_variables/html_automatically_generated/&quot;</span>
-        <span class="c1">#root = &quot;http://www.abinit.org/inpvars/html_automatically_generated/&quot;</span>
+        <span class="c1"># TODO: root will change once we move to the new website.</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;https://www.abinit.org/sites/default/files/last/input_variables/html_automatically_generated/&quot;</span>
         <span class="k">return</span> <span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.html#</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">section</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varname</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Variable.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Variable.html_link"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.html_link">[docs]</a>    <span class="k">def</span> <span class="nf">html_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String with the URL of the web page.&quot;&quot;&quot;</span>
-        <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varname</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">tag</span>
-        <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span></div>
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varname</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">label</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot; target=&quot;_blank&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Variable.browse"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.Variable.browse">[docs]</a>    <span class="k">def</span> <span class="nf">browse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open variable documentation in browser.&quot;&quot;&quot;</span>
@@ -367,13 +422,8 @@
 
             <span class="c1">#print(&quot;Reading database from YAML file and generating pickle version. It may take a while...&quot;)</span>
             <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">data</span> <span class="k">as</span> <span class="n">abidata</span>
-            <span class="n">yaml_file</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">var_file</span><span class="p">(</span><span class="s1">&#39;abinit_vars.yml&#39;</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">yaml_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-                <span class="n">var_list</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
-
-            <span class="c1"># Build ordered dict with variables in alphabetical order.</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">var_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">varname</span><span class="p">)</span>
-            <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="n">VariableDatabase</span><span class="p">([(</span><span class="n">v</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">])</span>
+            <span class="n">yaml_path</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">var_file</span><span class="p">(</span><span class="s1">&#39;abinit_vars.yml&#39;</span><span class="p">)</span>
+            <span class="n">__VARS_DATABASE</span> <span class="o">=</span> <span class="n">VariableDatabase</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">yaml_path</span><span class="p">)</span>
 
             <span class="c1"># Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
@@ -385,22 +435,31 @@
 <div class="viewcode-block" id="VariableDatabase"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase">[docs]</a><span class="k">class</span> <span class="nc">VariableDatabase</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Stores the mapping varname --&gt; variable object.&quot;&quot;&quot;</span>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="VariableDatabase.characteristics"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.characteristics">[docs]</a>    <span class="k">def</span> <span class="nf">characteristics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VariableDatabase.from_file"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">yaml_path</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">yaml_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">var_list</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+        <span class="c1"># Build ordered dict with variables in alphabetical order.</span>
+        <span class="n">var_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">var_list</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">varname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">([(</span><span class="n">v</span><span class="o">.</span><span class="n">varname</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="VariableDatabase.characteristics"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.characteristics">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">characteristics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of characteristics.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">data</span> <span class="k">as</span> <span class="n">abidata</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">var_file</span><span class="p">(</span><span class="s1">&#39;characteristics.yml&#39;</span><span class="p">),</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="VariableDatabase.sections"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.sections">[docs]</a>    <span class="k">def</span> <span class="nf">sections</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VariableDatabase.sections"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.sections">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">sections</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of sections&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy</span> <span class="k">import</span> <span class="n">data</span> <span class="k">as</span> <span class="n">abidata</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">var_file</span><span class="p">(</span><span class="s1">&#39;sections.yml&#39;</span><span class="p">),</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="VariableDatabase.name2section"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.name2section">[docs]</a>    <span class="k">def</span> <span class="nf">name2section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VariableDatabase.name2section"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.name2section">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">name2section</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Dictionary mapping the name of the variable to the section.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -516,7 +575,7 @@
     <span class="c1"># define desired replacements here e.g. rep = {&quot;condition1&quot;: &quot;&quot;, &quot;condition2&quot;: &quot;text&quot;}</span>
     <span class="c1"># ordered dict and sort by length is needed because variable names can overlap e.g. kpt, kptopt pair</span>
     <span class="kn">import</span> <span class="nn">re</span>
-    <span class="n">rep</span> <span class="o">=</span> <span class="p">{</span><span class="n">vname</span><span class="p">:</span> <span class="n">var</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span> <span class="k">for</span> <span class="n">vname</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">var_database</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">rep</span> <span class="o">=</span> <span class="p">{</span><span class="n">vname</span><span class="p">:</span> <span class="n">var</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span> <span class="k">for</span> <span class="n">vname</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">var_database</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">rep</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">rep</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rep</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
 
     <span class="c1"># Use these three lines to do the replacement</span>
@@ -525,26 +584,22 @@
     <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span></div>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

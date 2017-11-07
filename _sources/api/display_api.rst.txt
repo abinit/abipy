@@ -1,5 +1,5 @@
-tools Package
-=============
+display Package
+===============
 
 
 :mod:`display` Module
@@ -27,10 +27,10 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`seaborn` Module
----------------------
+:mod:`seabornw` Module
+----------------------
 
-.. automodule:: abipy.display.seaborn
+.. automodule:: abipy.display.seabornw
    :members:
    :undoc-members:
    :show-inheritance:
@@ -42,4 +42,3 @@ tools Package
    :members:
    :undoc-members:
    :show-inheritance:
-

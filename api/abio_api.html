@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abio Package &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -24,28 +20,77 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="core Package" href="core_api.html" />
     <link rel="prev" title="API documentation" href="index.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">abio Package</a><ul>
 <li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">abio</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.abio.abivars"><code class="docutils literal"><span class="pre">abivars</span></code> Module</a></li>
@@ -60,40 +105,52 @@
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">API documentation</a></li>
-      <li>Next: <a href="core_api.html" title="next chapter">core Package</a></li>
-  </ul></li>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/abio_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+  <li>
+    <a href="index.html" title="Previous Chapter: API documentation"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; API documentation</span>
+    </a>
+  </li>
+  <li>
+    <a href="core_api.html" title="Next Chapter: core Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">core Package &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/api/abio_api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="abio-package">
 <h1>abio Package<a class="headerlink" href="#abio-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
@@ -299,7 +356,7 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dimname</strong> &#8211; String of <a class="reference internal" href="#abipy.abio.abivars_db.Variable" title="abipy.abio.abivars_db.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a> object.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dimname</strong> – String of <a class="reference internal" href="#abipy.abio.abivars_db.Variable" title="abipy.abio.abivars_db.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a> object.</td>
 </tr>
 </tbody>
 </table>
@@ -312,7 +369,7 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 
 <dl class="method">
 <dt id="abipy.abio.abivars_db.Variable.html_link">
-<code class="descname">html_link</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.html_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.html_link" title="Permalink to this definition">¶</a></dt>
+<code class="descname">html_link</code><span class="sig-paren">(</span><em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#Variable.html_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.Variable.html_link" title="Permalink to this definition">¶</a></dt>
 <dd><p>String with the URL of the web page.</p>
 </dd></dl>
 
@@ -351,7 +408,7 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <dt id="abipy.abio.abivars_db.VariableDatabase">
 <em class="property">class </em><code class="descclassname">abipy.abio.abivars_db.</code><code class="descname">VariableDatabase</code><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#VariableDatabase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.VariableDatabase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/collections.html#collections.OrderedDict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">collections.OrderedDict</span></code></a></p>
-<p>Stores the mapping varname &#8211;&gt; variable object.</p>
+<p>Stores the mapping varname –&gt; variable object.</p>
 <dl class="method">
 <dt id="abipy.abio.abivars_db.VariableDatabase.apropos">
 <code class="descname">apropos</code><span class="sig-paren">(</span><em>varname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#VariableDatabase.apropos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.VariableDatabase.apropos" title="Permalink to this definition">¶</a></dt>
@@ -364,6 +421,11 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <dd><p>List of characteristics.</p>
 </dd></dl>
 
+<dl class="classmethod">
+<dt id="abipy.abio.abivars_db.VariableDatabase.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>yaml_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#VariableDatabase.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.VariableDatabase.from_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="abipy.abio.abivars_db.VariableDatabase.group_by_section">
 <code class="descname">group_by_section</code><span class="sig-paren">(</span><em>names</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/abivars_db.html#VariableDatabase.group_by_section"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.abivars_db.VariableDatabase.group_by_section" title="Permalink to this definition">¶</a></dt>
@@ -372,7 +434,7 @@ a list of <code class="xref py py-class docutils literal"><span class="pre">Data
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> &#8211; string or list of strings with ABINIT variable names.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> – string or list of strings with ABINIT variable names.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Ordered dict mapping section_name to the list of variable names belonging to the section.
 The dict uses the same ordering as those in <cite>self.sections</cite></td>
@@ -477,7 +539,7 @@ new_multidataset = decorator(multidataset)</p>
 since the initial input may use the initial structure to  compute important variables.
 For instance, the list of k-points for band structure calculation depend on the bravais lattice
 and a decorator that changes it should recompute the path.
-This should  not represent a serious limitation because it&#8217;s always possible to change the structure
+This should  not represent a serious limitation because it’s always possible to change the structure
 with its methods and then call the factory function without having to decorate an already existing object.</p>
 </div>
 <dl class="attribute">
@@ -593,19 +655,19 @@ with its methods and then call the factory function without having to decorate a
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
-<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
-<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
+<li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
 according to accuracy)</li>
-<li><strong>scf_nband</strong> &#8211; Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+<li><strong>scf_nband</strong> – Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
 from the list of pseudos, the structure and the smearing option.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
 </ul>
 </td>
 </tr>
@@ -622,23 +684,23 @@ from the list of pseudos, the structure and the smearing option.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
-<li><strong>nscf_nband</strong> &#8211; Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</li>
-<li><strong>ndivsm</strong> &#8211; Number of divisions used to sample the smallest segment of the k-path.
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the SCF run. Defaults to 1000 if not given.</li>
+<li><strong>nscf_nband</strong> – Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</li>
+<li><strong>ndivsm</strong> – Number of divisions used to sample the smallest segment of the k-path.
 if 0, only the GS input is returned in multi[0].</li>
-<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
-<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+<li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
 according to accuracy)</li>
-<li><strong>scf_nband</strong> &#8211; Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+<li><strong>scf_nband</strong> – Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
 from the list of pseudos, the structure and the smearing option.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
-<li><strong>dos_kppa</strong> &#8211; Scalar or List of integers with the number of k-points per atom
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
+<li><strong>dos_kppa</strong> – Scalar or List of integers with the number of k-points per atom
 to be used for the computation of the DOS (None if DOS is not wanted).</li>
 </ul>
 </td>
@@ -653,35 +715,35 @@ to be used for the computation of the DOS (None if DOS is not wanted).</li>
 <dd><p>Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
 a ground state AbinitInput.
 It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
-The inputs have the following tags, according to their function: &#8220;ddk&#8221;, &#8220;dde&#8221;, &#8220;nscf&#8221;, &#8220;ph_q_pert&#8221;.
-All of them have the tag &#8220;phonon&#8221;.</p>
+The inputs have the following tags, according to their function: “ddk”, “dde”, “nscf”, “ph_q_pert”.
+All of them have the tag “phonon”.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gs_inp</strong> &#8211; an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.</li>
-<li><strong>ph_ngqpt</strong> &#8211; a list of three integers representing the gamma centered q-point grid used for the calculation.
+<li><strong>gs_inp</strong> – an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.</li>
+<li><strong>ph_ngqpt</strong> – a list of three integers representing the gamma centered q-point grid used for the calculation.
 If None and qpoint==None the ngkpt value present in the gs_input will be used.
 Incompatible with qpoints.</li>
-<li><strong>qpoints</strong> &#8211; a list of of coordinatesq points in reduced coordinates for which the phonon perturbations will
+<li><strong>qpoints</strong> – a list of of coordinatesq points in reduced coordinates for which the phonon perturbations will
 be calculated. Incompatible with ph_ngqpt.</li>
-<li><strong>with_ddk</strong> &#8211; If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
+<li><strong>with_ddk</strong> – If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
 the DDK.</li>
-<li><strong>with_dde</strong> &#8211; If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
+<li><strong>with_dde</strong> – If True, if Gamma is included in the list of qpoints it will add inputs for the calculations of
 the DDE. Automatically sets with_ddk=True.</li>
-<li><strong>with_bec</strong> &#8211; If Truem if Gamma is included in the list of qpoints the DDE will be calculated in the same
+<li><strong>with_bec</strong> – If Truem if Gamma is included in the list of qpoints the DDE will be calculated in the same
 input as the phonons. This will allow to determine the BECs.
 Automatically sets with_ddk=True and with_dde=False.</li>
-<li><strong>ph_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the phonon calculations and
-its value. Default: {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
-<li><strong>ddk_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the DDK calculations and
-its value. Default: {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
-<li><strong>dde_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the DDE calculations and
-its value. Default: {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
-<li><strong>wfq_tol</strong> &#8211; a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
-the WFQ and its value. Default {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
-<li><strong>qpoints_to_skip</strong> &#8211; a list of coordinates of q points in reduced coordinates that will be skipped.
+<li><strong>ph_tol</strong> – a dictionary with a single key defining the type of tolarence used for the phonon calculations and
+its value. Default: {“tolvrs”: 1.0e-10}.</li>
+<li><strong>ddk_tol</strong> – a dictionary with a single key defining the type of tolarence used for the DDK calculations and
+its value. Default: {“tolwfr”: 1.0e-22}.</li>
+<li><strong>dde_tol</strong> – a dictionary with a single key defining the type of tolarence used for the DDE calculations and
+its value. Default: {“tolvrs”: 1.0e-10}.</li>
+<li><strong>wfq_tol</strong> – a dictionary with a single key defining the type of tolarence used for the NSCF calculations of
+the WFQ and its value. Default {“tolwfr”: 1.0e-22}.</li>
+<li><strong>qpoints_to_skip</strong> – a list of coordinates of q points in reduced coordinates that will be skipped.
 Useful when calculating multiple grids for the same system to avoid duplicate calculations.
 If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().</li>
 </ul>
@@ -700,25 +762,25 @@ If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array()
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; Pymatgen structure.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run.</li>
-<li><strong>nscf_nband</strong> &#8211; Number of bands included in the NSCF run.</li>
-<li><strong>ecuteps</strong> &#8211; Cutoff energy [Ha] for the screening matrix.</li>
-<li><strong>ecutsigx</strong> &#8211; Cutoff energy [Ha] for the exchange part of the self-energy.</li>
-<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
-<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized
+<li><strong>structure</strong> – Pymatgen structure.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the SCF run.</li>
+<li><strong>nscf_nband</strong> – Number of bands included in the NSCF run.</li>
+<li><strong>ecuteps</strong> – Cutoff energy [Ha] for the screening matrix.</li>
+<li><strong>ecutsigx</strong> – Cutoff energy [Ha] for the exchange part of the self-energy.</li>
+<li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized
 from the pseudos according to accuracy)</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>ppmodel</strong> &#8211; Plasmonpole technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
-<li><strong>inclvkb</strong> &#8211; Treatment of the dipole matrix elements (see abinit variable).</li>
-<li><strong>scr_nband</strong> &#8211; Number of bands used to compute the screening (default is nscf_nband)</li>
-<li><strong>sigma_nband</strong> &#8211; Number of bands used to compute the self-energy (default is nscf_nband)</li>
-<li><strong>gw_qprange</strong> &#8211; Option for the automatic selection of k-points and bands for GW corrections.
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>ppmodel</strong> – Plasmonpole technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
+<li><strong>inclvkb</strong> – Treatment of the dipole matrix elements (see abinit variable).</li>
+<li><strong>scr_nband</strong> – Number of bands used to compute the screening (default is nscf_nband)</li>
+<li><strong>sigma_nband</strong> – Number of bands used to compute the self-energy (default is nscf_nband)</li>
+<li><strong>gw_qprange</strong> – Option for the automatic selection of k-points and bands for GW corrections.
 See Abinit docs for more detail. The default value makes the code compute the
 QP energies for all the point in the IBZ and one band above and one band below the Fermi level.</li>
 </ul>
@@ -737,27 +799,27 @@ QP energies for all the point in the IBZ and one band above and one band below t
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; Pymatgen structure.</li>
-<li><strong>pseudos</strong> &#8211; List of <cite>Pseudo</cite> objects.</li>
-<li><strong>kppa</strong> &#8211; k poits per reciprocal atom</li>
-<li><strong>scf_nband</strong> &#8211; number of scf bands</li>
-<li><strong>ecut</strong> &#8211; ecut for all calcs that that are not ecut convergence  cals at scf level</li>
-<li><strong>Defines the sampling used for the SCF run.</strong> (<em>scf</em>) &#8211; </li>
-<li><strong>nscf_nband</strong> &#8211; a list of number of bands included in the screening and sigmaruns.
+<li><strong>structure</strong> – Pymatgen structure.</li>
+<li><strong>pseudos</strong> – List of <cite>Pseudo</cite> objects.</li>
+<li><strong>kppa</strong> – k poits per reciprocal atom</li>
+<li><strong>scf_nband</strong> – number of scf bands</li>
+<li><strong>ecut</strong> – ecut for all calcs that that are not ecut convergence  cals at scf level</li>
+<li><strong>Defines the sampling used for the SCF run.</strong> (<em>scf</em>) – </li>
+<li><strong>nscf_nband</strong> – a list of number of bands included in the screening and sigmaruns.
 The NSCF run will be done with the maximum.</li>
-<li><strong>ecuteps</strong> &#8211; list of Cutoff energy [Ha] for the screening matrix.</li>
-<li><strong>ecutsigx</strong> &#8211; Cutoff energy [Ha] for the exchange part of the self-energy.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
-<li><strong>inclvkb</strong> &#8211; Treatment of the dipole matrix elements (see abinit variable).</li>
-<li><strong>response_models</strong> &#8211; List of response models</li>
-<li><strong>gw_qprange</strong> &#8211; selectpr for the qpoint mesh</li>
-<li><strong>gamma</strong> &#8211; is true a gamma centered mesh is enforced</li>
-<li><strong>nksmall</strong> &#8211; Kpoint division for additional band and dos calculations</li>
-<li><strong>extra_abivars</strong> &#8211; Dictionary with extra variables passed to ABINIT for all tasks.</li>
+<li><strong>ecuteps</strong> – list of Cutoff energy [Ha] for the screening matrix.</li>
+<li><strong>ecutsigx</strong> – Cutoff energy [Ha] for the exchange part of the self-energy.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
+<li><strong>inclvkb</strong> – Treatment of the dipole matrix elements (see abinit variable).</li>
+<li><strong>response_models</strong> – List of response models</li>
+<li><strong>gw_qprange</strong> – selectpr for the qpoint mesh</li>
+<li><strong>gamma</strong> – is true a gamma centered mesh is enforced</li>
+<li><strong>nksmall</strong> – Kpoint division for additional band and dos calculations</li>
+<li><strong>extra_abivars</strong> – Dictionary with extra variables passed to ABINIT for all tasks.</li>
 </ul>
 </td>
 </tr>
@@ -777,29 +839,29 @@ The screening is modeled with the model dielectric function.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>scf_kppa</strong> &#8211; Defines the sampling used for the SCF run.</li>
-<li><strong>nscf_nband</strong> &#8211; Number of bands included in the NSCF run.</li>
-<li><strong>nscf_ngkpt</strong> &#8211; Divisions of the k-mesh used for the NSCF and the BSE run.</li>
-<li><strong>nscf_shiftk</strong> &#8211; Shifts used for the NSCF and the BSE run.</li>
-<li><strong>ecuteps</strong> &#8211; Cutoff energy [Ha] for the screening matrix.</li>
-<li><strong>bs_loband</strong> &#8211; Index of the first occupied band included the e-h basis set
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>scf_kppa</strong> – Defines the sampling used for the SCF run.</li>
+<li><strong>nscf_nband</strong> – Number of bands included in the NSCF run.</li>
+<li><strong>nscf_ngkpt</strong> – Divisions of the k-mesh used for the NSCF and the BSE run.</li>
+<li><strong>nscf_shiftk</strong> – Shifts used for the NSCF and the BSE run.</li>
+<li><strong>ecuteps</strong> – Cutoff energy [Ha] for the screening matrix.</li>
+<li><strong>bs_loband</strong> – Index of the first occupied band included the e-h basis set
 (ABINIT convention i.e. first band starts at 1).
 Can be scalar or array of shape (nsppol,)</li>
-<li><strong>bs_nband</strong> &#8211; Highest band idex used for the construction of the e-h basis set.</li>
-<li><strong>mbpt_sciss</strong> &#8211; Scissor energy in Hartree.</li>
-<li><strong>mdf_epsinf</strong> &#8211; Value of the macroscopic dielectric function used in expression for the model dielectric function.</li>
-<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
-<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+<li><strong>bs_nband</strong> – Highest band idex used for the construction of the e-h basis set.</li>
+<li><strong>mbpt_sciss</strong> – Scissor energy in Hartree.</li>
+<li><strong>mdf_epsinf</strong> – Value of the macroscopic dielectric function used in expression for the model dielectric function.</li>
+<li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
 according to accuracy)</li>
-<li><strong>exc_type</strong> &#8211; Approximation used for the BSE Hamiltonian (Tamm-Dancoff or coupling).</li>
-<li><strong>bs_algo</strong> &#8211; Algorith for the computatio of the macroscopic dielectric function.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving the SCF cycle.</li>
+<li><strong>exc_type</strong> – Approximation used for the BSE Hamiltonian (Tamm-Dancoff or coupling).</li>
+<li><strong>bs_algo</strong> – Algorith for the computatio of the macroscopic dielectric function.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving the SCF cycle.</li>
 </ul>
 </td>
 </tr>
@@ -817,15 +879,15 @@ atomic positions at fixed unit cell. The second datasets optimizes both ions and
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the Brillouin zone.</li>
-<li><strong>nband</strong> &#8211; Number of bands included in the SCF run.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for the solution of the SCF cycle.</li>
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the Brillouin zone.</li>
+<li><strong>nband</strong> – Number of bands included in the SCF run.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for the solution of the SCF cycle.</li>
 </ul>
 </td>
 </tr>
@@ -850,15 +912,15 @@ second dataset to the inputs used for the band structure calculation.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the Brillouin zone.</li>
-<li><strong>nband</strong> &#8211; Number of bands included in the SCF run.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the Brillouin zone.</li>
+<li><strong>nband</strong> – Number of bands included in the SCF run.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
 </ul>
 </td>
 </tr>
@@ -879,19 +941,19 @@ GS input + the input files for the phonon calculation.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run.</li>
-<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
-<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the SCF run.</li>
+<li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
 pseudos according to accuracy)</li>
-<li><strong>scf_nband</strong> &#8211; Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of
+<li><strong>scf_nband</strong> – Number of bands for SCF run. If scf_nband is None, nband is automatically initialized from the list of
 pseudos, the structure and the smearing option.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
 </ul>
 </td>
 </tr>
@@ -909,11 +971,11 @@ GS input + the input files for the elastic and piezoelectric constants calculati
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>gs_inp</strong> &#8211; Ground State input to build piezo elastic inputs from.</li>
-<li><strong>ddk_tol</strong> &#8211; Tolerance for the DDK calculation (i.e. {&#8220;tolwfr&#8221;: 1.0e-20}).</li>
-<li><strong>rf_tol</strong> &#8211; Tolerance for the Strain RF calculations (i.e. {&#8220;tolvrs&#8221;: 1.0e-12}).</li>
-<li><strong>ddk_split</strong> &#8211; Whether to split the DDK calculations.</li>
-<li><strong>rf_split</strong> &#8211; whether to split the RF calculations.</li>
+<li><strong>gs_inp</strong> – Ground State input to build piezo elastic inputs from.</li>
+<li><strong>ddk_tol</strong> – Tolerance for the DDK calculation (i.e. {“tolwfr”: 1.0e-20}).</li>
+<li><strong>rf_tol</strong> – Tolerance for the Strain RF calculations (i.e. {“tolvrs”: 1.0e-12}).</li>
+<li><strong>ddk_split</strong> – Whether to split the DDK calculations.</li>
+<li><strong>rf_split</strong> – whether to split the RF calculations.</li>
 </ul>
 </td>
 </tr>
@@ -931,23 +993,23 @@ GS input + the input files for the elastic and piezoelectric constants calculati
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
-<li><strong>pseudos</strong> &#8211; List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
-<li><strong>kppa</strong> &#8211; Defines the sampling used for the SCF run.</li>
-<li><strong>ecut</strong> &#8211; cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
-<li><strong>pawecutdg</strong> &#8211; cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</li>
+<li><strong>pseudos</strong> – List of filenames or list of <code class="xref py py-class docutils literal"><span class="pre">Pseudo</span></code> objects or <code class="xref py py-class docutils literal"><span class="pre">PseudoTable</span></code> object.</li>
+<li><strong>kppa</strong> – Defines the sampling used for the SCF run.</li>
+<li><strong>ecut</strong> – cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</li>
+<li><strong>pawecutdg</strong> – cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
 pseudos according to accuracy)</li>
-<li><strong>scf_nband</strong> &#8211; Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
+<li><strong>scf_nband</strong> – Number of bands for SCF run. If scf_nband is None, nband is automatically initialized
 from the list of pseudos, the structure and the smearing option.</li>
-<li><strong>accuracy</strong> &#8211; Accuracy of the calculation.</li>
-<li><strong>spin_mode</strong> &#8211; Spin polarization.</li>
-<li><strong>smearing</strong> &#8211; Smearing technique.</li>
-<li><strong>charge</strong> &#8211; Electronic charge added to the unit cell.</li>
-<li><strong>scf_algorithm</strong> &#8211; Algorithm used for solving of the SCF cycle.</li>
-<li><strong>ddk_tol</strong> &#8211; Tolerance for the Ddk calculation (i.e. {&#8220;tolwfr&#8221;: 1.0e-20}).</li>
-<li><strong>rf_tol</strong> &#8211; Tolerance for the Strain RF calculations (i.e. {&#8220;tolvrs&#8221;: 1.0e-12}).</li>
-<li><strong>ddk_split</strong> &#8211; Whether to split the ddk calculations.</li>
-<li><strong>rf_split</strong> &#8211; whether to split the RF calculations.</li>
+<li><strong>accuracy</strong> – Accuracy of the calculation.</li>
+<li><strong>spin_mode</strong> – Spin polarization.</li>
+<li><strong>smearing</strong> – Smearing technique.</li>
+<li><strong>charge</strong> – Electronic charge added to the unit cell.</li>
+<li><strong>scf_algorithm</strong> – Algorithm used for solving of the SCF cycle.</li>
+<li><strong>ddk_tol</strong> – Tolerance for the Ddk calculation (i.e. {“tolwfr”: 1.0e-20}).</li>
+<li><strong>rf_tol</strong> – Tolerance for the Strain RF calculations (i.e. {“tolvrs”: 1.0e-12}).</li>
+<li><strong>ddk_split</strong> – Whether to split the ddk calculations.</li>
+<li><strong>rf_split</strong> – whether to split the RF calculations.</li>
 </ul>
 </td>
 </tr>
@@ -992,11 +1054,11 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; List of shifts (default None i.e. use shiftk from self)</li>
-<li><strong>kptopt</strong> &#8211; Option for k-point generation. If None, the value in self is used.</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – List of shifts (default None i.e. use shiftk from self)</li>
+<li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1021,19 +1083,19 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; Shiftks (default None i.e. use shiftk from self)</li>
-<li><strong>kptopt</strong> &#8211; Option for k-point generation. If None, the value in self is used.</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
+<li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>List of dictionaries with the Abinit variables defining the irreducible perturbation
 .. rubric:: Example</p>
 <dl class="docutils">
-<dt>[{&#8216;idir&#8217;: 1, &#8216;ipert&#8217;: 4, &#8216;qpt&#8217;: [0.0, 0.0, 0.0]},</dt>
-<dd><p class="first last">{&#8216;idir&#8217;: 2, &#8216;ipert&#8217;: 4, &#8216;qpt&#8217;: [0.0, 0.0, 0.0]}]</p>
+<dt>[{‘idir’: 1, ‘ipert’: 4, ‘qpt’: [0.0, 0.0, 0.0]},</dt>
+<dd><p class="first last">{‘idir’: 2, ‘ipert’: 4, ‘qpt’: [0.0, 0.0, 0.0]}]</p>
 </dd>
 </dl>
 </p>
@@ -1053,20 +1115,20 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; Shiftks (default None i.e. use shiftk from self)</li>
-<li><strong>kptopt</strong> &#8211; Option for k-point generation. If None, the value in self is used.</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
-<li><strong>phonon_pert</strong> &#8211; if True also the phonon perturbations will be considered. Default False.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
+<li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>phonon_pert</strong> – if True also the phonon perturbations will be considered. Default False.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>List of dictionaries with the Abinit variables defining the irreducible perturbation
 .. rubric:: Example</p>
 <dl class="docutils">
-<dt>[{&#8216;idir&#8217;: 1, &#8216;ipert&#8217;: 4, &#8216;qpt&#8217;: [0.0, 0.0, 0.0]},</dt>
-<dd><p class="first last">{&#8216;idir&#8217;: 2, &#8216;ipert&#8217;: 4, &#8216;qpt&#8217;: [0.0, 0.0, 0.0]}]</p>
+<dt>[{‘idir’: 1, ‘ipert’: 4, ‘qpt’: [0.0, 0.0, 0.0]},</dt>
+<dd><p class="first last">{‘idir’: 2, ‘ipert’: 4, ‘qpt’: [0.0, 0.0, 0.0]}]</p>
 </dd>
 </dl>
 </p>
@@ -1086,21 +1148,21 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qpt</strong> &#8211; qpoint of the phonon in reduced coordinates. Used to shift the k-mesh
-if qpt is not passed, self must already contain &#8220;qpt&#8221; otherwise an exception is raised.</li>
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; Shiftks (default None i.e. use shiftk from self)</li>
-<li><strong>kptopt</strong> &#8211; Option for k-point generation. If None, the value in self is used.</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>qpt</strong> – qpoint of the phonon in reduced coordinates. Used to shift the k-mesh
+if qpt is not passed, self must already contain “qpt” otherwise an exception is raised.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
+<li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>List of dictionaries with the Abinit variables defining the irreducible perturbation
 .. rubric:: Example</p>
 <dl class="docutils">
-<dt>[{&#8216;idir&#8217;: 1, &#8216;ipert&#8217;: 1, &#8216;qpt&#8217;: [0.25, 0.0, 0.0]},</dt>
-<dd><p class="first last">{&#8216;idir&#8217;: 2, &#8216;ipert&#8217;: 1, &#8216;qpt&#8217;: [0.25, 0.0, 0.0]}]</p>
+<dt>[{‘idir’: 1, ‘ipert’: 1, ‘qpt’: [0.25, 0.0, 0.0]},</dt>
+<dd><p class="first last">{‘idir’: 2, ‘ipert’: 1, ‘qpt’: [0.25, 0.0, 0.0]}]</p>
 </dd>
 </dl>
 </p>
@@ -1120,19 +1182,19 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ngkpt</strong> &#8211; Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
-<li><strong>shiftk</strong> &#8211; Shiftks (default None i.e. use shiftk from self)</li>
-<li><strong>kptopt</strong> &#8211; Option for k-point generation. If None, the value in self is used.</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>ngkpt</strong> – Number of divisions for the k-mesh (default None i.e. use ngkpt from self)</li>
+<li><strong>shiftk</strong> – Shiftks (default None i.e. use shiftk from self)</li>
+<li><strong>kptopt</strong> – Option for k-point generation. If None, the value in self is used.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>List of dictionaries with the Abinit variables defining the irreducible perturbation
 .. rubric:: Example</p>
 <dl class="docutils">
-<dt>[{&#8216;idir&#8217;: 1, &#8216;ipert&#8217;: 4, &#8216;qpt&#8217;: [0.0, 0.0, 0.0]},</dt>
-<dd><p class="first last">{&#8216;idir&#8217;: 2, &#8216;ipert&#8217;: 4, &#8216;qpt&#8217;: [0.0, 0.0, 0.0]}]</p>
+<dt>[{‘idir’: 1, ‘ipert’: 4, ‘qpt’: [0.0, 0.0, 0.0]},</dt>
+<dd><p class="first last">{‘idir’: 2, ‘ipert’: 4, ‘qpt’: [0.0, 0.0, 0.0]}]</p>
 </dd>
 </dl>
 </p>
@@ -1152,9 +1214,9 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tolsym</strong> &#8211; Abinit tolsym input variable. None correspondes to the default value.</li>
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>tolsym</strong> – Abinit tolsym input variable. None correspondes to the default value.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1174,8 +1236,8 @@ It should be called with an input file that contains all the mandatory variables
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1201,7 +1263,7 @@ task: Task object</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tags</strong> &#8211; A single tag or list/tuple/set of tags</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tags</strong> – A single tag or list/tuple/set of tags</td>
 </tr>
 </tbody>
 </table>
@@ -1220,10 +1282,10 @@ be consistent.  It is better to use <code class="docutils literal"><span class="
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>start</strong> &#8211; Start of interval. The interval includes this value. The default start value is 0.</li>
-<li><strong>stop</strong> &#8211; End of interval.  The interval does not include this value, except
+<li><strong>start</strong> – Start of interval. The interval includes this value. The default start value is 0.</li>
+<li><strong>stop</strong> – End of interval.  The interval does not include this value, except
 in some cases where <cite>step</cite> is not an integer and floating point</li>
-<li><strong>step</strong> &#8211; Spacing between values.  For any output <cite>out</cite>, this is the distance
+<li><strong>step</strong> – Spacing between values.  For any output <cite>out</cite>, this is the distance
 between two adjacent values, <code class="docutils literal"><span class="pre">out[i+1]</span> <span class="pre">-</span> <span class="pre">out[i]</span></code>.  The default
 step size is 1.  If <cite>step</cite> is specified, <cite>start</cite> must also be given.</li>
 </ul>
@@ -1277,14 +1339,14 @@ step size is 1.  If <cite>step</cite> is specified, <cite>start</cite> must also
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>start</strong> &#8211; The starting value of the sequence.</li>
-<li><strong>stop</strong> &#8211; The end value of the sequence, unless <cite>endpoint</cite> is set to False.
+<li><strong>start</strong> – The starting value of the sequence.</li>
+<li><strong>stop</strong> – The end value of the sequence, unless <cite>endpoint</cite> is set to False.
 In that case, the sequence consists of all but the last of <code class="docutils literal"><span class="pre">ndtset</span> <span class="pre">+</span> <span class="pre">1</span></code>
 evenly spaced samples, so that <cite>stop</cite> is excluded.  Note that the step
 size changes when <cite>endpoint</cite> is False.</li>
-<li><strong>num</strong> &#8211; int, optional
+<li><strong>num</strong> – int, optional
 Number of samples to generate. Default is 50.</li>
-<li><strong>endpoint</strong> &#8211; bool, optional
+<li><strong>endpoint</strong> – bool, optional
 If True, <cite>stop</cite> is the last sample. Otherwise, it is not included.
 Default is True.</li>
 </ul>
@@ -1311,9 +1373,9 @@ This functions should be called with an input the represents a gs run.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tolerance</strong> &#8211; dict {varname: value} with the tolerance to be used in the DFPT run.
-Defaults to {&#8220;tolwfr&#8221;: 1.0e-22}.</li>
-<li><strong>use_symmetries</strong> &#8211; boolean that computes the irreducible components of the perturbation.
+<li><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {“tolwfr”: 1.0e-22}.</li>
+<li><strong>use_symmetries</strong> – boolean that computes the irreducible components of the perturbation.
 Default to True. Should be set to False for nonlinear coefficients calculation.</li>
 </ul>
 </td>
@@ -1327,17 +1389,22 @@ Default to True. Should be set to False for nonlinear coefficients calculation.<
 
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.make_ddk_inputs">
-<code class="descname">make_ddk_inputs</code><span class="sig-paren">(</span><em>tolerance=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_ddk_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_ddk_inputs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">make_ddk_inputs</code><span class="sig-paren">(</span><em>tolerance=None</em>, <em>kptopt=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.make_ddk_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.make_ddk_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return inputs for performing DDK calculations.
 This functions should be called with an input the represents a GS run.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> &#8211; dict {varname: value} with the tolerance to be used in the DFPT run.
-Defaults to {&#8220;tolwfr&#8221;: 1.0e-22}.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kptopt</strong> – 2 to take into account time-reversal symmetry. note that kptopt 1 is not available.</li>
+<li><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {“tolwfr”: 1.0e-22}.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of AbinitInput objects for DFPT runs.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of AbinitInput objects for DFPT runs.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1353,8 +1420,8 @@ This functions should be called with an input that represents a GS run.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phonon_pert</strong> &#8211; is True also the phonon perturbations will be considered. Default False.</li>
-<li><strong>skip_permutations</strong> &#8211; Since the current version of abinit always performs all the permutations
+<li><strong>phonon_pert</strong> – is True also the phonon perturbations will be considered. Default False.</li>
+<li><strong>skip_permutations</strong> – Since the current version of abinit always performs all the permutations
 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
 will produce duplicated outputs.</li>
 </ul>
@@ -1375,9 +1442,9 @@ It should be called with an input the represents a GS run.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qpt</strong> &#8211; q-point in reduced coordinates.</li>
-<li><strong>tolerance</strong> &#8211; dict {varname: value} with the tolerance to be used in the DFPT run.
-Defaults to {&#8220;tolvrs&#8221;: 1.0e-10}.</li>
+<li><strong>qpt</strong> – q-point in reduced coordinates.</li>
+<li><strong>tolerance</strong> – dict {varname: value} with the tolerance to be used in the DFPT run.
+Defaults to {“tolvrs”: 1.0e-10}.</li>
 </ul>
 </td>
 </tr>
@@ -1422,12 +1489,12 @@ See notes below for the constraints that must be fulfilled by the new structure<
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>new_structure</strong> &#8211; Parameters defining the crystalline structure. Accepts <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object
-file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.</li>
-<li><strong>scdims</strong> &#8211; 3 integer giving with the number of cells in the supercell along the three reduced directions.
+<li><strong>new_structure</strong> – Parameters defining the crystalline structure. Accepts <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object
+file with structure (CIF, netcdf file, …) or dictionary with ABINIT geo variables.</li>
+<li><strong>scdims</strong> – 3 integer giving with the number of cells in the supercell along the three reduced directions.
 Must be used when <cite>new_structure</cite> represents a supercell of the initial structure defined
 in the input file.</li>
-<li><strong>verbose</strong> &#8211; Verbosity level.</li>
+<li><strong>verbose</strong> – Verbosity level.</li>
 </ul>
 </td>
 </tr>
@@ -1506,7 +1573,7 @@ Return dictionary with the variables that have been removed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tags</strong> &#8211; A single tag or list/tuple/set of tags</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tags</strong> – A single tag or list/tuple/set of tags</td>
 </tr>
 </tbody>
 </table>
@@ -1534,8 +1601,8 @@ If more than one is present raise an error</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>nksmall</strong> &#8211; Number of k-points used to sample the smallest lattice vector.</li>
-<li><strong>kptopt</strong> &#8211; Option for the generation of the mesh.</li>
+<li><strong>nksmall</strong> – Number of k-points used to sample the smallest lattice vector.</li>
+<li><strong>kptopt</strong> – Option for the generation of the mesh.</li>
 </ul>
 </td>
 </tr>
@@ -1565,6 +1632,12 @@ is used, e.g., Mn3+ may have a different magmom than Mn4+.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.inputs.AbinitInput.set_gamma_sampling">
+<code class="descname">set_gamma_sampling</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_gamma_sampling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_gamma_sampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gamma-only sampling of the BZ.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.set_kmesh">
 <code class="descname">set_kmesh</code><span class="sig-paren">(</span><em>ngkpt</em>, <em>shiftk</em>, <em>kptopt=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_kmesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_kmesh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the variables for the sampling of the BZ.</p>
@@ -1573,9 +1646,9 @@ is used, e.g., Mn3+ may have a different magmom than Mn4+.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ngkpt</strong> &#8211; Monkhorst-Pack divisions</li>
-<li><strong>shiftk</strong> &#8211; List of shifts.</li>
-<li><strong>kptopt</strong> &#8211; Option for the generation of the mesh.</li>
+<li><strong>ngkpt</strong> – Monkhorst-Pack divisions</li>
+<li><strong>shiftk</strong> – List of shifts.</li>
+<li><strong>kptopt</strong> – Option for the generation of the mesh.</li>
 </ul>
 </td>
 </tr>
@@ -1586,14 +1659,14 @@ is used, e.g., Mn3+ may have a different magmom than Mn4+.</li>
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.set_kpath">
 <code class="descname">set_kpath</code><span class="sig-paren">(</span><em>ndivsm</em>, <em>kptbounds=None</em>, <em>iscf=-2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_kpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_kpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the variables for the computation of the band structure.</p>
+<dd><p>Set the variables for the computation of the electronic band structure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ndivsm</strong> &#8211; Number of divisions for the smallest segment.</li>
-<li><strong>kptbounds</strong> &#8211; k-points defining the path in k-space.
+<li><strong>ndivsm</strong> – Number of divisions for the smallest segment.</li>
+<li><strong>kptbounds</strong> – k-points defining the path in k-space.
 If None, we use the default high-symmetry k-path defined in the pymatgen database.</li>
 </ul>
 </td>
@@ -1624,6 +1697,47 @@ or a tuple of two integers if the extrema are the same for each k-point.</div></
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.inputs.AbinitInput.set_phdos_qmesh">
+<code class="descname">set_phdos_qmesh</code><span class="sig-paren">(</span><em>nqsmall</em>, <em>method='tetra'</em>, <em>ph_qshift=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_phdos_qmesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_phdos_qmesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the variables (ngkpt, shift, kptopt) for the computation of the Phonon DOS in Abinit.
+Remember that the Phdos is computed via Fourier interpolation so there’s no costraint
+of the q-mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nqsmall</strong> – Number of k-points used to sample the smallest lattice vector.</li>
+<li><strong>method</strong> – gaussian or tetra.</li>
+<li><strong>ph_qshift</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.inputs.AbinitInput.set_qpath">
+<code class="descname">set_qpath</code><span class="sig-paren">(</span><em>ndivsm</em>, <em>qptbounds=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_qpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the variables for the computation of the phonon band structure
+and phonon linewidths.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ndivsm</strong> – Number of divisions for the smallest segment.</li>
+<li><strong>qptbounds</strong> – q-points defining the path in q-space.
+If None, we use the default high-symmetry q-path defined in the pymatgen database.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.set_spell_check">
 <code class="descname">set_spell_check</code><span class="sig-paren">(</span><em>false_or_true</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_spell_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_spell_check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Activate/Deactivate spell-checking</p>
@@ -1639,12 +1753,12 @@ Return dictionary with the variables that have been removed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>spin_mode</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">SpinMode</span></code> object or string. Possible values for string are:</li>
-<li><strong>polarized</strong> (<em>-</em>) &#8211; </li>
-<li><strong>unpolarized</strong> (<em>-</em>) &#8211; </li>
-<li><strong>afm</strong> (<em>-</em>) &#8211; </li>
-<li><strong>spinor</strong> (<em>-</em>) &#8211; </li>
-<li><strong>spinor_nomag</strong> (<em>-</em>) &#8211; </li>
+<li><strong>spin_mode</strong> – <code class="xref py py-class docutils literal"><span class="pre">SpinMode</span></code> object or string. Possible values for string are:</li>
+<li><strong>polarized</strong> (<em>-</em>) – </li>
+<li><strong>unpolarized</strong> (<em>-</em>) – </li>
+<li><strong>afm</strong> (<em>-</em>) – </li>
+<li><strong>spinor</strong> (<em>-</em>) – </li>
+<li><strong>spinor_nomag</strong> (<em>-</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -1678,20 +1792,20 @@ Return dictionary with the variables that have been removed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sortmode</strong> &#8211; &#8220;section&#8221; if variables should be gruped by sections.
-&#8220;a&#8221; for alphabetical order, None if no sorting is wanted.</li>
-<li><strong>with_mnemonics</strong> &#8211; True if mnemonics should be added.</li>
-<li><strong>mode</strong> &#8211; Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
-<li><strong>post</strong> &#8211; String that will be appended to the name of the variables
+<li><strong>sortmode</strong> – “section” if variables should be gruped by sections.
+“a” for alphabetical order, None if no sorting is wanted.</li>
+<li><strong>with_mnemonics</strong> – True if mnemonics should be added.</li>
+<li><strong>mode</strong> – Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
+<li><strong>post</strong> – String that will be appended to the name of the variables
 Note that post is usually autodetected when we have multiple datatasets
 It is mainly used when we have an input file with a single dataset
-so that we can prevent the code from adding &#8220;1&#8221; to the name of the variables
+so that we can prevent the code from adding “1” to the name of the variables
 (In this case, indeed, Abinit complains if ndtset=1 is not specified
-and we don&#8217;t want ndtset=1 simply because the code will start to add
+and we don’t want ndtset=1 simply because the code will start to add
 _DS1_ to all the input and output files.</li>
-<li><strong>with_structure</strong> &#8211; False if section with structure variables should not be printed.</li>
-<li><strong>with_pseudos</strong> &#8211; False if JSON section with pseudo data should not be added.</li>
-<li><strong>exclude</strong> &#8211; List of variable names that should be ignored.</li>
+<li><strong>with_structure</strong> – False if section with structure variables should not be printed.</li>
+<li><strong>with_pseudos</strong> – False if JSON section with pseudo data should not be added.</li>
+<li><strong>exclude</strong> – List of variable names that should be ignored.</li>
 </ul>
 </td>
 </tr>
@@ -1744,15 +1858,15 @@ should not be used as keyword in dictionaries.</p>
 <code class="descname">abivalidate</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbstractInput.abivalidate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbstractInput.abivalidate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method should invoke the executable associated to the input object.
 to test whether the input variables are correct and consistent.
-The executable is supposed to implemente some sort of <cite>&#8211;dry-run</cite> option
+The executable is supposed to implemente some sort of <cite>–dry-run</cite> option
 that invokes the parser to validate the input and exits.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1793,12 +1907,12 @@ Unlike remove_vars, no exception is raised if the variables are not in the input
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keys</strong> &#8211; string or list of strings with variable names.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keys</strong> – string or list of strings with variable names.</td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<p>inp.pop_vars([&#8220;ionmov&#8221;, &#8220;optcell&#8221;, &#8220;ntime&#8221;, &#8220;dilatmx&#8221;])</p>
+<p>inp.pop_vars([“ionmov”, “optcell”, “ntime”, “dilatmx”])</p>
 </dd></dl>
 
 <dl class="method">
@@ -1811,8 +1925,8 @@ Return dictionary with the variables that have been removed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>keys</strong> &#8211; string or list of strings with variable names.</li>
-<li><strong>strict</strong> &#8211; If True, KeyError is raised if at least one variable is not present.</li>
+<li><strong>keys</strong> – string or list of strings with variable names.</li>
+<li><strong>strict</strong> – If True, KeyError is raised if at least one variable is not present.</li>
 </ul>
 </td>
 </tr>
@@ -1877,8 +1991,8 @@ Return dict with the variables added to the input.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -1905,13 +2019,13 @@ task: Task object</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
-<li><strong>ngqpt</strong> &#8211; Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
-<li><strong>ifcout</strong> &#8211; Number of neighbouring atoms for which the ifc&#8217;s will be output. If None all the atoms in the big box.</li>
-<li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
-<li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
+<li><strong>ngqpt</strong> – Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
+<li><strong>ifcout</strong> – Number of neighbouring atoms for which the ifc’s will be output. If None all the atoms in the big box.</li>
+<li><strong>q1shft</strong> – Shifts used for the coarse Q-mesh</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
+<li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
 </ul>
 </td>
 </tr>
@@ -1928,15 +2042,15 @@ task: Task object</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
-<li><strong>ngqpt</strong> &#8211; Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
-<li><strong>nqsmall</strong> &#8211; Used to generate the (dense) mesh for the DOS.
+<li><strong>Structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
+<li><strong>ngqpt</strong> – Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
+<li><strong>nqsmall</strong> – Used to generate the (dense) mesh for the DOS.
 It defines the number of q-points used to sample the smallest lattice vector.</li>
-<li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>Boundaries of the path. If None</strong><strong>, </strong><strong>the path is generated from an internal database</strong> (<em>qptbounds</em>) &#8211; depending on the input structure.</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
-<li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>q1shft</strong> – Shifts used for the coarse Q-mesh</li>
+<li><strong>Boundaries of the path. If None</strong><strong>, </strong><strong>the path is generated from an internal database</strong> (<em>qptbounds</em>) – depending on the input structure.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
+<li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
 </ul>
 </td>
 </tr>
@@ -1971,14 +2085,14 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
-<li><strong>qpoint</strong> &#8211; Reduced coordinates of the q-point where phonon frequencies and modes are wanted</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong><strong>, </strong><strong>ifcflag</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>lo_to_splitting</strong> &#8211; if True calculation of the LO-TO splitting will be included if qpoint==Gamma</li>
-<li><strong>directions</strong> &#8211; list of 3D directions along which the LO-TO splitting will be calculated. If None the three
+<li><strong>Structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
+<li><strong>qpoint</strong> – Reduced coordinates of the q-point where phonon frequencies and modes are wanted</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong><strong>, </strong><strong>ifcflag</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>lo_to_splitting</strong> – if True calculation of the LO-TO splitting will be included if qpoint==Gamma</li>
+<li><strong>directions</strong> – list of 3D directions along which the LO-TO splitting will be calculated. If None the three
 cartesian direction will be used</li>
-<li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
-<li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
+<li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
 </ul>
 </td>
 </tr>
@@ -1995,20 +2109,20 @@ cartesian direction will be used</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
-<li><strong>ngqpt</strong> &#8211; Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
-<li><strong>nqsmall</strong> &#8211; Used to generate the (dense) mesh for the DOS.
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
+<li><strong>ngqpt</strong> – Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
+<li><strong>nqsmall</strong> – Used to generate the (dense) mesh for the DOS.
 It defines the number of q-points used to sample the smallest lattice vector.</li>
-<li><strong>ndivsm</strong> &#8211; Used to generate a normalized path for the phonon bands.
+<li><strong>ndivsm</strong> – Used to generate a normalized path for the phonon bands.
 If gives the number of divisions for the smallest segment of the path.</li>
-<li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>Boundaries of the path. If None</strong><strong>, </strong><strong>the path is generated from an internal database</strong> (<em>qptbounds</em>) &#8211; depending on the input structure.</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>dos_method</strong> &#8211; Possible choices: &#8220;tetra&#8221;, &#8220;gaussian&#8221; or &#8220;gaussian:0.001 eV&#8221;.
+<li><strong>q1shft</strong> – Shifts used for the coarse Q-mesh</li>
+<li><strong>Boundaries of the path. If None</strong><strong>, </strong><strong>the path is generated from an internal database</strong> (<em>qptbounds</em>) – depending on the input structure.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>dos_method</strong> – Possible choices: “tetra”, “gaussian” or “gaussian:0.001 eV”.
 In the later case, the value 0.001 eV is used as gaussian broadening</li>
-<li><strong>lo_to_splitting</strong> &#8211; if True calculation of the LO-TO splitting will be included</li>
-<li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
-<li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>lo_to_splitting</strong> – if True calculation of the LO-TO splitting will be included</li>
+<li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
+<li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
 </ul>
 </td>
 </tr>
@@ -2030,7 +2144,7 @@ In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nqsmall</strong> &#8211; Number of divisions used to sample the smallest lattice vector.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nqsmall</strong> – Number of divisions used to sample the smallest lattice vector.</td>
 </tr>
 </tbody>
 </table>
@@ -2045,8 +2159,8 @@ In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ndivsm</strong> &#8211; Number of divisions for the smallest segment.</li>
-<li><strong>qptbounds</strong> &#8211; q-points defining the path in k-space.
+<li><strong>ndivsm</strong> – Number of divisions for the smallest segment.</li>
+<li><strong>qptbounds</strong> – q-points defining the path in k-space.
 If None, we use the default high-symmetry k-path defined in the pymatgen database.</li>
 </ul>
 </td>
@@ -2076,53 +2190,53 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <dt id="abipy.abio.inputs.AnaddbInput.thermo">
 <em class="property">classmethod </em><code class="descname">thermo</code><span class="sig-paren">(</span><em>structure</em>, <em>ngqpt</em>, <em>nqsmall</em>, <em>q1shft=(0</em>, <em>0</em>, <em>0)</em>, <em>nchan=1250</em>, <em>nwchan=5</em>, <em>thmtol=0.5</em>, <em>ntemper=199</em>, <em>temperinc=5</em>, <em>tempermin=5.0</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>ngrids=10</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.thermo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build an anaddb input file for the computation of phonon bands and phonon DOS.
-Note: This method is deprecated because now it&#8217;s possible to compute Thermodynamical
+Note: This method is deprecated because now it’s possible to compute Thermodynamical
 properties from PhDos</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
-<li><strong>ngqpt</strong> &#8211; Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
-<li><strong>nqsmall</strong> &#8211; Used to generate the (dense) mesh for the DOS.
+<li><strong>structure</strong> – <code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object</li>
+<li><strong>ngqpt</strong> – Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</li>
+<li><strong>nqsmall</strong> – Used to generate the (dense) mesh for the DOS.
 It defines the number of q-points used to sample the smallest lattice vector.</li>
-<li><strong>q1shft</strong> &#8211; Shifts used for the coarse Q-mesh</li>
-<li><strong>nchan</strong> &#8211; </li>
-<li><strong>nwchan</strong> &#8211; </li>
-<li><strong>thmtol</strong> &#8211; </li>
-<li><strong>ntemper</strong> &#8211; </li>
-<li><strong>temperinc</strong> &#8211; </li>
-<li><strong>tempermin</strong> &#8211; </li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>ngrids</strong> &#8211; </li>
-<li><strong>anaddb_args</strong> &#8211; List of tuples (key, value) with Anaddb input variables (default: empty)</li>
-<li><strong>anaddb_kwargs</strong> &#8211; Dictionary with Anaddb input variables (default: empty)</li>
-<li><strong>#!Flags</strong> &#8211; </li>
-<li><strong>ifcflag   1     ! Interatomic force constant flag</strong> (<em>#</em>) &#8211; </li>
-<li><strong>thmflag   1     ! Thermodynamical properties flag</strong> (<em>#</em>) &#8211; </li>
-<li><strong>grid number 1</strong> (<em>#!Wavevector</em>) &#8211; </li>
-<li><strong>brav    2      ! Bravais Lattice</strong> (<em>#</em>) &#8211; 1-S.C., 2-F.C., 3-B.C., 4-Hex.)</li>
-<li><strong>ngqpt   4  4  4   ! Monkhorst-Pack indices</strong> (<em>#</em>) &#8211; </li>
-<li><strong>nqshft  1         ! number of q-points in repeated basic q-cell</strong> (<em>#</em>) &#8211; </li>
-<li><strong>q1shft  3*0.0</strong> (<em>#</em>) &#8211; </li>
-<li><strong>charges</strong> (<em>#!Effective</em>) &#8211; </li>
-<li><strong>asr   1     ! Acoustic Sum Rule. 1 =&gt; imposed asymetrically</strong> (<em>#</em>) &#8211; </li>
-<li><strong>chneut   1     ! Charge neutrality requirement for effective charges.</strong> (<em>#</em>) &#8211; </li>
-<li><strong>force constant info</strong> (<em>#!Interatomic</em>) &#8211; </li>
-<li><strong>dipdip  1      ! Dipole-dipole interaction treatment</strong> (<em>#</em>) &#8211; </li>
-<li><strong>grid number 2</strong> (<em>#!Wavevector</em>) &#8211; </li>
-<li><strong>ng2qpt   20 20 20  ! sample the BZ up to ngqpt2</strong> (<em>#</em>) &#8211; </li>
-<li><strong>ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0</strong> (<em>#</em>) &#8211; </li>
-<li><strong>information</strong> (<em>#!Thermal</em>) &#8211; </li>
-<li><strong>nchan   1250   ! # of channels for the DOS with channel width 1 cm-1</strong> (<em>#</em>) &#8211; </li>
-<li><strong>nwchan  5      ! # of different channel widths from this integer down to 1 cm-1</strong> (<em>#</em>) &#8211; </li>
-<li><strong>thmtol  0.120  ! Tolerance on thermodynamical function fluctuations</strong> (<em>#</em>) &#8211; </li>
-<li><strong>ntemper 10     ! Number of temperatures</strong> (<em>#</em>) &#8211; </li>
-<li><strong>temperinc 20.  ! Increment of temperature in K for temperature dependency</strong> (<em>#</em>) &#8211; </li>
-<li><strong>tempermin 20.  ! Minimal temperature in Kelvin</strong> (<em>#</em>) &#8211; </li>
-<li><strong>This line added when defaults were changed</strong> (<em>#</em>) &#8211; </li>
-<li><strong>symdynmat 0</strong> (<em>#</em>) &#8211; </li>
+<li><strong>q1shft</strong> – Shifts used for the coarse Q-mesh</li>
+<li><strong>nchan</strong> – </li>
+<li><strong>nwchan</strong> – </li>
+<li><strong>thmtol</strong> – </li>
+<li><strong>ntemper</strong> – </li>
+<li><strong>temperinc</strong> – </li>
+<li><strong>tempermin</strong> – </li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>ngrids</strong> – </li>
+<li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
+<li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>#!Flags</strong> – </li>
+<li><strong>ifcflag   1     ! Interatomic force constant flag</strong> (<em>#</em>) – </li>
+<li><strong>thmflag   1     ! Thermodynamical properties flag</strong> (<em>#</em>) – </li>
+<li><strong>grid number 1</strong> (<em>#!Wavevector</em>) – </li>
+<li><strong>brav    2      ! Bravais Lattice</strong> (<em>#</em>) – 1-S.C., 2-F.C., 3-B.C., 4-Hex.)</li>
+<li><strong>ngqpt   4  4  4   ! Monkhorst-Pack indices</strong> (<em>#</em>) – </li>
+<li><strong>nqshft  1         ! number of q-points in repeated basic q-cell</strong> (<em>#</em>) – </li>
+<li><strong>q1shft  3*0.0</strong> (<em>#</em>) – </li>
+<li><strong>charges</strong> (<em>#!Effective</em>) – </li>
+<li><strong>asr   1     ! Acoustic Sum Rule. 1 =&gt; imposed asymetrically</strong> (<em>#</em>) – </li>
+<li><strong>chneut   1     ! Charge neutrality requirement for effective charges.</strong> (<em>#</em>) – </li>
+<li><strong>force constant info</strong> (<em>#!Interatomic</em>) – </li>
+<li><strong>dipdip  1      ! Dipole-dipole interaction treatment</strong> (<em>#</em>) – </li>
+<li><strong>grid number 2</strong> (<em>#!Wavevector</em>) – </li>
+<li><strong>ng2qpt   20 20 20  ! sample the BZ up to ngqpt2</strong> (<em>#</em>) – </li>
+<li><strong>ngrids   5         ! number of grids of increasing size#  q2shft   3*0.0</strong> (<em>#</em>) – </li>
+<li><strong>information</strong> (<em>#!Thermal</em>) – </li>
+<li><strong>nchan   1250   ! # of channels for the DOS with channel width 1 cm-1</strong> (<em>#</em>) – </li>
+<li><strong>nwchan  5      ! # of different channel widths from this integer down to 1 cm-1</strong> (<em>#</em>) – </li>
+<li><strong>thmtol  0.120  ! Tolerance on thermodynamical function fluctuations</strong> (<em>#</em>) – </li>
+<li><strong>ntemper 10     ! Number of temperatures</strong> (<em>#</em>) – </li>
+<li><strong>temperinc 20.  ! Increment of temperature in K for temperature dependency</strong> (<em>#</em>) – </li>
+<li><strong>tempermin 20.  ! Minimal temperature in Kelvin</strong> (<em>#</em>) – </li>
+<li><strong>This line added when defaults were changed</strong> (<em>#</em>) – </li>
+<li><strong>symdynmat 0</strong> (<em>#</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -2139,8 +2253,8 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sortmode</strong> &#8211; &#8220;a&#8221; for alphabetical order, None if no sorting is wanted</li>
-<li><strong>mode</strong> &#8211; Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
+<li><strong>sortmode</strong> – “a” for alphabetical order, None if no sorting is wanted</li>
+<li><strong>mode</strong> – Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
 </ul>
 </td>
 </tr>
@@ -2169,7 +2283,7 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <p>This object stores the options to run a single cut3d analysis.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Converters with nspden &gt; 1 won&#8217;t work since cut3d asks for the ispden index.</p>
+<p class="last">Converters with nspden &gt; 1 won’t work since cut3d asks for the ispden index.</p>
 </div>
 <dl class="method">
 <dt id="abipy.abio.inputs.Cut3DInput.as_dict">
@@ -2186,9 +2300,9 @@ It defines the number of q-points used to sample the smallest lattice vector.</l
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit.
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit.
 Can be None to be defined at a later time.</li>
-<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+<li><strong>output_filepath</strong> – path to the file that should be produced by cut3D, if required. At this stage it would be
 safer to use just the file name, as using an absolute or relative path may fail depending on
 the compiler.</li>
 </ul>
@@ -2207,9 +2321,9 @@ the compiler.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+<li><strong>output_filepath</strong> – path to the file that should be produced by cut3D, if required. At this stage it would be
 safer to use just the file name, as using an absolute or relative path may fail depending on
 the compiler.</li>
 </ul>
@@ -2228,9 +2342,9 @@ the compiler.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+<li><strong>output_filepath</strong> – path to the file that should be produced by cut3D, if required. At this stage it would be
 safer to use just the file name, as using an absolute or relative path may fail depending on
 the compiler.</li>
 </ul>
@@ -2249,9 +2363,9 @@ the compiler.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+<li><strong>output_filepath</strong> – path to the file that should be produced by cut3D, if required. At this stage it would be
 safer to use just the file name, as using an absolute or relative path may fail depending on
 the compiler.</li>
 </ul>
@@ -2270,9 +2384,9 @@ the compiler.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+<li><strong>output_filepath</strong> – path to the file that should be produced by cut3D, if required. At this stage it would be
 safer to use just the file name, as using an absolute or relative path may fail depending on
 the compiler.</li>
 </ul>
@@ -2291,12 +2405,12 @@ the compiler.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>output_filepath</strong> &#8211; path to the file that should be produced by cut3D, if required. At this stage it would be
+<li><strong>output_filepath</strong> – path to the file that should be produced by cut3D, if required. At this stage it would be
 safer to use just the file name, as using an absolute or relative path may fail depending on
 the compiler.</li>
-<li><strong>shift</strong> &#8211; a list of three integers defining the shift along the x, y, z axis.
+<li><strong>shift</strong> – a list of three integers defining the shift along the x, y, z axis.
 None if no shift is required.</li>
 </ul>
 </td>
@@ -2320,10 +2434,10 @@ None if no shift is required.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>all_el_dens_paths</strong> &#8211; a list of paths to the all-electron density files corresponding to the elements defined
-in the abinit input. See <a class="reference external" href="http://www.abinit.org/downloads/all_core_electron">http://www.abinit.org/downloads/all_core_electron</a> for files.</li>
+<li><strong>all_el_dens_paths</strong> – a list of paths to the all-electron density files corresponding to the elements defined
+in the abinit input. See <a class="reference external" href="https://www.abinit.org/downloads/all_core_electron">https://www.abinit.org/downloads/all_core_electron</a> for files.</li>
 </ul>
 </td>
 </tr>
@@ -2336,7 +2450,7 @@ in the abinit input. See <a class="reference external" href="http://www.abinit.o
 <em class="property">classmethod </em><code class="descname">hirshfeld_from_fhi_path</code><span class="sig-paren">(</span><em>density_filepath</em>, <em>structure</em>, <em>fhi_all_el_path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#Cut3DInput.hirshfeld_from_fhi_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.Cut3DInput.hirshfeld_from_fhi_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a cut3d input for the calculation of the Hirshfeld charges from the density. Automatically
 selects the all-electron density files from a folder containing the fhi all-electron density files:
-<a class="reference external" href="http://www.abinit.org/downloads/all_core_electron">http://www.abinit.org/downloads/all_core_electron</a></p>
+<a class="reference external" href="https://www.abinit.org/downloads/all_core_electron">https://www.abinit.org/downloads/all_core_electron</a></p>
 <p>This will work only if the input has been generated with AbinitInput and the Structure object is the same
 provided to AbinitInput.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2344,10 +2458,10 @@ provided to AbinitInput.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>density_filepath</strong> &#8211; absolute or relative path to the input density produced by abinit. Can be None to be
+<li><strong>density_filepath</strong> – absolute or relative path to the input density produced by abinit. Can be None to be
 defined at a later time.</li>
-<li><strong>structure</strong> &#8211; the structure used for the ground state calculation. Used to determine the elements</li>
-<li><strong>fhi_all_el_path</strong> &#8211; path to the folder containing the fhi all-electron density files</li>
+<li><strong>structure</strong> – the structure used for the ground state calculation. Used to determine the elements</li>
+<li><strong>fhi_all_el_path</strong> – path to the folder containing the fhi all-electron density files</li>
 </ul>
 </td>
 </tr>
@@ -2376,7 +2490,7 @@ defined at a later time.</li>
 <p>This object is essentially a list of <a class="reference internal" href="#abipy.abio.inputs.AbinitInput" title="abipy.abio.inputs.AbinitInput"><code class="xref py py-class docutils literal"><span class="pre">AbinitInput</span></code></a> objects.
 that provides an easy-to-use interface to apply global changes to the
 the inputs stored in the objects.</p>
-<p>Let&#8217;s assume for example that multi contains two <cite>AbinitInput</cite> objects and we
+<p>Let’s assume for example that multi contains two <cite>AbinitInput</cite> objects and we
 want to set <cite>ecut</cite> to 1 in both dictionaries. The direct approach would be:</p>
 <blockquote>
 <div><dl class="docutils">
@@ -2395,13 +2509,13 @@ want to set <cite>ecut</cite> to 1 in both dictionaries. The direct approach wou
 <blockquote>
 <div><blockquote>
 <div>multi.set_vars(ecut=1)</div></blockquote>
-<p>multi.get(&#8220;ecut&#8221;) returns a list of values. It&#8217;s equivalent to:</p>
+<p>multi.get(“ecut”) returns a list of values. It’s equivalent to:</p>
 <blockquote>
-<div>[inp[&#8220;ecut&#8221;] for inp in multi]</div></blockquote>
-<p>Note that if &#8220;ecut&#8221; is not present in one of the input of multi, the corresponding entry is set to None.
+<div>[inp[“ecut”] for inp in multi]</div></blockquote>
+<p>Note that if “ecut” is not present in one of the input of multi, the corresponding entry is set to None.
 A default value can be specified with:</p>
 <blockquote>
-<div>multi.get(&#8220;paral_kgb&#8221;, 0)</div></blockquote>
+<div>multi.get(“paral_kgb”, 0)</div></blockquote>
 </div></blockquote>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -2424,8 +2538,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>tags</strong> &#8211; A single tag or list/tuple/set of tags</li>
-<li><strong>dtindeces</strong> &#8211; a list of indices to which the tags will be added. None=all the inputs.</li>
+<li><strong>tags</strong> – A single tag or list/tuple/set of tags</li>
+<li><strong>dtindeces</strong> – a list of indices to which the tags will be added. None=all the inputs.</li>
 </ul>
 </td>
 </tr>
@@ -2472,8 +2586,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tags</strong> &#8211; A single tag or list/tuple/set of tags</li>
-<li><strong>exclude_tags</strong> &#8211; A single tag or list/tuple/set of tags that should be excluded</li>
+<li><strong>tags</strong> – A single tag or list/tuple/set of tags</li>
+<li><strong>exclude_tags</strong> – A single tag or list/tuple/set of tags that should be excluded</li>
 </ul>
 </td>
 </tr>
@@ -2529,8 +2643,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>tags</strong> &#8211; A single tag or list/tuple/set of tags</li>
-<li><strong>dtindeces</strong> &#8211; a list of indices from which the tags will be removed. None=all the inputs.</li>
+<li><strong>tags</strong> – A single tag or list/tuple/set of tags</li>
+<li><strong>dtindeces</strong> – a list of indices from which the tags will be removed. None=all the inputs.</li>
 </ul>
 </td>
 </tr>
@@ -2559,8 +2673,8 @@ but each input in MultiDataset must have the same set of pseudopotentials.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mode</strong> &#8211; Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
-<li><strong>with_pseudos</strong> &#8211; False if JSON section with pseudo data should not be added.</li>
+<li><strong>mode</strong> – Either <cite>text</cite> or <cite>html</cite> if HTML output with links is wanted.</li>
+<li><strong>with_pseudos</strong> – False if JSON section with pseudo data should not be added.</li>
 </ul>
 </td>
 </tr>
@@ -2592,10 +2706,10 @@ is constructed from the dataset index e.g. run0.abi</p>
 <p class="rubric">Example</p>
 <dl class="docutils">
 <dt>&amp;FILES</dt>
-<dd>ddkfile_1 = &#8216;abo_1WF7&#8217;,
-ddkfile_2 = &#8216;abo_1WF8&#8217;,
-ddkfile_3 = &#8216;abo_1WF9&#8217;,
-wfkfile = &#8216;abo_WFK&#8217;</dd>
+<dd>ddkfile_1 = ‘abo_1WF7’,
+ddkfile_2 = ‘abo_1WF8’,
+ddkfile_3 = ‘abo_1WF9’,
+wfkfile = ‘abo_WFK’</dd>
 </dl>
 <p>/
 &amp;PARAMETERS</p>
@@ -2631,8 +2745,8 @@ Note: This method is a stub, it always return retcode 0</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>workdir</strong> &#8211; Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
-<li><strong>manager</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
+<li><strong>workdir</strong> – Working directory of the fake task used to compute the ibz. Use None for temporary dir.</li>
+<li><strong>manager</strong> – <code class="xref py py-class docutils literal"><span class="pre">TaskManager</span></code> of the task. If None, the manager is initialized from the config file.</li>
 </ul>
 </td>
 </tr>
@@ -2669,6 +2783,30 @@ task: Task object</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.inputs.OpticInput.only_independent_chi_components">
+<code class="descname">only_independent_chi_components</code><span class="sig-paren">(</span><em>structure</em>, <em>assume_symmetric_tensor=False</em>, <em>symprec=0.001</em>, <em>angle_tolerance=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput.only_independent_chi_components"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput.only_independent_chi_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the crystal system returned by spglib to find the independent components
+of the linear susceptibility tensor and set the appropriate variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>structure</strong> – Crystalline structure</li>
+<li><strong>assume_symmetric_tensor</strong> – True if tensor can be assumed symmetric.
+Note that the tensor is symmetric only for a lossless and non-optically active material.</li>
+<li><strong>angle_tolerance</strong> (<a class="reference internal" href="core_api.html#abipy.core.skw.ElectronInterpolator.symprec" title="abipy.core.skw.ElectronInterpolator.symprec"><em>symprec</em></a><em>,</em>) – Parameters passed to spglib.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Set internal variables and return list of components to compute.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.inputs.OpticInput.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
@@ -2687,7 +2825,7 @@ task: Task object</p>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.OpticVar" title="abipy.abio.inputs.OpticVar"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.OpticVar</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.inputs.OpticVar.html_link">
-<code class="descname">html_link</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticVar.html_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticVar.html_link" title="Permalink to this definition">¶</a></dt>
+<code class="descname">html_link</code><span class="sig-paren">(</span><em>label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticVar.html_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticVar.html_link" title="Permalink to this definition">¶</a></dt>
 <dd><p>String with the URL of the web page.</p>
 </dd></dl>
 
@@ -2732,8 +2870,8 @@ cycle in self with the ones in others.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>others</strong> &#8211; list of <cite>AbinitOutputFile</cite> objects or strings with paths to output files.</li>
-<li><strong>show</strong> &#8211; True to diplay plots.</li>
+<li><strong>others</strong> – list of <cite>AbinitOutputFile</cite> objects or strings with paths to output files.</li>
+<li><strong>show</strong> – True to diplay plots.</li>
 </ul>
 </td>
 </tr>
@@ -2751,8 +2889,8 @@ cycle in self with the ones in others.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>others</strong> &#8211; list of <cite>AbinitOutputFile</cite> objects or strings with paths to output files.</li>
-<li><strong>show</strong> &#8211; True to diplay plots.</li>
+<li><strong>others</strong> – list of <cite>AbinitOutputFile</cite> objects or strings with paths to output files.</li>
+<li><strong>show</strong> – True to diplay plots.</li>
 </ul>
 </td>
 </tr>
@@ -2829,6 +2967,20 @@ For example:</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.outputs.AbinitOutputFile.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>tight_layout=True</em>, <em>with_timer=False</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot GS/DFPT SCF cycles and timer data found in the output file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_timer</strong> – True if timer section should be plotted</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.outputs.AbinitOutputFile.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2877,7 +3029,7 @@ via instance attribute e.g. <cite>outfile.ecut</cite>. Provides integration with
 <dt id="abipy.abio.outputs.OutNcFile.get_allvars">
 <code class="descname">get_allvars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#OutNcFile.get_allvars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.OutNcFile.get_allvars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read all netcdf variables present in the file.
-Return dictionary varname &#8211;&gt; value</p>
+Return dictionary varname –&gt; value</p>
 </dd></dl>
 
 </dd></dl>
@@ -2891,8 +3043,8 @@ Return dictionary varname &#8211;&gt; value</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dirpath</strong> &#8211; Abinit tests directory.</li>
-<li><strong>output_files</strong> &#8211; List of Abinit output files.</li>
+<li><strong>dirpath</strong> – Abinit tests directory.</li>
+<li><strong>output_files</strong> – List of Abinit output files.</li>
 </ul>
 </td>
 </tr>
@@ -2904,210 +3056,13 @@ Return dictionary varname &#8211;&gt; value</p>
 </div>
 <div class="section" id="module-abipy.abio.robots">
 <span id="robots-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">robots</span></code> Module<a class="headerlink" href="#module-abipy.abio.robots" title="Permalink to this headline">¶</a></h2>
-<p>Robots.</p>
-<dl class="class">
-<dt id="abipy.abio.robots.DdbRobot">
-<em class="property">class </em><code class="descclassname">abipy.abio.robots.</code><code class="descname">DdbRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>This robot analyzes the results contained in multiple DDB files.</p>
-<dl class="attribute">
-<dt id="abipy.abio.robots.DdbRobot.EXT">
-<code class="descname">EXT</code><em class="property"> = 'DDB'</em><a class="headerlink" href="#abipy.abio.robots.DdbRobot.EXT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.abio.robots.DdbRobot.class_handles_filename">
-<em class="property">classmethod </em><code class="descname">class_handles_filename</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.class_handles_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.class_handles_filename" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exclude DDB.nc files.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.DdbRobot.get_dataframe_at_qpoint">
-<code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
-by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>qpoint</strong> &#8211; Reduced coordinates of the qpoint where phonon modes are computed</li>
-<li><strong>chneut</strong><strong>, </strong><strong>dipdp</strong> (<em>asr</em><em>,</em><em></em>) &#8211; Anaddb input variable. See official documentation.</li>
-<li><strong>with_geo</strong> &#8211; True if structure info should be added to the dataframe</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas DataFrame</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.DdbRobot.get_phonon_plotters">
-<code class="descname">get_phonon_plotters</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.get_phonon_plotters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.get_phonon_plotters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invoke anaddb to compute phonon bands and DOS using the arguments passed via <a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs.
-Collect results and return <cite>namedtuple</cite> with the following attributes:</p>
-<blockquote>
-<div>phbands_plotter: <cite>PhononBandsPlotter</cite> object.
-phdos_plotter: <cite>PhononDosPlotter</cite> object.</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.DdbRobot.plot_conv_phfreqs_qpoint">
-<code class="descname">plot_conv_phfreqs_qpoint</code><span class="sig-paren">(</span><em>x_vars</em>, <em>qpoint=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.plot_conv_phfreqs_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.plot_conv_phfreqs_qpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the convergence of the phonon frequencies.
-kwargs are passed to <code class="xref py py-class docutils literal"><span class="pre">seaborn.PairGrid</span></code>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.DdbRobot.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#DdbRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.DdbRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-working directory is created. Return path to the notebook.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.abio.robots.GsrRobot">
-<em class="property">class </em><code class="descclassname">abipy.abio.robots.</code><code class="descname">GsrRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#GsrRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.GsrRobot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>This robot analyzes the results contained in multiple GSR files.</p>
-<dl class="attribute">
-<dt id="abipy.abio.robots.GsrRobot.EXT">
-<code class="descname">EXT</code><em class="property"> = 'GSR'</em><a class="headerlink" href="#abipy.abio.robots.GsrRobot.EXT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.GsrRobot.eos_fit">
-<code class="descname">eos_fit</code><span class="sig-paren">(</span><em>eos_name='murnaghan'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#GsrRobot.eos_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.GsrRobot.eos_fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit E(V)
-For the list of available models, see EOS.MODELS</p>
-<p>TODO: which default? all should return a list of fits</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.GsrRobot.get_dataframe">
-<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#GsrRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.GsrRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a pandas DataFrame with the most important GS results.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>with_geo</strong> &#8211; True if structure info should be added to the dataframe</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>kwargs:</dt>
-<dd><dl class="first last docutils">
-<dt>attrs:</dt>
-<dd>List of additional attributes of the <code class="xref py py-class docutils literal"><span class="pre">GsrFile</span></code> to add to
-the pandas <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></dd>
-<dt>funcs:</dt>
-<dd>Function or list of functions to execute to add more data to the DataFrame.
-Each function receives a <code class="xref py py-class docutils literal"><span class="pre">GsrFile</span></code> object and returns a tuple (key, value)
-where key is a string with the name of column and value is the value to be inserted.</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.GsrRobot.get_ebands_plotter">
-<code class="descname">get_ebands_plotter</code><span class="sig-paren">(</span><em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#GsrRobot.get_ebands_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.GsrRobot.get_ebands_plotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return an instance of <cite>ElectronBandsPlotter</cite> or a subclass is cls is not None.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cls</strong> &#8211; subclass of <cite>ElectronBandsPlotter</cite></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.GsrRobot.get_edos_plotter">
-<code class="descname">get_edos_plotter</code><span class="sig-paren">(</span><em>cls=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#GsrRobot.get_edos_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.GsrRobot.get_edos_plotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return an instance of <cite>ElectronDosPlotter</cite> or a subclass is cls is not None.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>cls</strong> &#8211; subclass of <cite>ElectronDosPlotter</cite></li>
-<li><strong>kwargs</strong> &#8211; Arguments passed to ebands.get_edos</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.GsrRobot.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#GsrRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.GsrRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-working directory is created. Return path to the notebook.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.abio.robots.MdfRobot">
-<em class="property">class </em><code class="descclassname">abipy.abio.robots.</code><code class="descname">MdfRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#MdfRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.MdfRobot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>This robot analyzes the results contained in multiple MDF files.</p>
-<dl class="attribute">
-<dt id="abipy.abio.robots.MdfRobot.EXT">
-<code class="descname">EXT</code><em class="property"> = 'MDF'</em><a class="headerlink" href="#abipy.abio.robots.MdfRobot.EXT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.MdfRobot.get_dataframe">
-<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#MdfRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.MdfRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return Pandas dataframe with the most import BSE results.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>with_geo</strong> &#8211; True if structure info should be added to the dataframe</li>
-<li><strong>funcs</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas DataFrame</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.MdfRobot.get_multimdf_plotter">
-<code class="descname">get_multimdf_plotter</code><span class="sig-paren">(</span><em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#MdfRobot.get_multimdf_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.MdfRobot.get_multimdf_plotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.MdfRobot.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#MdfRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.MdfRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-working directory is created. Return path to the notebook.</p>
-</dd></dl>
-
-</dd></dl>
-
+<p>This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
+functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.</p>
 <dl class="class">
 <dt id="abipy.abio.robots.Robot">
 <em class="property">class </em><code class="descclassname">abipy.abio.robots.</code><code class="descname">Robot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>The main function of a <cite>Robot</cite> is facilitating the extraction of the output data produced by
-multiple tasks in a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>. This is the base class from which all Robot subclasses should derive.
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<p>This is the base class from which all Robot subclasses should derive.
 A Robot supports the <cite>with</cite> context manager:</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">Robot</span><span class="p">([(</span><span class="s2">&quot;label1&quot;</span><span class="p">,</span> <span class="s2">&quot;file1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">label2</span><span class="p">,</span> <span class="s2">&quot;file2&quot;</span><span class="p">)])</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
@@ -3122,16 +3077,18 @@ A Robot supports the <cite>with</cite> context manager:</p>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.add_file">
-<code class="descname">add_file</code><span class="sig-paren">(</span><em>label</em>, <em>ncfile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_file" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_file</code><span class="sig-paren">(</span><em>label</em>, <em>ncfile</em>, <em>filter_abifile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a file to the robot with the given label.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>label</strong> &#8211; String used to identify the file (must be unique, ax exceptions is
+<li><strong>label</strong> – String used to identify the file (must be unique, ax exceptions is
 raised if label is already present.</li>
-<li><strong>ncfile</strong> &#8211; Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.</li>
+<li><strong>ncfile</strong> – Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.</li>
+<li><strong>filter_abifile</strong> – Function that receives an <cite>abifile</cite> object and returns
+True if the file should be added to the plotter.</li>
 </ul>
 </td>
 </tr>
@@ -3142,7 +3099,8 @@ raised if label is already present.</li>
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.change_labels">
 <code class="descname">change_labels</code><span class="sig-paren">(</span><em>new_labels</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.change_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.change_labels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Change labels of the files. Return mapping new –&gt; old.</p>
+</dd></dl>
 
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.class_for_ext">
@@ -3159,7 +3117,7 @@ raised if label is already present.</li>
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close all files that have been opened by the Robot</p>
+<dd><p>Close all files that have been opened by the Robot.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3176,18 +3134,60 @@ raised if label is already present.</li>
 
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_dir">
-<em class="property">classmethod </em><code class="descname">from_dir</code><span class="sig-paren">(</span><em>top</em>, <em>walk=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_dir" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">from_dir</code><span class="sig-paren">(</span><em>top</em>, <em>walk=True</em>, <em>abspath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class method builds a robot by scanning all files located within directory <cite>top</cite>.
 This method should be invoked with a concrete robot class, for example:</p>
 <blockquote>
-<div>robot = GsrRobot.from_dir(&#8221;.&#8221;)</div></blockquote>
+<div>robot = GsrRobot.from_dir(“.”)</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>top</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Root directory</li>
-<li><strong>walk</strong> &#8211; if True, directories inside <cite>top</cite> are included as well.</li>
+<li><strong>top</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Root directory</li>
+<li><strong>walk</strong> – if True, directories inside <cite>top</cite> are included as well.</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to <cite>top</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.abio.robots.Robot.from_dir_glob">
+<em class="property">classmethod </em><code class="descname">from_dir_glob</code><span class="sig-paren">(</span><em>pattern</em>, <em>walk=True</em>, <em>abspath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_dir_glob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_dir_glob" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class method builds a robot by scanning all files located within the directories
+matching <cite>pattern</cite> as implemented by glob.glob
+This method should be invoked with a concrete robot class, for example:</p>
+<blockquote>
+<div>robot = GsrRobot.from_dir_glob(“flow_dir/w*/outdata/”)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pattern</strong> – Pattern string</li>
+<li><strong>walk</strong> – if True, directories inside <cite>top</cite> are included as well.</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.abio.robots.Robot.from_dirs">
+<em class="property">classmethod </em><code class="descname">from_dirs</code><span class="sig-paren">(</span><em>dirpaths</em>, <em>walk=True</em>, <em>abspath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_dirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_dirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Similar to <cite>from_dir</cite> but accepts a list of directories instead of a single directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>walk</strong> – if True, directories inside <cite>top</cite> are included as well.</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to <cite>top</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -3203,25 +3203,78 @@ This method should be invoked with a concrete robot class, for example:</p>
 
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_flow">
-<em class="property">classmethod </em><code class="descname">from_flow</code><span class="sig-paren">(</span><em>flow</em>, <em>outdirs='all'</em>, <em>nids=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_flow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a robot from a Flow.</p>
+<em class="property">classmethod </em><code class="descname">from_flow</code><span class="sig-paren">(</span><em>flow</em>, <em>outdirs='all'</em>, <em>nids=None</em>, <em>ext=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a robot from a Flow object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>flow</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> object</li>
-<li><strong>outdirs</strong> &#8211; String used to select/ignore the files in the output directory of flow, works and tasks
-outdirs=&#8221;work&#8221; selects only the outdir of the Works,
-outdirs=&#8221;flow+task&#8221; selects the outdir of the Flow and the outdirs of the tasks
-outdirs=&#8221;-work&#8221; excludes the outdir of the Works.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>flow</strong> – <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> object</li>
+<li><strong>outdirs</strong> – String used to select/ignore the files in the output directory of flow, works and tasks
+outdirs=”work” selects only the outdir of the Works,
+outdirs=”flow+task” selects the outdir of the Flow and the outdirs of the tasks
+outdirs=”-work” excludes the outdir of the Works.
 Cannot use <cite>+</cite> and <cite>-</cite> flags in the same string.
-Default: <cite>all</cite> that is equivalent to &#8220;flow+work+task&#8221;</li>
-<li><strong>nids</strong> &#8211; List of node identifiers used to select particular nodes. Not used if None</li>
+Default: <cite>all</cite> that is equivalent to “flow+work+task”</li>
+<li><strong>nids</strong> – List of node identifiers used to select particular nodes. Not used if None</li>
+<li><strong>ext</strong> – File extension associated to the robot. Mainly used if method is invoked with the BaseClass</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><cite>Robot</cite> subclass.</p>
+</tbody>
+</table>
+<p>Usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">GsrRobot</span><span class="o">.</span><span class="n">from_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
+
+<span class="c1"># That is equivalent to:</span>
+
+<span class="k">with</span> <span class="n">Robot</span><span class="o">.</span><span class="n">from_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;GSR&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><cite>Robot</cite> subclass.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.get_baserobot_code_cells">
+<code class="descname">get_baserobot_code_cells</code><span class="sig-paren">(</span><em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_baserobot_code_cells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_baserobot_code_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of notebook cells with calls to methods provides by the baseclass.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.get_coords_dataframe">
+<code class="descname">get_coords_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_coords_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_coords_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pandas DataFrame with atomic positions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.get_lattice_dataframe">
+<code class="descname">get_lattice_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_lattice_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_lattice_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pandas DataFrame with lattice parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.get_structure_dataframes">
+<code class="descname">get_structure_dataframes</code><span class="sig-paren">(</span><em>abspath=False</em>, <em>filter_abifile=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_structure_dataframes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_structure_dataframes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap dataframes_from_structures function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>filter_abifile</strong> – Function that receives an <cite>abifile</cite> object and returns
+True if the file should be added to the plotter.</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -3229,8 +3282,20 @@ Default: <cite>all</cite> that is equivalent to &#8220;flow+work+task&#8221;</li
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.robots.Robot.is_sortable">
+<code class="descname">is_sortable</code><span class="sig-paren">(</span><em>aname</em>, <em>raise_exc=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.is_sortable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.is_sortable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if <cite>aname</cite> is an attribute of the netcdf file
+If raise_exc is True, AttributeError with an explicit message is raised.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.robots.Robot.items">
 <code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.abio.robots.Robot.labels">
+<code class="descname">labels</code><a class="headerlink" href="#abipy.abio.robots.Robot.labels" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -3244,6 +3309,12 @@ Default: <cite>all</cite> that is equivalent to &#8220;flow+work+task&#8221;</li
 <em class="property">classmethod </em><code class="descname">open</code><span class="sig-paren">(</span><em>obj</em>, <em>nids=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.open" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flexible constructor. obj can be a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> or a string with the directory containing the Flow.
 <cite>nids</cite> is an optional list of <code class="xref py py-class docutils literal"><span class="pre">Node</span></code> identifiers used to filter the set of <code class="xref py py-class docutils literal"><span class="pre">Task</span></code> in the Flow.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abipy.abio.robots.Robot.ordered_intersection">
+<em class="property">static </em><code class="descname">ordered_intersection</code><span class="sig-paren">(</span><em>list_1</em>, <em>list_2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.ordered_intersection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.ordered_intersection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return ordered intersection of two lists. Items must be hashable.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3261,8 +3332,8 @@ Default: <cite>all</cite> that is equivalent to &#8220;flow+work+task&#8221;</li
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>top</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Root directory</li>
-<li><strong>walk</strong> &#8211; if True, directories inside <cite>top</cite> are included as well.</li>
+<li><strong>top</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Root directory</li>
+<li><strong>walk</strong> – if True, directories inside <cite>top</cite> are included as well.</li>
 </ul>
 </td>
 </tr>
@@ -3277,6 +3348,34 @@ Default: <cite>all</cite> that is equivalent to &#8220;flow+work+task&#8221;</li
 <dt id="abipy.abio.robots.Robot.show_files">
 <code class="descname">show_files</code><span class="sig-paren">(</span><em>stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.show_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.show_files" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.robots.Robot.sortby">
+<code class="descname">sortby</code><span class="sig-paren">(</span><em>func_or_string</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.sortby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.sortby" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort files in the robot by <cite>func_or_string</cite>
+Return list of (label, ncfile, param) tuples where param is obtained via <cite>func_or_string</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func_or_string</strong> – Either None, string, callable defining the quantity to be used for sorting.
+If string, it’s assumed that the ncfile has an attribute with the same name and getattr is invoked.
+If callable, the output of callable(ncfile) is used.
+If None, no sorting is performed.</li>
+<li><strong>reverse</strong> – If set to True, then the list elements are sorted as if each comparison were reversed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abipy.abio.robots.Robot.sortby_label">
+<em class="property">static </em><code class="descname">sortby_label</code><span class="sig-paren">(</span><em>sortby</em>, <em>param</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.sortby_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.sortby_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the label to be used when files are sorted with <cite>sortby</cite>.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.abio.robots.Robot.start">
@@ -3298,72 +3397,6 @@ If start is None, os.getcwd() is used. Set <cite>self.start</cite> attribute, re
 
 </dd></dl>
 
-<dl class="class">
-<dt id="abipy.abio.robots.SigresRobot">
-<em class="property">class </em><code class="descclassname">abipy.abio.robots.</code><code class="descname">SigresRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>This robot analyzes the results contained in multiple SIGRES files.</p>
-<dl class="attribute">
-<dt id="abipy.abio.robots.SigresRobot.EXT">
-<code class="descname">EXT</code><em class="property"> = 'SIGRES'</em><a class="headerlink" href="#abipy.abio.robots.SigresRobot.EXT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.SigresRobot.get_qpgaps_dataframe">
-<code class="descname">get_qpgaps_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot.get_qpgaps_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot.get_qpgaps_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a pandas DataFrame with the most important results for the given (spin, kpoint).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>spin</strong> &#8211; Spin index.</li>
-<li><strong>kpoint</strong> &#8211; </li>
-<li><strong>with_geo</strong> &#8211; True if structure info should be added to the dataframe</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.SigresRobot.merge_dataframes_sk">
-<code class="descname">merge_dataframes_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot.merge_dataframes_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot.merge_dataframes_sk" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.SigresRobot.plot_conv_qpgap">
-<code class="descname">plot_conv_qpgap</code><span class="sig-paren">(</span><em>x_vars</em>, <em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot.plot_conv_qpgap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot.plot_conv_qpgap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the convergence of the Quasi-particle gap.
-kwargs are passed to <code class="xref py py-class docutils literal"><span class="pre">seaborn.PairGrid</span></code>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.abio.robots.SigresRobot.write_notebook">
-<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#SigresRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.SigresRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
-working directory is created. Return path to the notebook.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.abio.robots.abirobot">
-<code class="descclassname">abipy.abio.robots.</code><code class="descname">abirobot</code><span class="sig-paren">(</span><em>obj</em>, <em>ext</em>, <em>nids=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#abirobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.abirobot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Factory function that builds and return the <a class="reference internal" href="#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">Robot</span></code></a> subclass from the file
-extension <cite>ext</cite>. <cite>obj</cite> can be a directory path, or a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> instance.
-<cite>nids</cite> is an optional list of node identifiers used to filter the tasks in the flow.</p>
-<p>Usage example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">abirobot</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="s2">&quot;GSR&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
-    <span class="c1"># do something with robot and close the GSR files when done.</span>
-
-<span class="k">with</span> <span class="n">abirobot</span><span class="p">(</span><span class="s2">&quot;dirpath&quot;</span><span class="p">,</span> <span class="s2">&quot;SIGRES&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
-    <span class="c1"># do something with robot and close the SIGRES files when done.</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </div>
 <div class="section" id="module-abipy.abio.timer">
 <span id="timer-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">timer</span></code> Module<a class="headerlink" href="#module-abipy.abio.timer" title="Permalink to this headline">¶</a></h2>
@@ -3372,7 +3405,7 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2017.7.4)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>
@@ -3386,29 +3419,22 @@ working directory is created. Return path to the notebook.</p>
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="../_sources/api/abio_api.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

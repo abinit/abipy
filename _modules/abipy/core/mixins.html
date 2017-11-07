@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.core.mixins &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.core.mixins</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;This module ...&quot;&quot;&quot;</span>
@@ -95,7 +151,6 @@
     <span class="s2">&quot;Has_PhononBands&quot;</span><span class="p">,</span>
     <span class="s2">&quot;NotebookWriter&quot;</span><span class="p">,</span>
     <span class="c1">#&quot;Has_Header&quot;,</span>
-    <span class="c1">#&quot;AbinitHeader&quot;,</span>
 <span class="p">]</span>
 
 <span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -220,15 +275,21 @@
         <span class="k">return</span> <span class="n">var_values</span>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="AbinitNcFile"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile">[docs]</a><span class="k">class</span> <span class="nc">AbinitNcFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitNcFile"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AbinitNcFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class representing a Netcdf file with data saved</span>
 <span class="sd">    according to the ETSF-IO specifications (when available).</span>
+<span class="sd">    A AbinitNcFile has a netcdf reader to read data from file and build objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="AbinitNcFile.ncdump"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile.ncdump">[docs]</a>    <span class="k">def</span> <span class="nf">ncdump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">nc_args</span><span class="p">,</span> <span class="o">**</span><span class="n">nc_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a string with the output of ncdump.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">NcDumper</span><span class="p">(</span><span class="o">*</span><span class="n">nc_args</span><span class="p">,</span> <span class="o">**</span><span class="n">nc_kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">NcDumper</span><span class="p">(</span><span class="o">*</span><span class="n">nc_args</span><span class="p">,</span> <span class="o">**</span><span class="n">nc_kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbinitNcFile.abinit_version"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile.abinit_version">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">abinit_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String with abinit version: three digits separated by comma.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="s2">&quot;abinit_version&quot;</span><span class="p">)</span></div></div>
 
 
 <span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -271,8 +332,8 @@
     <span class="c1">#        cube_write_data(fh, data, mesh):</span>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="Has_Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Structure">[docs]</a><span class="k">class</span> <span class="nc">Has_Structure</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Has_Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Structure">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Has_Structure</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mixin class for :class:`AbinitNcFile` containing crystallographic data.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
@@ -316,8 +377,8 @@
             <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for visu_name </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div></div>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="Has_ElectronBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands">[docs]</a><span class="k">class</span> <span class="nc">Has_ElectronBands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Has_ElectronBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Has_ElectronBands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mixin class for :class:`AbinitNcFile` containing electron data.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
@@ -372,8 +433,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot_with_edos</span><span class="p">(</span><span class="n">dos</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="Has_PhononBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands">[docs]</a><span class="k">class</span> <span class="nc">Has_PhononBands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Has_PhononBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Has_PhononBands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mixin class for :class:`AbinitNcFile` containing phonon data.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
@@ -442,8 +503,8 @@
     <span class="p">])</span>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="NotebookWriter"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter">[docs]</a><span class="k">class</span> <span class="nc">NotebookWriter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="NotebookWriter"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NotebookWriter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mixin class for objects that are able to generate jupyter notebooks.</span>
 <span class="sd">    Subclasses must provide a concrete implementation of `write_notebook`.</span>
@@ -480,11 +541,18 @@
             <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">fd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">fd</span><span class="p">)</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;pid: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NotebookWriter.get_nbformat_nbv_nb"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb">[docs]</a>    <span class="k">def</span> <span class="nf">get_nbformat_nbv_nb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NotebookWriter.get_nbformat_nbv"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv">[docs]</a>    <span class="k">def</span> <span class="nf">get_nbformat_nbv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return nbformat module, notebook version module&quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">nbformat</span>
         <span class="n">nbv</span> <span class="o">=</span> <span class="n">nbformat</span><span class="o">.</span><span class="n">v4</span>
+        <span class="k">return</span> <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span></div>
+
+<div class="viewcode-block" id="NotebookWriter.get_nbformat_nbv_nb"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv_nb">[docs]</a>    <span class="k">def</span> <span class="nf">get_nbformat_nbv_nb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return nbformat module, notebook version module</span>
+<span class="sd">        and new notebook with title and import section</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv</span><span class="p">()</span>
         <span class="n">nb</span> <span class="o">=</span> <span class="n">nbv</span><span class="o">.</span><span class="n">new_notebook</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -500,8 +568,10 @@
 <span class="s2">%matplotlib notebook</span>
 <span class="s2">from IPython.display import display</span>
 
-<span class="s2"># Uncomment this line to activate seaborn settings.</span>
+<span class="s2"># Use seaborn settings for plots. See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set</span>
 <span class="s2">#import seaborn as sns</span>
+<span class="s2">#sns.set(context=&#39;notebook&#39;, style=&#39;darkgrid&#39;, palette=&#39;deep&#39;,</span>
+<span class="s2">#        font=&#39;sans-serif&#39;, font_scale=1, color_codes=False, rc=None)</span>
 
 <span class="s2"># This to render pandas DataFrames with https://github.com/quantopian/qgrid</span>
 <span class="s2">#import qgrid</span>
@@ -510,13 +580,17 @@
 <span class="s2"># This to view Mayavi visualizations. See http://docs.enthought.com/mayavi/mayavi/tips.html</span>
 <span class="s2">#from mayavi import mlab; mlab.init_notebook(backend=&#39;x3d&#39;, width=None, height=None, local=True)</span>
 
-<span class="s2">from abipy import abilab&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="s2">from abipy import abilab</span>
+
+<span class="s2"># AbiPy widgets for pandas and seaborn plot APIs</span>
+<span class="s2">#import abipy.display.seabornw import snw</span>
+<span class="s2">#import abipy.display.pandasw import pdw&quot;&quot;&quot;</span><span class="p">)</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span></div>
 
-    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="NotebookWriter.write_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NotebookWriter.write_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.write_notebook">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.</span>
 <span class="sd">        Return path to the notebook. A typical template is given below.</span>
@@ -551,8 +625,8 @@
             <span class="n">nbformat</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">nbpath</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="NotebookWriter.pickle_load"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.pickle_load">[docs]</a>    <span class="k">def</span> <span class="nf">pickle_load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="NotebookWriter.pickle_load"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.pickle_load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">pickle_load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the object from a pickle file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -576,32 +650,34 @@
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">filepath</span></div></div>
 
-<span class="c1">#class Has_AbinitHeader(object)</span>
-<span class="c1">#    @lazy_property</span>
-<span class="c1">#    def hdr(self)</span>
-<span class="c1">#        return self.reader.read_hdr()</span>
+
+<span class="k">class</span> <span class="nc">Has_Header</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mixin class for netcdf files with the Abinit header.&quot;&quot;&quot;</span>
+
+    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">hdr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`AttrDict` with the Abinit header e.g. hdr.ecut.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_hdr</span><span class="p">()</span>
+
+    <span class="c1">#def compare_hdr(self, other):</span>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

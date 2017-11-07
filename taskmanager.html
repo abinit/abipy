@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>TaskManager &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,28 +20,77 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API documentation" href="api/index.html" />
-    <link rel="prev" title="plot example code: plot_xrd.py" href="examples/plot/plot_xrd.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+    <link rel="prev" title="GW corrections" href="gallery/plot_qpbands_with_interpolation.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">TaskManager</a><ul>
 <li><a class="reference internal" href="#how-to-configure-the-taskmanager">How to configure the TaskManager</a></li>
 <li><a class="reference internal" href="#taskmanager-for-a-personal-computer">TaskManager for a personal computer</a></li>
@@ -57,38 +102,52 @@
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="examples/plot/plot_xrd.html" title="previous chapter">plot example code: plot_xrd.py</a></li>
-      <li>Next: <a href="api/index.html" title="next chapter">API documentation</a></li>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/taskmanager.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+  <li>
+    <a href="gallery/plot_qpbands_with_interpolation.html" title="Previous Chapter: GW corrections"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; GW corrections</span>
+    </a>
+  </li>
+  <li>
+    <a href="api/index.html" title="Next Chapter: API documentation"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API documentation &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/taskmanager.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="taskmanager">
 <span id="id1"></span><h1>TaskManager<a class="headerlink" href="#taskmanager" title="Permalink to this headline">¶</a></h1>
 <p>Besides post-processing tools and a programmatic interface to generate input files,
@@ -102,7 +161,7 @@ environment variables, load modules with <code class="docutils literal"><span cl
 <p class="first admonition-title">Important</p>
 <p class="last">Please make sure that you can execute Abinit interactively with simple input files and
 that it works as expected before proceeding with the rest of the tutorial.
-It&#8217;s also a very good idea to run the Abinit test suite with the <a class="reference external" href="https://asciinema.org/a/40324">runtest.py script</a>
+It’s also a very good idea to run the Abinit test suite with the <a class="reference external" href="https://asciinema.org/a/40324">runtest.py script</a>
 before running production calculations.</p>
 </div>
 <div class="admonition tip">
@@ -129,7 +188,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal"><span class="pre">quadapters</span></code>.
-At the time of writing (Jun 27, 2017), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (Nov 07, 2017), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
@@ -147,7 +206,7 @@ complicated case in which the calculation must be submitted to a queue.</p>
 </div>
 <div class="section" id="taskmanager-for-a-personal-computer">
 <h2>TaskManager for a personal computer<a class="headerlink" href="#taskmanager-for-a-personal-computer" title="Permalink to this headline">¶</a></h2>
-<p>Let&#8217;s start from the simplest case i.e. a personal computer in which we can execute
+<p>Let’s start from the simplest case i.e. a personal computer in which we can execute
 applications directly from the shell (<code class="docutils literal"><span class="pre">qtype:</span> <span class="pre">shell</span></code>).
 In this case, the configuration file is relatively easy because we can run Abinit
 directly without having to generate and submit a script to the resource manager.
@@ -208,7 +267,7 @@ that will be executed by the shell script before invoking Abinit.
 In this case Abinit is not installed by default (the executable is not already in the path).
 The directory where the Abinit executables are located hence have to be prepended to the original <code class="docutils literal"><span class="pre">$PATH</span></code> variable.
 Change <code class="docutils literal"><span class="pre">pre_run</span></code> according to your Abinit installation and make sure that <code class="docutils literal"><span class="pre">mpirun</span></code> is also in <code class="docutils literal"><span class="pre">$PATH</span></code>.
-If you don&#8217;t use a parallel version of Abinit, just set <code class="docutils literal"><span class="pre">mpi_runner:</span> <span class="pre">null</span></code>
+If you don’t use a parallel version of Abinit, just set <code class="docutils literal"><span class="pre">mpi_runner:</span> <span class="pre">null</span></code>
 (<code class="docutils literal"><span class="pre">null</span></code> is the YAML version of the Python <code class="docutils literal"><span class="pre">None</span></code>).
 Note this approach also allows you to safely use multiple versions.</p>
 <p>Copy this example and change the entries in the <code class="docutils literal"><span class="pre">hardware</span></code> and the <code class="docutils literal"><span class="pre">limits</span></code> section according to
@@ -226,12 +285,12 @@ Qadapter selected: 0
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 8.3.2
+    Abinit version: 8.7.1
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 10626
+PyFlowScheduler, Pid: 86854
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 10}
 
 Installed packages:
@@ -239,14 +298,14 @@ Package         Version
 --------------  ----------------------
 system          Darwin
 python_version  3.6.1
-numpy           1.12.1
+numpy           1.13.3
 scipy           0.19.0
 netCDF4         1.2.7
 apscheduler     2.1.0
 pydispatch      2.0.5
 yaml            3.12
-pymatgen        4.7.2
-matplotlib      2.0.0 (backend: TkAgg)
+pymatgen        2017.11.6
+matplotlib      2.1.0 (backend: TkAgg)
 
 
 Abipy requirements are properly configured
@@ -254,10 +313,10 @@ Abipy requirements are properly configured
 </div>
 <p>This message tells us that everything is in place and we can finally run our first calculation.</p>
 <p>The directory <code class="docutils literal"><span class="pre">~abipy/data/runs</span></code> contains python scripts to generate workflows for typical ab-initio calculations.
-Here we focus on the configuration of the manager and the execution of the flow so we don&#8217;t discuss how to
+Here we focus on the configuration of the manager and the execution of the flow so we don’t discuss how to
 generate input files and create Flow objects in python.
 This topic is covered in more detail in our collection of <a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb">jupyter notebooks</a></p>
-<p>Let&#8217;s start from the simplest example i.e. the <code class="docutils literal"><span class="pre">run_si_ebands.py</span></code> script that generates
+<p>Let’s start from the simplest example i.e. the <code class="docutils literal"><span class="pre">run_si_ebands.py</span></code> script that generates
 a flow to compute the band structure of silicon at the Kohn-Sham level
 (GS calculation to get the density followed by a NSCF run along a k-path in the first Brillouin zone).</p>
 <p>Cd to <code class="docutils literal"><span class="pre">~abipy/data/runs</span></code> and execute <code class="docutils literal"><span class="pre">run_si_ebands.py</span></code> to generate the flow:</p>
@@ -310,7 +369,7 @@ $ ./run_si_ebands.py
 </div></blockquote>
 <div class="admonition danger">
 <p class="first admonition-title">Danger</p>
-<p class="last"><code class="docutils literal"><span class="pre">__AbinitFlow__.pickle</span></code> is the pickle file used to save the status of the <cite>Flow</cite>. Don&#8217;t touch it!</p>
+<p class="last"><code class="docutils literal"><span class="pre">__AbinitFlow__.pickle</span></code> is the pickle file used to save the status of the <cite>Flow</cite>. Don’t touch it!</p>
 </div>
 <p>The <code class="docutils literal"><span class="pre">job.sh</span></code> script has been generated by the <code class="docutils literal"><span class="pre">TaskManager</span></code> using the information provided by <code class="docutils literal"><span class="pre">manager.yml</span></code>.
 In this case it is a simple shell script that executes the code directly as we are using <code class="docutils literal"><span class="pre">qtype:</span> <span class="pre">shell</span></code>.
@@ -353,7 +412,7 @@ of our flow.</p>
 The <code class="docutils literal"><span class="pre">single</span></code> command executes the first task in the flow that is in the <code class="docutils literal"><span class="pre">READY</span></code> state that is a task
 whose dependencies have been fulfilled.
 <code class="docutils literal"><span class="pre">rapid</span></code>, on the other hand, submits <strong>all tasks</strong> of the flow that are in the <code class="docutils literal"><span class="pre">READY</span></code> state.
-Let&#8217;s try to run the flow with the <code class="docutils literal"><span class="pre">rapid</span></code> command...</p>
+Let’s try to run the flow with the <code class="docutils literal"><span class="pre">rapid</span></code> command…</p>
 <div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">$</span> abirun.py flow_si_ebands rapid
 
 <span class="go">Running on gmac2 -- system Darwin -- Python 2.7.12 -- abirun-0.1.0</span>
@@ -369,15 +428,15 @@ Let&#8217;s try to run the flow with the <code class="docutils literal"><span cl
 <span class="go">+--------+-------------+-----------------+--------------+------------+----------+-----------------+----------+-----------+</span>
 </pre></div>
 </div>
-<p>What&#8217;s happening here?
+<p>What’s happening here?
 The <code class="docutils literal"><span class="pre">rapid</span></code> command tried to execute all tasks that are <code class="docutils literal"><span class="pre">READY</span></code> but since the second task depends
 on the first one only the first task gets submitted.
 Note that the SCF task (<code class="docutils literal"><span class="pre">w0_t0</span></code>) has been submitted with 2 MPI processes.
 Before submitting the task, indeed, AbiPy
 invokes Abinit to get all the possible parallel configurations compatible within the limits
-specified by the user (e.g. <code class="docutils literal"><span class="pre">max_cores</span></code>), select an &#8220;optimal&#8221; configuration according
+specified by the user (e.g. <code class="docutils literal"><span class="pre">max_cores</span></code>), select an “optimal” configuration according
 to some policy and then submit the task with the optimized parameters.
-At this point, there&#8217;s no other task that can be executed, the script exits
+At this point, there’s no other task that can be executed, the script exits
 and we have to wait for the SCF task before running the second part of the flow.</p>
 <p>At each iteration, <code class="docutils literal"><span class="pre">abirun.py</span></code> prints a table with the status of the different tasks.
 The meaning of the columns is as follows:</p>
@@ -411,13 +470,13 @@ These operations can change the physics of the system.</dd>
 </dl>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">When the submission is done through the shell there&#8217;s almost no difference between
+<p class="last">When the submission is done through the shell there’s almost no difference between
 job submission and job execution. The scenario is completely different if you are submitting
 jobs to a resource manager because the task will get a priority value and will enter the queue.</p>
 </div>
 <p>If you execute <code class="docutils literal"><span class="pre">status</span></code> again, you should see that the first task is completed.
 We can thus run <code class="docutils literal"><span class="pre">rapid</span></code> again to launch the <code class="docutils literal"><span class="pre">NscfTask</span></code>.
-The second task won&#8217;t take long and if you issue <code class="docutils literal"><span class="pre">status</span></code> again, you should see that the entire flow
+The second task won’t take long and if you issue <code class="docutils literal"><span class="pre">status</span></code> again, you should see that the entire flow
 completed successfully.</p>
 <p>To understand what happened in more detail, use the <code class="docutils literal"><span class="pre">history</span></code> command to get
 the list of operations performed by AbiPy on each task.</p>
@@ -455,13 +514,13 @@ the list of operations performed by AbiPy on each task.</p>
 </div>
 <p>A closer inspection of the logs reveal that before submitting the first task, python has executed
 Abinit in <code class="docutils literal"><span class="pre">autoparal</span></code> mode to get the list of possible parallel configuration and the calculation is then submitted.
-At this point, AbiPy starts to look at the output files produced by the task to understand  what&#8217;s happening.
+At this point, AbiPy starts to look at the output files produced by the task to understand  what’s happening.
 When the first task completes, the status of the second task is automatically changed to <code class="docutils literal"><span class="pre">READY</span></code>,
 the <code class="docutils literal"><span class="pre">irdden</span></code> input variable is added to the input file of the second task and a symbolic link to
 the <code class="docutils literal"><span class="pre">DEN</span></code> file produced by <code class="docutils literal"><span class="pre">w0/t0</span></code> is created in the <code class="docutils literal"><span class="pre">indata</span></code> directory of <code class="docutils literal"><span class="pre">w0/t1</span></code>.
 Another auto-parallel run is executed for the NSCF calculation and the second task is finally submitted.</p>
-<p>The command line interface is very flexible and sometimes it&#8217;s the only tool available.
-However, there are cases in which we would like to have a global view of what&#8217;s happening.
+<p>The command line interface is very flexible and sometimes it’s the only tool available.
+However, there are cases in which we would like to have a global view of what’s happening.
 The command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abirun.py flow_si_ebands notebook
 </pre></div>
@@ -653,7 +712,7 @@ using the WFK produced by task 2 and the SCR file produced by task 3</li>
 <p><code class="docutils literal"><span class="pre">Pid</span></code> is the process identifier associated the scheduler (also saved in in the <code class="docutils literal"><span class="pre">_PyFlowScheduler.pid</span></code> file).</p>
 <div class="admonition important">
 <p class="first admonition-title">Important</p>
-<p class="last">A <code class="docutils literal"><span class="pre">_PyFlowScheduler.pid</span></code> file in <code class="docutils literal"><span class="pre">FLOWDIR</span></code> means that there&#8217;s a scheduler running the flow.
+<p class="last">A <code class="docutils literal"><span class="pre">_PyFlowScheduler.pid</span></code> file in <code class="docutils literal"><span class="pre">FLOWDIR</span></code> means that there’s a scheduler running the flow.
 Note that there must be only one scheduler associated to a given flow.</p>
 </div>
 <p>As you can easily understand the scheduler brings additional power to the AbiPy flow because
@@ -708,8 +767,8 @@ Options that can be specified in scheduler.yml:
 The configuration depends on specific queue management system (Slurm, PBS, etc) hence
 we assume that you are already familiar with job submissions and you know the options
 that mush be specified in the submission script in order to have your job accepted
-and executed by the management system (username, name of the queue, memory ...)</p>
-<p>Let&#8217;s assume that our computing center uses <code class="docutils literal"><span class="pre">Slurm</span></code> and our jobs must be submitted to the <code class="docutils literal"><span class="pre">default_queue</span></code> partition.
+and executed by the management system (username, name of the queue, memory …)</p>
+<p>Let’s assume that our computing center uses <code class="docutils literal"><span class="pre">Slurm</span></code> and our jobs must be submitted to the <code class="docutils literal"><span class="pre">default_queue</span></code> partition.
 In the best case, the system administrator of our cluster (or you create one yourself) already provides
 an <code class="docutils literal"><span class="pre">Abinit</span> <span class="pre">module</span></code> that can be loaded directly with <code class="docutils literal"><span class="pre">module</span> <span class="pre">load</span></code> before invoking the code.
 To make things a little bit more difficult, however, we assume the we had to compile our own version of Abinit
@@ -759,7 +818,7 @@ A <code class="docutils literal"><span class="pre">manager.yml</span></code> wit
 <p>$ abirun.py FLOWDIR doc_manager script</p>
 <p class="last">prints to screen the submission script that will be generated by AbiPy at runtime.</p>
 </div>
-<p>Let&#8217;s discuss the different options in more detail. Let&#8217;s start from the <code class="docutils literal"><span class="pre">queue</span></code> section:</p>
+<p>Let’s discuss the different options in more detail. Let’s start from the <code class="docutils literal"><span class="pre">queue</span></code> section:</p>
 <dl class="docutils">
 <dt><code class="docutils literal"><span class="pre">qtype</span></code></dt>
 <dd>String specifying the resource manager. This option tells AbiPy which <code class="docutils literal"><span class="pre">qadapter</span></code> to use to generate the submission
@@ -1110,15 +1169,16 @@ optional arguments:
                         verbosity.
   --no-colors           Disable ASCII colors.
   --no-logo             Disable AbiPy logo.
-  --loglevel LOGLEVEL   set the loglevel. Possible values: CRITICAL, ERROR
+  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
                         (default), WARNING, INFO, DEBUG.
-  --remove-lock         Remove the lock file of the pickle file storing the
-                        flow.
-  -n NIDS, --nids NIDS  Node identifier(s) used to select the task. Integer or
-                        comma-separated list of integers. Use `status` command
-                        to get the node ids. Examples: --nids=12
-                        --nids=12,13,16 --nids=10:12 to select 10 and 11,
-                        --nids=2:5:2 to select 2,4.
+  --remove-lock         Remove the lock on the pickle file used to save the
+                        status of the flow.
+  -n NIDS, --nids NIDS  Node identifier(s) used to select the task. Accept
+                        single integer, comma-separated list of integers or
+                        python slice. Use `status` command to get the node
+                        ids. Examples: --nids=12 --nids=12,13,16 --nids=10:12
+                        to select 10 and 11 (slice syntax), --nids=2:5:2 to
+                        select 2,4.
   -w WSLICE, --wslice WSLICE
                         Select the list of works to analyze (python syntax for
                         slices): Examples: --wslice=1 to select the second
@@ -1145,29 +1205,22 @@ optional arguments:
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="_sources/taskmanager.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

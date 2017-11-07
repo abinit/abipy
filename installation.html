@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Getting AbiPy &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,28 +20,77 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="What’s new in abipy" href="whats_new.html" />
     <link rel="prev" title="Feature Overview" href="features.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="features.html">Feature Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">Getting AbiPy</a><ul>
 <li><a class="reference internal" href="#stable-version">Stable version</a></li>
 <li><a class="reference internal" href="#optional-dependencies">Optional dependencies</a></li>
@@ -62,38 +107,52 @@
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="features.html" title="previous chapter">Feature Overview</a></li>
-      <li>Next: <a href="whats_new.html" title="next chapter">What&#8217;s new in abipy</a></li>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/installation.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+  <li>
+    <a href="features.html" title="Previous Chapter: Feature Overview"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Feature Overview</span>
+    </a>
+  </li>
+  <li>
+    <a href="whats_new.html" title="Next Chapter: What’s new in abipy"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">What’s new in abipy &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/installation.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="getting-abipy">
 <h1>Getting AbiPy<a class="headerlink" href="#getting-abipy" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="stable-version">
@@ -116,7 +175,7 @@ python packages through one of the following python distributions:</p>
 </ul>
 </div></blockquote>
 <p>We routinely use <code class="docutils literal"><span class="pre">conda</span></code> to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (<code class="docutils literal"><span class="pre">matplotlib</span></code>, <code class="docutils literal"><span class="pre">scipy</span></code> ...)
+The anaconda distribution already provides the most critical dependencies (<code class="docutils literal"><span class="pre">matplotlib</span></code>, <code class="docutils literal"><span class="pre">scipy</span></code> …)
 in the form of pre-compiled packages and <code class="docutils literal"><span class="pre">netcdf4</span></code> can be easily installed with:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">netcdf4</span>
 </pre></div>
@@ -255,13 +314,13 @@ basic functionalities of your code</p>
 <p>This section discusses how to install a local version of the python interpreter as well
 as the most important dependencies needed by AbiPy.
 This approach may be needed if you want to use AbiPy on a machine (e.g. a cluster)
-in which you don&#8217;t have root privileges and the version of the python interpreter is too old
+in which you don’t have root privileges and the version of the python interpreter is too old
 or if for some reasons you prefer not to use <code class="docutils literal"><span class="pre">anaconda</span></code>.
 In this case you cannot use a <a class="reference external" href="https://virtualenv.pypa.io/en/latest/">virtual environment</a>
 on top of the preexisting python library.</p>
 <p>First of all, you have to create a new directory containing your python interpreter
 as well as as the libraries and the other executables needed by AbiPy.
-Let&#8217;s assume we decided to create this directory inside <code class="docutils literal"><span class="pre">$HOME</span></code> and let&#8217;s call it <code class="docutils literal"><span class="pre">local</span></code>:</p>
+Let’s assume we decided to create this directory inside <code class="docutils literal"><span class="pre">$HOME</span></code> and let’s call it <code class="docutils literal"><span class="pre">local</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ mkdir $HOME/local
 </pre></div>
 </div>
@@ -293,10 +352,10 @@ The installation should be OK for AbiPy if you get:</p>
 <p>If, on the other hand, python has been built without <code class="docutils literal"><span class="pre">bz2</span></code> or <code class="docutils literal"><span class="pre">_tkinter</span></code> you are in trouble
 because these packages are required.</p>
 <p><code class="docutils literal"><span class="pre">bz2</span></code> is more fundamental than <code class="docutils literal"><span class="pre">_tkinter</span></code> because it is used to compress/uncompress files.
-AbiPy/Pymatgen won&#8217;t work without <code class="docutils literal"><span class="pre">bz2</span></code> and you have to install the <code class="docutils literal"><span class="pre">bzip</span></code> library with the C headers.
+AbiPy/Pymatgen won’t work without <code class="docutils literal"><span class="pre">bz2</span></code> and you have to install the <code class="docutils literal"><span class="pre">bzip</span></code> library with the C headers.
 The source code is available from <a class="reference external" href="www.bzip.org">bzip.org</a>
 See also <a class="reference external" href="http://stackoverflow.com/questions/12806122/missing-python-bz2-module">this post</a> on stackoverflow.</p>
-<p><code class="docutils literal"><span class="pre">Tkinter</span></code> is less important than <code class="docutils literal"><span class="pre">bz2</span></code> but without it you won&#8217;t be able to use the <code class="docutils literal"><span class="pre">matplotlib</span></code> graphical back-end.
+<p><code class="docutils literal"><span class="pre">Tkinter</span></code> is less important than <code class="docutils literal"><span class="pre">bz2</span></code> but without it you won’t be able to use the <code class="docutils literal"><span class="pre">matplotlib</span></code> graphical back-end.
 If you want <code class="docutils literal"><span class="pre">matplotlib</span></code> with the Tk back-end, you have to install Tk/Tcl.
 Get the tarball from the <a class="reference external" href="www.tcl.tk/software/tcltk/downloads.html">tcl.tk site</a>, configure
 with <code class="docutils literal"><span class="pre">--prefix</span></code> and <code class="docutils literal"><span class="pre">make</span> <span class="pre">&amp;&amp;</span> <span class="pre">make</span> <span class="pre">install</span></code> as usual.
@@ -410,7 +469,7 @@ netcdf4                   1.2.7               np112py36_0    conda-forge
 </div>
 <div class="section" id="unicodedecodeerror">
 <h3>UnicodeDecodeError<a class="headerlink" href="#unicodedecodeerror" title="Permalink to this headline">¶</a></h3>
-<p>Python2.7 raises an <cite>UnicodeDecodeError: &#8216;ascii&#8217; codec can&#8217;t decode byte ...</cite>
+<p>Python2.7 raises an <cite>UnicodeDecodeError: ‘ascii’ codec can’t decode byte …</cite>
 when trying to open files with abiopen. Add</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
@@ -423,29 +482,22 @@ when trying to open files with abiopen. Add</p>
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="_sources/installation.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

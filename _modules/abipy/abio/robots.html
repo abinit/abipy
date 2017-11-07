@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.abio.robots &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,103 +20,129 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.abio.robots</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;Robots.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines the Robot BaseClass. Robots operates on multiple files and provide helper</span>
+<span class="sd">functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
-<span class="c1">#from monty.functools import lazy_property</span>
-<span class="kn">from</span> <span class="nn">pymatgen.analysis.eos</span> <span class="k">import</span> <span class="n">EOS</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Flow</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 
+<span class="c1"># TODO: Robot for Abinit output files. HIST files</span>
 
-<span class="c1">#__all__ = [</span>
-<span class="c1">#    &quot;abirobot&quot;,</span>
-<span class="c1">#]</span>
-
-
-<div class="viewcode-block" id="abirobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.abirobot">[docs]</a><span class="k">def</span> <span class="nf">abirobot</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot">[docs]</a><span class="k">class</span> <span class="nc">Robot</span><span class="p">(</span><span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Factory function that builds and return the :class:`Robot` subclass from the file</span>
-<span class="sd">    extension `ext`. `obj` can be a directory path, or a :class:`Flow` instance.</span>
-<span class="sd">    `nids` is an optional list of node identifiers used to filter the tasks in the flow.</span>
-
-<span class="sd">    Usage example:</span>
-
-<span class="sd">    .. code-block:: python</span>
-
-<span class="sd">        with abirobot(flow, &quot;GSR&quot;) as robot:</span>
-<span class="sd">            # do something with robot and close the GSR files when done.</span>
-
-<span class="sd">        with abirobot(&quot;dirpath&quot;, &quot;SIGRES&quot;) as robot:</span>
-<span class="sd">            # do something with robot and close the SIGRES files when done.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
-        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">)</span>
-
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find Robot subclass associated to extension </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ext</span> <span class="o">+</span>
-                     <span class="s2">&quot;The list of supported extensions is:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                     <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">Robot</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()])</span></div>
-
-
-<div class="viewcode-block" id="Robot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot">[docs]</a><span class="k">class</span> <span class="nc">Robot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The main function of a `Robot` is facilitating the extraction of the output data produced by</span>
-<span class="sd">    multiple tasks in a :class:`Flow`. This is the base class from which all Robot subclasses should derive.</span>
+<span class="sd">    This is the base class from which all Robot subclasses should derive.</span>
 <span class="sd">    A Robot supports the `with` context manager:</span>
 
 <span class="sd">    Usage example:</span>
@@ -149,8 +171,8 @@
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">)</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.class_for_ext"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_for_ext">[docs]</a>    <span class="k">def</span> <span class="nf">class_for_ext</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.class_for_ext"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_for_ext">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">class_for_ext</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the Robot subclass associated to the given extension.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">subcls</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">subcls</span><span class="o">.</span><span class="n">EXT</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">upper</span><span class="p">()):</span>
@@ -163,8 +185,8 @@
     <span class="c1"># Deprecated. Use class_for_ext</span>
     <span class="n">for_ext</span> <span class="o">=</span> <span class="n">class_for_ext</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.from_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dir">[docs]</a>    <span class="k">def</span> <span class="nf">from_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.from_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dir">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class method builds a robot by scanning all files located within directory `top`.</span>
 <span class="sd">        This method should be invoked with a concrete robot class, for example:</span>
@@ -174,12 +196,54 @@
 <span class="sd">        Args:</span>
 <span class="sd">            top (str): Root directory</span>
 <span class="sd">	    walk: if True, directories inside `top` are included as well.</span>
+<span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to `top`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="bp">cls</span><span class="o">.</span><span class="n">_open_files_in_dir</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="p">))</span></div>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="bp">cls</span><span class="o">.</span><span class="n">_open_files_in_dir</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">trim_paths</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">top</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="Robot.from_dirs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dirs">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dirs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dirpaths</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Similar to `from_dir` but accepts a list of directories instead of a single directory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">	    walk: if True, directories inside `top` are included as well.</span>
+<span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to `top`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">dirpaths</span><span class="p">):</span>
+            <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_open_files_in_dir</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">trim_paths</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="Robot.from_dir_glob"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_dir_glob">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dir_glob</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class method builds a robot by scanning all files located within the directories</span>
+<span class="sd">        matching `pattern` as implemented by glob.glob</span>
+<span class="sd">        This method should be invoked with a concrete robot class, for example:</span>
+
+<span class="sd">            robot = GsrRobot.from_dir_glob(&quot;flow_dir/w*/outdata/&quot;)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pattern: Pattern string</span>
+<span class="sd">	    walk: if True, directories inside `top` are included as well.</span>
+<span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to getcwd().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">glob</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">,</span> <span class="n">glob</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">pattern</span><span class="p">)):</span>
+            <span class="n">items</span> <span class="o">+=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_open_files_in_dir</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="n">walk</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">trim_paths</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">new</span></div>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_open_files_in_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open files in directory tree starting from `top`. Return list of Abinit files.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: no such directory&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">top</span><span class="p">))</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
         <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">walk</span><span class="p">:</span>
@@ -196,13 +260,13 @@
 
         <span class="k">return</span> <span class="n">items</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.class_handles_filename"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_handles_filename">[docs]</a>    <span class="k">def</span> <span class="nf">class_handles_filename</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.class_handles_filename"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.class_handles_filename">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">class_handles_filename</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True if robot class handles filename.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span> <span class="o">+</span> <span class="s2">&quot;.nc&quot;</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.from_files"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_files">[docs]</a>    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.from_files"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filenames</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Build a Robot from a list of `filenames`.&quot;&quot;&quot;</span>
         <span class="n">filenames</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
@@ -216,10 +280,10 @@
             <span class="k">if</span> <span class="n">ncfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.from_flow"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_flow">[docs]</a>    <span class="k">def</span> <span class="nf">from_flow</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdirs</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.from_flow"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_flow">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_flow</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdirs</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build a robot from a Flow.</span>
+<span class="sd">        Build a robot from a Flow object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            flow: :class:`Flow` object</span>
@@ -230,11 +294,24 @@
 <span class="sd">                Cannot use `+` and `-` flags in the same string.</span>
 <span class="sd">                Default: `all` that is equivalent to &quot;flow+work+task&quot;</span>
 <span class="sd">            nids: List of node identifiers used to select particular nodes. Not used if None</span>
+<span class="sd">            ext: File extension associated to the robot. Mainly used if method is invoked with the BaseClass</span>
+
+<span class="sd">        Usage example:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            with GsrRobot.from_flow(flow) as robot:</span>
+<span class="sd">                print(robot)</span>
+
+<span class="sd">            # That is equivalent to:</span>
+
+<span class="sd">            with Robot.from_flow(flow, ext=&quot;GSR&quot;) as robot:</span>
+<span class="sd">                print(robot)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `Robot` subclass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">robot</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">robot</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="o">.</span><span class="n">class_for_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)()</span>
         <span class="n">all_opts</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">outdirs</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
@@ -260,7 +337,6 @@
 
         <span class="k">if</span> <span class="s2">&quot;task&quot;</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">iflat_tasks</span><span class="p">():</span>
-                <span class="c1">#print(&quot;task %s, nids %s&quot; %  (task, nids))</span>
                 <span class="n">robot</span><span class="o">.</span><span class="n">add_extfile_of_node</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">robot</span></div>
@@ -298,7 +374,7 @@
 
         <span class="k">return</span> <span class="n">count</span></div>
 
-<div class="viewcode-block" id="Robot.add_file"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.add_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.add_file"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.add_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">,</span> <span class="n">filter_abifile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a file to the robot with the given label.</span>
 
@@ -306,15 +382,21 @@
 <span class="sd">            label: String used to identify the file (must be unique, ax exceptions is</span>
 <span class="sd">                raised if label is already present.</span>
 <span class="sd">            ncfile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.</span>
+<span class="sd">            filter_abifile: Function that receives an `abifile` object and returns</span>
+<span class="sd">                True if the file should be added to the plotter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">ncfile</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
             <span class="n">ncfile</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">filter_abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filter_abifile</span><span class="p">(</span><span class="n">ncfile</span><span class="p">):</span>
+                <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">return</span>
+
             <span class="c1"># Open file here --&gt; have to close it.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_do_close</span><span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;label </span><span class="si">%s</span><span class="s2"> is already present!&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;label </span><span class="si">%s</span><span class="s2"> is already present!&quot;</span> <span class="o">%</span> <span class="n">label</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">ncfile</span></div>
 
@@ -333,6 +415,26 @@
     <span class="c1">#                print(exc)</span>
     <span class="c1">#                #raise</span>
 
+<div class="viewcode-block" id="Robot.ordered_intersection"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.ordered_intersection">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">ordered_intersection</span><span class="p">(</span><span class="n">list_1</span><span class="p">,</span> <span class="n">list_2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return ordered intersection of two lists. Items must be hashable.&quot;&quot;&quot;</span>
+        <span class="n">set_2</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">list_2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">list_1</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">set_2</span><span class="p">]</span></div>
+
+    <span class="c1">#def _get_ointersection_i(self, iattrname):</span>
+    <span class="c1">#    if len(self.ncfiles) == 0: return []</span>
+    <span class="c1">#    values = list(range(getattr(self.ncfiles[0], iattrname)))</span>
+    <span class="c1">#    if len(self.ncfiles) == 1: return values</span>
+    <span class="c1">#    for ncfile in self.ncfiles[1:]:</span>
+    <span class="c1">#        values = self.ordered_intersection(values, range(getattr(ncfile, iattrname)))</span>
+    <span class="c1">#    return values</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_to_relpaths</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert a list of absolute paths to relative paths.&quot;&quot;&quot;</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+
 <div class="viewcode-block" id="Robot.pop_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.pop_label">[docs]</a>    <span class="k">def</span> <span class="nf">pop_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove file with the given `label` and close it.</span>
@@ -348,16 +450,23 @@
                     <span class="c1">#raise</span>
 
 <div class="viewcode-block" id="Robot.change_labels"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.change_labels">[docs]</a>    <span class="k">def</span> <span class="nf">change_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change labels of the files. Return mapping new --&gt; old.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Robot has </span><span class="si">%d</span><span class="s2"> files while len(new_labels) = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
 
         <span class="n">old_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">old_ncfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">new2old</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">old_labels</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;old [</span><span class="si">%s</span><span class="s2">] --&gt; new [</span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">))</span>
+            <span class="n">new2old</span><span class="p">[</span><span class="n">new</span><span class="p">]</span> <span class="o">=</span> <span class="n">old</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">[</span><span class="n">new</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_ncfiles</span><span class="p">[</span><span class="n">old</span><span class="p">]</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="p">[</span><span class="n">new</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_ncfiles</span><span class="p">[</span><span class="n">old</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">new2old</span></div>
 
 <div class="viewcode-block" id="Robot.trim_paths"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.trim_paths">[docs]</a>    <span class="k">def</span> <span class="nf">trim_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -400,6 +509,10 @@
 <div class="viewcode-block" id="Robot.items"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
 <div class="viewcode-block" id="Robot.show_files"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.show_files">[docs]</a>    <span class="k">def</span> <span class="nf">show_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> --&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span>
         <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
@@ -414,23 +527,75 @@
 
 <div class="viewcode-block" id="Robot.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> files in memory&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> files in memory:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;ol&gt;</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&lt;/ol&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;&lt;li&gt;</span><span class="si">%s</span><span class="s2">&lt;/li&gt;&quot;</span> <span class="o">%</span> <span class="n">label</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ncfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of netcdf files.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
+<div class="viewcode-block" id="Robot.is_sortable"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.is_sortable">[docs]</a>    <span class="k">def</span> <span class="nf">is_sortable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="n">raise_exc</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if `aname` is an attribute of the netcdf file</span>
+<span class="sd">        If raise_exc is True, AttributeError with an explicit message is raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aname</span><span class="p">)</span>
+            <span class="c1">#return not (callable(obj) or hasattr(obj, &quot;__len__&quot;))</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">raise_exc</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+            <span class="kn">import</span> <span class="nn">inspect</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="c1"># Ignores anything starting with underscore</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callable</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="n">attrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">`</span><span class="si">%s</span><span class="s2">` object has no attribute `</span><span class="si">%s</span><span class="s2">`. Choose among:</span>
+
+<span class="s2">    </span><span class="si">%s</span><span class="s2"></span>
+
+<span class="s2">Note that this list is automatically generated.</span>
+<span class="s2">Not all entries are sortable (Please select number-like quantities)&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">attrs</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="Robot.sortby"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.sortby">[docs]</a>    <span class="k">def</span> <span class="nf">sortby</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func_or_string</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort files in the robot by `func_or_string`</span>
+<span class="sd">        Return list of (label, ncfile, param) tuples where param is obtained via `func_or_string`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            func_or_string: Either None, string, callable defining the quantity to be used for sorting.</span>
+<span class="sd">                If string, it&#39;s assumed that the ncfile has an attribute with the same name and getattr is invoked.</span>
+<span class="sd">                If callable, the output of callable(ncfile) is used.</span>
+<span class="sd">                If None, no sorting is performed.</span>
+<span class="sd">            reverse: If set to True, then the list elements are sorted as if each comparison were reversed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">func_or_string</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">callable</span><span class="p">(</span><span class="n">func_or_string</span><span class="p">):</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">,</span> <span class="n">func_or_string</span><span class="p">(</span><span class="n">ncfile</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Assume string and attribute with the same name.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_sortable</span><span class="p">(</span><span class="n">func_or_string</span><span class="p">,</span> <span class="n">raise_exc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ncfile</span><span class="p">,</span> <span class="n">func_or_string</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Robot.close"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Close all files that have been opened by the Robot</span>
+<span class="sd">        Close all files that have been opened by the Robot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_close</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
@@ -439,10 +604,9 @@
                 <span class="k">except</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exception while closing: &quot;</span><span class="p">,</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span></div>
-                    <span class="c1">#raise</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="Robot.open"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.open"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.open">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.</span>
 <span class="sd">        `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.</span>
@@ -450,6 +614,7 @@
         <span class="n">has_dirpath</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Flow</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">Flow</span><span class="o">.</span><span class="n">pickle_load</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="n">has_dirpath</span> <span class="o">=</span> <span class="kc">True</span>
@@ -475,7 +640,6 @@
     <span class="c1">#    for label, ncfile in self:</span>
     <span class="c1">#        obj = ncfile if obj is None else getattr(ncfile, obj)</span>
     <span class="c1">#        od[label] = getattr(obj, attr_name)</span>
-
     <span class="c1">#    if retdict:</span>
     <span class="c1">#        return od</span>
     <span class="c1">#    else:</span>
@@ -492,566 +656,73 @@
                 <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
                 <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Exception: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">d</span></div>
+        <span class="k">return</span> <span class="n">d</span>
 
-    <span class="c1">#def get_structure_dataframe(self):</span>
-    <span class="c1">#    from abipy.core.structure import frames_from_structures</span>
-    <span class="c1">#    index = list(self.keys())</span>
-    <span class="c1">#    frames_from_structures(self.ncfiles, index=None, with_spglib=True, cart_coords=False)</span>
+<div class="viewcode-block" id="Robot.sortby_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.sortby_label">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">sortby_label</span><span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the label to be used when files are sorted with `sortby`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">sortby</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="p">)</span></div>
 
-    <span class="c1">#def get_ebands_dataframe(self):</span>
-    <span class="c1">#    from abipy.electrons.ebands import frames_from_ebands</span>
-    <span class="c1">#    for abifile in self.ncfiles:</span>
-    <span class="c1">#    index = list(self.keys())</span>
-    <span class="c1">#    frame_from_ebands(self.ncfiles, index=None, with_spglib=True)</span>
-
-    <span class="c1">#def ncread_and_plot_variables(self, varname_x, varname_y, hspan=None, **kwargs):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Ex:</span>
-    <span class="c1">#        plot_variables(&quot;ecut&quot;, &quot;etotal&quot;)</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    title = kwargs.pop(&quot;title&quot;, None)</span>
-    <span class="c1">#    show = kwargs.pop(&quot;show&quot;, True)</span>
-    <span class="c1">#    savefig = kwargs.pop(&quot;savefig&quot;, None)</span>
-
-    <span class="c1">#    # Read the value of varname from the files.</span>
-    <span class="c1">#    xx, yy = [], []</span>
-    <span class="c1">#    for filepath in self.filepaths:</span>
-    <span class="c1">#        with GsrReader(filepath) as r:</span>
-    <span class="c1">#            xx.append(r.read_value(varname_x))</span>
-    <span class="c1">#            yy.append(r.read_value(varname_y))</span>
-
-    <span class="c1">#    import matplotlib.pyplot as plt</span>
-    <span class="c1">#    fig = plt.figure()</span>
-    <span class="c1">#    ax = fig.add_subplot(1,1,1)</span>
-
-    <span class="c1">#    ax.plot(xx, yy, &quot;o-&quot;, **kwargs)</span>
-
-    <span class="c1">#    if hspan is not None:</span>
-    <span class="c1">#        last = yy[-1]</span>
-    <span class="c1">#        ax.axhspan(last - hspan, last + hspan, facecolor=&#39;0.5&#39;, alpha=0.5)</span>
-
-    <span class="c1">#    if title is not None: fig.suptitle(title)</span>
-    <span class="c1">#    if show: plt.show()</span>
-    <span class="c1">#    if savefig is not None: fig.savefig(savefig)</span>
-
-    <span class="c1">#    return fig</span>
-
-
-<div class="viewcode-block" id="GsrRobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot">[docs]</a><span class="k">class</span> <span class="nc">GsrRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This robot analyzes the results contained in multiple GSR files.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;GSR&quot;</span>
-
-<div class="viewcode-block" id="GsrRobot.get_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.get_structure_dataframes"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_structure_dataframes">[docs]</a>    <span class="k">def</span> <span class="nf">get_structure_dataframes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_abifile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a pandas DataFrame with the most important GS results.</span>
+<span class="sd">        Wrap dataframes_from_structures function.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
-
-<span class="sd">        kwargs:</span>
-<span class="sd">            attrs:</span>
-<span class="sd">                List of additional attributes of the :class:`GsrFile` to add to</span>
-<span class="sd">                the pandas :class:`DataFrame`</span>
-<span class="sd">            funcs:</span>
-<span class="sd">                Function or list of functions to execute to add more data to the DataFrame.</span>
-<span class="sd">                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)</span>
-<span class="sd">                where key is a string with the name of column and value is the value to be inserted.</span>
+<span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to getcwd().</span>
+<span class="sd">            filter_abifile: Function that receives an `abifile` object and returns</span>
+<span class="sd">                True if the file should be added to the plotter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Add attributes specified by the users</span>
-        <span class="c1"># TODO add more columns</span>
-        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="s2">&quot;max_force&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;ecut&quot;</span><span class="p">,</span> <span class="s2">&quot;pawecutdg&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;tsmear&quot;</span><span class="p">,</span> <span class="s2">&quot;nkpt&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;nsppol&quot;</span><span class="p">,</span> <span class="s2">&quot;nspinor&quot;</span><span class="p">,</span> <span class="s2">&quot;nspden&quot;</span><span class="p">,</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">dataframes_from_structures</span>
+        <span class="k">if</span> <span class="s2">&quot;index&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ncfiles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span><span class="p">:</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_relpaths</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
 
-        <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">aname</span> <span class="o">==</span> <span class="s2">&quot;nkpt&quot;</span><span class="p">:</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gsr</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">ncfiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span> <span class="k">if</span> <span class="n">filter_abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">filter_abifile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">struct_objects</span><span class="o">=</span><span class="n">ncfiles</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-            <span class="c1"># Add info on structure.</span>
-            <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<div class="viewcode-block" id="Robot.get_lattice_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_lattice_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_lattice_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return pandas DataFrame with lattice parameters.&quot;&quot;&quot;</span>
+        <span class="n">dfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structure_dataframes</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span></div>
 
-            <span class="c1"># Execute functions</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">gsr</span><span class="p">))</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<div class="viewcode-block" id="Robot.get_coords_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_coords_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return pandas DataFrame with atomic positions.&quot;&quot;&quot;</span>
+        <span class="n">dfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structure_dataframes</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dfs</span><span class="o">.</span><span class="n">coords</span></div>
 
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
-
-<div class="viewcode-block" id="GsrRobot.get_ebands_plotter"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.get_ebands_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_ebands_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Robot.get_baserobot_code_cells"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_baserobot_code_cells">[docs]</a>    <span class="k">def</span> <span class="nf">get_baserobot_code_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build and return an instance of `ElectronBandsPlotter` or a subclass is cls is not None.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            cls: subclass of `ElectronBandsPlotter`</span>
+<span class="sd">        Return list of notebook cells with calls to methods provides by the baseclass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronBandsPlotter</span>
-        <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">plotter</span></div>
-
-<div class="viewcode-block" id="GsrRobot.get_edos_plotter"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.get_edos_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_edos_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build and return an instance of `ElectronDosPlotter` or a subclass is cls is not None.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            cls: subclass of `ElectronDosPlotter`</span>
-<span class="sd">            kwargs: Arguments passed to ebands.get_edos</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronDosPlotter</span>
-        <span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronDosPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span>
-                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Skipping </span><span class="si">%s</span><span class="s2"> because kpoint sampling not IBZ&quot;</span> <span class="o">%</span> <span class="n">gsr</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;magenta&quot;</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="n">plotter</span><span class="o">.</span><span class="n">add_edos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">gsr</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="n">plotter</span></div>
-
-    <span class="c1"># FIXME: EOS has been changed in pymatgen.</span>
-<div class="viewcode-block" id="GsrRobot.eos_fit"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.eos_fit">[docs]</a>    <span class="k">def</span> <span class="nf">eos_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eos_name</span><span class="o">=</span><span class="s2">&quot;murnaghan&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fit E(V)</span>
-<span class="sd">        For the list of available models, see EOS.MODELS</span>
-
-<span class="sd">        TODO: which default? all should return a list of fits</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Read volumes and energies from the GSR files.</span>
-        <span class="n">energies</span><span class="p">,</span> <span class="n">volumes</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">gsr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
-            <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gsr</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
-
-        <span class="c1"># Note that eos.fit expects lengths in Angstrom, and energies in eV.</span>
-        <span class="k">if</span> <span class="n">eos_name</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">EOS</span><span class="p">(</span><span class="n">eos_name</span><span class="o">=</span><span class="n">eos_name</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">volumes</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Use all the available models.</span>
-            <span class="n">fits</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">eos_name</span> <span class="ow">in</span> <span class="n">EOS</span><span class="o">.</span><span class="n">MODELS</span><span class="p">:</span>
-                <span class="n">fit</span> <span class="o">=</span> <span class="n">EOS</span><span class="p">(</span><span class="n">eos_name</span><span class="o">=</span><span class="n">eos_name</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">volumes</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span>
-                <span class="n">fits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span>
-                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
-
-            <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">EOS</span><span class="o">.</span><span class="n">MODELS</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-            <span class="k">return</span> <span class="n">fits</span><span class="p">,</span> <span class="n">frame</span></div>
-            <span class="c1">#return dict2namedtuple(fits=fits, frame=frame)</span>
-
-    <span class="c1">#def get_phasediagram_results(self):</span>
-    <span class="c1">#    from abipy.core.restapi import PhaseDiagramResults</span>
-    <span class="c1">#    entries = []</span>
-    <span class="c1">#    for label, gsr in self:</span>
-    <span class="c1">#        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))</span>
-    <span class="c1">#    return PhaseDiagramResults(entries)</span>
-
-<div class="viewcode-block" id="GsrRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.GsrRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
-<span class="sd">        working directory is created. Return path to the notebook.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.GsrRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
-
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter = robot.get_ebands_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df = ebands_plotter.get_ebands_frame()</span><span class="se">\n</span><span class="s2">display(df)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ebands_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#anim = ebands_plotter.animate()&quot;</span><span class="p">),</span>
-
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;edos_plotter = robot.get_edos_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;edos_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
-        <span class="p">])</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="SigresRobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot">[docs]</a><span class="k">class</span> <span class="nc">SigresRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This robot analyzes the results contained in multiple SIGRES files.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;SIGRES&quot;</span>
-
-<div class="viewcode-block" id="SigresRobot.merge_dataframes_sk"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.merge_dataframes_sk">[docs]</a>    <span class="k">def</span> <span class="nf">merge_dataframes_sk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">sigr</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">frame</span> <span class="o">=</span> <span class="n">sigr</span><span class="o">.</span><span class="n">get_dataframe_sk</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">table</span> <span class="o">=</span> <span class="n">frame</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">table</span></div>
-
-<div class="viewcode-block" id="SigresRobot.get_qpgaps_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.get_qpgaps_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_qpgaps_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a pandas DataFrame with the most important results for the given (spin, kpoint).</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            spin: Spin index.</span>
-<span class="sd">            kpoint</span>
-<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin</span>
-        <span class="c1"># TODO: In principle the SIGRES might have different k-points</span>
-        <span class="k">if</span> <span class="n">spin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">spin</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="n">kpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">kpoint</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;nsppol&quot;</span><span class="p">,</span>
-            <span class="c1">#&quot;nspinor&quot;, &quot;nspden&quot;, #&quot;ecut&quot;, &quot;pawecutdg&quot;,</span>
-            <span class="c1">#&quot;tsmear&quot;, &quot;nkibz&quot;,</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">[])</span>
-
-        <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">sigres</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sigres</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-            <span class="n">qpgap</span> <span class="o">=</span> <span class="n">sigres</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">)</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;qpgap&quot;</span><span class="p">:</span> <span class="n">qpgap</span><span class="p">})</span>
-
-            <span class="c1"># Add convergence parameters</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigres</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-
-            <span class="c1"># Add info on structure.</span>
-            <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sigres</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-
-            <span class="c1"># Execute functions.</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">sigres</span><span class="p">))</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
-
-<div class="viewcode-block" id="SigresRobot.plot_conv_qpgap"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.plot_conv_qpgap">[docs]</a>    <span class="k">def</span> <span class="nf">plot_conv_qpgap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vars</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the convergence of the Quasi-particle gap.</span>
-<span class="sd">        kwargs are passed to :class:`seaborn.PairGrid`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="kn">import</span> <span class="nn">seaborn.apionly</span> <span class="k">as</span> <span class="nn">sns</span>
-
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qpgaps_dataframe</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">PairGrid</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x_vars</span><span class="o">=</span><span class="n">x_vars</span><span class="p">,</span> <span class="n">y_vars</span><span class="o">=</span><span class="s2">&quot;qpgap&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">grid</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
-        <span class="n">grid</span><span class="o">.</span><span class="n">add_legend</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="SigresRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.SigresRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
-<span class="sd">        working directory is created. Return path to the notebook.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.SigresRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;df = robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)&quot;),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;plotter = robot.get_ebands_plotter()&quot;),</span>
-        <span class="p">])</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="MdfRobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.MdfRobot">[docs]</a><span class="k">class</span> <span class="nc">MdfRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This robot analyzes the results contained in multiple MDF files.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;MDF&quot;</span>
-
-<div class="viewcode-block" id="MdfRobot.get_multimdf_plotter"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.MdfRobot.get_multimdf_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_multimdf_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.electrons.bse</span> <span class="k">import</span> <span class="n">MultipleMdfPlotter</span>
-        <span class="n">plotter</span> <span class="o">=</span> <span class="n">MultipleMdfPlotter</span><span class="p">()</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">mdf</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">plotter</span><span class="o">.</span><span class="n">add_mdf_file</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">mdf</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">plotter</span></div>
-
-<div class="viewcode-block" id="MdfRobot.get_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.MdfRobot.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build and return Pandas dataframe with the most import BSE results.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
-<span class="sd">            funcs:</span>
-
-<span class="sd">        Return:</span>
-<span class="sd">            pandas DataFrame</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">mdf</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
-                <span class="p">(</span><span class="s2">&quot;exc_mdf&quot;</span><span class="p">,</span> <span class="n">mdf</span><span class="o">.</span><span class="n">exc_mdf</span><span class="p">),</span>
-                <span class="p">(</span><span class="s2">&quot;rpa_mdf&quot;</span><span class="p">,</span> <span class="n">mdf</span><span class="o">.</span><span class="n">rpanlf_mdf</span><span class="p">),</span>
-                <span class="p">(</span><span class="s2">&quot;gwrpa_mdf&quot;</span><span class="p">,</span> <span class="n">mdf</span><span class="o">.</span><span class="n">gwnlf_mdf</span><span class="p">),</span>
-            <span class="p">])</span>
-            <span class="c1">#d = {aname: getattr(mdf, aname) for aname in attrs}</span>
-            <span class="c1">#d.update({&quot;qpgap&quot;: mdf.get_qpgap(spin, kpoint)})</span>
-
-            <span class="c1"># Add convergence parameters</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mdf</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-
-            <span class="c1"># Add info on structure.</span>
-            <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mdf</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-
-            <span class="c1"># Execute functions.</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">mdf</span><span class="p">))</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
-
-    <span class="c1">#@add_fig_kwargs</span>
-    <span class="c1">#def plot_conv_mdf(self, hue, mdf_type=&quot;exc_mdf&quot;, **kwargs):</span>
-    <span class="c1">#    import matplotlib.pyplot as plt</span>
-    <span class="c1">#    frame = self.get_dataframe()</span>
-    <span class="c1">#    grouped = frame.groupby(hue)</span>
-
-    <span class="c1">#    fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)</span>
-
-    <span class="c1">#    for i, (hue_val, group) in enumerate(grouped):</span>
-    <span class="c1">#        #print(group)</span>
-    <span class="c1">#        mdfs = group[mdf_type]</span>
-    <span class="c1">#        ax = ax_list[i]</span>
-    <span class="c1">#        ax.set_title(&quot;%s = %s&quot; % (hue, hue_val))</span>
-    <span class="c1">#        for mdf in mdfs:</span>
-    <span class="c1">#            mdf.plot_ax(ax)</span>
-
-    <span class="c1">#    return fig</span>
-
-<div class="viewcode-block" id="MdfRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.MdfRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
-<span class="sd">        working directory is created. Return path to the notebook.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.MdfRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#df = robot.get_dataframe(with_geo=False&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = robot.get_multimdf_plotter()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s1">&#39;fig = plotter.plot(mdf_type=&quot;exc&quot;, qview=&quot;avg&quot;, xlim=None, ylim=None)&#39;</span><span class="p">),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = plotter.combiboxplot()&quot;),</span>
-        <span class="p">])</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="DdbRobot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot">[docs]</a><span class="k">class</span> <span class="nc">DdbRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This robot analyzes the results contained in multiple DDB files.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;DDB&quot;</span>
-
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="DdbRobot.class_handles_filename"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.class_handles_filename">[docs]</a>    <span class="k">def</span> <span class="nf">class_handles_filename</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Exclude DDB.nc files.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)</span></div>
-
-    <span class="c1">#def get_qpoints_union(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Return numpy array with the q-points in reduced coordinates found in the DDB files.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    qpoints = []</span>
-    <span class="c1">#    for label, ddb in enumerate(self):</span>
-    <span class="c1">#        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)</span>
-
-    <span class="c1">#    return np.array(qpoints)</span>
-
-    <span class="c1">#def get_qpoints_intersection(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;Return numpy array with the q-points in reduced coordinates found in the DDB files.&quot;&quot;&quot;</span>
-    <span class="c1">#    qpoints = []</span>
-    <span class="c1">#    for label, ddb in enumerate(self):</span>
-    <span class="c1">#        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)</span>
-    <span class="c1">#</span>
-    <span class="c1">#    return np.array(qpoints)</span>
-
-<div class="viewcode-block" id="DdbRobot.get_dataframe_at_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.get_dataframe_at_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe_at_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated</span>
-<span class="sd">	by the robot and the given anaddb input arguments. Build and return a pandas dataframe with results</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            qpoint: Reduced coordinates of the qpoint where phonon modes are computed</span>
-<span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
-<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
-
-<span class="sd">        Return:</span>
-<span class="sd">            pandas DataFrame</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># If qpoint is None, all the DDB must contain have the same q-point .</span>
-        <span class="k">if</span> <span class="n">qpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found more than one q-point in the DDB file. qpoint must be specified&quot;</span><span class="p">)</span>
-
-            <span class="n">qpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All the q-points in the DDB files must be equal&quot;</span><span class="p">)</span>
-
-        <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ddb</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-            <span class="c1">#d = {aname: getattr(ddb, aname) for aname in attrs}</span>
-            <span class="c1">#d.update({&quot;qpgap&quot;: mdf.get_qpgap(spin, kpoint)})</span>
-
-            <span class="c1"># Call anaddb to get the phonon frequencies.</span>
-            <span class="n">phbands</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phmodes_at_qpoint</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">)</span>
-            <span class="n">freqs</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># [nq, nmodes]</span>
-
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;mode&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="n">freqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">))})</span>
-
-            <span class="c1"># Add convergence parameters</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-
-            <span class="c1"># Add info on structure.</span>
-            <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-
-            <span class="c1"># Execute functions.</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;funcs&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">ddb</span><span class="p">))</span>
-
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
-
-<div class="viewcode-block" id="DdbRobot.plot_conv_phfreqs_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.plot_conv_phfreqs_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">plot_conv_phfreqs_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_vars</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the convergence of the phonon frequencies.</span>
-<span class="sd">        kwargs are passed to :class:`seaborn.PairGrid`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="kn">import</span> <span class="nn">seaborn.apionly</span> <span class="k">as</span> <span class="nn">sns</span>
-
-        <span class="c1"># Get the dataframe for this q-point.</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataframe_at_qpoint</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="n">qpoint</span><span class="p">)</span>
-
-        <span class="n">y_vars</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">)])</span>
-        <span class="c1">#print(y_vars)</span>
-
-        <span class="c1"># Call seaborn.</span>
-        <span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">PairGrid</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x_vars</span><span class="o">=</span><span class="n">x_vars</span><span class="p">,</span> <span class="n">y_vars</span><span class="o">=</span><span class="n">y_vars</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">grid</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
-        <span class="n">grid</span><span class="o">.</span><span class="n">add_legend</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
-
-    <span class="c1"># TODO Test</span>
-<div class="viewcode-block" id="DdbRobot.get_phonon_plotters"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.get_phonon_plotters">[docs]</a>    <span class="k">def</span> <span class="nf">get_phonon_plotters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Invoke anaddb to compute phonon bands and DOS using the arguments passed via **kwargs.</span>
-<span class="sd">        Collect results and return `namedtuple` with the following attributes:</span>
-
-<span class="sd">            phbands_plotter: `PhononBandsPlotter` object.</span>
-<span class="sd">            phdos_plotter: `PhononDosPlotter` object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;workdir&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot specify `workdir` when multiple DDB file are executed.&quot;</span><span class="p">)</span>
-
-        <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhononDosPlotter</span>
-        <span class="n">phbands_plotter</span><span class="p">,</span> <span class="n">phdos_plotter</span> <span class="o">=</span> <span class="n">PhononBandsPlotter</span><span class="p">(),</span> <span class="n">PhononDosPlotter</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="c1"># Invoke anaddb to get phonon bands and DOS.</span>
-            <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">ddb</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-            <span class="c1"># Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc</span>
-            <span class="c1"># Those results should be fetched from there and added to the phonon bands.</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lo_to_splitting&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">anaddb_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">phbst_file</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span> <span class="s2">&quot;anaddb.nc&quot;</span><span class="p">)</span>
-                <span class="n">phbst_file</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">read_non_anal_from_file</span><span class="p">(</span><span class="n">anaddb_path</span><span class="p">)</span>
-
-            <span class="n">phbands_plotter</span><span class="o">.</span><span class="n">add_phbands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="p">)</span>
-            <span class="n">phdos_plotter</span><span class="o">.</span><span class="n">add_phdos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="n">phdos_file</span><span class="o">.</span><span class="n">phdos</span><span class="p">)</span>
-            <span class="n">phbst_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="n">phdos_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">phbands_plotter</span><span class="o">=</span><span class="n">phbands_plotter</span><span class="p">,</span> <span class="n">phdos_plotter</span><span class="o">=</span><span class="n">phdos_plotter</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="DdbRobot.write_notebook"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.DdbRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
-<span class="sd">        working directory is created. Return path to the notebook.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-        <span class="n">get_phonon_plotters_kwargs</span> <span class="o">=</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method=&quot;tetra&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">lo_to_splitting=False, ngqpt=None, qptbounds=None,</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">anaddb_kwargs=None, verbose=0&#39;</span><span class="p">)</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.DdbRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">print(robot)&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
-
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#dfq = robot.get_dataframe_at_qpoint(qpoint=None)&quot;</span><span class="p">),</span>
-
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r = robot.get_phonon_plotters(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">get_phonon_plotters_kwargs</span><span class="p">),</span>
-
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phbands_plotter.get_phbands_frame()&quot;</span><span class="p">),</span>
-            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phbands_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
-
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phdos_plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;r.phdos_plotter.ipw_harmonic_thermo()&quot;</span><span class="p">),</span>
-        <span class="p">])</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+        <span class="c1"># Try not pollute namespace with lots of variables.</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv</span><span class="p">()</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;## Code to compare multiple Structure objects&quot;</span> <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="n">title</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.get_lattice_dataframe()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#robot.get_coords_dataframe()&quot;</span><span class="p">),</span>
+        <span class="p">]</span></div></div>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

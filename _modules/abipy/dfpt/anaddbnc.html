@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>abipy.dfpt.anaddbnc &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
@@ -24,48 +20,108 @@
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../../../index.html">
-              <img class="logo" src="../../../_static/abipy_logo.png" alt="Logo"/>
-            </a></p><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
             
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <h1>Source code for abipy.dfpt.anaddbnc</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -104,11 +160,11 @@
 <span class="sd">    .. attribute:: ifc</span>
 
 <span class="sd">        :class:`InteratomicForceConstants` object with the interatomic force constants calculated by anaddb.</span>
-<span class="sd">        None, if the netcdf file does not contain the IFCs,</span>
+<span class="sd">        None, if the netcdf file does not contain the IFCs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@classmethod</span>
-<div class="viewcode-block" id="AnaddbNcFile.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the object from file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
@@ -135,8 +191,7 @@
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;File Info&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filestat</span><span class="p">(</span><span class="n">as_string</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Structure&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
@@ -144,8 +199,8 @@
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.emacro"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro">[docs]</a>    <span class="k">def</span> <span class="nf">emacro</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.emacro"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">emacro</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Macroscopic dielectric tensor. None if the file does not contain this information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -156,8 +211,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.emacro_rlx"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx">[docs]</a>    <span class="k">def</span> <span class="nf">emacro_rlx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.emacro_rlx"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.emacro_rlx">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">emacro_rlx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Relaxed ion Macroscopic dielectric tensor. None if the file does not contain this information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -168,8 +223,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires dieflag &gt; 0&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.becs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.becs">[docs]</a>    <span class="k">def</span> <span class="nf">becs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.becs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.becs">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">becs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Born effective charges. None if the file does not contain this information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -180,8 +235,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.ifc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.ifc">[docs]</a>    <span class="k">def</span> <span class="nf">ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.ifc"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.ifc">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ifc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The interatomic force constants calculated by anaddb.</span>
 <span class="sd">        The following anaddb variables should be used in the run: ifcflag, natifc, atifc, ifcout</span>
@@ -194,8 +249,8 @@
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Interatomic force constants have not been calculated. Returning None&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.dchide"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchide">[docs]</a>    <span class="k">def</span> <span class="nf">dchide</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.dchide"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchide">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">dchide</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Non-linear optical susceptibility tensor.</span>
 <span class="sd">        Returns a NLOpticalSusceptibilityTensor or None if the file does not contain this information.</span>
@@ -206,13 +261,13 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires nlflag &gt; 0&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.dchidt"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchidt">[docs]</a>    <span class="k">def</span> <span class="nf">dchidt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.dchidt"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.dchidt">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">dchidt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        First-order change in the linear dielectric susceptibility.</span>
 <span class="sd">        Returns a list of lists of 3x3 Tensor object with shape (number of atoms, 3).</span>
 <span class="sd">        The [i][j] element of the list contains the Tensor representing the change due to the</span>
-<span class="sd">         displacement of the ith atom in the jth direction.</span>
+<span class="sd">        displacement of the ith atom in the jth direction.</span>
 <span class="sd">        None if the file does not contain this information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -229,8 +284,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;Requires 0 &lt; nlflag &lt; 3&quot;</span><span class="p">,</span> <span class="s2">&quot;Returning None&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-    <span class="nd">@lazy_property</span>
-<div class="viewcode-block" id="AnaddbNcFile.oscillator_strength"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength">[docs]</a>    <span class="k">def</span> <span class="nf">oscillator_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AnaddbNcFile.oscillator_strength"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.anaddbnc.AnaddbNcFile.oscillator_strength">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">oscillator_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A complex numpy array containing the oscillator strengths with shape (number of phonon modes, 3, 3),</span>
 <span class="sd">        in a.u. (1 a.u.=253.2638413 m3/s2).</span>
@@ -258,26 +313,22 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
 </pre></div>
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ElectronBandsPlotter &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Effective masses" href="plot_ederivatives.html" />
+    <link rel="prev" title="Phonon Bands with LO-TO" href="plot_phonons_lo_to.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">ElectronBandsPlotter</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="plot_phonons_lo_to.html" title="Previous Chapter: Phonon Bands with LO-TO"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonon Bands ...</span>
+    </a>
+  </li>
+  <li>
+    <a href="plot_ederivatives.html" title="Next Chapter: Effective masses"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Effective masses &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/gallery/plot_ebands_grid.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="electronbandsplotter">
+<span id="sphx-glr-gallery-plot-ebands-grid-py"></span><h1>ElectronBandsPlotter<a class="headerlink" href="#electronbandsplotter" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to plot several band structures on a grid</p>
+<p>We use two GSR files:</p>
+<blockquote>
+<div>si_scf_GSR.n: energies on a homogeneous sampling of the BZ (can be used to compute DOS)
+si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion)</div></blockquote>
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_grid_001.png"><img alt="../_images/sphx_glr_plot_ebands_grid_001.png" src="../_images/sphx_glr_plot_ebands_grid_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_ebands_grid_002.png"><img alt="../_images/sphx_glr_plot_ebands_grid_002.png" src="../_images/sphx_glr_plot_ebands_grid_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">nsppol</span>  <span class="n">nkpt</span>  <span class="n">nband</span>  <span class="n">nelect</span>    <span class="n">fermie</span> <span class="n">formula</span>  <span class="n">natom</span>  <span class="n">angle0</span>  \
+<span class="n">BZ</span> <span class="n">sampling</span>       <span class="mi">1</span>    <span class="mi">29</span>      <span class="mi">8</span>     <span class="mf">8.0</span>  <span class="mf">5.598453</span>     <span class="n">Si2</span>      <span class="mi">2</span>    <span class="mf">60.0</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>            <span class="mi">1</span>    <span class="mi">14</span>      <span class="mi">8</span>     <span class="mf">8.0</span>  <span class="mf">5.598453</span>     <span class="n">Si2</span>      <span class="mi">2</span>    <span class="mf">60.0</span>
+
+             <span class="n">angle1</span>  <span class="n">angle2</span>      <span class="o">...</span>          <span class="n">volume</span>  <span class="n">abispg_num</span>  <span class="n">spglib_symb</span>  \
+<span class="n">BZ</span> <span class="n">sampling</span>    <span class="mf">60.0</span>    <span class="mf">60.0</span>      <span class="o">...</span>       <span class="mf">40.888292</span>         <span class="mi">227</span>        <span class="n">Fd</span><span class="o">-</span><span class="mi">3</span><span class="n">m</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>         <span class="mf">60.0</span>    <span class="mf">60.0</span>      <span class="o">...</span>       <span class="mf">40.888292</span>         <span class="mi">227</span>        <span class="n">Fd</span><span class="o">-</span><span class="mi">3</span><span class="n">m</span>
+
+             <span class="n">spglib_num</span> <span class="n">scheme</span> <span class="n">occopt</span>  <span class="n">tsmear_ev</span> <span class="n">bandwidth_spin0</span>  \
+<span class="n">BZ</span> <span class="n">sampling</span>         <span class="mi">227</span>   <span class="n">none</span>      <span class="mi">1</span>   <span class="mf">0.272114</span>       <span class="mf">11.855874</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>              <span class="mi">227</span>   <span class="n">none</span>      <span class="mi">1</span>   <span class="mf">0.272114</span>       <span class="mf">11.855854</span>
+
+             <span class="n">fundgap_spin0</span>  <span class="n">dirgap_spin0</span>
+<span class="n">BZ</span> <span class="n">sampling</span>       <span class="mf">0.562277</span>      <span class="mf">2.531798</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>            <span class="mf">0.524340</span>      <span class="mf">2.531828</span>
+
+<span class="p">[</span><span class="mi">2</span> <span class="n">rows</span> <span class="n">x</span> <span class="mi">23</span> <span class="n">columns</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">ElectronBandsPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.data</span> <span class="kn">import</span> <span class="n">ref_file</span>
+
+<span class="c1"># To plot a grid with two band structures:</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;BZ sampling&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;k-path&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">))</span>
+
+<span class="c1"># Get pandas dataframe</span>
+<span class="n">frame</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">get_ebands_frame</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
+<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">()</span>
+<span class="c1">#plotter.animate()</span>
+
+<span class="c1"># To plot a grid with band structures + DOS, use the optional argument `edos_objects`</span>
+<span class="c1"># The first subplot gets the band dispersion from eb_objects[0] and the DOS from edos_objects[0]</span>
+<span class="c1"># edos_kwargs is an optional dictionary passed to `get_dos` to compute the DOS.</span>
+<span class="n">eb_objects</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">[</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">)]</span>
+<span class="n">edos_objects</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">[</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">)]</span>
+
+<span class="c1"># sphinx_gallery_thumbnail_number = 2</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">ElectronBandsPlotter</span><span class="p">()</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">),</span> <span class="n">dos</span><span class="o">=</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="s2">&quot;Same data&quot;</span><span class="p">,</span> <span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_nscf_GSR.nc&quot;</span><span class="p">),</span> <span class="n">dos</span><span class="o">=</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;si_scf_GSR.nc&quot;</span><span class="p">))</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  5.613 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_ebands_grid.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ebands_grid.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_ebands_grid.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_ebands_grid.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

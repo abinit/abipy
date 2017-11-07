@@ -26,6 +26,22 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`ddk` Module
+-----------------
+
+.. automodule:: abipy.electrons.ddk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`denpot` Module
+--------------------
+
+.. automodule:: abipy.electrons.denpot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`ebands` Module
 --------------------
 
@@ -42,10 +58,10 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`Fold2bloch` Module
+:mod:`fold2bloch` Module
 ------------------------
 
-.. automodule:: abipy.electrons.Fold2bloch
+.. automodule:: abipy.electrons.fold2bloch
    :members:
    :undoc-members:
    :show-inheritance:
@@ -66,10 +82,10 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`denpot` Module
---------------------
+:mod:`optic` Module
+-------------------
 
-.. automodule:: abipy.electrons.denpot
+.. automodule:: abipy.electrons.optic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -81,6 +97,7 @@ electrons Package
    :members:
    :undoc-members:
    :show-inheritance:
+
 
 :mod:`scissors` Module
 ----------------------

@@ -1,16 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>waves Package &#8212; abipy 0.2.0 documentation</title>
-    
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -24,28 +20,77 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="The AbiPy Developers’ Guide" href="../devel/index.html" />
     <link rel="prev" title="tools Package" href="tools_api.html" />
-   
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
 
   </head>
-  <body role="document">
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="../index.html">
-              <img class="logo" src="../_static/abipy_logo.png" alt="Logo"/>
-            </a></p>
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">waves Package</a><ul>
 <li><a class="reference internal" href="#id1"><code class="docutils literal"><span class="pre">waves</span></code> Package</a></li>
 <li><a class="reference internal" href="#module-abipy.waves.pwwave"><code class="docutils literal"><span class="pre">pwwave</span></code> Module</a></li>
@@ -53,40 +98,52 @@
 </ul>
 </li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">API documentation</a><ul>
-      <li>Previous: <a href="tools_api.html" title="previous chapter">tools Package</a></li>
-      <li>Next: <a href="../devel/index.html" title="next chapter">The AbiPy Developers&#8217; Guide</a></li>
-  </ul></li>
-  </ul></li>
 </ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/waves_api.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+</li>
+              
             
+            
+              
+                
+  <li>
+    <a href="tools_api.html" title="Previous Chapter: tools Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tools Package</span>
+    </a>
+  </li>
+  <li>
+    <a href="../devel/index.html" title="Next Chapter: The AbiPy Developers’ Guide"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">The AbiPy Dev... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/api/waves_api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
   <div class="section" id="waves-package">
 <h1>waves Package<a class="headerlink" href="#waves-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
@@ -111,10 +168,10 @@ Note that selection rules introduced by k-points is not taken into accout.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>other</strong> &#8211; Other wave (right-hand side)</li>
-<li><strong>space</strong> &#8211; Integration space. Possible values [&#8220;g&#8221;, &#8220;gsphere&#8221;, &#8220;r&#8221;]
-if &#8220;g&#8221; or &#8220;r&#8221; the scalar product is computed in G- or R-space on the FFT box.
-if &#8220;gsphere&#8221; the integration is done on the G-sphere. Note that
+<li><strong>other</strong> – Other wave (right-hand side)</li>
+<li><strong>space</strong> – Integration space. Possible values [“g”, “gsphere”, “r”]
+if “g” or “r” the scalar product is computed in G- or R-space on the FFT box.
+if “gsphere” the integration is done on the G-sphere. Note that
 this option assumes that self and other have the same list of G-vectors.</li>
 </ul>
 </td>
@@ -132,10 +189,10 @@ this option assumes that self and other have the same list of G-vectors.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> &#8211; String specifying the file path and the file format.
-The format is defined by the file extension. filename=&#8221;prefix.xsf&#8221;, for example,
-will produce a file in XSF format. An <em>empty</em> prefix, e.g. &#8221;.xsf&#8221; makes the code use a temporary file.</li>
-<li><strong>visu</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> subclass. By default, this method returns the first available
+<li><strong>filename</strong> – String specifying the file path and the file format.
+The format is defined by the file extension. filename=”prefix.xsf”, for example,
+will produce a file in XSF format. An <em>empty</em> prefix, e.g. “.xsf” makes the code use a temporary file.</li>
+<li><strong>visu</strong> – <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> subclass. By default, this method returns the first available
 visualizer that supports the given file format. If visu is not None, an
 instance of visu is returned. See <code class="xref py py-class docutils literal"><span class="pre">Visualizer</span></code> for the list of
 applications and formats supported.</li>
@@ -160,9 +217,9 @@ applications and formats supported.</li>
 <code class="descname">norm2</code><span class="sig-paren">(</span><em>space='g'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/pwwave.html#PWWaveFunction.norm2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.pwwave.PWWaveFunction.norm2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <img src="../_images/mathmpl/math-e1520270d0.png" style="position: relative; bottom: -7px"/> computed in G- or r-space.</p>
 <dl class="docutils">
-<dt>space:  Integration space. Possible values [&#8220;g&#8221;, &#8220;gsphere&#8221;, &#8220;r&#8221;]</dt>
-<dd>if &#8220;g&#8221; or &#8220;r&#8221; the scalar product is computed in G- or R-space on the FFT box.
-if &#8220;gsphere&#8221; the integration is done on the G-sphere.</dd>
+<dt>space:  Integration space. Possible values [“g”, “gsphere”, “r”]</dt>
+<dd>if “g” or “r” the scalar product is computed in G- or R-space on the FFT box.
+if “gsphere” the integration is done on the G-sphere.</dd>
 </dl>
 </dd></dl>
 
@@ -210,14 +267,14 @@ cartesian: By default, <cite>point1</cite> and <cite>point1</cite> are interpret
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -259,14 +316,14 @@ max_nn: By default, only the first <cite>max_nn</cite> neighbors are showed.</dd
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>&#8216;abc.png&#8217; or &#8216;abc.eps&#8217; to save the figure to a file.</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
 example: size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
-<td>True if to call fig.tight_layout (default: False)</td>
+<td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
 </table>
@@ -288,7 +345,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.waves.wfkfile.WfkFile">
 <em class="property">class </em><code class="descclassname">abipy.waves.wfkfile.</code><code class="descname">WfkFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>This object provides a simple interface to access and analyze
 the data stored in the WFK file produced by ABINIT.</p>
 <p>Usage example:</p>
@@ -341,10 +398,10 @@ the data stored in the WFK file produced by ABINIT.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>spin</strong> &#8211; spin index. Must be in (0, 1)</li>
-<li><strong>kpoint</strong> &#8211; Either <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> instance or integer giving the sequential index in the IBZ (C-convention).</li>
-<li><strong>band</strong> &#8211; band index.</li>
-<li><strong>returns</strong> &#8211; <code class="xref py py-class docutils literal"><span class="pre">WaveFunction</span></code> instance.</li>
+<li><strong>spin</strong> – spin index. Must be in (0, 1)</li>
+<li><strong>kpoint</strong> – Either <code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> instance or integer giving the sequential index in the IBZ (C-convention).</li>
+<li><strong>band</strong> – band index.</li>
+<li><strong>returns</strong> – <code class="xref py py-class docutils literal"><span class="pre">WaveFunction</span></code> instance.</li>
 </ul>
 </td>
 </tr>
@@ -362,7 +419,7 @@ the data stored in the WFK file produced by ABINIT.</p>
 <dt id="abipy.waves.wfkfile.WfkFile.ipw_visualize_widget">
 <code class="descname">ipw_visualize_widget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.ipw_visualize_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.ipw_visualize_widget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an ipython widget with controllers to visualize the wavefunctions.</p>
-<p>It seems there&#8217;s a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
+<p>It seems there’s a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
 as the tab in vesta is not updated!</p>
 </dd></dl>
 
@@ -392,7 +449,7 @@ as the tab in vesta is not updated!</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> &#8211; verbosity level.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> – verbosity level.</td>
 </tr>
 </tbody>
 </table>
@@ -418,29 +475,22 @@ working directory is created. Return path to the notebook.</p>
 </div>
 
 
-          </div>
-        </div>
-      </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &copy;2017, The AbiPy group.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="../_sources/api/waves_api.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
-
-    
-    <a href="https://github.com/abinit/abipy" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
-    </a>
-    
-
-    
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 07, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
   </body>
 </html>
