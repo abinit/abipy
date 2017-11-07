@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Multiple e-DOSes
+================
+
 This example shows how to compute and plot multiple
 electron DOSes obtained with different values of the gaussian broadening.
 """

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+spin-polarized fatbands
+=======================
+
 This example shows how to plot the L-projected fatbands of Ni
 using the results stored in the FATBANDS.nc files produced with prtdos 3.
 """

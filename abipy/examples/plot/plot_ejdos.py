@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Joint Density of States
+=======================
+
 This example shows how plot the different contributions
 to the electronic joint density of states of Silicon
 """

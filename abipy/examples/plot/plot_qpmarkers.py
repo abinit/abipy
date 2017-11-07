@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+AbiPy examples
+==============
+
 This example shows how to plot the Kohn-Sham energies with
 markers providing a graphical representation of the GW results.
 """

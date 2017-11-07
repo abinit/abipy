@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+LM-fatbands
+===========
+
 This example shows how to plot the LM-projected fatbands.
 The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.
 """

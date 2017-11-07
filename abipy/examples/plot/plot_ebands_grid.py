@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+ElectronBandsPlotter
+====================
+
 This example shows how to plot several band structures on a grid
 
 We use two GSR files:
@@ -28,6 +31,7 @@ plotter.gridplot()
 eb_objects = 2 * [ref_file("si_nscf_GSR.nc")]
 edos_objects = 2 * [ref_file("si_scf_GSR.nc")]
 
+# sphinx_gallery_thumbnail_number = 2
 plotter = ElectronBandsPlotter()
 plotter.add_ebands("Si", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))
 plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))

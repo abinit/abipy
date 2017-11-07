@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Bands + DOS
+===========
+
 This example shows how to compute the DOS and plot a
 band structure with DOS using two GSR files.
 """

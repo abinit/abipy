@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Phonon Band structures
+======================
+
 This example shows how to plot the phonon band structure of AlAs.
 See tutorial/lesson_rf2.html
 """

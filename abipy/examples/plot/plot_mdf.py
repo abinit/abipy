@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Bethe-Salpeter
+==============
+
 This example shows how to plot the macroscopic dielectric function (MDF)
 computed in the Bethe-Salpeter code.
 """

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Density
+=======
+
 This example shows how to analyze the electronic density
 stored in the DEN.nc file.
 """

@@ -39,7 +39,7 @@ extensions = [
 'sphinx.ext.autodoc',
 'sphinx.ext.doctest',
 #'sphinx.ext.coverage',
-#'sphinx.ext.autosummary',
+'sphinx.ext.autosummary',
 'sphinx.ext.intersphinx',
 'sphinx.ext.todo',
 'sphinx.ext.coverage',
@@ -50,9 +50,9 @@ extensions = [
 'sphinx.ext.napoleon',   # For Google Python Style Guide
 'sphinx.ext.inheritance_diagram',
 'sphinxcontrib.programoutput',
+'sphinx_gallery.gen_gallery',
 #'sphinxcontrib.autoprogram',
 #"sphinxcontrib.argdoc", # slow but nice
-#'sphinx_gallery.gen_gallery',
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -66,11 +66,24 @@ extensions += [
           'IPython.sphinxext.ipython_console_highlighting',
           # This does not work with py3k
           #'numpydoc',
-          'gen_rst',
+          #'gen_rst',
           #'sphinxcontrib.autorun',
-          'autorun',
-          #'gen_gallery',  Generate gallery of PICS a la' matplotlib.
+          #'autorun',
           ]
+
+
+sphinx_gallery_conf = {
+    # path to your examples scripts
+    'examples_dirs': '../abipy/examples/plot',
+    # path where to save gallery generated examples
+    'gallery_dirs': 'gallery',
+    #'filename_pattern': '/plot_',
+    'backreferences_dir': False,
+    'reference_url': {
+        # The module you locally document uses None
+        'abipy': None,
+    }
+}
 
 # Generate the API documentation when building
 autosummary_generate = True
@@ -89,8 +102,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'abipy'
-copyright = u'2017, ' + relmod.author
+project = 'abipy'
+copyright = '2017, ' + relmod.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -143,13 +156,86 @@ import sphinx_bootstrap_theme
 html_theme = 'bootstrap'
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
+# (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
+# Path should be relative to the ``_static`` files directory.
+#html_logo = "my_logo.png"
+
+# Theme options are theme-specific and customize the look and feel of a
+# theme further.
+html_theme_options = {
+    # Navigation bar title. (Default: ``project`` value)
+    #'navbar_title': "Demo",
+
+    # Tab name for entire site. (Default: "Site")
+    'navbar_site_name': "Site",
+
+    # A list of tuples containing pages or urls to link to.
+    # Valid tuples should be in the following forms:
+    #    (name, page)                 # a link to a page
+    #    (name, "/aa/bb", 1)          # a link to an arbitrary relative url
+    #    (name, "http://example.com", True) # arbitrary absolute url
+    # Note the "1" or "True" value above as the third argument to indicate
+    # an arbitrary url.
+    #'navbar_links': [
+    #    ("Examples", "examples"),
+    #    ("Link", "http://example.com", True),
+    #],
+
+    # Render the next and previous page links in navbar. (Default: true)
+    'navbar_sidebarrel': True,
+
+    # Render the current pages TOC in the navbar. (Default: true)
+    'navbar_pagenav': True,
+
+    # Tab name for the current pages TOC. (Default: "Page")
+    'navbar_pagenav_name': "Page",
+
+    # Global TOC depth for "site" navbar tab. (Default: 1)
+    # Switching to -1 shows all levels.
+    'globaltoc_depth': 1,
+
+    # Include hidden TOCs in Site navbar?
+    #
+    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
+    # non-hidden ``toctree`` directives in the same page, or else the build
+    # will break.
+    #
+    # Values: "true" (default) or "false"
+    'globaltoc_includehidden': "true",
+
+    # HTML navbar class (Default: "navbar") to attach to <div> element.
+    # For black navbar, do "navbar navbar-inverse"
+    #'navbar_class': "navbar navbar-inverse",
+
+    # Fix navigation bar to top of page?
+    # Values: "true" (default) or "false"
+    'navbar_fixed_top': "true",
+
+    # Location of link to source.
+    # Options are "nav" (default), "footer" or anything else to exclude.
+    'source_link_position': "nav",
+
+    # Bootswatch (http://bootswatch.com/) theme.
+    # Options are nothing (default) or the name of a valid theme
+    # such as "cosmo" or "sandstone".
+    #'bootswatch_theme': "united",
+    #'bootswatch_theme': "flatly",
+    #'bootswatch_theme': "litera",
+    #'bootswatch_theme': "simplex",
+    #'bootswatch_theme': "sandstone",
+
+    # Choose Bootstrap version.
+    # Values: "3" (default) or "2" (in quotes)
+    'bootstrap_version': "3",
+}
+
+"""
 # The theme to use for HTML and HTML Help pages.  See the documentation for a list of builtin themes.
 #html_theme = 'default'
 #html_theme = "sphinxdoc"
 #html_theme = "agogo"
 #html_theme = "scrolls"
 
-"""
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the documentation.
 # http://alabaster.readthedocs.io/en/latest/customization.html
@@ -176,9 +262,8 @@ html_theme_options = {
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
 
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-html_logo = "_static/abipy_logo.png"
+# The name of an image file (relative to this directory) to place at the top of the sidebar.
+#html_logo = "_static/abipy_logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -254,7 +339,7 @@ latex_documents = [
   ('index',
    'abipy.tex',
    'AbiPy Documentation',
-   u'M. Giantomassi',
+   'M. Giantomassi',
    'manual'),
 ]
 
@@ -284,7 +369,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'abipy', u'abipy Documentation',
+    ('index', 'abipy', 'abipy Documentation',
      ", ".join(list(a[0] for a in relmod.authors.values())), 1)
 ]
 
@@ -298,8 +383,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'abipy', u'abipy Documentation',
-   u'M. Giantomassi', 'abipy', 'One line description of project.',
+  ('index', 'abipy', 'abipy Documentation',
+   'M. Giantomassi', 'abipy', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -311,7 +396,6 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
-
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {

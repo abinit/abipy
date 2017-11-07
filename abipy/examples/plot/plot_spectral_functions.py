@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+G0W0 spectral function
+======================
+
 This examples shows how to plot the G0W0 spectral functions A(w)
 at the gamma point, for the first band). See lesson tgw2_4
 """

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+MgB2 Fermi surface
+==================
+
 This example shows how to plot the Fermi surface with matplotlib
 """
 from abipy.abilab import abiopen

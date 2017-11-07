@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Multiple Bethe-Salpeter calculations
+====================================
+
 This example shows how to analyze multiple MDF files.
 """
 import abipy.data as abidata

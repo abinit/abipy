@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-"""
-This example shows how to plot the L-projected fatbands of MgB2 
+r"""
+MgB2 fatbands
+=============
+
+This example shows how to plot the L-projected fatbands of MgB2
 using the FATBANDS.nc files produced by abinit with prtdos 3.
 See also PhysRevLett.86.4656
 """
@@ -45,6 +48,7 @@ fbnc_kmesh.plot_pjdos_lview(lmax=lmax, tight_layout=True)
 
 # Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.
 # The data for the DOS is taken from pjdosfile.
+# sphinx_gallery_thumbnail_number = 6
 fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, lmax=lmax,
                                     view="type", tight_layout=True)
 

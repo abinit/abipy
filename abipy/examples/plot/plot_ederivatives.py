@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Effective masses
+================
+
 This example shows how to compute and plot the derivatives of the
 KS eigenvalues along a high symmetry path in K-space.
 """

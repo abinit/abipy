@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Gruneisen parameters
+====================
+
 This example shows how to analyze the Gruneisen parameters
 computed by anaddb via finite difference. See also v8/Input/t45.in
 """
@@ -17,6 +20,7 @@ ncfile = abilab.abiopen(abidata.ref_file("mg2si_GRUNS.nc"))
 ncfile.plot_doses(title="DOSes available in the GRUNS file.")
 
 # Plot phonon bands with markers
+# sphinx_gallery_thumbnail_number = 2
 ncfile.plot_phbands_with_gruns(title="Phonon bands with markers proportional to Gruneisen parameters + DOSes")
 
 # Construct plotter object to analyze multiple phonon bands.

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Brillouin zone
+==============
+
 This example shows how to display the Brillouin zone
 with pymatgen and matplotlib.
 """

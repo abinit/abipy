@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Wavefunction file
+=================
+
 This example shows how to analyze the wavefunctions
 stored in the WFK.nc file.
 """

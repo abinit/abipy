@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Potentials
+==========
+
 This example shows how to plot the potentials stored in netcdf files.
 Use the input variables `prtpot`, `prtvha`, `prtvhxc`, `prtvxc` with
 `iomode 3` to produce these files at the end of the SCF-GS run.

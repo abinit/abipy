@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Structural relaxation
+=====================
+
 This example shows how to analyze the results of a 
 structure relaxation run using the HIST.nc file.
 """
