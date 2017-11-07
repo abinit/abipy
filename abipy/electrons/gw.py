@@ -1903,7 +1903,7 @@ class SigresRobot(Robot, RobotWithEbands):
         ])
 
         # Mixins
-        #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        nb.cells.extend(self.get_baserobot_code_cells())
+        nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)

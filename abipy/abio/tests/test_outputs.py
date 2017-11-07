@@ -47,7 +47,7 @@ class AbinitOutputTest(AbipyTest):
             gs_cycle = abo.next_gs_scf_cycle()
             assert gs_cycle is not None
             if self.has_matplotlib():
-                gs_cycle.plot(show=False)
+                assert gs_cycle.plot(show=False)
             abo.seek(0)
             assert abo.next_d2de_scf_cycle() is None
 
@@ -56,9 +56,9 @@ class AbinitOutputTest(AbipyTest):
             assert str(timer.summarize())
 
             if self.has_matplotlib():
-                abo.compare_gs_scf_cycles([abo_path], show=False)
-                timer.plot_all(show=False)
-                abo.plot(show=False)
+                assert abo.compare_gs_scf_cycles([abo_path], show=False)
+                assert timer.plot_all(show=False)
+                assert abo.plot(show=False)
 
             if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -87,9 +87,9 @@ class AbinitOutputTest(AbipyTest):
              ph_cycle = abo.next_d2de_scf_cycle()
              assert ph_cycle is not None
              if self.has_matplotlib():
-                ph_cycle.plot(show=False)
-                abo.compare_d2de_scf_cycles([abo_path], show=False)
-                abo.plot(show=False)
+                assert ph_cycle.plot(show=False)
+                assert abo.compare_d2de_scf_cycles([abo_path], show=False)
+                assert abo.plot(show=False)
 
              if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -98,7 +98,7 @@ class AbinitOutputTest(AbipyTest):
         """Testing AbinitOutputFile with file produced in dry-run mode."""
         with abilab.abiopen(abidata.ref_file("refs/dryrun.abo")) as abo:
             repr(abo); str(abo)
-            assert abo.to_string(verbose=1)
+            assert abo.to_string(verbose=2)
             assert abo.dryrun_mode
             assert abo.ndtset == 1
             assert abo.has_same_initial_structures

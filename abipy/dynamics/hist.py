@@ -13,9 +13,6 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.iotools import ETSF_Reader
 
-import logging
-logger = logging.getLogger(__name__)
-
 __all__ = [
     "HistFile",
 ]

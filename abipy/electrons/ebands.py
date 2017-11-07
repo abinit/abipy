@@ -2182,6 +2182,16 @@ class ElectronBandsPlotter(NotebookWriter):
         """Invoked by str"""
         return self.to_string(func=str)
 
+    def __add__(self, other):
+        """Merge two plotters, return new plotter."""
+        if not isinstance(other, self.__class__):
+            raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))
+
+        key_ebands = list(self.ebands_dict.items()) + list(other.ebands_dict.items())
+        key_edos = list(self.edoses_dict.items()) + list(other.edoses_dict.items())
+
+        return self.__class__(key_ebands=key_ebands, key_edos=key_edos)
+
     def to_string(self, func=str, verbose=0):
         """String representation."""
         lines = []

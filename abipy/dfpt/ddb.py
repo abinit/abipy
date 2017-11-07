@@ -1361,4 +1361,7 @@ class DdbRobot(Robot):
             nbv.new_code_cell("r.phdos_plotter.ipw_harmonic_thermo()"),
         ])
 
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+
         return self._write_nb_nbpath(nb, nbpath)

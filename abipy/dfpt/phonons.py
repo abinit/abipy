@@ -2431,6 +2431,16 @@ class PhononBandsPlotter(NotebookWriter):
         """Invoked by str"""
         return self.to_string(func=str)
 
+    def __add__(self, other):
+        """Merge two plotters, return new plotter."""
+        if not isinstance(other, self.__class__):
+            raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))
+
+        key_phbands = list(self._bands_dict.items()) + list(other._bands_dict.items())
+        key_phdos = list(self._phdoses_dict.items()) + list(other._phdoses_dict.items())
+
+        return self.__class__(key_phbands=key_phbands, key_phdos=key_phdos)
+
     def to_string(self, func=str, verbose=0):
         """String representation."""
         lines = []

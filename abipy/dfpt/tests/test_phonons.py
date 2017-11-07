@@ -213,6 +213,11 @@ class PhononBandsPlotterTest(AbipyTest):
         assert len(plotter.phbands_list) == 2
         assert len(plotter.phdoses_list) == 2
 
+        # __add__ merges two plotters:
+        p2 = plotter + plotter
+        assert len(p2.phbands_list) == 2
+        assert len(p2.phdoses_list) == 2
+
         df = frame_from_phbands(plotter.phbands_list)
         assert "nqpt" in df
 

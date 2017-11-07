@@ -144,6 +144,10 @@ class ElectronBandsTest(AbipyTest):
         p = ni_ebands_kmesh + r.ebands_kmesh + r.ebands_kpath
         assert hasattr(p, "combiplot")
 
+
+
+
+
         # Test plot methods
         if self.has_matplotlib():
             elims = [-10, 2]
@@ -491,6 +495,12 @@ class ElectronBandsPlotterTest(AbipyTest):
         assert len(plotter.edoses_list) == 0
         with self.assertRaises(ValueError):
             plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
+
+        # __add__ should merge plotters
+        p2 = plotter + plotter
+        assert len(p2.ebands_list) == 2
+        assert len(p2.edoses_list) == 0
+        assert hasattr(p2, "combiplot")
 
         print(plotter.bands_statdiff())
         df = plotter.get_ebands_frame()
