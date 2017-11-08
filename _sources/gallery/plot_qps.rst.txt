@@ -48,7 +48,7 @@ stored in the SIGRES produced by the GW code (sigma run)
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  0.862 seconds)
+**Total running time of the script:** ( 0 minutes  1.326 seconds)
 
 
 

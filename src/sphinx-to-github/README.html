@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Sphinx to GitHub &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Command line tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">AbiPy gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Sphinx to GitHub</a><ul>
+<li><a class="reference internal" href="#attention">ATTENTION!</a></li>
+<li><a class="reference internal" href="#what">What?</a></li>
+<li><a class="reference internal" href="#why">Why?</a></li>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#extension">Extension</a></li>
+<li><a class="reference internal" href="#command-line">Command Line</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#further-information">Further Information</a><ul>
+<li><a class="reference internal" href="#install-from-github">Install from GitHub</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#running-tests">Running Tests</a></li>
+<li><a class="reference internal" href="#alternatives">Alternatives</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#credits">Credits</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/src/sphinx-to-github/README.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="sphinx-to-github">
+<h1>Sphinx to GitHub<a class="headerlink" href="#sphinx-to-github" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="attention">
+<h2>ATTENTION!<a class="headerlink" href="#attention" title="Permalink to this headline">¶</a></h2>
+<p>This project is designed to help you get around the github-pages Jekyll
+behaviour of ignoring top level directories starting with an underscore.</p>
+<p>This is solved in a much neater way by creating a <code class="docutils literal"><span class="pre">.nojekyll</span></code> in the root
+of you github-pages which will disable Jekyll as described <a class="reference external" href="https://github.com/blog/572-bypassing-jekyll-on-github-pages">here</a> and <a class="reference external" href="http://pages.github.com/">here</a>.</p>
+<p>This makes this project largely useless! Thank you to <a class="reference external" href="https://github.com/acdha">acdha</a> for making me aware of this.</p>
+</div>
+<div class="section" id="what">
+<h2>What?<a class="headerlink" href="#what" title="Permalink to this headline">¶</a></h2>
+<p>A Python script for preparing the html output of the Sphinx documentation
+system for github pages.</p>
+<p>It renames any top level folders which start with an underscore and edits any
+references to them within the html files.</p>
+</div>
+<div class="section" id="why">
+<h2>Why?<a class="headerlink" href="#why" title="Permalink to this headline">¶</a></h2>
+<p>GitHub processes the incoming html with Jekyll which believes top level folders
+starting with an underscore are special and does not let their content be accessible
+to the server. This is incompatible with Sphinx which uses underscores at the
+start of folder names for static content.</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">sphinxtogithub.py</span></code> script can be run on the command line or used as a
+Sphinx extension.</p>
+<div class="section" id="extension">
+<h3>Extension<a class="headerlink" href="#extension" title="Permalink to this headline">¶</a></h3>
+<p>Place the script on the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> and add <code class="docutils literal"><span class="pre">sphinxtogithub</span></code> to the
+extensions list in the <code class="docutils literal"><span class="pre">conf.py</span></code> file in your Sphinx project:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;sphinxtogithub&quot;</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>Additionally there are three config variables you can use to control the
+extension. The first enables/disables the extension, the second enables verbose
+output and the third determines the encoding which is used to read &amp; write
+files. The first two are <code class="docutils literal"><span class="pre">True</span></code> by default and the third is set to <code class="docutils literal"><span class="pre">utf-8</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sphinx_to_github</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">sphinx_to_github_verbose</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">sphinx_to_github_encoding</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="command-line">
+<h3>Command Line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h3>
+<p>Run the script with the path to the <code class="docutils literal"><span class="pre">html</span></code> output directory as the first
+argument. There is a <code class="docutils literal"><span class="pre">--verbose</span></code> flag for basic output.</p>
+</div>
+</div>
+<div class="section" id="further-information">
+<h2>Further Information<a class="headerlink" href="#further-information" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-from-github">
+<h3>Install from GitHub<a class="headerlink" href="#install-from-github" title="Permalink to this headline">¶</a></h3>
+<p>It should be possible to install this tool directly from github using pip:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="n">git</span><span class="o">+</span><span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">michaeljones</span><span class="o">/</span><span class="n">sphinx</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">github</span><span class="o">.</span><span class="n">git</span><span class="c1">#egg=sphinx-to-github</span>
+</pre></div>
+</div>
+<p>Thanks to <a class="reference external" href="http://github.com/winhamwr">winhamwr</a>’s work.</p>
+</div>
+<div class="section" id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<p>The script uses <code class="docutils literal"><span class="pre">/usr/bin/env</span></code> and <code class="docutils literal"><span class="pre">python</span></code>.</p>
+</div>
+<div class="section" id="running-tests">
+<h3>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h3>
+<p>Unit tests can be run using the setuptools <code class="docutils literal"><span class="pre">test</span></code> target. eg:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py test
+</pre></div>
+</div>
+</div>
+<div class="section" id="alternatives">
+<h3>Alternatives<a class="headerlink" href="#alternatives" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://github.com/dinoboff">dinoboff</a>’s project
+<a class="reference external" href="http://github.com/dinoboff/github-tools">github-tools</a> provides similar
+functionality combined with a much more comprehensive set of tools for helping
+you to manage Python based projects on github.</p>
+</div>
+</div>
+<div class="section" id="credits">
+<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this headline">¶</a></h2>
+<p>Thank you to:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://github.com/mikejs">mikejs</a></li>
+<li><a class="reference external" href="http://github.com/certik">certik</a></li>
+<li><a class="reference external" href="http://github.com/davvid">davvid</a></li>
+<li><a class="reference external" href="http://github.com/winhamwr">winhamwr</a></li>
+<li><a class="reference external" href="http://github.com/johnpaulett">johnpaulett</a></li>
+<li><a class="reference external" href="http://github.com/boothead">boothead</a></li>
+<li><a class="reference external" href="https://github.com/kennethreitz">kennethreitz</a></li>
+<li><a class="reference external" href="https://github.com/acdha">acdha</a></li>
+<li><a class="reference external" href="http://github.com/garbados">garbados</a></li>
+</ul>
+<p>For their contributions, which are beginning to outweigh mine, to Georg Brandl
+for <a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> and the github crew for the pages
+functionality.</p>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

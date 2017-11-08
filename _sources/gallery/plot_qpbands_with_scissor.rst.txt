@@ -88,7 +88,7 @@ structure are plotted with matplotlib.
     plotter.gridplot(title="Silicon band structure")
     sigma_file.close()
 
-**Total running time of the script:** ( 0 minutes  3.063 seconds)
+**Total running time of the script:** ( 0 minutes  2.043 seconds)
 
 
 

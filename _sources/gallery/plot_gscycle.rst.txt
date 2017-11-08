@@ -41,7 +41,7 @@ GS self-consistent cycle reported in the main output file.
 
     abo.close()
 
-**Total running time of the script:** ( 0 minutes  0.935 seconds)
+**Total running time of the script:** ( 0 minutes  0.696 seconds)
 
 
 

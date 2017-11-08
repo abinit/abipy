@@ -61,7 +61,7 @@ QP results stored in the SIGRES produced by the GW code (sigma run).
     # sphinx_gallery_thumbnail_number = 3
     plotter.plot_qps_vs_e0(tight_layout=True)
 
-**Total running time of the script:** ( 0 minutes  1.775 seconds)
+**Total running time of the script:** ( 0 minutes  1.499 seconds)
 
 
 

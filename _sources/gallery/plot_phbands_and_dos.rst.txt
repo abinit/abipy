@@ -77,7 +77,7 @@ See tutorial/lesson_rf2.html
     phbands.plot_colored_matched(units="cm-1", 
                                 title="AlAs with different color for each line.")
 
-**Total running time of the script:** ( 0 minutes  1.192 seconds)
+**Total running time of the script:** ( 0 minutes  1.570 seconds)
 
 
 

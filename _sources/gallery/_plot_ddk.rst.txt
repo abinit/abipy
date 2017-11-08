@@ -21,9 +21,9 @@ containing the velocity matrix elements.
     Name: gaas_444_dir1_DDK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic
     Size: 852.70 kb
-    Access Time: Tue Nov  7 23:55:44 2017
-    Modification Time: Wed Oct 25 23:03:23 2017
-    Change Time: Wed Oct 25 23:03:23 2017
+    Access Time: Wed Nov  8 01:07:18 2017
+    Modification Time: Wed Nov  8 01:06:20 2017
+    Change Time: Wed Nov  8 01:06:20 2017
 
     ================================= Structure =================================
     Full Formula (Ga1 As1)
@@ -63,9 +63,9 @@ containing the velocity matrix elements.
     Name: gaas_444_dir2_DDK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic
     Size: 852.70 kb
-    Access Time: Tue Nov  7 23:55:44 2017
-    Modification Time: Wed Oct 25 23:03:23 2017
-    Change Time: Wed Oct 25 23:03:23 2017
+    Access Time: Wed Nov  8 01:07:18 2017
+    Modification Time: Wed Nov  8 01:06:20 2017
+    Change Time: Wed Nov  8 01:06:20 2017
 
     ================================= Structure =================================
     Full Formula (Ga1 As1)
@@ -105,9 +105,9 @@ containing the velocity matrix elements.
     Name: gaas_444_dir3_DDK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/gaas_optic
     Size: 852.70 kb
-    Access Time: Tue Nov  7 23:55:44 2017
-    Modification Time: Wed Oct 25 23:03:23 2017
-    Change Time: Wed Oct 25 23:03:23 2017
+    Access Time: Wed Nov  8 01:07:18 2017
+    Modification Time: Wed Nov  8 01:06:20 2017
+    Change Time: Wed Nov  8 01:06:20 2017
 
     ================================= Structure =================================
     Full Formula (Ga1 As1)
@@ -170,7 +170,7 @@ containing the velocity matrix elements.
         #ddk_doses.plot()
         #ddk_doses.plot_with_ebands(ebands_kpath)
 
-**Total running time of the script:** ( 0 minutes  0.221 seconds)
+**Total running time of the script:** ( 0 minutes  0.184 seconds)
 
 
 
