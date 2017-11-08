@@ -48,5 +48,6 @@ class TestMpRestApi(AbipyTest):
         repr(cod); str(cod)
         assert cod.structures and cod
         assert 1000026 in cod.ids
-        assert cod.data is not None and cod.table is None
+        assert cod.data is not None
+        assert hasattr(cod.table, "describe")
         cod.print_results(fmt="POSCAR", verbose=2)

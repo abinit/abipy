@@ -174,10 +174,21 @@ class DatabaseStructures(NotebookWriter):
          new_data = None if self.data is None else [self.data[i] for i in inds]
          return self.__class__([self.structures[i] for i in inds], [self.ids[i] for i in inds], data=new_data)
 
+    @property
+    def lattice_dataframe(self):
+        """pandas DataFrame with lattice parameters."""
+        return self.structure_dataframes.lattice
+
+    @property
+    def coords_dataframe(self):
+        """pandas DataFrame with atomic positions."""
+        return self.structure_dataframes.coords
+
     @lazy_property
-    def table(self):
-        """Pandas dataframe constructed from self.data. None if data is not available."""
-        return None
+    def structure_dataframes(self):
+        """Pandas dataframes constructed from self.structures."""
+        from abipy.core.structure import dataframes_from_structures
+        return dataframes_from_structures(self.structures, index=self.ids, with_spglib=True)
 
     def print_results(self, fmt="abivars", verbose=0, file=sys.stdout):
         """
@@ -214,8 +225,11 @@ class DatabaseStructures(NotebookWriter):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("dbs = abilab.restapi.DatabaseStructures.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("import qgrid"),
             nbv.new_code_cell("# dbs.print_results(fmt='cif', verbose=0)"),
-            nbv.new_code_cell("import qgrid\nqgrid.show_grid(dbs.table)"),
+            nbv.new_code_cell("# qgrid.show_grid(dbs.lattice_dataframe)"),
+            nbv.new_code_cell("# qgrid.show_grid(dbs.coords_dataframe)"),
+            nbv.new_code_cell("qgrid.show_grid(dbs.table)"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -248,6 +262,17 @@ class CodStructures(DatabaseStructures):
     Store the results of a query to the COD database http://www.crystallography.net/cod/
     """
     dbname = "COD"
+
+    @lazy_property
+    def table(self):
+        """
+        Pandas dataframe constructed. Essentially geometrical info and space groups found by spglib
+        as COD data is rather limited.
+        """
+        df = self.lattice_dataframe.copy()
+        # Add sg from COD
+        df["cod_sg"] = [d["sg"].replace(" ", "") for d in self.data]
+        return df
 
 
 class Dotdict(dict):
