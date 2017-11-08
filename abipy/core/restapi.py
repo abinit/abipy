@@ -150,7 +150,10 @@ class PhaseDiagramResults(object):
 
 
 class DatabaseStructures(NotebookWriter):
-    """Store the results of a query to the MP database."""
+    """
+    Store the results of a query to the MP database.
+    This object is immutable, use add_entry to create a new instance.
+    """
 
     def __init__(self, structures, ids, data=None):
         """
@@ -162,6 +165,9 @@ class DatabaseStructures(NotebookWriter):
         from abipy.core.structure import Structure
         self.structures = list(map(Structure.as_structure, structures))
         self.ids, self.data = ids, data
+        assert len(self.structures) == len(ids)
+        if data is not None:
+            assert len(self.structures) == len(data)
 
     def __bool__(self):
         """bool(self)"""
@@ -173,6 +179,23 @@ class DatabaseStructures(NotebookWriter):
          inds = [i for i, s in enumerate(self.structures) if s.get_space_group_info()[1] == int(spgnum)]
          new_data = None if self.data is None else [self.data[i] for i in inds]
          return self.__class__([self.structures[i] for i in inds], [self.ids[i] for i in inds], data=new_data)
+
+    def add_entry(self, structure, entry_id, data_dict=None):
+        """
+        Add new entry, return new object.
+
+        Args:
+           structure: New structure object.
+           entry_id: ID associated to new structure.
+           data_dict: Option dictionary with metadata.
+        """
+        if data_dict is None:
+           new_data = None if self.data is None else self.data + [{}]
+        else:
+            assert self.data is not None
+            new_data = self.data + [data_dict]
+
+        return self.__class__(self.structures + [structure], self.ids + [entry_id], data=new_data)
 
     @property
     def lattice_dataframe(self):
@@ -252,8 +275,7 @@ class MpStructures(DatabaseStructures):
                 d[k] = getattr(structure.lattice, k)
             rows.append(d)
 
-        return pd.DataFrame(rows, index=[r["material_id"] for r in rows],
-                             columns=list(rows[0].keys()))
+        return pd.DataFrame(rows, index=self.ids, columns=list(rows[0].keys()))
 
 
 class CodStructures(DatabaseStructures):
@@ -270,7 +292,7 @@ class CodStructures(DatabaseStructures):
         """
         df = self.lattice_dataframe.copy()
         # Add sg from COD
-        df["cod_sg"] = [d["sg"].replace(" ", "") for d in self.data]
+        df["cod_sg"] = [d.get("sg", "").replace(" ", "") for d in self.data]
         return df
 
 

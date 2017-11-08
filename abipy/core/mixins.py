@@ -415,6 +415,7 @@ class NotebookWriter(object):
             import subprocess
             process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
+            return 0
 
     @staticmethod
     def get_nbformat_nbv():

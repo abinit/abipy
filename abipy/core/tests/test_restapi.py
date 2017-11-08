@@ -31,6 +31,10 @@ class TestMpRestApi(AbipyTest):
         assert len(mp.structures) == len(mp.data)
         assert hasattr(mp.table, "describe")
         mp.print_results(fmt="abivars", verbose=2)
+        new = mp.add_entry(mp.structures[-1], "newid")
+        assert len(new.ids) == len(mp.ids) + 1
+        assert new.ids == mp.ids + ["newid"]
+        new.print_results(fmt="cif", verbose=2)
 
         # Test mp_match_structure
         mp = abilab.mp_match_structure(abidata.cif_file("al.cif"))

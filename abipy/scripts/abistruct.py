@@ -139,7 +139,7 @@ def get_parser(with_epilog=False):
     path_selector.add_argument('filepath', nargs="?",
         help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
 
-    # Parent parser for commands supporting (ipython/jupyter)
+    # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
     nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
     nb_parser.add_argument('--foreground', action='store_true', default=False,

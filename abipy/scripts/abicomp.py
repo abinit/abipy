@@ -138,12 +138,16 @@ def _compare_with_database(options):
     retcode = 0
     for this_structure, r in zip(structures, mpres):
         if r.structures:
-            print()
-            dfs = abilab.dataframes_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
-            abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
-            if options.verbose:
-                abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
-            print()
+            if options.notebook:
+                new = r.add_entry(this_structure, "this")
+                retcode += new.make_and_open_notebook(foreground=options.foreground)
+            else:
+                print()
+                dfs = abilab.dataframes_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
+                abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
+                if options.verbose:
+                    abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+                print()
 
         else:
             print("Couldn't find %s database entries with formula `%s`" % (dbname, this_structure.composition.formula))
@@ -693,12 +697,18 @@ def get_parser(with_epilog=False):
                             help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
 
+    # Parent parser for commands supporting (jupyter notebooks)
+    nb_parser = argparse.ArgumentParser(add_help=False)
+    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    nb_parser.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
+
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "", 
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
@@ -712,10 +722,12 @@ def get_parser(with_epilog=False):
                           help="Whether to use anonymous mode in StructureMatcher. Default False")
 
     # Subparser for mp_structure command.
-    p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser], help=abicomp_mp_structure.__doc__)
+    p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser, nb_parser],
+                                       help=abicomp_mp_structure.__doc__)
 
     # Subparser for cod_structure command.
-    p_codstruct = subparsers.add_parser('cod_structure', parents=[copts_parser], help=abicomp_cod_structure.__doc__)
+    p_codstruct = subparsers.add_parser('cod_structure', parents=[copts_parser, nb_parser],
+                                        help=abicomp_cod_structure.__doc__)
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")
