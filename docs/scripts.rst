@@ -10,10 +10,10 @@ Command line tools
 
 AbiPy provides python objects associated to several Abinit output files.
 These objects implement methods to analyze and plot the results.
-The examples in our :doc:`gallery </examples/index>` use this API to plot data with ``matplotlib``.
+The examples in our :doc:`gallery </gallery>` use this API to plot data with ``matplotlib``.
 
 The ``abiopen.py`` script provides a handy interface to the AbiPy objects.
-It can be used to open Abinit files directly in the ``ipython``` shell or in a ``jupyter`` notebook and interact with
+It can be used to open Abinit files directly in the ``ipython`` shell or in a ``jupyter`` notebook and interact with
 the associated object (called ``abifile`` in the ``ipython`` terminal).
 The syntax of the script is::
 

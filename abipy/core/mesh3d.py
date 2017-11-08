@@ -316,7 +316,7 @@ class Mesh3D(object):
 
     @lazy_property
     def gmods(self):
-        """[ng] array with |G|"""
+        """[ng] array with $|G|$"""
         gmet = np.dot(self.inv_vectors.T, self.inv_vectors)
         gmods = np.empty(self.size)
         for i, g in enumerate(self.gvecs):

@@ -1,5 +1,4 @@
-AbiPy documentation
-===================
+## AbiPy documentation
 
 This is the top level build directory for the AbiPy documentation.  
 All of the documentation is written using sphinx, a python documentation system built on top of ReST.  
@@ -23,10 +22,14 @@ This directory contains:
 
   * _templates - used by the sphinx build system
 
-To build the HTML documentation, install sphinx  then type "make html" that will execute::
+To build the HTML documentation, install sphinx then type `make html` that will execute::
 
   sphinx-build -b html -d _build/doctrees . _build/html
 
 The documentation is produced in `_build/html`.
 
 You can run ``make help`` to see information on all possible make targets.
+
+To deploy to gh-pages::
+
+   ghp-import _build/html/ -n -p

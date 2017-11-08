@@ -503,7 +503,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Return:
             `namedtuple` with the following attributes:
-
                 phdoses: List of :class:`PhononDos` objects
                 plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`
                     to visualize the results.

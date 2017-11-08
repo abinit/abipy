@@ -101,7 +101,7 @@ class DielectricTensor(object):
         Plot all the components of the tensor
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -249,7 +249,7 @@ class DielectricFunction(object):
         Plot the MDF.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -576,7 +576,7 @@ class MdfPlotter(object):
         Get a matplotlib plot showing the MDFs.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
                 Options can be concated with "-".
@@ -808,7 +808,7 @@ class MultipleMdfPlotter(object):
         Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
             mdf_type:
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.

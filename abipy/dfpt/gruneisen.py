@@ -149,7 +149,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
                 or scalar e.g. `left`. If left (right) is None, default values are used
             dos_names: List of strings defining the DOSes to plot. Use `all` to plot all DOSes available.
-            with_idos: True to display integrated doses
+            with_idos: True to display integrated doses.
 
         Returns:
             matplotlib figure.

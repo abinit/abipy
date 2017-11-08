@@ -761,8 +761,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args
             kptgw: List of k-points in reduced coordinates.
             bdgw: Specifies the range of bands for the GW corrections.
-              Accepts iterable that be reshaped to (nkptgw, 2)
-              or a tuple of two integers if the extrema are the same for each k-point.
+                Accepts iterable that be reshaped to (nkptgw, 2)
+                or a tuple of two integers if the extrema are the same for each k-point.
         """
         kptgw = np.reshape(kptgw, (-1,3))
         nkptgw = len(kptgw)
@@ -2704,29 +2704,6 @@ class OpticError(Exception):
 class OpticInput(AbstractInput, MSONable):
     """
     Input file for optic executable
-
-    Example:
-        &FILES
-         ddkfile_1 = 'abo_1WF7',
-         ddkfile_2 = 'abo_1WF8',
-         ddkfile_3 = 'abo_1WF9',
-         wfkfile = 'abo_WFK'
-        /
-        &PARAMETERS
-         broadening = 0.002,
-         domega = 0.0003,
-         maxomega = 0.3,
-         scissor = 0.000,
-         tolerance = 0.002
-        /
-        &COMPUTATIONS
-         num_lin_comp = 1,
-         lin_comp = 11,
-         num_nonlin_comp = 2,
-         nonlin_comp = 123,222,
-         num_linel_comp = 0,
-         num_nonlin2_comp = 0,
-        /
     """
     Error = OpticError
 

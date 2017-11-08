@@ -58,7 +58,7 @@ plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 plotter.combiplot(title="Combiplot")
 plotter.boxplot(swarm=True, title="Boxplot")
 plotter.combiboxplot(swarm=True, title="Combiboxplot")
-# sphinx_gallery_thumbnail_number = 6
+# sphinx_gallery_thumbnail_number = 4
 plotter.gridplot(title="Gridplot")
 
 sigres.close()

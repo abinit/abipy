@@ -880,7 +880,7 @@ class PhononBands(object):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
 
@@ -951,7 +951,7 @@ class PhononBands(object):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``
             branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
             colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
                 sequential order to avoid difficulties in distinguishing the lines.
@@ -1203,7 +1203,7 @@ class PhononBands(object):
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
 
         Returns:
             `matplotlib` figure.
@@ -1320,7 +1320,7 @@ class PhononBands(object):
             phdos: An instance of :class:`PhononDos` or netcdf file providing a PhononDos object.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
+                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}``.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
 
@@ -1436,7 +1436,7 @@ class PhononBands(object):
 
         Args:
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels e.g. qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}.
+                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}``.
                 If None labels will be determined automatically.
         """
         # pymatgen labels dict is inverted
@@ -2291,12 +2291,10 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         phb_objects: List of objects from which the phonon band structures are extracted.
             Each item in phb_objects is either a string with the path of the netcdf file,
             or one of the abipy object with an `phbands` attribute or a :class:`PhononBands` object.
-        phdos_objects:
-            List of objects from which the phonon DOSes are extracted.
+        phdos_objects: List of objects from which the phonon DOSes are extracted.
             Accept filepaths or :class:`PhononDos` objects. If phdos_objects is not None,
             each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
-        titles:
-            List of strings with the titles to be added to the subplots.
+        titles: List of strings with the titles to be added to the subplots.
         phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
             Used only if `phdos_objects` is not None.
         units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -2555,7 +2553,7 @@ class PhononBandsPlotter(NotebookWriter):
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
-                The values are the labels e.g. klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}.
+                The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
 

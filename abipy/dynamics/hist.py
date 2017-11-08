@@ -104,7 +104,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def get_relaxation_analyzer(self):
         """
-        Return a pymatgen :class:`RelaxationAnalyzer object to analyze the relaxation in a calculation.
+        Return a pymatgen :class:`RelaxationAnalyzer` object to analyze the relaxation in a calculation.
         """
         from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
