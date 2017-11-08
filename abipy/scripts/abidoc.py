@@ -27,10 +27,8 @@ def print_vlist(vlist, options):
         print("\nUse -v for more info")
 
 
-@prof_main
-def main():
-    def str_examples():
-        return """\
+def get_epilog():
+    return """\
 Usage example:
 
     abidoc.py man ecut        --> Show documentation for ecut input variable.
@@ -46,14 +44,12 @@ Use `abidoc.py --help` for help and `abidoc.py COMMAND --help` to get the docume
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+
+def get_parser(with_epilog=False):
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=__version__)
 
     # Parent parser for common options.
@@ -102,6 +98,20 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for scheduler
     p_docsched = subparsers.add_parser('scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
+
+    return parser
+
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     try:
         options = parser.parse_args()

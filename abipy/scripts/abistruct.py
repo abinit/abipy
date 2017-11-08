@@ -52,12 +52,8 @@ def save_structure(structure, options):
 
     structure.to(filename=options.savefile)
 
-
-@prof_main
-def main():
-
-    def str_examples():
-        return """\
+def get_epilog():
+    return """\
 Usage example:
 
 ###################
@@ -136,18 +132,15 @@ Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the 
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+def get_parser(with_epilog=False):
 
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', nargs="?",
         help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
 
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
     spgopt_parser = argparse.ArgumentParser(add_help=False)
@@ -373,7 +366,8 @@ closest points in this particular structure. This is usually what you want in a 
         help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
-    p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None, help="Select structures with this space group number.")
+    p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
+                            help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
 
     # Subparser for mp_pd command.
@@ -392,7 +386,8 @@ ehull < show_unstable will be shown.""")
     p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser],
         help="Get structure from COD database. Requires internet connection and mysql")
     p_codsearch.add_argument("formula", type=str, default=None, help="formula (e.g., Fe2O3).")
-    p_codsearch.add_argument("-s", "--select-spgnum", type=int, default=None, help="Select structures with this space group number.")
+    p_codsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
+                             help="Select structures with this space group number.")
     p_codsearch.add_argument('--primitive', default=False, action='store_true', help="Convert COD cells into primitive cells.")
     add_format_arg(p_codsearch, default="abivars")
 
@@ -406,6 +401,19 @@ ehull < show_unstable will be shown.""")
     # Subparser for animate command.
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
         help="Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.")
+
+    return parser
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse command line.
     try:

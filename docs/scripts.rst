@@ -2,6 +2,39 @@
 Command line tools
 ==================
 
+.. argparse::
+   :ref: abipy.scripts.abicheck.get_parser
+   :prog: abicheck.py
+
+.. argparse::
+   :ref: abipy.scripts.abicomp.get_parser
+   :prog: abicomp.py
+
+.. argparse::
+   :ref: abipy.scripts.abidoc.get_parser
+   :prog: abidoc.py
+
+.. argparse::
+   :ref: abipy.scripts.abinp.get_parser
+   :prog: abinp.py
+
+.. argparse::
+   :ref: abipy.scripts.abiopen.get_parser
+   :prog: abiopen.py
+
+.. argparse::
+   :ref: abipy.scripts.abirun.get_parser
+   :prog: abirun.py
+
+.. argparse::
+   :ref: abipy.scripts.abistruct.get_parser
+   :prog: abistruct.py
+
+.. argparse::
+   :ref: abipy.scripts.abiview.get_parser
+   :prog: abiview.py
+
+
 .. _abiopen:
 
 ^^^^^^^^^^^^^^

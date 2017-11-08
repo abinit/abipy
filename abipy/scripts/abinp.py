@@ -158,7 +158,8 @@ def abinp_gs(options):
     structure = abilab.Structure.from_file(options.filepath)
     pseudos = get_pseudotable(options)
     gsinp = factories.gs_input(structure, pseudos,
-                               kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="unpolarized",
+                               kppa=None, ecut=None, pawecutdg=None, scf_nband=None,
+                               accuracy="normal", spin_mode="unpolarized",
                                smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
     #print(gsinp._repr_html_())
     return finalize(gsinp, options)
@@ -186,7 +187,8 @@ def abinp_phonons(options):
     pseudos = get_pseudotable(options)
 
     gsinp = factories.gs_input(structure, pseudos,
-                               kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="unpolarized",
+                               kppa=None, ecut=None, pawecutdg=None, scf_nband=None,
+                               accuracy="normal", spin_mode="unpolarized",
                                smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
     multi = factories.phonons_from_gsinput(gsinp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
@@ -230,12 +232,8 @@ def abinp_anaph(options):
 
     return finalize(inp, options)
 
-
-@prof_main
-def main():
-
-    def str_examples():
-        return """\
+def get_epilog():
+    return r"""
 Usage example:
 
 ######################
@@ -276,13 +274,9 @@ CAVEAT: This script provides a simplified interface to the AbiPy factory functio
 For a more flexible interface please use the AbiPy objects to generate input files and workflows.
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg:
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
 
+def get_parser(with_epilog=False):
+    """Build parser."""
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
@@ -311,7 +305,8 @@ For a more flexible interface please use the AbiPy objects to generate input fil
     path_selector.add_argument('filepath', type=str,
         help="File with the crystalline structure (netcdf, cif, POSCAR, input files ...)")
 
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
@@ -356,6 +351,20 @@ For a more flexible interface please use the AbiPy objects to generate input fil
 
     # Subparser for anaph command.
     p_anaph = subparsers.add_parser('anaph', parents=inpgen_parsers, help=abinp_anaph.__doc__)
+
+    return parser
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse the command line.
     try:

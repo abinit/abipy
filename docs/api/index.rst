@@ -12,6 +12,7 @@ API documentation
 .. toctree::
    :maxdepth: 1
 
+   abilab_api.rst
    abio_api.rst
    core_api.rst
    data_api.rst

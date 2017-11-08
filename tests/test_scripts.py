@@ -20,7 +20,7 @@ script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "abip
 def test_if_all_scripts_are_tested():
     """Testing if all scripts are tested"""
     tested_scripts = set(os.path.basename(c.script) for c in all_subclasses(ScriptTest))
-    all_scripts = set(f for f in os.listdir(script_dir) if f.endswith(".py"))
+    all_scripts = set(f for f in os.listdir(script_dir) if f.endswith(".py") and not f.startswith("_"))
     not_tested = all_scripts.difference(tested_scripts)
 
     if not_tested:

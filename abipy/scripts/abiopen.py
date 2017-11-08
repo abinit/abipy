@@ -69,11 +69,8 @@ from abipy import abilab\
         cprint("pid: %s" % str(process.pid), "yellow")
 
 
-@prof_main
-def main():
-
-    def str_examples():
-        s = """\
+def get_epilog():
+    s = """\
 Usage example:
 
     abiopen.py FILE        => Open file in ipython shell.
@@ -85,16 +82,11 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 File extensions supported:
 """
-        return s + abilab.abiopen_ext2class_table()
+    return s + abilab.abiopen_ext2class_table()
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg:
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
-
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+def get_parser(with_epilog=False):
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
@@ -108,6 +100,20 @@ File extensions supported:
                         help="Run jupyter notebook in the foreground.")
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
+
+    return parser
+
+
+@prof_main
+def main():
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse the command line.
     try:

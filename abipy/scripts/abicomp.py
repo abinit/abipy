@@ -586,10 +586,9 @@ def abicomp_time(options):
     return 0
 
 
-@prof_main
-def main():
-    def str_examples():
-        return """\
+
+def get_epilog():
+    return """\
 Usage example:
 
 ############
@@ -675,12 +674,8 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg:
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+
+def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -703,7 +698,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "", 
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
     # Create the parsers for the sub-commands
@@ -797,6 +793,21 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     p_text = subparsers.add_parser('text', parents=[copts_parser], help=abicomp_text.__doc__)
     p_text.add_argument("-d", "--diffmode", default="difflib", help=("Select diff application. "
         "Possible values: difflib (default), pygmentize (requires package)."))
+
+    return parser
+
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse the command line.
     try:

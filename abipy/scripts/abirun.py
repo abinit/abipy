@@ -488,12 +488,8 @@ def flow_watch_status(flow, delay=5, nids=None, verbose=0, func_name="show_func"
     except KeyboardInterrupt:
         cprint("Received KeyboardInterrupt from user\n", "yellow")
 
-
-@prof_main
-def main():
-
-    def str_examples():
-        usage = """\
+def get_epilog():
+    usage = """\
 
 Usage example:
 
@@ -541,7 +537,7 @@ Usage example:
   abirun.py . doc_scheduler                 => Document the options available in scheduler.yml.
 """
 
-        notes = """\
+    notes = """\
 
 Notes:
 
@@ -572,19 +568,16 @@ Notes:
     Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
-        developers = """\
+    developers = """\
 Options for developers:
 
     abirun.py prof ABIRUN_ARGS               => to profile abirun.py
     abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python"""
 
-        return notes + usage
+    return notes + usage + developers
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+
+def get_parser(with_epilog=False):
 
     def parse_nids(s):
         """parse nids argument"""
@@ -640,7 +633,8 @@ Options for developers:
         help="Remove the lock on the pickle file used to save the status of the flow.")
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow/work/task. "
                                                     "If not given, the flow in the current workdir is selected."))
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
@@ -673,7 +667,7 @@ Options for developers:
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
     p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
-        help=("Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs)."))
+        help="Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs).")
     p_status.add_argument('-s', '--summary', default=False, action="store_true",
         help="Print short version with status counters.")
 
@@ -689,8 +683,8 @@ Options for developers:
 
     # Subparser for restart command.
     p_restart = subparsers.add_parser('restart', parents=[copts_parser, flow_selector_parser],
-        help="Restart the tasks of the flow. By default, only the task whose status==Unconverged are restarted. "
-             "Use -S `status` and/or -n node_ids to select particular tasks.")
+        help=("Restart the tasks of the flow. By default, only the task whose status==Unconverged are restarted. "
+             "Use -S `status` and/or -n node_ids to select particular tasks."))
 
     # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
@@ -735,7 +729,7 @@ Specify the files to open. Possible choices:
     p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
     p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow. " +
                        "Mainly used for opening a flow located on a remote filesystem mounted with sshfs. " +
-                       "In this case chroot is the absolute path to the flow on the **localhost** ",
+                       "In this case chroot is the absolute path to the flow on the **localhost** " +
                        "Note that it is not possible to change the flow from remote when chroot is used."))
 
     # Subparser for new_manager.
@@ -877,6 +871,20 @@ Specify the files to open. Possible choices:
     p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
         help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0) "
               "Open Ipython terminal to inspect data."))
+
+    return parser
+
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse command line.
     try:

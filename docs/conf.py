@@ -47,6 +47,7 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     #'sphinxcontrib.autoprogram',
     #"sphinxcontrib.argdoc", # slow but nice
+    "sphinxarg.ext",
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -244,7 +245,7 @@ html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-html_use_smartypants = True
+#html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
@@ -368,4 +369,4 @@ intersphinx_mapping = {
 
 # If true, Sphinx will warn about all references where the target cannot be found.
 # Default is False. You can activate this mode temporarily using the -n command-line switch.
-nitpicky = True
+#nitpicky = True

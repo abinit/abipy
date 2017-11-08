@@ -153,11 +153,8 @@ def abiview_fields(options):
     return 0
 
 
-@prof_main
-def main():
-
-    def str_examples():
-        return """\
+def get_epilog():
+    return """\
 Usage example:
 
 ###########
@@ -190,19 +187,15 @@ Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the docu
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg:
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('paths', nargs="+", help="List of files to analyze.")
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--loglevel', default="ERROR", type=str,
                          help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
@@ -234,6 +227,21 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     # Subparser for fields command.
     p_fields = subparsers.add_parser('fields', parents=[copts_parser], help=abiview_fields.__doc__)
     p_fields.add_argument('--no-sort', default=False, action="store_true", help="Disable automatic sorting of filepaths.")
+
+    return parser
+
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse the command line.
     try:
