@@ -64,20 +64,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -91,8 +91,8 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">tools Package</a></li>
-<li><a class="reference internal" href="#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a><ul>
+<li><a class="reference internal" href="#">tools Package</a><ul>
+<li><a class="reference internal" href="#module-abipy.tools"><code class="docutils literal"><span class="pre">tools</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.bessel"><code class="docutils literal"><span class="pre">bessel</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.decorators"><code class="docutils literal"><span class="pre">decorators</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.tools.derivatives"><code class="docutils literal"><span class="pre">derivatives</span></code> Module</a></li>
@@ -154,9 +154,9 @@
       
   <div class="section" id="tools-package">
 <h1>tools Package<a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
-</div>
 <div class="section" id="module-abipy.tools">
-<span id="tools-module"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">tools</span></code> Module<a class="headerlink" href="#module-abipy.tools" title="Permalink to this headline">¶</a></h1>
+<span id="tools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">tools</span></code> Module<a class="headerlink" href="#module-abipy.tools" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-abipy.tools.bessel">
 <span id="bessel-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">bessel</span></code> Module<a class="headerlink" href="#module-abipy.tools.bessel" title="Permalink to this headline">¶</a></h2>
 <p>This module provides functions to compute integrals of Bessel functions.</p>
@@ -674,10 +674,7 @@ plt: matplotlib pyplot module.</td>
 <dt id="abipy.tools.plotting.plot_array">
 <code class="descclassname">abipy.tools.plotting.</code><code class="descname">plot_array</code><span class="sig-paren">(</span><em>array</em>, <em>color_map=None</em>, <em>cplx_mode='abs'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#plot_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.plot_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use imshow for plotting 2D or 1D arrays.</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
-</pre></div>
-</div>
+<p>(<a class="reference external" href="../api/tools_api-1.py">Source code</a>)</p>
 <p>See <a class="reference external" href="http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python">http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python</a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -838,6 +835,19 @@ example: size_kwargs=dict(w=3, h=4)</td>
 A marker is a list of tuple(x, y, s) where x, and y are the position
 in the graph and s is the size of the marker.
 Used for plotting purpose e.g. QP data, energy derivatives…</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">marker</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+</pre></div>
+</div>
 <dl class="method">
 <dt id="abipy.tools.plotting.Marker.extend">
 <code class="descname">extend</code><span class="sig-paren">(</span><em>xys</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker.extend" title="Permalink to this definition">¶</a></dt>

@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abinp.py &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="abiopen.py" href="abiopen.html" />
+    <link rel="prev" title="abidoc.py" href="abidoc.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">abinp.py</span></code></a><ul>
+<li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li><a class="reference internal" href="#subcommands">subcommands</a></li>
+<li><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
+<li><a class="reference internal" href="#validate">validate</a><ul>
+<li><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#autoparal">autoparal</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abispg">abispg</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ibz">ibz</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phperts">phperts</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gs">gs</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ebands">ebands</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phonons">phonons</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#g0w0">g0w0</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#anaph">anaph</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="abidoc.html" title="Previous Chapter: abidoc.py"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abidoc.py</span>
+    </a>
+  </li>
+  <li>
+    <a href="abiopen.html" title="Next Chapter: abiopen.py"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abiopen.py &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/scripts/abinp.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abinp-py">
+<span id="abinp"></span><h1><code class="docutils literal"><span class="pre">abinp.py</span></code><a class="headerlink" href="#abinp-py" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                <span class="p">{</span><span class="n">validate</span><span class="p">,</span><span class="n">autoparal</span><span class="p">,</span><span class="n">abispg</span><span class="p">,</span><span class="n">ibz</span><span class="p">,</span><span class="n">phperts</span><span class="p">,</span><span class="n">gs</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">phonons</span><span class="p">,</span><span class="n">g0w0</span><span class="p">,</span><span class="n">anaph</span><span class="p">}</span>
+                <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments">
+<h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-V, --version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="subcommands">
+<h2>subcommands<a class="headerlink" href="#subcommands" title="Permalink to this headline">¶</a></h2>
+<p>Valid subcommands, use command –help for help</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>command</kbd></td>
+<td><p class="first">Possible choices: validate, autoparal, abispg, ibz, phperts, gs, ebands, phonons, g0w0, anaph</p>
+<p class="last">sub-command help</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Sub-commands:">
+<h2>Sub-commands:<a class="headerlink" href="#Sub-commands:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="validate">
+<h3>validate<a class="headerlink" href="#validate" title="Permalink to this headline">¶</a></h3>
+<p>Validate Abinit input file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">validate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+                  <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat1">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="autoparal">
+<h3>autoparal<a class="headerlink" href="#autoparal" title="Permalink to this headline">¶</a></h3>
+<p>Compute autoparal configurations.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">autoparal</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">MAX_NCPUS</span><span class="p">]</span>
+                   <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat1">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat2">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-n, --max-ncpus</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Maximum number of CPUs</p>
+<p class="last">Default: 50</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="abispg">
+<h3>abispg<a class="headerlink" href="#abispg" title="Permalink to this headline">¶</a></h3>
+<p>Call Abinit to find space group.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">abispg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+                <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat2">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat3">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ibz">
+<h3>ibz<a class="headerlink" href="#ibz" title="Permalink to this headline">¶</a></h3>
+<p>Get k-points in the irreducible weights.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">ibz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+             <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+             <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+             <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat3">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat4">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="phperts">
+<h3>phperts<a class="headerlink" href="#phperts" title="Permalink to this headline">¶</a></h3>
+<p>Get list of phonon perturbations.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">phperts</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+                 <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat4">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat5">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="gs">
+<h3>gs<a class="headerlink" href="#gs" title="Permalink to this headline">¶</a></h3>
+<p>Build Abinit input for ground-state calculation.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">gs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+            <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+            <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+            <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat6">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ebands">
+<h3>ebands<a class="headerlink" href="#ebands" title="Permalink to this headline">¶</a></h3>
+<p>Build Abinit input for band structure calculations.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+                <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat7">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="phonons">
+<h3>phonons<a class="headerlink" href="#phonons" title="Permalink to this headline">¶</a></h3>
+<p>Build Abinit input for phonon calculations.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">phonons</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+                 <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat7">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat8">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="g0w0">
+<h3>g0w0<a class="headerlink" href="#g0w0" title="Permalink to this headline">¶</a></h3>
+<p>Generate input files for G0W0 calculations.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">g0w0</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+              <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+              <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+              <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat8">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat9">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="anaph">
+<h3>anaph<a class="headerlink" href="#anaph" title="Permalink to this headline">¶</a></h3>
+<p>Build Anaddb input file for the computation of phonon bands DOS.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abinp</span><span class="o">.</span><span class="n">py</span> <span class="n">anaph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">usepaw</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">jdtset</span> <span class="n">JDTSET</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PSEUDOS</span> <span class="p">[</span><span class="n">PSEUDOS</span> <span class="o">...</span><span class="p">]]</span>
+               <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat9">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (netcdf, cif, POSCAR, input files …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat10">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY used if mp identifier is used to select structure.
+Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-m, --mnemonics</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Print brief description of input variables in the input file.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--usepaw</kbd></td>
+<td><p class="first">Use PAW pseudos instead of norm-conserving.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--jdtset</kbd></td>
+<td><p class="first">jdtset index. Used to select the dataset index when the input file contains more than one dataset.</p>
+<p class="last">Default: 1</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --pseudos</kbd></td>
+<td>List of pseudopotentials</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abilab &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="abio Package" href="abio_api.html" />
+    <link rel="prev" title="API documentation" href="index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">abilab</a><ul>
+<li><a class="reference internal" href="#module-abipy.abilab"><code class="docutils literal"><span class="pre">abilab</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="index.html" title="Previous Chapter: API documentation"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; API documentation</span>
+    </a>
+  </li>
+  <li>
+    <a href="abio_api.html" title="Next Chapter: abio Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abio Package &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/api/abilab_api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abilab">
+<h1>abilab<a class="headerlink" href="#abilab" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-abipy.abilab">
+<span id="abilab-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abilab</span></code> Module<a class="headerlink" href="#module-abipy.abilab" title="Permalink to this headline">¶</a></h2>
+<p>This module gathers the most important classes and helper functions used for scripting.</p>
+<dl class="function">
+<dt id="abipy.abilab.abicheck">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abicheck</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abicheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abicheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function tests if the most important ABINIT executables
+can be found in $PATH and whether the python modules needed
+at run-time can be imported. Return string with error messages, empty if success.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.abifile_subclass_from_filename">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abifile_subclass_from_filename</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abifile_subclass_from_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abifile_subclass_from_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the appropriate class associated to the given filename.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.abiopen">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abiopen</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abiopen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abiopen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function that opens any file supported by abipy.
+File type is detected from the extension</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filepath</strong> – string with the filename.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.abiopen_ext2class_table">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abiopen_ext2class_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abiopen_ext2class_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abiopen_ext2class_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the association table between file extensions and File classes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.abipy_logo1">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abipy_logo1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo1" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://www.text-image.com/convert/pic2ascii.cgi">http://www.text-image.com/convert/pic2ascii.cgi</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.abipy_logo2">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abipy_logo2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo2" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://www.text-image.com/convert/pic2ascii.cgi">http://www.text-image.com/convert/pic2ascii.cgi</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.abipy_logo3">
+<code class="descclassname">abipy.abilab.</code><code class="descname">abipy_logo3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#abipy_logo3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.abipy_logo3" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://www.text-image.com/convert/pic2ascii.cgi">http://www.text-image.com/convert/pic2ascii.cgi</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.dir2abifiles">
+<code class="descclassname">abipy.abilab.</code><code class="descname">dir2abifiles</code><span class="sig-paren">(</span><em>top</em>, <em>recurse=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#dir2abifiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.dir2abifiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyze the filesystem starting from directory <cite>top</cite> and
+return an ordered dictionary mapping the directory name to the list
+of files supported by <cite>abiopen</cite> contained within that directory.
+If not <cite>recurse</cite>, children directories are not analyzed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.display_structure">
+<code class="descclassname">abipy.abilab.</code><code class="descname">display_structure</code><span class="sig-paren">(</span><em>obj</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#display_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.display_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use Jsmol to display a structure in the jupyter notebook.
+Requires <cite>nbjsmol</cite> notebook extension installed on the local machine.
+Install it with <cite>pip install nbjsmol</cite>. See also <a class="reference external" href="https://github.com/gmatteo/nbjsmol">https://github.com/gmatteo/nbjsmol</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>obj</strong> – Structure object or file with a structure or python object with a <cite>structure</cite> attribute.</li>
+<li><strong>kwargs</strong> – Keyword arguments passed to <cite>nbjsmol_display</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.isabifile">
+<code class="descclassname">abipy.abilab.</code><code class="descname">isabifile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#isabifile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.isabifile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if <cite>filepath</cite> can be opened with <cite>abiopen</cite>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.abilab.software_stack">
+<code class="descclassname">abipy.abilab.</code><code class="descname">software_stack</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abilab.html#software_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abilab.software_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import all the hard dependencies. Returns ordered dict: package –&gt; string with version info.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

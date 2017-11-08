@@ -62,20 +62,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -1005,7 +1005,7 @@
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;).</span>
 <span class="sd">                Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
-<span class="sd">                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}.</span>
+<span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``.</span>
 <span class="sd">            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).</span>
 <span class="sd">            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.</span>
 
@@ -1076,7 +1076,7 @@
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
-<span class="sd">                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}</span>
+<span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``</span>
 <span class="sd">            branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).</span>
 <span class="sd">            colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a</span>
 <span class="sd">                sequential order to avoid difficulties in distinguishing the lines.</span>
@@ -1328,7 +1328,7 @@
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
-<span class="sd">                The values are the labels. e.g. qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}.</span>
+<span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `matplotlib` figure.</span>
@@ -1445,7 +1445,7 @@
 <span class="sd">            phdos: An instance of :class:`PhononDos` or netcdf file providing a PhononDos object.</span>
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
-<span class="sd">                The values are the labels e.g. qlabels = {(0.0,0.0,0.0):&quot;$\Gamma$&quot;, (0.5,0,0):&quot;L&quot;}.</span>
+<span class="sd">                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0):&quot;$\Gamma$&quot;, (0.5,0,0):&quot;L&quot;}``.</span>
 <span class="sd">            axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure</span>
 <span class="sd">                is created and the two axes are automatically generated.</span>
 
@@ -1561,7 +1561,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
-<span class="sd">                The values are the labels e.g. qlabels = {(0.0,0.0,0.0):&quot;$\Gamma$&quot;, (0.5,0,0):&quot;L&quot;}.</span>
+<span class="sd">                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0):&quot;$\Gamma$&quot;, (0.5,0,0):&quot;L&quot;}``.</span>
 <span class="sd">                If None labels will be determined automatically.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># pymatgen labels dict is inverted</span>
@@ -2416,12 +2416,10 @@
 <span class="sd">        phb_objects: List of objects from which the phonon band structures are extracted.</span>
 <span class="sd">            Each item in phb_objects is either a string with the path of the netcdf file,</span>
 <span class="sd">            or one of the abipy object with an `phbands` attribute or a :class:`PhononBands` object.</span>
-<span class="sd">        phdos_objects:</span>
-<span class="sd">            List of objects from which the phonon DOSes are extracted.</span>
+<span class="sd">        phdos_objects: List of objects from which the phonon DOSes are extracted.</span>
 <span class="sd">            Accept filepaths or :class:`PhononDos` objects. If phdos_objects is not None,</span>
 <span class="sd">            each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.</span>
-<span class="sd">        titles:</span>
-<span class="sd">            List of strings with the titles to be added to the subplots.</span>
+<span class="sd">        titles: List of strings with the titles to be added to the subplots.</span>
 <span class="sd">        phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.</span>
 <span class="sd">            Used only if `phdos_objects` is not None.</span>
 <span class="sd">        units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
@@ -2680,7 +2678,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.</span>
-<span class="sd">                The values are the labels e.g. klabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}.</span>
+<span class="sd">                The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
 

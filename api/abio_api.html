@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="core Package" href="core_api.html" />
-    <link rel="prev" title="API documentation" href="index.html" />
+    <link rel="prev" title="abilab" href="abilab_api.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -64,20 +64,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -113,7 +113,7 @@
               
                 
   <li>
-    <a href="index.html" title="Previous Chapter: API documentation"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; API documentation</span>
+    <a href="abilab_api.html" title="Previous Chapter: abilab"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abilab</span>
     </a>
   </li>
   <li>
@@ -2703,32 +2703,6 @@ is constructed from the dataset index e.g. run0.abi</p>
 <em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">OpticInput</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#OpticInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.OpticInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">monty.json.MSONable</span></code></p>
 <p>Input file for optic executable</p>
-<p class="rubric">Example</p>
-<dl class="docutils">
-<dt>&amp;FILES</dt>
-<dd>ddkfile_1 = ‘abo_1WF7’,
-ddkfile_2 = ‘abo_1WF8’,
-ddkfile_3 = ‘abo_1WF9’,
-wfkfile = ‘abo_WFK’</dd>
-</dl>
-<p>/
-&amp;PARAMETERS</p>
-<blockquote>
-<div>broadening = 0.002,
-domega = 0.0003,
-maxomega = 0.3,
-scissor = 0.000,
-tolerance = 0.002</div></blockquote>
-<p>/
-&amp;COMPUTATIONS</p>
-<blockquote>
-<div>num_lin_comp = 1,
-lin_comp = 11,
-num_nonlin_comp = 2,
-nonlin_comp = 123,222,
-num_linel_comp = 0,
-num_nonlin2_comp = 0,</div></blockquote>
-<p>/</p>
 <dl class="attribute">
 <dt id="abipy.abio.inputs.OpticInput.Error">
 <code class="descname">Error</code><a class="headerlink" href="#abipy.abio.inputs.OpticInput.Error" title="Permalink to this definition">¶</a></dt>

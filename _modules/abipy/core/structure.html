@@ -62,20 +62,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -554,9 +554,10 @@
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
 
-<span class="sd">        Example::</span>
+<span class="sd">        .. Example::</span>
 
 <span class="sd">            Structure.rocksalt(a, [&quot;Na&quot;, &quot;Cl&quot;])</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lattice</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
             <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
@@ -587,7 +588,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a :class:`Structure` object from a dictionary with ABINIT variables.</span>
 
-<span class="sd">        Example::</span>
+<span class="sd">        .. Example::</span>
 
 <span class="sd">            al_structure = Structure.from_abivars(</span>
 <span class="sd">                acell=3*[7.5],</span>
@@ -822,10 +823,11 @@
 <span class="sd">            eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
 <span class="sd">            spgdata: spglib dataset with additional data reported by spglib.</span>
 
-<span class="sd">        Example::</span>
+<span class="sd">        .. Example::</span>
 
 <span class="sd">            for irr_pos in irred_pos:</span>
 <span class="sd">                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
@@ -1860,13 +1862,14 @@
 <span class="sd">            `coords` the atomic positions.</span>
 <span class="sd">        The list of structures is available in the `structures` entry.</span>
 
-<span class="sd">    Example::</span>
+<span class="sd">    .. Example::</span>
 
 <span class="sd">        dfs = dataframes_from_structures(files)</span>
 <span class="sd">        dfs.lattice</span>
 <span class="sd">        dfs.coords</span>
 <span class="sd">        for structure in dfs.structures:</span>
 <span class="sd">            print(structure)</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">struct_objects</span><span class="p">]</span>
     <span class="c1"># Build Frame with lattice parameters.</span>

@@ -63,20 +63,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -178,6 +178,10 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.abi_string">abi_string (abipy.core.structure.Structure attribute)</a>
 </li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abicheck">abicheck() (in module abipy.abilab)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abifile_subclass_from_filename">abifile_subclass_from_filename() (in module abipy.abilab)</a>
+</li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_autoparal_pconfs">abiget_autoparal_pconfs() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_ibz">abiget_ibz() (abipy.abio.inputs.AbinitInput method)</a>
@@ -191,8 +195,6 @@
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_strainperts">abiget_irred_strainperts() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_spacegroup">abiget_spacegroup() (abipy.abio.inputs.AbinitInput method)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput">AbiInput (class in abipy.htc.input)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.abinit_help">abinit_help() (in module abipy.abio.abivars_db)</a>
 </li>
@@ -221,6 +223,12 @@
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitTextFile">AbinitTextFile (class in abipy.abio.outputs)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.timer.AbinitTimerParser">AbinitTimerParser (class in abipy.abio.timer)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abiopen">abiopen() (in module abipy.abilab)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abiopen_ext2class_table">abiopen_ext2class_table() (in module abipy.abilab)</a>
+</li>
+      <li><a href="api/abilab_api.html#module-abipy.abilab">abipy.abilab (module)</a>
 </li>
       <li><a href="api/abio_api.html#module-abipy.abio">abipy.abio (module)</a>
 </li>
@@ -358,16 +366,14 @@
 </li>
       <li><a href="api/flowtk_api.html#module-abipy.flowtk.works">abipy.flowtk.works (module)</a>
 </li>
-      <li><a href="api/htc/input.html#module-abipy.htc.input">abipy.htc.input (module)</a>
-</li>
       <li><a href="api/iotools_api.html#module-abipy.iotools">abipy.iotools (module)</a>
 </li>
       <li><a href="api/iotools_api.html#module-abipy.iotools.visualizer">abipy.iotools.visualizer (module)</a>
 </li>
-      <li><a href="api/iotools_api.html#module-abipy.iotools.xsf">abipy.iotools.xsf (module)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/iotools_api.html#module-abipy.iotools.xsf">abipy.iotools.xsf (module)</a>
+</li>
       <li><a href="api/tools_api.html#module-abipy.tools">abipy.tools (module)</a>
 </li>
       <li><a href="api/tools_api.html#module-abipy.tools.bessel">abipy.tools.bessel (module)</a>
@@ -395,6 +401,12 @@
       <li><a href="api/waves_api.html#module-abipy.waves.pwwave">abipy.waves.pwwave (module)</a>
 </li>
       <li><a href="api/waves_api.html#module-abipy.waves.wfkfile">abipy.waves.wfkfile (module)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abipy_logo1">abipy_logo1() (in module abipy.abilab)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abipy_logo2">abipy_logo2() (in module abipy.abilab)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.abipy_logo3">abipy_logo3() (in module abipy.abilab)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyFileTest">AbipyFileTest (class in abipy.core.testing)</a>
 </li>
@@ -525,11 +537,7 @@
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.VariableDatabase.apropos">apropos() (abipy.abio.abivars_db.VariableDatabase method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.arange">arange() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.arange">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/tools_api.html#abipy.tools.plotting.ArrayPlotter">ArrayPlotter (class in abipy.tools.plotting)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.decorators.LdaUDecorator.as_dict">as_dict() (abipy.abio.decorators.LdaUDecorator method)</a>
@@ -556,8 +564,6 @@
         <li><a href="api/electrons_api.html#abipy.electrons.gsr.GsrFile.as_dict">(abipy.electrons.gsr.GsrFile method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.gw.QPState.as_dict">(abipy.electrons.gw.QPState method)</a>
-</li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.as_dict">(abipy.htc.input.AbiInput method)</a>
 </li>
       </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.as_ebands">as_ebands() (abipy.electrons.ebands.ElectronBands class method)</a>
@@ -879,11 +885,7 @@
 </li>
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.decorators">decorators (abipy.abio.inputs.AbinitInput attribute)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.decorators">(abipy.htc.input.AbiInput attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbstractInput.deepcopy">deepcopy() (abipy.abio.inputs.AbstractInput method)</a>
 
       <ul>
@@ -904,12 +906,12 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_molekel">den_to_molekel() (abipy.abio.inputs.Cut3DInput class method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_tecplot">den_to_tecplot() (abipy.abio.inputs.Cut3DInput class method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.Cut3DInput.den_to_xsf">den_to_xsf() (abipy.abio.inputs.Cut3DInput class method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.denpot.DensityNcFile.density">density (abipy.electrons.denpot.DensityNcFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.Density">Density (class in abipy.core.fields)</a>
@@ -942,6 +944,8 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.devtools.HtmlDiff.difflib">difflib() (abipy.tools.devtools.HtmlDiff method)</a>
 </li>
+      <li><a href="api/abilab_api.html#abipy.abilab.dir2abifiles">dir2abifiles() (in module abipy.abilab)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.direct_gaps">direct_gaps (abipy.electrons.ebands.ElectronBands attribute)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.dispersionless_states">dispersionless_states() (abipy.electrons.ebands.ElectronBands method)</a>
@@ -949,6 +953,8 @@
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.displ_shape">displ_shape (abipy.dfpt.phonons.PhononBands attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.displace">displace() (abipy.core.structure.Structure method)</a>
+</li>
+      <li><a href="api/abilab_api.html#abipy.abilab.display_structure">display_structure() (in module abipy.abilab)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mesh3d.Mesh3D.dist_gridpoints_in_spheres">dist_gridpoints_in_spheres() (abipy.core.mesh3d.Mesh3D method)</a>
 </li>
@@ -1094,8 +1100,6 @@
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.Error">(abipy.electrons.ebands.ElectronBands attribute)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.scissors.Scissors.Error">(abipy.electrons.scissors.Scissors attribute)</a>
-</li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.Error">(abipy.htc.input.AbiInput attribute)</a>
 </li>
         <li><a href="api/iotools_api.html#abipy.iotools.visualizer.Visualizer.Error">(abipy.iotools.visualizer.Visualizer attribute)</a>
 </li>
@@ -1297,8 +1301,6 @@
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.from_dict">(abipy.electrons.ebands.ElectronBands class method)</a>
 </li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.from_dict">(abipy.htc.input.AbiInput class method)</a>
-</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -1438,8 +1440,6 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.gaussians_dos">gaussians_dos() (in module abipy.electrons.fatbands)</a>
 </li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.generate">generate() (abipy.htc.input.AbiInput method)</a>
-</li>
       <li><a href="api/core_api.html#abipy.core.wyckoff.Wyckoff.generate_structure">generate_structure() (abipy.core.wyckoff.Wyckoff method)</a>
 </li>
       <li><a href="api/eph_api.html#abipy.eph.eph.EphFile.get_a2f_qsamp">get_a2f_qsamp() (abipy.eph.eph.EphFile method)</a>
@@ -1542,13 +1542,9 @@
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_free_energy">get_free_energy() (abipy.dfpt.phonons.PhononDos method)</a>
 </li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.get_ibz">get_ibz() (abipy.htc.input.AbiInput method)</a>
-</li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononDos.get_internal_energy">get_internal_energy() (abipy.dfpt.phonons.PhononDos method)</a>
 </li>
       <li><a href="api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.get_interpolator">get_interpolator() (abipy.waves.pwwave.PWWaveFunction method)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.get_irred_perts">get_irred_perts() (abipy.htc.input.AbiInput method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.get_jdos_q0">get_jdos_q0() (abipy.core.skw.ElectronInterpolator method)</a>
 </li>
@@ -1566,10 +1562,10 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.MdfFile.get_mdf">get_mdf() (abipy.electrons.bse.MdfFile method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.get_minfreq_mode">get_minfreq_mode() (abipy.dfpt.phonons.PhononBands method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.get_mock_module">get_mock_module() (abipy.core.testing.AbipyTest static method)</a>
 </li>
       <li><a href="api/eph_api.html#abipy.eph.eph.A2f.get_moment">get_moment() (abipy.eph.eph.A2f method)</a>
@@ -1820,8 +1816,6 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.iotools.input_from_editor">input_from_editor() (in module abipy.tools.iotools)</a>
 </li>
-      <li><a href="api/htc/input.html#abipy.htc.input.input_gen">input_gen() (in module abipy.htc.input)</a>
-</li>
       <li><a href="api/abio_api.html#abipy.abio.decorators.InputDecoratorError">InputDecoratorError</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.integral">integral() (abipy.core.func1d.Function1D method)</a>
@@ -1874,12 +1868,8 @@
 </li>
       <li><a href="api/abio_api.html#abipy.abio.abivars.is_abiunit">is_abiunit() (in module abipy.abio.abivars)</a>
 </li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.is_abivar">is_abivar() (abipy.htc.input.AbiInput method)</a>
-
-      <ul>
-        <li><a href="api/abio_api.html#abipy.abio.abivars.is_abivar">(in module abipy.abio.abivars)</a>
+      <li><a href="api/abio_api.html#abipy.abio.abivars.is_abivar">is_abivar() (in module abipy.abio.abivars)</a>
 </li>
-      </ul></li>
       <li><a href="api/iotools_api.html#abipy.iotools.visualizer.Visualizer.is_available">is_available (abipy.iotools.visualizer.Visualizer attribute)</a>
 </li>
       <li><a href="api/tools_api.html#abipy.tools.duck.is_intlike">is_intlike() (in module abipy.tools.duck)</a>
@@ -1904,6 +1894,8 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.is_symmorphic">is_symmorphic (abipy.core.symmetries.AbinitSpaceGroup attribute)</a>
 </li>
+      <li><a href="api/abilab_api.html#abipy.abilab.isabifile">isabifile() (in module abipy.abilab)</a>
+</li>
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.Variable.isarray">isarray (abipy.abio.abivars_db.Variable attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.iscomplexobj">iscomplexobj (abipy.core.func1d.Function1D attribute)</a>
@@ -1919,15 +1911,11 @@
       <ul>
         <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.isnc">(abipy.abio.inputs.MultiDataset attribute)</a>
 </li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.isnc">(abipy.htc.input.AbiInput attribute)</a>
-</li>
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.ispaw">ispaw (abipy.abio.inputs.AbinitInput attribute)</a>
 
       <ul>
         <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.ispaw">(abipy.abio.inputs.MultiDataset attribute)</a>
-</li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.ispaw">(abipy.htc.input.AbiInput attribute)</a>
 </li>
       </ul></li>
       <li><a href="api/core_api.html#abipy.core.kpoints.issamek">issamek() (in module abipy.core.kpoints)</a>
@@ -2054,21 +2042,15 @@
         <li><a href="api/core_api.html#abipy.core.tensor.Tensor.lattice">(abipy.core.tensor.Tensor attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.lattice_vectors">lattice_vectors() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.LatticeRotation">LatticeRotation (class in abipy.core.symmetries)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.decorators.LdaUDecorator">LdaUDecorator (class in abipy.abio.decorators)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/htc/input.html#abipy.htc.input.LdauParams">LdauParams (class in abipy.htc.input)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.LexxParams.lexx_for_symbol">lexx_for_symbol() (abipy.htc.input.LexxParams method)</a>
-</li>
       <li><a href="api/abio_api.html#abipy.abio.decorators.LexxDecorator">LexxDecorator (class in abipy.abio.decorators)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.LexxParams">LexxParams (class in abipy.htc.input)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.linecolor">linecolor (abipy.electrons.fatbands.FatBandsFile attribute)</a>
 </li>
@@ -2083,11 +2065,7 @@
       <li><a href="api/display_api.html#abipy.display.utils.linewidth_slider">linewidth_slider() (in module abipy.display.utils)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.linspace">linspace() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.linspace">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.literal">literal (class in abipy.abio.abivars_db)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.literal_unicode_representer">literal_unicode_representer() (in module abipy.abio.abivars_db)</a>
@@ -2097,8 +2075,6 @@
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.lomo_sk">lomo_sk() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.lomos">lomos (abipy.electrons.ebands.ElectronBands attribute)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.LdauParams.luj_for_symbol">luj_for_symbol() (abipy.htc.input.LdauParams method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.lumo_sk">lumo_sk() (abipy.electrons.ebands.ElectronBands method)</a>
 </li>
@@ -2189,11 +2165,7 @@
       <li><a href="api/electrons_api.html#abipy.electrons.psps.mklabel">mklabel() (in module abipy.electrons.psps)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.mnemonics">mnemonics (abipy.abio.inputs.AbinitInput attribute)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.mnemonics">(abipy.htc.input.AbiInput attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes">modes() (abipy.abio.inputs.AnaddbInput class method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.modes_at_qpoint">modes_at_qpoint() (abipy.abio.inputs.AnaddbInput class method)</a>
@@ -2255,11 +2227,7 @@
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.ncfiles">ncfiles (abipy.abio.robots.Robot attribute)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.ndtset">ndtset (abipy.abio.inputs.MultiDataset attribute)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.ndtset">(abipy.htc.input.AbiInput attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.nelect">nelect (abipy.core.mixins.Has_ElectronBands attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.fields.Density.nelect_updown">nelect_updown (abipy.core.fields.Density attribute)</a>
@@ -2284,8 +2252,6 @@
         <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.netcdf_name">(abipy.electrons.scr.ScrFile attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.new_from_decorators">new_from_decorators() (abipy.htc.input.AbiInput method)</a>
-</li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_decorators">new_with_decorators() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.new_with_irred_kpoints">new_with_irred_kpoints() (abipy.electrons.ebands.ElectronBands method)</a>
@@ -2293,21 +2259,17 @@
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_structure">new_with_structure() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_vars">new_with_vars() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.new_with_vars">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.next_d2de_scf_cycle">next_d2de_scf_cycle() (abipy.abio.outputs.AbinitOutputFile method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.next_gs_scf_cycle">next_gs_scf_cycle() (abipy.abio.outputs.AbinitOutputFile method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.ng">ng (abipy.electrons.scr.ScrFile attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.kpoints.Ktables.nibz">nibz (abipy.core.kpoints.Ktables attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.nimw">nimw (abipy.electrons.scr.ScrFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.nkpt">nkpt (abipy.core.mixins.Has_ElectronBands attribute)</a>
@@ -2361,11 +2323,7 @@
       <li><a href="api/dynamics_api.html#abipy.dynamics.hist.HistFile.num_steps">num_steps (abipy.dynamics.hist.HistFile attribute)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.num_valence_electrons">num_valence_electrons (abipy.abio.inputs.AbinitInput attribute)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.num_valence_electrons">(abipy.htc.input.AbiInput attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.num_valence_electrons">num_valence_electrons() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.abivars_db.MultipleValue.number">number (abipy.abio.abivars_db.MultipleValue attribute)</a>
@@ -2642,10 +2600,10 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">plot_fatbands_lview() (abipy.electrons.fatbands.FatBandsFile method)</a>
 </li>
-      <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">plot_fatbands_mview() (abipy.electrons.fatbands.FatBandsFile method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">plot_fatbands_mview() (abipy.electrons.fatbands.FatBandsFile method)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_siteview">plot_fatbands_siteview() (abipy.electrons.fatbands.FatBandsFile method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview">plot_fatbands_typeview() (abipy.electrons.fatbands.FatBandsFile method)</a>
@@ -2819,11 +2777,7 @@
       <li><a href="api/tools_api.html#abipy.tools.notebooks.print_source_in_module">print_source_in_module() (in module abipy.tools.notebooks)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.product">product() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.product">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/tools_api.html#abipy.tools.devtools.profile">profile() (in module abipy.tools.devtools)</a>
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.prune_ord">prune_ord() (in module abipy.tools.numtools)</a>
@@ -2834,8 +2788,6 @@
 
       <ul>
         <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.pseudos">(abipy.abio.inputs.MultiDataset attribute)</a>
-</li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.pseudos">(abipy.htc.input.AbiInput attribute)</a>
 </li>
       </ul></li>
       <li><a href="api/data_api.html#abipy.data.pseudos">pseudos() (in module abipy.data)</a>
@@ -2986,10 +2938,10 @@
 </li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.SigmaPhReader.read_sigma_eph">read_sigma_eph() (abipy.eph.sigeph.SigmaPhReader method)</a>
 </li>
-      <li><a href="api/iotools_api.html#abipy.iotools.ETSF_Reader.read_structure">read_structure() (abipy.iotools.ETSF_Reader method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/iotools_api.html#abipy.iotools.ETSF_Reader.read_structure">read_structure() (abipy.iotools.ETSF_Reader method)</a>
+</li>
       <li><a href="api/electrons_api.html#abipy.electrons.psps.PspsReader.read_tcorespl">read_tcorespl() (abipy.electrons.psps.PspsReader method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.optic.OpticReader.read_tensor3_terms">read_tensor3_terms() (abipy.electrons.optic.OpticReader method)</a>
@@ -3023,11 +2975,7 @@
 </li>
       </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.register_decorator">register_decorator() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.register_decorator">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/flowtk_api.html#abipy.flowtk.qha.RelaxAndPhononWork">RelaxAndPhononWork (class in abipy.flowtk.qha)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.remove_tags">remove_tags() (abipy.abio.inputs.AbinitInput method)</a>
@@ -3036,14 +2984,8 @@
         <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.remove_tags">(abipy.abio.inputs.MultiDataset method)</a>
 </li>
       </ul></li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.remove_variables">remove_variables() (abipy.htc.input.AbiInput method)</a>
-</li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbstractInput.remove_vars">remove_vars() (abipy.abio.inputs.AbstractInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.remove_vars">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.replace_block_for_qpoint">replace_block_for_qpoint() (abipy.dfpt.ddb.DdbFile method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.replicate_input">replicate_input() (abipy.abio.inputs.MultiDataset class method)</a>
@@ -3113,12 +3055,6 @@
       <li><a href="api/core_api.html#abipy.core.structure.Structure.set_abi_spacegroup">set_abi_spacegroup() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_autokmesh">set_autokmesh() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_autokmesh">(abipy.htc.input.AbiInput method)</a>
-</li>
-      </ul></li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_autokpath">set_autokpath() (abipy.htc.input.AbiInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.set_autoqmesh">set_autoqmesh() (abipy.abio.inputs.AnaddbInput method)</a>
 </li>
@@ -3127,39 +3063,19 @@
       <li><a href="api/tools_api.html#abipy.tools.plotting.set_axlims">set_axlims() (in module abipy.tools.plotting)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_comment">set_comment() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_comment">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.set_fermie">set_fermie() (abipy.core.skw.ElectronInterpolator method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_gamma_sampling">set_gamma_sampling() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_kmesh">set_kmesh() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_kmesh">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_kpath">set_kpath() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_kpath">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_kptgw">set_kptgw() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_kptgw">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_mnemonics">set_mnemonics() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_mnemonics">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.set_name">set_name() (abipy.core.kpoints.Kpoint method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.skw.ElectronInterpolator.set_nelect">set_nelect() (abipy.core.skw.ElectronInterpolator method)</a>
@@ -3183,21 +3099,9 @@
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_spin_mode">set_spin_mode() (abipy.abio.inputs.AbinitInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.set_structure">set_structure() (abipy.abio.inputs.AbinitInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_structure">(abipy.htc.input.AbiInput method)</a>
-</li>
-      </ul></li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_structure_from_file">set_structure_from_file() (abipy.htc.input.AbiInput method)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_variables">set_variables() (abipy.htc.input.AbiInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbstractInput.set_vars">set_vars() (abipy.abio.inputs.AbstractInput method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.set_vars">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbstractInput.set_vars_ifnotin">set_vars_ifnotin() (abipy.abio.inputs.AbstractInput method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.set_weight">set_weight() (abipy.core.kpoints.Kpoint method)</a>
@@ -3260,12 +3164,12 @@
 </li>
       <li><a href="api/tools_api.html#abipy.tools.numtools.smooth">smooth() (in module abipy.tools.numtools)</a>
 </li>
+      <li><a href="api/abilab_api.html#abipy.abilab.software_stack">software_stack() (in module abipy.abilab)</a>
+</li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.QpTempList.sort_by_e0">sort_by_e0() (abipy.eph.sigeph.QpTempList method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.sortby">sortby() (abipy.abio.robots.Robot method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/abio_api.html#abipy.abio.robots.Robot.sortby_label">sortby_label() (abipy.abio.robots.Robot static method)</a>
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.ebands.ElectronBands.spacing">spacing() (abipy.electrons.ebands.ElectronBands method)</a>
@@ -3276,6 +3180,8 @@
         <li><a href="api/abio_api.html#abipy.abio.inputs.AnaddbInput.spell_check">(abipy.abio.inputs.AnaddbInput attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">spget_equivalent_atoms() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.spget_summary">spget_summary() (abipy.core.structure.Structure method)</a>
@@ -3307,11 +3213,7 @@
       <li><a href="api/core_api.html#abipy.core.func1d.Function1D.spline_roots">spline_roots (abipy.core.func1d.Function1D attribute)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.inputs.MultiDataset.split_datasets">split_datasets() (abipy.abio.inputs.MultiDataset method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.split_datasets">(abipy.htc.input.AbiInput method)</a>
 </li>
-      </ul></li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.split_matched_indices">split_matched_indices (abipy.dfpt.phonons.PhononBands attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.split_phdispl_cart">split_phdispl_cart (abipy.dfpt.phonons.PhononBands attribute)</a>
@@ -3393,8 +3295,6 @@
 </li>
         <li><a href="api/eph_api.html#abipy.eph.sigeph.SigEPhFile.structure">(abipy.eph.sigeph.SigEPhFile attribute)</a>
 </li>
-        <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.structure">(abipy.htc.input.AbiInput attribute)</a>
-</li>
         <li><a href="api/waves_api.html#abipy.waves.wfkfile.WfkFile.structure">(abipy.waves.wfkfile.WfkFile attribute)</a>
 </li>
       </ul></li>
@@ -3414,12 +3314,6 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.symafm">symafm (abipy.core.symmetries.AbinitSpaceGroup attribute)</a>
 </li>
-      <li><a href="api/htc/input.html#abipy.htc.input.LdauParams.symbols_by_typat">symbols_by_typat (abipy.htc.input.LdauParams attribute)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.LexxParams.symbols_by_typat">(abipy.htc.input.LexxParams attribute)</a>
-</li>
-      </ul></li>
       <li><a href="api/core_api.html#abipy.core.tensor.SymmetricTensor">SymmetricTensor (class in abipy.core.tensor)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.tensor.Tensor.symmetrize">symmetrize() (abipy.core.tensor.Tensor method)</a>
@@ -3473,13 +3367,7 @@
       <li><a href="api/core_api.html#abipy.core.structure.Structure.to">to() (abipy.core.structure.Structure method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.to_abivars">to_abivars() (abipy.core.structure.Structure method)</a>
-
-      <ul>
-        <li><a href="api/htc/input.html#abipy.htc.input.LdauParams.to_abivars">(abipy.htc.input.LdauParams method)</a>
 </li>
-        <li><a href="api/htc/input.html#abipy.htc.input.LexxParams.to_abivars">(abipy.htc.input.LexxParams method)</a>
-</li>
-      </ul></li>
       <li><a href="api/electrons_api.html#abipy.electrons.bse.DielectricTensor.to_array">to_array() (abipy.electrons.bse.DielectricTensor method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.to_ase_atoms">to_ase_atoms() (abipy.core.structure.Structure method)</a>
@@ -3685,8 +3573,6 @@
       <li><a href="api/abio_api.html#abipy.abio.inputs.AbinitInput.valence_electrons_per_atom">valence_electrons_per_atom (abipy.abio.inputs.AbinitInput attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.structure.Structure.valence_electrons_per_atom">valence_electrons_per_atom() (abipy.core.structure.Structure method)</a>
-</li>
-      <li><a href="api/htc/input.html#abipy.htc.input.AbiInput.validate">validate() (abipy.htc.input.AbiInput method)</a>
 </li>
       <li><a href="api/abio_api.html#abipy.abio.outputs.validate_output_parser">validate_output_parser() (in module abipy.abio.outputs)</a>
 </li>

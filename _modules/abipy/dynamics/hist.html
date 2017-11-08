@@ -62,20 +62,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -229,7 +229,7 @@
 
 <div class="viewcode-block" id="HistFile.get_relaxation_analyzer"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.get_relaxation_analyzer">[docs]</a>    <span class="k">def</span> <span class="nf">get_relaxation_analyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a pymatgen :class:`RelaxationAnalyzer object to analyze the relaxation in a calculation.</span>
+<span class="sd">        Return a pymatgen :class:`RelaxationAnalyzer` object to analyze the relaxation in a calculation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.analysis.structure_analyzer</span> <span class="k">import</span> <span class="n">RelaxationAnalyzer</span>
         <span class="k">return</span> <span class="n">RelaxationAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">)</span></div>

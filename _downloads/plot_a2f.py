@@ -3,7 +3,7 @@ r"""
 Eliashberg function
 ===================
 
-This example shows how to plot the Eliashberg function a2F(w) 
+This example shows how to plot the Eliashberg function a2F(w)
 and the e-ph coupling strenght in metals.
 """
 from abipy import abilab

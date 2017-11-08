@@ -52,7 +52,7 @@ markers providing a graphical representation of the GW results.
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  0.948 seconds)
+**Total running time of the script:** ( 0 minutes  0.952 seconds)
 
 
 

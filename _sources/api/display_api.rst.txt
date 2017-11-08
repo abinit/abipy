@@ -1,9 +1,8 @@
 display Package
 ===============
 
-
 :mod:`display` Module
-=====================
+---------------------
 
 .. automodule:: abipy.display
    :members:

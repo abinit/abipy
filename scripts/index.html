@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Scripts &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="abicheck.py" href="abicheck.html" />
+    <link rel="prev" title="What’s new in abipy" href="../whats_new.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Scripts</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../whats_new.html" title="Previous Chapter: What’s new in abipy"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; What’s new in abipy</span>
+    </a>
+  </li>
+  <li>
+    <a href="abicheck.html" title="Next Chapter: abicheck.py"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abicheck.py &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/scripts/index.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="scripts">
+<span id="scripts-index"></span><h1>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Release:</th><td class="field-body">0.2.0</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">Nov 08, 2017</td>
+</tr>
+</tbody>
+</table>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="abicheck.html"><code class="docutils literal"><span class="pre">abicheck.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abicheck.html#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abicomp.html"><code class="docutils literal"><span class="pre">abicomp.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abicomp.html#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abicomp.html#subcommands">subcommands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abicomp.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#structure">structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#mp_structure">mp_structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#cod_structure">cod_structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#xrd">xrd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#ebands">ebands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#edos">edos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#phbands">phbands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#phdos">phdos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#attr">attr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#gsr">gsr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#ddb">ddb</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#sigres">sigres</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#mdf">mdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#optic">optic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#eph">eph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#sigeph">sigeph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#pseudos">pseudos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#time">time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#gs_scf">gs_scf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#dfpt2_scf">dfpt2_scf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#text">text</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abidoc.html"><code class="docutils literal"><span class="pre">abidoc.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abidoc.html#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abidoc.html#subcommands">subcommands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abidoc.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#man">man</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#browse">browse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#apropos">apropos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#find">find</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#withdim">withdim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#list">list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#manager">manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abidoc.html#scheduler">scheduler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abinp.html"><code class="docutils literal"><span class="pre">abinp.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abinp.html#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abinp.html#subcommands">subcommands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abinp.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#validate">validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#autoparal">autoparal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#abispg">abispg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#ibz">ibz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#phperts">phperts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#gs">gs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#ebands">ebands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#phonons">phonons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#g0w0">g0w0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abinp.html#anaph">anaph</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abiopen.html"><code class="docutils literal"><span class="pre">abiopen.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abiopen.html#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abiopen.html#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abirun.html"><code class="docutils literal"><span class="pre">abirun.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abirun.html#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abirun.html#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abirun.html#subcommands">subcommands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abirun.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#single">single</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#rapid">rapid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#scheduler">scheduler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#batch">batch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#status">status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#set_status">set_status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#cancel">cancel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#restart">restart</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#reset">reset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#move">move</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#open">open</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#ncopen">ncopen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#abibuild">abibuild</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#doc_scheduler">doc_scheduler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#gui">gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#new_manager">new_manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#tail">tail</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#qstat">qstat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#deps">deps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#robot">robot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#plot">plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#inspect">inspect</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#inputs">inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#abivars">abivars</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#structures">structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#ebands">ebands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#doc_manager">doc_manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#events">events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#corrections">corrections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#history">history</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#handlers">handlers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#notebook">notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#ipython">ipython</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#tar">tar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#debug">debug</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#debug_reset">debug_reset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#group">group</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#diff">diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#networkx">networkx</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#listext">listext</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abirun.html#timer">timer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abistruct.html"><code class="docutils literal"><span class="pre">abistruct.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abistruct.html#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abistruct.html#subcommands">subcommands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abistruct.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#spglib">spglib</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#abispg">abispg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#convert">convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#supercell">supercell</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#abisanitize">abisanitize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#irefine">irefine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#conventional">conventional</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#neighbors">neighbors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#interpolate">interpolate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#xrd">xrd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#oxistate">oxistate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#ipython">ipython</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#notebook">notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#kpath">kpath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#bz">bz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#ngkpt">ngkpt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#ktables">ktables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#abikmesh">abikmesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#lgk">lgk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#kstar">kstar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#visualize">visualize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#pmgdata">pmgdata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#mp_id">mp_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#mp_match">mp_match</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#mp_search">mp_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#mp_pd">mp_pd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#cod_search">cod_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#cod_id">cod_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abistruct.html#animate">animate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abiview.html"><code class="docutils literal"><span class="pre">abiview.py</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abiview.html#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abiview.html#subcommands">subcommands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abiview.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#hist">hist</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#abo">abo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#ebands">ebands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#phbands">phbands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#fields">fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

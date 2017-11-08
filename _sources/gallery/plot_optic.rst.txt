@@ -64,7 +64,7 @@ no local-field effects and no excitonic effects.
     # Remember to close the file.
     ncfile.close()
 
-    # Use OpticRobot to analyze multiple file e.g convergence studies.
+    # Use OpticRobot to analyze multiple file e.g. convergence studies.
     filenames = [
         abidata.ref_file("gaas_444_OPTIC.nc"),
         abidata.ref_file("gaas_888_OPTIC.nc"),
@@ -81,7 +81,7 @@ no local-field effects and no excitonic effects.
     # Remember to close the file or use the `with` context manager.
     robot.close()
 
-**Total running time of the script:** ( 0 minutes  1.367 seconds)
+**Total running time of the script:** ( 0 minutes  1.077 seconds)
 
 
 

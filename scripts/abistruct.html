@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abistruct.py &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="abiview.py" href="abiview.html" />
+    <link rel="prev" title="abirun.py" href="abirun.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">abistruct.py</span></code></a><ul>
+<li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li><a class="reference internal" href="#subcommands">subcommands</a></li>
+<li><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
+<li><a class="reference internal" href="#spglib">spglib</a><ul>
+<li><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abispg">abispg</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#convert">convert</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#supercell">supercell</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abisanitize">abisanitize</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#irefine">irefine</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#conventional">conventional</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#neighbors">neighbors</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#interpolate">interpolate</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#xrd">xrd</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#oxistate">oxistate</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ipython">ipython</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#notebook">notebook</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat12">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat13">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#kpath">kpath</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat13">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bz">bz</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat14">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ngkpt">ngkpt</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat15">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ktables">ktables</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat16">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abikmesh">abikmesh</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat17">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lgk">lgk</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat18">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat19">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#kstar">kstar</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat19">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat20">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#visualize">visualize</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat20">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat21">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pmgdata">pmgdata</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat21">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat22">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mp_id">mp_id</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat22">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat23">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mp_match">mp_match</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat23">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat24">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mp_search">mp_search</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat24">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat25">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mp_pd">mp_pd</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat25">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat26">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cod_search">cod_search</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat26">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat27">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cod_id">cod_id</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat27">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat28">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#animate">animate</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat28">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat29">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="abirun.html" title="Previous Chapter: abirun.py"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abirun.py</span>
+    </a>
+  </li>
+  <li>
+    <a href="abiview.html" title="Next Chapter: abiview.py"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abiview.py &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/scripts/abistruct.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abistruct-py">
+<span id="abistruct"></span><h1><code class="docutils literal"><span class="pre">abistruct.py</span></code><a class="headerlink" href="#abistruct-py" title="Permalink to this headline">¶</a></h1>
+<p>This script is useful if you want to analyze/export/visualize the crystalline structure
+stored in one the <code class="docutils literal"><span class="pre">netcdf</span></code> files produced by ABINIT (other formats are supported e.g.
+<code class="docutils literal"><span class="pre">cif</span></code> files or <code class="docutils literal"><span class="pre">POSCAR</span></code>, see also docs below).
+Also in this case, it is possible to analyze the structure object either inside <code class="docutils literal"><span class="pre">ipython</span></code> or
+<code class="docutils literal"><span class="pre">jupyter</span></code> notebooks.</p>
+<p>The syntax of the command is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py command FILE [options]
+</pre></div>
+</div>
+<p>The documentation for a given <code class="docutils literal"><span class="pre">command</span></code> is accessible with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py command --help
+</pre></div>
+</div>
+<p>Use e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py spglib --help
+</pre></div>
+</div>
+<p>to get the options supported by the <code class="docutils literal"><span class="pre">spglib</span></code> command.</p>
+<p>The <code class="docutils literal"><span class="pre">convert</span></code> command is quite useful if you need to convert the crystalline structure
+from one format to another one.
+For example, one can read a <code class="docutils literal"><span class="pre">cif</span></code> file and print the corresponding Abinit variables with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert CIF
+</pre></div>
+</div>
+<p>To get the list of options, use</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abistruct.py --help
+usage: abistruct.py [-h] [-V]
+                    {spglib,abispg,convert,supercell,abisanitize,irefine,conventional,neighbors,interpolate,xrd,oxistate,ipython,notebook,kpath,bz,ngkpt,ktables,abikmesh,lgk,kstar,visualize,pmgdata,mp_id,mp_match,mp_search,mp_pd,cod_search,cod_id,animate}
+                    ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands, use command --help for help
+
+  {spglib,abispg,convert,supercell,abisanitize,irefine,conventional,neighbors,interpolate,xrd,oxistate,ipython,notebook,kpath,bz,ngkpt,ktables,abikmesh,lgk,kstar,visualize,pmgdata,mp_id,mp_match,mp_search,mp_pd,cod_search,cod_id,animate}
+                        sub-command help
+    spglib              Analyze structure with spglib.
+    abispg              Extract/Compute Abinit space group from file with
+                        structure.
+    convert             Convert structure to the specified format.
+    supercell           Generate supercell.
+    abisanitize         Sanitize structure with abi_sanitize, compare
+                        structures and save result to file.
+    irefine             Refine structure with abi_sanitize iteratively, stop
+                        if target space group is obtained.
+    conventional        Gives a structure with a conventional cell according
+                        to certain standards. The standards are defined in
+                        doi:10.1016/j.commatsci.2010.05.010
+    neighbors           Get neighbors for each atom in the unit cell, out to a
+                        distance radius.
+    interpolate         Interpolate between two structures. Useful for the
+                        construction of NEB inputs.
+    xrd                 X-ray diffraction plot.
+    oxistate            Estimate oxidation states with pymatgen bond valence
+                        analysis.
+    ipython             Open IPython shell for advanced operations on
+                        structure object.
+    notebook            Read structure from file and generate jupyter
+                        notebook.
+    kpath               Read structure from file, generate k-path for band-
+                        structure calculations.
+    bz                  Read structure from file, plot Brillouin zone with
+                        matplotlib.
+    ngkpt               Return the Abinit k-point sampling variables from the
+                        number of divisions used to sample the smallest
+                        lattice vector of the reciprocal lattice.
+    ktables             Read structure from filepath, call spglib to sample
+                        the BZ,print k-points in the IBZ with weights.
+    abikmesh            Read structure from file, call Abinit to sample the BZ
+                        with ngkpt, shiftk, and kptopt.Print k-points in the
+                        IBZ with weights.
+    lgk                 Read structure from file, find little group of
+                        k-point, print Bilbao character table.
+    kstar               Read structure from file, print star of k-point.
+    visualize           Visualize the structure with the specified visualizer.
+                        Requires external app or optional python modules.
+    pmgdata             Get structure from the pymatgen database. Print JSON
+                        dict. Requires internet connection and MAPI_KEY.
+    mp_id               Get structure from the pymatgen database. Export to
+                        format. Requires internet connection and MAPI_KEY.
+    mp_match            Get structure from the pymatgen database. Requires
+                        internet connection and MAPI_KEY.
+    mp_search           Get structure from the pymatgen database. Requires
+                        internet connection and MAPI_KEY
+    mp_pd               Generate phase diagram with entries from the Materials
+                        Project. Requires internet connection and MAPI_KEY
+    cod_search          Get structure from COD database. Requires internet
+                        connection and mysql
+    cod_id              Get structure from COD database. Requires internet
+                        connection and mysql
+    animate             Read structures from HIST.nc or XDATCAR. Print
+                        structures in Xrysden AXSF format to stdout.
+
+Usage example:
+
+###################
+# Space group tools
+###################
+
+  abistruct.py spglib FILE                 =&gt; Read structure from FILE and analyze it with spglib.
+  abistruct.py abispg FILE                 =&gt; Read structure from FILE, and compute ABINIT space group.
+  abistruct.py abisanitize FILE            =&gt; Read structure from FILE, call abisanitize, compare structures
+                                              and save &quot;abisanitized&quot; structure to file.
+  abistruct.py conventional FILE           =&gt; Read structure from FILE, generate conventional structure
+                                              following doi:10.1016/j.commatsci.2010.05.010
+##################
+# Conversion tools
+##################
+
+  abistruct.py convert FILE                =&gt; Print the ABINIT variables defining the structure.
+  abistruct.py convert FILE -f cif         =&gt; Read structure from FILE and output CIF file
+                                              (Use convert --help to get list of formats supported)
+  abistruct.py convert out_HIST.nc         =&gt; Read FINAL structure from the HIST file and
+                                              print the corresponding ABINIT variables.
+  abistruct.py supercell FILE -s 2 2 1     =&gt; Read structure from FILE and build [2, 2, 1] supercell,
+                                              print new structure using --format (default abivars).
+################
+# K-points tools
+################
+
+  abistruct.py kpath FILE                  =&gt; Read structure from FILE and print ABINIT variables for k-path.
+  abistruct.py bz FILE                     =&gt; Read structure from FILE, plot BZ with matplotlib.
+  abistruct.py ngkpt FILE -n 4             =&gt; Compute `ngkpt` and `shiftk` from the number of divisions used to sample
+                                              the smallest reciprocal lattice vector.
+  abistruct.py abikmesh FILE --ngkpt 2 2 2 =&gt; Read structure from FILE, call Abinit to sample the BZ
+                                              with a 2, 2, 2 k-mesh, print points in IBZ with weights.
+  abistruct.py ktables FILE -m 2 2 2       =&gt; Read structure from FILE, call spglib to sample the BZ
+                                              with a 2, 2, 2 k-mesh, print points in IBZ with weights.
+  abistruct.py lgk FILE -k 0.25 0 0        =&gt; Read structure from FILE, find little group of k-point,
+                                              print Bilbao character table.
+  abistruct.py kstar FILE -k 0.25 0 0      =&gt; Read structure from FILE, print star of k-point.
+
+###############
+# Miscelleanous
+###############
+
+  abistruct.py neighbors FILE              =&gt; Get neighbors for each atom in the unit cell, out to a distance radius.
+  abistruct.py interpolate FILE1 FILE2     =&gt; Interpolate between two structures. Useful for the construction of NEB inputs.
+  abistruct.py xrd FILE                    =&gt; X-ray diffraction plot.
+  abistruct.py oxistate FILE               =&gt; Estimate oxidation states with pymatgen bond valence analysis.
+
+###############
+# Visualization
+###############
+
+  abistruct.py visualize FILE vesta        =&gt; Visualize the structure with vesta (default if not given)
+                                              Supports also xcrysden, vtk, mayavi. See --help
+  abistruct.py ipython FILE                =&gt; Read structure from FILE and open it in the Ipython terminal.
+  abistruct.py notebook FILE               =&gt; Read structure from FILE and generate jupyter notebook.
+
+###########
+# Databases
+###########
+
+  abistruct.py cod_id 1526507              =&gt; Get structure from COD database (http://www.crystallography.net/cod).
+  abistruct.py cod_search MgB2             =&gt; Search for structures in the COD database.
+  abistruct.py mp_id mp-149                =&gt; Get structure from materials project database and print
+                                              JSON representation. Use e.g. `-f abivars` to change format.
+  abistruct.py mp_match FILE               =&gt; Read structure from FILE and find matching structures on the
+                                              Materials Project site. Use e.g. `-f cif` to change output format.
+  abistruct.py mp_search LiF               =&gt; Connect to the materials project database. Get structures corresponding
+                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
+                                              Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
+  abistruct.py mp_pd FILE-or-elements      =&gt; Generate phase diagram with entries from the Materials Project.
+                                              Accept FILE with structure or list of elements e.g `Li-Fe-O`
+
+`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
+Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
+                    <span class="p">{</span><span class="n">spglib</span><span class="p">,</span><span class="n">abispg</span><span class="p">,</span><span class="n">convert</span><span class="p">,</span><span class="n">supercell</span><span class="p">,</span><span class="n">abisanitize</span><span class="p">,</span><span class="n">irefine</span><span class="p">,</span><span class="n">conventional</span><span class="p">,</span><span class="n">neighbors</span><span class="p">,</span><span class="n">interpolate</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">oxistate</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">kpath</span><span class="p">,</span><span class="n">bz</span><span class="p">,</span><span class="n">ngkpt</span><span class="p">,</span><span class="n">ktables</span><span class="p">,</span><span class="n">abikmesh</span><span class="p">,</span><span class="n">lgk</span><span class="p">,</span><span class="n">kstar</span><span class="p">,</span><span class="n">visualize</span><span class="p">,</span><span class="n">pmgdata</span><span class="p">,</span><span class="n">mp_id</span><span class="p">,</span><span class="n">mp_match</span><span class="p">,</span><span class="n">mp_search</span><span class="p">,</span><span class="n">mp_pd</span><span class="p">,</span><span class="n">cod_search</span><span class="p">,</span><span class="n">cod_id</span><span class="p">,</span><span class="n">animate</span><span class="p">}</span>
+                    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments">
+<h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-V, --version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="subcommands">
+<h2>subcommands<a class="headerlink" href="#subcommands" title="Permalink to this headline">¶</a></h2>
+<p>Valid subcommands, use command –help for help</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>command</kbd></td>
+<td><p class="first">Possible choices: spglib, abispg, convert, supercell, abisanitize, irefine, conventional, neighbors, interpolate, xrd, oxistate, ipython, notebook, kpath, bz, ngkpt, ktables, abikmesh, lgk, kstar, visualize, pmgdata, mp_id, mp_match, mp_search, mp_pd, cod_search, cod_id, animate</p>
+<p class="last">sub-command help</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Sub-commands:">
+<h2>Sub-commands:<a class="headerlink" href="#Sub-commands:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="spglib">
+<h3>spglib<a class="headerlink" href="#spglib" title="Permalink to this headline">¶</a></h3>
+<p>Analyze structure with spglib.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">spglib</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat1">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="abispg">
+<h3>abispg<a class="headerlink" href="#abispg" title="Permalink to this headline">¶</a></h3>
+<p>Extract/Compute Abinit space group from file with structure.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">abispg</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAVEFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TOLSYM</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">{</span><span class="n">table</span><span class="p">,</span><span class="n">diff</span><span class="p">}]</span>
+                    <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat1">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat2">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-s, --savefile</kbd></td>
+<td><p class="first">Save final structure to file. Format is detected from file extensions e.g. out.abi for Abinit input, out.cif for CIF format.</p>
+<p class="last">Default: “”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-t, --tolsym</kbd></td>
+<td>Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
+to be considered equivalent, thanks to symmetry operations. This is used in the recognition of the set
+of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
+the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-d, --diff-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: table, diff</p>
+<p>Select diff output format.</p>
+<p class="last">Default: “table”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="convert">
+<h3>convert<a class="headerlink" href="#convert" title="Permalink to this headline">¶</a></h3>
+<p>Convert structure to the specified format.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">convert</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat2">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat3">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “cif”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="supercell">
+<h3>supercell<a class="headerlink" href="#supercell" title="Permalink to this headline">¶</a></h3>
+<p>Generate supercell.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">supercell</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="o">-</span><span class="n">s</span> <span class="n">SCALING_MATRIX</span>
+                       <span class="p">[</span><span class="n">SCALING_MATRIX</span> <span class="o">...</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                       <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat3">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat4">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --scaling_matrix</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">scaling_matrix: A scaling matrix for transforming the lattice vectors.
+Has to be all integers. Several options are possible:</p>
+<blockquote class="last">
+<div><ol class="loweralpha simple">
+<li>A full 3x3 scaling matrix defining the linear combination
+the old lattice vectors. E.g., -s 2,1,0 0,3,0, 0,0,1 generates a new structure with lattice vectors
+a’ = 2a + b, b’ = 3b, c’ = c where a, b, and c are the lattice vectors of the original structure.</li>
+<li>An sequence of three scaling factors. E.g., -s 2, 1, 1 specifies that the supercell should
+have dimensions 2a x b x c.</li>
+<li>A number, which simply scales all lattice vectors by the same factor.</li>
+</ol>
+</div></blockquote>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “abivars”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="abisanitize">
+<h3>abisanitize<a class="headerlink" href="#abisanitize" title="Permalink to this headline">¶</a></h3>
+<p>Sanitize structure with abi_sanitize, compare structures and save result to file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">abisanitize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAVEFILE</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">primitive</span> <span class="o">|</span> <span class="o">--</span><span class="n">primitive</span><span class="o">-</span><span class="n">standard</span><span class="p">]</span>
+                         <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat4">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat5">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-s, --savefile</kbd></td>
+<td><p class="first">Save final structure to file. Format is detected from file extensions e.g. out.abi for Abinit input, out.cif for CIF format.</p>
+<p class="last">Default: “”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-primitive</kbd></td>
+<td><p class="first">Do not enforce primitive cell.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--primitive-standard</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Enforce primitive standard cell.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="irefine">
+<h3>irefine<a class="headerlink" href="#irefine" title="Permalink to this headline">¶</a></h3>
+<p>Refine structure with abi_sanitize iteratively, stop if target space group is obtained.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">irefine</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span>
+                     <span class="o">--</span><span class="n">target</span><span class="o">-</span><span class="n">spgnum</span> <span class="n">TARGET_SPGNUM</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">symprec</span><span class="o">-</span><span class="n">step</span> <span class="n">SYMPREC_STEP</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span><span class="o">-</span><span class="n">step</span> <span class="n">ANGLE_TOLERANCE_STEP</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">ntrial</span> <span class="n">NTRIAL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">primitive</span> <span class="o">|</span> <span class="o">--</span><span class="n">primitive</span><span class="o">-</span><span class="n">standard</span><span class="p">]</span>
+                     <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat6">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--target-spgnum</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Target space group number.</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec-step</kbd></td>
+<td><p class="first">Increment for symprec.</p>
+<p class="last">Default: 0.05</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance-step</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Increment for angle_tolerance.</p>
+<p class="last">Default: 0.0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--ntrial</kbd></td>
+<td><p class="first">Number of trials. Default 50.</p>
+<p class="last">Default: 50</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-primitive</kbd></td>
+<td><p class="first">Do not enforce primitive cell.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--primitive-standard</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Enforce primitive standard cell.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="conventional">
+<h3>conventional<a class="headerlink" href="#conventional" title="Permalink to this headline">¶</a></h3>
+<p>Gives a structure with a conventional cell according to certain standards. The standards are defined in doi:10.1016/j.commatsci.2010.05.010</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">conventional</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SAVEFILE</span><span class="p">]</span>
+                          <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat7">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-s, --savefile</kbd></td>
+<td><p class="first">Save final structure to file. Format is detected from file extensions e.g. out.abi for Abinit input, out.cif for CIF format.</p>
+<p class="last">Default: “”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="neighbors">
+<h3>neighbors<a class="headerlink" href="#neighbors" title="Permalink to this headline">¶</a></h3>
+<p>Get neighbors for each atom in the unit cell, out to a distance radius.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">neighbors</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RADIUS</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat7">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat8">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-r, --radius</kbd></td>
+<td><p class="first">Radius of the sphere in Angstrom.</p>
+<p class="last">Default: 2</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="interpolate">
+<h3>interpolate<a class="headerlink" href="#interpolate" title="Permalink to this headline">¶</a></h3>
+<p>Interpolate between two structures. Useful for the construction of NEB inputs.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">interpolate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIMAGES</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">autosort_tol</span> <span class="n">AUTOSORT_TOL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                         <span class="n">filepaths</span> <span class="n">filepaths</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat8">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepaths</kbd></td>
+<td>Files with initial and final structures.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat9">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-n, --nimages</kbd></td>
+<td><p class="first">No. of interpolation images. Defaults to 10.</p>
+<p class="last">Default: 10</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--autosort_tol</kbd></td>
+<td><p class="first">A distance tolerance in Angstrom in which to automatically sort end_structure to match to the
+closest points in this particular structure. This is usually what you want in a NEB calculation.
+0 implies no sorting. Otherwise, a 0.5 value (default) usually works pretty well.</p>
+<p class="last">Default: 0.5</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “abivars”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="xrd">
+<h3>xrd<a class="headerlink" href="#xrd" title="Permalink to this headline">¶</a></h3>
+<p>X-ray diffraction plot.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">xrd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WAVELENGTH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TWO_THETA_RANGE</span> <span class="n">TWO_THETA_RANGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nap</span><span class="p">]</span>
+                 <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat9">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat10">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-w, --wavelength</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">The wavelength can be specified as a string. It must be one of the supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py.Defaults to ‘CuKa’, i.e, Cu K_alpha radiation.</p>
+<p class="last">Default: “CuKa”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-s, --symprec</kbd></td>
+<td><p class="first">Symmetry precision for structure refinement. If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --two-theta-range</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90).</p>
+<p class="last">Default: (0, 90)</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nap, --no-annotate-peaks</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Whether to annotate the peaks with plane information.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="oxistate">
+<h3>oxistate<a class="headerlink" href="#oxistate" title="Permalink to this headline">¶</a></h3>
+<p>Estimate oxidation states with pymatgen bond valence analysis.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">oxistate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat10">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat11">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ipython">
+<h3>ipython<a class="headerlink" href="#ipython" title="Permalink to this headline">¶</a></h3>
+<p>Open IPython shell for advanced operations on structure object.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">ipython</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat11">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat12">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="notebook">
+<h3>notebook<a class="headerlink" href="#notebook" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file and generate jupyter notebook.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">notebook</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat12">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat13">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="kpath">
+<h3>kpath<a class="headerlink" href="#kpath" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file, generate k-path for band-structure calculations.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">kpath</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat13">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat14">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="bz">
+<h3>bz<a class="headerlink" href="#bz" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file, plot Brillouin zone with matplotlib.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">bz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat14">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat15">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ngkpt">
+<h3>ngkpt<a class="headerlink" href="#ngkpt" title="Permalink to this headline">¶</a></h3>
+<p>Return the Abinit k-point sampling variables from the number of divisions used to sample the smallest lattice vector of the reciprocal lattice.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">ngkpt</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="o">-</span><span class="n">n</span> <span class="n">NKSMALL</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat15">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat16">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-n, --nksmall</kbd></td>
+<td>Number of divisions used to sample the smallest reciprocal lattice vector.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ktables">
+<h3>ktables<a class="headerlink" href="#ktables" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from filepath, call spglib to sample the BZ,print k-points in the IBZ with weights.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">ktables</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="o">-</span><span class="n">m</span> <span class="n">MESH</span> <span class="n">MESH</span> <span class="n">MESH</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">IS_SHIFT</span> <span class="p">[</span><span class="n">IS_SHIFT</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span>
+                     <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat16">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat17">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-m, --mesh</kbd></td>
+<td>Mesh divisions e.g. 2 3 4</td></tr>
+<tr><td class="option-group">
+<kbd>-s, --is_shift</kbd></td>
+<td>Three integers (spglib API). The kmesh is shifted along the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 Default: Unshifted mesh.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="abikmesh">
+<h3>abikmesh<a class="headerlink" href="#abikmesh" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt.Print k-points in the IBZ with weights.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">abikmesh</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="o">--</span><span class="n">ngkpt</span> <span class="n">NGKPT</span> <span class="n">NGKPT</span>
+                      <span class="n">NGKPT</span> <span class="p">[</span><span class="o">--</span><span class="n">shiftk</span> <span class="n">SHIFTK</span> <span class="p">[</span><span class="n">SHIFTK</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">kptopt</span> <span class="n">KPTOPT</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat17">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat18">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--ngkpt</kbd></td>
+<td>Mesh divisions e.g. 2 3 4</td></tr>
+<tr><td class="option-group">
+<kbd>--shiftk</kbd></td>
+<td><p class="first">Kmesh shifts. Default: 0.5 0.5 0.5</p>
+<p class="last">Default: (0.5, 0.5, 0.5)</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--kptopt</kbd></td>
+<td><p class="first">Kptopt input variable. Default: 1</p>
+<p class="last">Default: 1</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="lgk">
+<h3>lgk<a class="headerlink" href="#lgk" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file, find little group of k-point, print Bilbao character table.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">lgk</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span> <span class="o">-</span><span class="n">k</span>
+                 <span class="n">KPOINT</span> <span class="n">KPOINT</span> <span class="n">KPOINT</span>
+                 <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat18">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat19">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-k, --kpoint</kbd></td>
+<td>K-point in reduced coordinates e.g. 0.25 0 0</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="kstar">
+<h3>kstar<a class="headerlink" href="#kstar" title="Permalink to this headline">¶</a></h3>
+<p>Read structure from file, print star of k-point.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">kstar</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">symprec</span> <span class="n">SYMPREC</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">angle</span><span class="o">-</span><span class="n">tolerance</span> <span class="n">ANGLE_TOLERANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">reversal</span><span class="p">]</span> <span class="o">-</span><span class="n">k</span>
+                   <span class="n">KPOINT</span> <span class="n">KPOINT</span> <span class="n">KPOINT</span>
+                   <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat19">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat20">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--symprec</kbd></td>
+<td><p class="first">symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
+which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
+For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.</p>
+<p class="last">Default: 0.001</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--angle-tolerance</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0</p>
+<p class="last">Default: 5.0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--no-time-reversal</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Don’t use time-reversal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-k, --kpoint</kbd></td>
+<td>K-point in reduced coordinates e.g. 0.25 0 0</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="visualize">
+<h3>visualize<a class="headerlink" href="#visualize" title="Permalink to this headline">¶</a></h3>
+<p>Visualize the structure with the specified visualizer. Requires external app or optional python modules.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">visualize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span> <span class="p">[</span><span class="n">visualizer</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat20">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+<tr><td class="option-group">
+<kbd>visualizer</kbd></td>
+<td><p class="first">Visualizer name. Possible options: <cite>v_sim, vesta, xcrysden</cite>, <cite>mayavi</cite>, <cite>vtk</cite></p>
+<p class="last">Default: “vesta”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat21">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="pmgdata">
+<h3>pmgdata<a class="headerlink" href="#pmgdata" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from the pymatgen database. Print JSON dict. Requires internet connection and MAPI_KEY.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">pmgdata</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                     <span class="n">mpid</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat21">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>mpid</kbd></td>
+<td>Pymatgen identifier.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat22">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: json. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “json”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mp_id">
+<h3>mp_id<a class="headerlink" href="#mp_id" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_id</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                   <span class="n">mpid</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat22">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>mpid</kbd></td>
+<td>Pymatgen identifier.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat23">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “cif”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mp_match">
+<h3>mp_match<a class="headerlink" href="#mp_match" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from the pymatgen database. Requires internet connection and MAPI_KEY.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_match</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat23">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat23" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat24">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “abivars”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mp_search">
+<h3>mp_search<a class="headerlink" href="#mp_search" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from the pymatgen database. Requires internet connection and MAPI_KEY</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_search</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SELECT_SPGNUM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                       <span class="n">chemsys_formula_id</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat24">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat24" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>chemsys_formula_id</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat25">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --select-spgnum</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Select structures with this space group number.</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “abivars”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mp_pd">
+<h3>mp_pd<a class="headerlink" href="#mp_pd" title="Permalink to this headline">¶</a></h3>
+<p>Generate phase diagram with entries from the Materials Project. Requires internet connection and MAPI_KEY</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_pd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">SHOW_UNSTABLE</span><span class="p">]</span>
+                   <span class="n">file_or_elements</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat25">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat25" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>file_or_elements</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>FILE with structure or elements e.g., Li-Fe-O).</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat26">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--mapi-key</kbd></td>
+<td>Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--endpoint</kbd></td>
+<td><p class="first">Pymatgen database.</p>
+<p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-u, --show-unstable</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Whether unstable phases will be plotted as
+well as red crosses. If a number &gt; 0 is entered, all phases with
+ehull &lt; show_unstable will be shown.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="cod_search">
+<h3>cod_search<a class="headerlink" href="#cod_search" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from COD database. Requires internet connection and mysql</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_search</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SELECT_SPGNUM</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">primitive</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                        <span class="n">formula</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat26">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat26" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>formula</kbd></td>
+<td>formula (e.g., Fe2O3).</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat27">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --select-spgnum</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Select structures with this space group number.</td></tr>
+<tr><td class="option-group">
+<kbd>--primitive</kbd></td>
+<td><p class="first">Convert COD cells into primitive cells.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “abivars”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="cod_id">
+<h3>cod_id<a class="headerlink" href="#cod_id" title="Permalink to this headline">¶</a></h3>
+<p>Get structure from COD database. Requires internet connection and mysql</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_id</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">primitive</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                    <span class="n">cod_identifier</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat27">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat27" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>cod_identifier</kbd></td>
+<td>COD identifier.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat28">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--primitive</kbd></td>
+<td><p class="first">Convert COD cell into primitive cell.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --format</kbd></td>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<p class="last">Default: “abivars”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="animate">
+<h3>animate<a class="headerlink" href="#animate" title="Permalink to this headline">¶</a></h3>
+<p>Read structures from HIST.nc or XDATCAR. Print structures in Xrysden AXSF format to stdout.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">animate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat28">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat28" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat29">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat29" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

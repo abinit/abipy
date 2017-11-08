@@ -29,7 +29,7 @@ ncfile.plot_shg(title="Second Harmonic Generation")
 # Remember to close the file.
 ncfile.close()
 
-# Use OpticRobot to analyze multiple file e.g convergence studies.
+# Use OpticRobot to analyze multiple file e.g. convergence studies.
 filenames = [
     abidata.ref_file("gaas_444_OPTIC.nc"),
     abidata.ref_file("gaas_888_OPTIC.nc"),

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>TaskPolicy &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">TaskPolicy</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/workflows/_policy.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="taskpolicy">
+<span id="task-policy"></span><h1>TaskPolicy<a class="headerlink" href="#taskpolicy" title="Permalink to this headline">¶</a></h1>
+<p>At this point, you may wonder why we need to specify all these parameters in the configuration file.
+The reason is that, before submitting a job to a resource manager, AbiPy will use the autoparal
+feature of ABINIT to get all the possible parallel configurations with <code class="docutils literal"><span class="pre">ncpus</span> <span class="pre">&lt;=</span> <span class="pre">max_cores</span></code>.
+On the basis of these results, AbiPy selects the “optimal” one, and changes the ABINIT input file
+and the submission script accordingly .
+(this is a very useful feature, especially for calculations done with <code class="docutils literal"><span class="pre">paral_kgb=1</span></code> that require
+the specification of <code class="docutils literal"><span class="pre">npkpt</span></code>, <code class="docutils literal"><span class="pre">npfft</span></code>, <code class="docutils literal"><span class="pre">npband</span></code>, etc).
+If more than one <cite>QueueAdapter</cite> is specified, AbiPy will first compute all the possible
+configuration and then select the “optimal” <cite>QueueAdapter</cite> according to some kind of policy</p>
+<p>In some cases, you may want to enforce some constraint on the “optimal” configuration.
+For example, you may want to select only those configurations whose parallel efficiency is greater than 0.7
+and whose number of MPI nodes is divisible by 4.
+One can easily enforce this constraint via the <code class="docutils literal"><span class="pre">condition</span></code> dictionary whose syntax is similar to
+the one used in <code class="docutils literal"><span class="pre">mongodb</span></code></p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">policy</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">autoparal</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="l l-Scalar l-Scalar-Plain">max_ncpus</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="l l-Scalar l-Scalar-Plain">condition</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">$and</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span> <span class="p p-Indicator">{</span><span class="s">&quot;efficiency&quot;</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">$gt</span><span class="p p-Indicator">:</span> <span class="nv">0.7</span><span class="p p-Indicator">}},</span> <span class="p p-Indicator">{</span><span class="s">&quot;tot_ncpus&quot;</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">$divisible</span><span class="p p-Indicator">:</span> <span class="nv">4</span><span class="p p-Indicator">}}</span> <span class="p p-Indicator">]}</span>
+</pre></div>
+</div>
+<p>The parallel efficiency is defined as $epsilon = dfrac{T_1}{T_N * N}$ where $N$ is the number
+of MPI processes and $T_j$ is the wall time needed to complete the calculation with $j$ MPI processes.
+For a perfect scaling implementation $epsilon$ is equal to one.
+The parallel speedup with N processors is given by $S = T_N / T_1$.
+Note that <code class="docutils literal"><span class="pre">autoparal</span> <span class="pre">=</span> <span class="pre">1</span></code> will automatically change your <code class="docutils literal"><span class="pre">job.sh</span></code> script as well as the input file
+so that we can run the job in parallel with the optimal configuration required by the user.
+For example, you can use <code class="docutils literal"><span class="pre">paral_kgb</span> <span class="pre">=</span> <span class="pre">1</span></code> in GS calculations and AbiPy will automatically set the values
+of <code class="docutils literal"><span class="pre">npband</span></code>, <code class="docutils literal"><span class="pre">npfft</span></code>, <code class="docutils literal"><span class="pre">npkpt</span></code> … for you!
+Note that if no configuration fulfills the given condition, AbiPy will use the optimal configuration
+that leads to the highest parallel speedup (not necessarily the most efficient one).</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">policy</span></code></dt>
+<dd>This section governs the automatic parallelization of the run: in this case AbiPy will use
+the <code class="docutils literal"><span class="pre">autoparal</span></code> capabilities of Abinit to determine an optimal configuration with
+<strong>maximum</strong> <code class="docutils literal"><span class="pre">max_ncpus</span></code> MPI nodes. Setting <code class="docutils literal"><span class="pre">autoparal</span></code> to 0 disables the automatic parallelization.
+Other values of autoparal are not supported*</dd>
+</dl>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

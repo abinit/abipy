@@ -47,7 +47,7 @@ This example shows how to visualize the SCGW QP amplitudes in the KS basis set.
     # Plott all k-points in SIGRES.
     sigres.plot_eigvec_qp(spin=0, kpoint=None, title="<KS_b|QP_b'> components")
 
-**Total running time of the script:** ( 0 minutes  1.586 seconds)
+**Total running time of the script:** ( 0 minutes  1.330 seconds)
 
 
 

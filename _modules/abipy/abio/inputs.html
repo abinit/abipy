@@ -62,20 +62,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -886,8 +886,8 @@
 <span class="sd">        Args</span>
 <span class="sd">            kptgw: List of k-points in reduced coordinates.</span>
 <span class="sd">            bdgw: Specifies the range of bands for the GW corrections.</span>
-<span class="sd">              Accepts iterable that be reshaped to (nkptgw, 2)</span>
-<span class="sd">              or a tuple of two integers if the extrema are the same for each k-point.</span>
+<span class="sd">                Accepts iterable that be reshaped to (nkptgw, 2)</span>
+<span class="sd">                or a tuple of two integers if the extrema are the same for each k-point.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kptgw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptgw</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
         <span class="n">nkptgw</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kptgw</span><span class="p">)</span>
@@ -2829,29 +2829,6 @@
 <div class="viewcode-block" id="OpticInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.OpticInput">[docs]</a><span class="k">class</span> <span class="nc">OpticInput</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Input file for optic executable</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &amp;FILES</span>
-<span class="sd">         ddkfile_1 = &#39;abo_1WF7&#39;,</span>
-<span class="sd">         ddkfile_2 = &#39;abo_1WF8&#39;,</span>
-<span class="sd">         ddkfile_3 = &#39;abo_1WF9&#39;,</span>
-<span class="sd">         wfkfile = &#39;abo_WFK&#39;</span>
-<span class="sd">        /</span>
-<span class="sd">        &amp;PARAMETERS</span>
-<span class="sd">         broadening = 0.002,</span>
-<span class="sd">         domega = 0.0003,</span>
-<span class="sd">         maxomega = 0.3,</span>
-<span class="sd">         scissor = 0.000,</span>
-<span class="sd">         tolerance = 0.002</span>
-<span class="sd">        /</span>
-<span class="sd">        &amp;COMPUTATIONS</span>
-<span class="sd">         num_lin_comp = 1,</span>
-<span class="sd">         lin_comp = 11,</span>
-<span class="sd">         num_nonlin_comp = 2,</span>
-<span class="sd">         nonlin_comp = 123,222,</span>
-<span class="sd">         num_linel_comp = 0,</span>
-<span class="sd">         num_nonlin2_comp = 0,</span>
-<span class="sd">        /</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">OpticError</span>
 

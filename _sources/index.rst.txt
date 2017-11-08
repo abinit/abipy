@@ -28,9 +28,9 @@ Post-processing
 ===============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   scripts
+   scripts/index.rst
    gallery/index.rst
 
 Workflows
@@ -39,7 +39,7 @@ Workflows
 .. toctree::
    :maxdepth: 1
 
-   taskmanager
+   workflows/taskmanager.rst
 
 API
 ===

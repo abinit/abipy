@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 r"""
-SCF matrix
+SCR matrix
 ==========
 
-This examples shows how to plot the matrix elements of the 
+This examples shows how to plot the matrix elements of the
 inverse dielectric function stored in the SCR file (optdriver 3)
 See also `plot_scr.py` for the optical spectrum.
 """

@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abicomp.py &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="abidoc.py" href="abidoc.html" />
+    <link rel="prev" title="abicheck.py" href="abicheck.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">abicomp.py</span></code></a><ul>
+<li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li><a class="reference internal" href="#subcommands">subcommands</a></li>
+<li><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
+<li><a class="reference internal" href="#structure">structure</a><ul>
+<li><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mp_structure">mp_structure</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cod_structure">cod_structure</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#xrd">xrd</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ebands">ebands</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#edos">edos</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phbands">phbands</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phdos">phdos</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#attr">attr</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gsr">gsr</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ddb">ddb</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sigres">sigres</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mdf">mdf</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat12">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat13">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optic">optic</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat13">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#eph">eph</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat14">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sigeph">sigeph</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat15">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pseudos">pseudos</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat16">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#time">time</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat17">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gs_scf">gs_scf</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat18">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat19">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dfpt2_scf">dfpt2_scf</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat19">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat20">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#text">text</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat20">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat21">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="abicheck.html" title="Previous Chapter: abicheck.py"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abicheck.py</span>
+    </a>
+  </li>
+  <li>
+    <a href="abidoc.html" title="Next Chapter: abidoc.py"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abidoc.py &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/scripts/abicomp.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abicomp-py">
+<span id="abicomp"></span><h1><code class="docutils literal"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h1>
+<p>This script is used to analyze/compare results stored in multiple <code class="docutils literal"><span class="pre">netcdf</span></code> files.
+For example, one can compare the crystalline structure used in different calculations
+or compare the electronic bands stored in two or more <code class="docutils literal"><span class="pre">netcdf</span></code> files (e.g. <code class="docutils literal"><span class="pre">GSR.nc</span></code> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).
+By default the script displays the results/plots directly within the shell.
+Use the command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py struct out1_GSR.nc out2_GSR.nc
+</pre></div>
+</div>
+<p>to compare the structures reported in two <code class="docutils literal"><span class="pre">GSR</span></code> files and print the result to screen.
+Use <code class="docutils literal"><span class="pre">--ipython</span></code> to start an <code class="docutils literal"><span class="pre">ipython</span></code> terminal or <code class="docutils literal"><span class="pre">-nb</span></code> to generate a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
+</pre></div>
+</div>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abicomp.py --help
+usage: abicomp.py [-h] [-V]
+                  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
+                  ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program&#39;s version number and exit
+
+subcommands:
+  Valid subcommands
+
+  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
+                        sub-command help
+    structure           Compare crystalline structures. Use `--group` to
+                        compare for similarity.&quot;
+    mp_structure        Compare the crystalline structure(s) read from FILE
+                        with the one(s) reported in the materials project
+                        database.
+    cod_structure       Compare the crystalline structure(s) read from FILE
+                        with the one(s) given in the COD database
+                        (http://www.crystallography.net/cod).
+    xrd                 Compare X-ray diffraction plots.
+    ebands              Plot electron bands on a grid.
+    edos                Plot electron DOSes on a grid.
+    phbands             Plot phonon bands on a grid.
+    phdos               Compare multiple PHDOS files.
+    attr                Extract attribute from Abipy object for all files
+                        listed on the command line and print them. Use
+                        `--show` option to list the attributes available (in
+                        the first file).
+    gsr                 Compare multiple GSR files.
+    ddb                 Compare multiple DDB files. Assume DDB files with a
+                        list of q-points in the IBZ corresponding to
+                        homogeneous sampling i.e. files that have been merged
+                        with mrgddb.
+    sigres              Compare multiple SIGRES files.
+    mdf                 Compare macroscopic dielectric functions stored in
+                        multiple MDF files.
+    optic               Compare results stored in OPTIC.nc files.
+    eph                 Compare results stored in EPH.nc files.
+    sigeph              Compare multiple SIGEPH files.
+    pseudos             &quot;Compare multiple pseudos Print table to terminal.
+    time                Analyze/plot the timing data of single or multiple
+                        runs.
+    gs_scf              Compare ground-state SCF cycles.
+    dfpt2_scf           Compare DFPT SCF cycles.
+    text                Compare 2+ text files in the browser
+
+Usage example:
+
+############
+# Structures
+############
+
+  abicomp.py structure */*/outdata/out_GSR.nc     =&gt; Compare structures in multiple files.
+                                                     Use `--group` to compare for similarity
+  abicomp.py mp_structure FILE(s)                 =&gt; Compare structure(s) read from FILE(s) with the one(s)
+                                                     given in the materials project database.
+  abicomp.py cod_structure FILE(s)                =&gt; Compare structure(s) read from FILE(s) with the one(s)
+                                                     given in the COD database (http://www.crystallography.net/cod).
+  abicomp.py xrd *.cif *.GSR.nc                   =&gt; Compare X-ray diffraction plots (requires FILES with structure).
+
+###########
+# Electrons
+###########
+
+  abicomp.py ebands out1_GSR.nc out2_WFK.nc       =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy                 =&gt; Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                  =&gt; Interact with the plotter in the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                    =&gt; Compare electron DOS in the jupyter notebook.
+  abicomp.py optic DIR                            =&gt; Compare optic results in the jupyter notebook.
+
+#########
+# Phonons
+#########
+
+  abicomp.py phbands *_PHBST.nc -nb               =&gt; Compare phonon bands in the jupyter notebook.
+  abicomp.py phdos *_PHDOS.nc -nb                 =&gt; Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb      =&gt; Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+
+#########
+# E-PH
+#########
+
+  abicomp.py eph *_EPH.nc -nb                  =&gt; Compare EPH results in the jupyter notebook.
+  abicomp.py sigeph *_SIGEPH.nc -nb            =&gt; Compare Fan-Migdal self-energy in the jupyter notebook.
+
+########
+# GW/BSE
+########
+
+  abicomp.py sigres *_SIGRES.nc                   =&gt; Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc --seaborn               =&gt; Compare macroscopic dielectric functions. Use seaborn settings.
+
+###############
+# Miscelleanous
+###############
+
+  abicomp.py attr energy *_GSR.nc                 =&gt; Extract the `energy` attribute from a list of GSR files
+                                                     and print results. Use `--show` to get list of possible names.
+  abicomp.py pseudos PSEUDO_FILES                 =&gt; Compare pseudopotential files.
+
+############
+# Text files
+############
+
+  abicomp.py text run1.abo run2.abo               =&gt; Compare 2+ output files in the browser.
+  abicomp.py gs_scf run1.abo run2.abo             =&gt; Compare the SCF cycles in two output files.
+  abicomp.py dfpt2_scf run1.abo run2.abo          =&gt; Compare the DFPT SCF cycles in two output files.
+  abicomp.py.py time [OUT_FILES]                  =&gt; Parse timing data in files and plot results
+  abicomp.py.py time . --ext=abo                  =&gt; Scan directory tree from `.`, look for files with extension `abo`
+                                                     parse timing data and plot results.
+
+TIP: Use Unix find to select all files with the a given extension and pass them to abicomp.py:
+For instance:
+
+    abicomp.py structure `find . -name &quot;*_GSR.nc&quot;`
+
+will compare the structurs extracted from all GSR.nc files found within the current working directory (note backticks).
+
+NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
+In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
+
+    $ abicomp.py ddb dir1 out_DDB dir2
+
+Directories will be scanned recursively to find files with the extension associated to the robot, e.g.
+`abicompy.py mdf .` will read all *_MDF.nc files inside the current directory including sub-directories (if any).
+Use --no-walk to ignore sub-directories when robots are used.
+
+Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the documentation for `COMMAND`.
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
+                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">mp_structure</span><span class="p">,</span><span class="n">cod_structure</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">edos</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">gsr</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">sigres</span><span class="p">,</span><span class="n">mdf</span><span class="p">,</span><span class="n">optic</span><span class="p">,</span><span class="n">eph</span><span class="p">,</span><span class="n">sigeph</span><span class="p">,</span><span class="n">pseudos</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">gs_scf</span><span class="p">,</span><span class="n">dfpt2_scf</span><span class="p">,</span><span class="n">text</span><span class="p">}</span>
+                  <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments">
+<h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-V, --version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="subcommands">
+<h2>subcommands<a class="headerlink" href="#subcommands" title="Permalink to this headline">¶</a></h2>
+<p>Valid subcommands</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>command</kbd></td>
+<td><p class="first">Possible choices: structure, mp_structure, cod_structure, xrd, ebands, edos, phbands, phdos, attr, gsr, ddb, sigres, mdf, optic, eph, sigeph, pseudos, time, gs_scf, dfpt2_scf, text</p>
+<p class="last">sub-command help</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Sub-commands:">
+<h2>Sub-commands:<a class="headerlink" href="#Sub-commands:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="structure">
+<h3>structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare crystalline structures. Use <cite>–group</cite> to compare for similarity.”</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span>
+                     <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat1">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-g, --group</kbd></td>
+<td><p class="first">Compare a set of structures for similarity.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-a, --anonymous</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Whether to use anonymous mode in StructureMatcher. Default False</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mp_structure">
+<h3>mp_structure<a class="headerlink" href="#mp_structure" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare the crystalline structure(s) read from FILE with the one(s)
+reported in the materials project database.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                        <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat1">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat2">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="cod_structure">
+<h3>cod_structure<a class="headerlink" href="#cod_structure" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare the crystalline structure(s) read from FILE with the one(s)
+given in the COD database (<a class="reference external" href="http://www.crystallography.net/cod">http://www.crystallography.net/cod</a>).</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                         <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat2">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat3">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="xrd">
+<h3>xrd<a class="headerlink" href="#xrd" title="Permalink to this headline">¶</a></h3>
+<p>Compare X-ray diffraction plots.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">xrd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WAVELENGTH</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SYMPREC</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TWO_THETA_RANGE</span> <span class="n">TWO_THETA_RANGE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nap</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat3">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat4">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-w, --wavelength</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">The wavelength can be specified as a string. It must be one of the supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py.Defaults to ‘CuKa’, i.e, Cu K_alpha radiation.</p>
+<p class="last">Default: “CuKa”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-s, --symprec</kbd></td>
+<td><p class="first">Symmetry precision for structure refinement. If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --two-theta-range</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90).</p>
+<p class="last">Default: (0, 90)</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nap, --no-annotate-peaks</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Whether to annotate the peaks with plane information.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ebands">
+<h3>ebands<a class="headerlink" href="#ebands" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot electron bands on a grid.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">e0</span> <span class="p">{</span><span class="n">fermie</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat4">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat5">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: gridplot, combiplot, boxplot, combiboxplot, animate, None</p>
+<p>Plot mode e.g. <cite>-p combiplot</cite> to plot bands on the same figure. Default is <cite>gridplot</cite>.</p>
+<p class="last">Default: “gridplot”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-e0</kbd></td>
+<td><p class="first">Possible choices: fermie, None</p>
+<p>Option used to define the zero of energy in the band structure plot. Default is <cite>fermie</cite>.</p>
+<p class="last">Default: “fermie”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="edos">
+<h3>edos<a class="headerlink" href="#edos" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot electron DOSes on a grid.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">edos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">e0</span> <span class="p">{</span><span class="n">fermie</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat6">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: gridplot, combiplot, None</p>
+<p>Plot mode e.g. <cite>-p combiplot</cite> to plot DOSes on the same figure. Default is <cite>gridplot</cite>.</p>
+<p class="last">Default: “gridplot”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-e0</kbd></td>
+<td><p class="first">Possible choices: fermie, None</p>
+<p>Option used to define the zero of energy in the DOS plot. Default is <cite>fermie</cite>.</p>
+<p class="last">Default: “fermie”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="phbands">
+<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot phonon bands on a grid.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat7">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: gridplot, combiplot, boxplot, combiboxplot, animate, None</p>
+<p>Plot mode e.g. <cite>-p combiplot</cite> to plot bands on the same figure. Default is <cite>gridplot</cite>.</p>
+<p class="last">Default: “gridplot”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="phdos">
+<h3>phdos<a class="headerlink" href="#phdos" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare multiple PHDOS files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat7">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat8">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: gridplot, combiplot, None</p>
+<p>Plot mode e.g. <cite>-p combiplot</cite> to plot DOSes on the same figure. Default is <cite>gridplot</cite>.</p>
+<p class="last">Default: “gridplot”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="attr">
+<h3>attr<a class="headerlink" href="#attr" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Extract attribute from Abipy object for all files listed on the command line and print them.
+Use <cite>–show</cite> option to list the attributes available (in the first file).</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">attr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">plot</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">show</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat8">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat9">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--plot</kbd></td>
+<td><p class="first">Plot data with matplotlib (requires floats).</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--show</kbd></td>
+<td><p class="first">Print attributes available in file</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="gsr">
+<h3>gsr<a class="headerlink" href="#gsr" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare multiple GSR files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat9">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat10">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ddb">
+<h3>ddb<a class="headerlink" href="#ddb" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare multiple DDB files. Assume DDB files with a list of q-points in the IBZ
+corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat10">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat11">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="sigres">
+<h3>sigres<a class="headerlink" href="#sigres" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare multiple SIGRES files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat11">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat12">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mdf">
+<h3>mdf<a class="headerlink" href="#mdf" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare macroscopic dielectric functions stored in multiple MDF files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat12">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat13">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="optic">
+<h3>optic<a class="headerlink" href="#optic" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare results stored in OPTIC.nc files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat13">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat14">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="eph">
+<h3>eph<a class="headerlink" href="#eph" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare results stored in EPH.nc files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">eph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat14">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat15">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="sigeph">
+<h3>sigeph<a class="headerlink" href="#sigeph" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare multiple SIGEPH files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat15">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat16">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="pseudos">
+<h3>pseudos<a class="headerlink" href="#pseudos" title="Permalink to this headline">¶</a></h3>
+<p>“Compare multiple pseudos Print table to terminal.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">pseudos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat16">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat17">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="time">
+<h3>time<a class="headerlink" href="#time" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Analyze/plot the timing data of single or multiple runs.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">time</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXT</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat17">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat18">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-e, --ext</kbd></td>
+<td><p class="first">File extension for Abinit output files. Used when the first argument is a directory. Default is <cite>.abo</cite></p>
+<p class="last">Default: “.abo”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="gs_scf">
+<h3>gs_scf<a class="headerlink" href="#gs_scf" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare ground-state SCF cycles.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gs_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat18">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat19">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="dfpt2_scf">
+<h3>dfpt2_scf<a class="headerlink" href="#dfpt2_scf" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare DFPT SCF cycles.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">dfpt2_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                     <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat19">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat20">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="text">
+<h3>text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare 2+ text files in the browser</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">text</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIFFMODE</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat20">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat20" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat21">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-d, --diffmode</kbd></td>
+<td><p class="first">Select diff application. Possible values: difflib (default), pygmentize (requires package).</p>
+<p class="last">Default: “difflib”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

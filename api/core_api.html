@@ -64,20 +64,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -1382,7 +1382,7 @@ Extra dimensions can be added with <cite>extra_dims</cite>.</p>
 <dl class="attribute">
 <dt id="abipy.core.mesh3d.Mesh3D.gmods">
 <code class="descname">gmods</code><a class="reference internal" href="../_modules/abipy/core/mesh3d.html#Mesh3D.gmods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.mesh3d.Mesh3D.gmods" title="Permalink to this definition">¶</a></dt>
-<dd><p>[ng] array with <a href="#id2"><span class="problematic" id="id3">|G|</span></a></p>
+<dd><p>[ng] array with $|G|$</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2062,7 +2062,7 @@ grid:</div></blockquote>
 <p class="last">method: String defining the method for the computation of the DOS.
 step: Energy step (eV) of the linear mesh.
 width: Standard deviation (eV) of the gaussian.
-ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
+ax: matplotlib <cite>Axes</cite> or None if a new figure should be created.</p>
 </dd>
 <dt>Returns:</dt>
 <dd>matplotlib figure.</dd>
@@ -2997,19 +2997,6 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 <dt id="abipy.core.structure.Structure.from_abivars">
 <em class="property">classmethod </em><code class="descname">from_abivars</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.from_abivars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.from_abivars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a <a class="reference internal" href="#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code></a> object from a dictionary with ABINIT variables.</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">al_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_abivars</span><span class="p">(</span>
-    <span class="n">acell</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="p">[</span><span class="mf">7.5</span><span class="p">],</span>
-    <span class="n">rprim</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
-           <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
-           <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-    <span class="n">typat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">xred</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-    <span class="n">ntypat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">znucl</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-</div>
 <p><cite>xred</cite> can be replaced with <cite>xcart</cite> or <cite>xangst</cite>.</p>
 </dd></dl>
 
@@ -3479,10 +3466,6 @@ Print results.</p>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Structure</span><span class="o">.</span><span class="n">rocksalt</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Na&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">])</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="method">
@@ -3527,11 +3510,6 @@ spgdata: spglib dataset with additional data reported by spglib.</p>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">irr_pos</span> <span class="ow">in</span> <span class="n">irred_pos</span><span class="p">:</span>
-    <span class="n">eqmap</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]</span>   <span class="c1"># List of symmetrical positions associated to the irr_pos atom.</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="method">
@@ -3721,14 +3699,6 @@ instead of Reduced coordinates.</li>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
-<span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span>
-<span class="n">dfs</span><span class="o">.</span><span class="n">coords</span>
-<span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">dfs</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="function">
@@ -3765,14 +3735,6 @@ instead of Reduced coordinates.</li>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
-<span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span>
-<span class="n">dfs</span><span class="o">.</span><span class="n">coords</span>
-<span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">dfs</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </div>

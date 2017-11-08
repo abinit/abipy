@@ -56,7 +56,7 @@ See tutorial/lesson_rf2.html
     phdos_path = abidata.ref_file("trf2_5.out_PHDOS.nc")
     phbands.plot_fatbands(units="Thz", phdos_file=phdos_path, title="AlAs phonon fatbands with PJDOS")
 
-**Total running time of the script:** ( 0 minutes  1.471 seconds)
+**Total running time of the script:** ( 0 minutes  1.295 seconds)
 
 
 

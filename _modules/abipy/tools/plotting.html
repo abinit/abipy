@@ -62,20 +62,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -208,9 +208,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use imshow for plotting 2D or 1D arrays.</span>
 
-<span class="sd">    Example::</span>
+<span class="sd">    .. plot::</span>
 
-<span class="sd">        plot_array(np.random.rand(10,10))</span>
+<span class="sd">       plot_array(np.random.rand(10,10))</span>
 
 <span class="sd">    See http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python</span>
 
@@ -351,10 +351,11 @@
 <span class="sd">    in the graph and s is the size of the marker.</span>
 <span class="sd">    Used for plotting purpose e.g. QP data, energy derivatives...</span>
 
-<span class="sd">    .. example::</span>
-<span class="sd">        x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]</span>
-<span class="sd">        marker = Marker(x, y, s)</span>
-<span class="sd">        marker.extend((x, y, s))</span>
+<span class="sd">    :Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]</span>
+<span class="sd">    &gt;&gt;&gt; marker = Marker(x, y, s)</span>
+<span class="sd">    &gt;&gt;&gt; marker.extend((x, y, s))</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">xys</span><span class="p">):</span>

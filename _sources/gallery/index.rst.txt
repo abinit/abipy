@@ -1,11 +1,13 @@
 :orphan:
 
-AbiPy gallery
+.. _abipy-gallery:
+
+AbiPy Gallery
 =============
 
 There are a variety of ways to use AbiPy, and most of them are
 illustrated in the examples in this directory.
-Execute the `_runplots.py` script for an overview of the AbiPy capabilities.
+Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
 
 
 
@@ -391,7 +393,7 @@ Execute the `_runplots.py` script for an overview of the AbiPy capabilities.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w)  and the e-ph coupling strenght i...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w) and the e-ph coupling strenght in...">
 
 .. only:: html
 
@@ -591,7 +593,7 @@ Execute the `_runplots.py` script for an overview of the AbiPy capabilities.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the matrix elements of the  inverse dielectric function stored ...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the matrix elements of the inverse dielectric function stored i...">
 
 .. only:: html
 

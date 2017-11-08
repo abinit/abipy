@@ -3,10 +3,10 @@
 .. _sphx_glr_gallery_plot_scr_matrix.py:
 
 
-SCF matrix
+SCR matrix
 ==========
 
-This examples shows how to plot the matrix elements of the 
+This examples shows how to plot the matrix elements of the
 inverse dielectric function stored in the SCR file (optdriver 3)
 See also `plot_scr.py` for the optical spectrum.
 
@@ -79,7 +79,7 @@ See also `plot_scr.py` for the optical spectrum.
         # Plot e^{-1}_{G1, G2} along the imaginary axis.
         em1.plot_gg(wpos="imag")
 
-**Total running time of the script:** ( 0 minutes  1.097 seconds)
+**Total running time of the script:** ( 0 minutes  1.207 seconds)
 
 
 

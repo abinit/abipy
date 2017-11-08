@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abiopen.py &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="abirun.py" href="abirun.html" />
+    <link rel="prev" title="abinp.py" href="abinp.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">abiopen.py</span></code></a><ul>
+<li><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="abinp.html" title="Previous Chapter: abinp.py"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; abinp.py</span>
+    </a>
+  </li>
+  <li>
+    <a href="abirun.html" title="Next Chapter: abirun.py"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">abirun.py &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/scripts/abiopen.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abiopen-py">
+<span id="abiopen"></span><h1><code class="docutils literal"><span class="pre">abiopen.py</span></code><a class="headerlink" href="#abiopen-py" title="Permalink to this headline">¶</a></h1>
+<p>AbiPy provides python objects associated to several Abinit output files.
+These objects implement methods to analyze and plot the results.
+The examples in our <span class="xref std std-doc">gallery</span> use this API to plot data with <code class="docutils literal"><span class="pre">matplotlib</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">abiopen.py</span></code> script provides a handy interface to the AbiPy objects.
+It can be used to open Abinit files directly in the <code class="docutils literal"><span class="pre">ipython</span></code> shell or in a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook and interact with
+the associated object (called <code class="docutils literal"><span class="pre">abifile</span></code> in the <code class="docutils literal"><span class="pre">ipython</span></code> terminal).
+The syntax of the script is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py FILE [options]
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">FILE</span></code> is one of the files supported by AbiPy (usually in <code class="docutils literal"><span class="pre">netcdf</span></code> format but other
+files are supported as well).
+By default <code class="docutils literal"><span class="pre">abiopen</span></code> starts the <code class="docutils literal"><span class="pre">ipython</span></code> terminal.
+Alternatively, it is possible to generate automatically a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_FATBANDS.nc -nb
+</pre></div>
+</div>
+<p>which will produce a notebook to visualize the electronic fatbands produced with <code class="docutils literal"><span class="pre">prtdos</span> <span class="pre">3</span></code> inside a web browser.</p>
+<p>Use the <code class="docutils literal"><span class="pre">-p</span></code> option if you just want to get information on the file without opening it, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_GSR.nc -p
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">abiopen.py</span></code> uses the file extension to decide what to do with the file and the type
+of python object that should be instantiated.
+The list of supported file extensions is obtained with:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ abiopen.py --help
+usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb] [--foreground]
+                  [-p]
+                  filepath
+
+positional arguments:
+  filepath             File to open. See table below for the list of supported
+                       extensions.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --loglevel LOGLEVEL  Set the loglevel. Possible values: CRITICAL, ERROR
+                       (default), WARNING, INFO, DEBUG
+  -V, --version        show program&#39;s version number and exit
+  -v, --verbose        verbose, can be supplied multiple times to increase
+                       verbosity
+  -nb, --notebook      Open file in jupyter notebook
+  --foreground         Run jupyter notebook in the foreground.
+  -p, --print          Print python object and return.
+
+Usage example:
+
+    abiopen.py FILE        =&gt; Open file in ipython shell.
+    abiopen.py FILE -nb    =&gt; Generate jupyter notebook.
+    abiopen.py FILE -p     =&gt; Print info on object to terminal.
+
+`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
+
+File extensions supported:
+Extension       Class
+--------------  -----------------------------------------------------
+.abi            &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.in             &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.abo            &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.out            &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.log            &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
+.cif            &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+POSCAR          &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cssr           &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cube           &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
+anaddb.nc       &lt;class &#39;abipy.dfpt.anaddbnc.AnaddbNcFile&#39;&gt;
+DEN             &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt;
+.psp8           &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.pspnc          &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.fhi            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+JTH.xml         &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+GSR.nc          &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
+DEN.nc          &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
+OUT.nc          &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
+DDK.nc          &lt;class &#39;abipy.electrons.ddk.DdkFile&#39;&gt;
+VHA.nc          &lt;class &#39;abipy.electrons.denpot.VhartreeNcFile&#39;&gt;
+VXC.nc          &lt;class &#39;abipy.electrons.denpot.VxcNcFile&#39;&gt;
+VHXC.nc         &lt;class &#39;abipy.electrons.denpot.VhxcNcFile&#39;&gt;
+POT.nc          &lt;class &#39;abipy.electrons.denpot.PotNcFile&#39;&gt;
+WFK.nc          &lt;class &#39;abipy.waves.wfkfile.WfkFile&#39;&gt;
+HIST.nc         &lt;class &#39;abipy.dynamics.hist.HistFile&#39;&gt;
+PSPS.nc         &lt;class &#39;abipy.electrons.psps.PspsFile&#39;&gt;
+DDB             &lt;class &#39;abipy.dfpt.ddb.DdbFile&#39;&gt;
+PHBST.nc        &lt;class &#39;abipy.dfpt.phonons.PhbstFile&#39;&gt;
+PHDOS.nc        &lt;class &#39;abipy.dfpt.phonons.PhdosFile&#39;&gt;
+SCR.nc          &lt;class &#39;abipy.electrons.scr.ScrFile&#39;&gt;
+SIGRES.nc       &lt;class &#39;abipy.electrons.gw.SigresFile&#39;&gt;
+GRUNS.nc        &lt;class &#39;abipy.dfpt.gruneisen.GrunsNcFile&#39;&gt;
+MDF.nc          &lt;class &#39;abipy.electrons.bse.MdfFile&#39;&gt;
+FATBANDS.nc     &lt;class &#39;abipy.electrons.fatbands.FatBandsFile&#39;&gt;
+FOLD2BLOCH.nc   &lt;class &#39;abipy.electrons.fold2bloch.Fold2BlochNcfile&#39;&gt;
+CUT3DDENPOT.nc  &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&gt;
+OPTIC.nc        &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
+EPH.nc          &lt;class &#39;abipy.eph.eph.EphFile&#39;&gt;
+SIGEPH.nc       &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">AbiPy uses the <code class="docutils literal"><span class="pre">.abi</span></code> extension for Abinit input files, <code class="docutils literal"><span class="pre">.abo</span></code> for output files and <code class="docutils literal"><span class="pre">.log</span></code> for log files.
+Try to follow this convention in your calculations to facilitate the integration with AbiPy.</p>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+                  <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h2>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to open. See table below for the list of supported extensions.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments">
+<h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-V, --version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Open file in jupyter notebook</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --print</kbd></td>
+<td><p class="first">Print python object and return.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Nov 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

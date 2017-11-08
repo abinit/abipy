@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="flowtk Package" href="flowtk_api.html" />
+    <link rel="next" title="eph Package" href="eph_api.html" />
     <link rel="prev" title="dynamics Package" href="dynamics_api.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -64,20 +64,20 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../features.html">Feature Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Command line tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">The AbiPy Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
 </ul>
 </ul>
 </li>
@@ -121,7 +121,7 @@
     </a>
   </li>
   <li>
-    <a href="flowtk_api.html" title="Next Chapter: flowtk Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">flowtk Package &raquo;</span>
+    <a href="eph_api.html" title="Next Chapter: eph Package"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">eph Package &raquo;</span>
     </a>
   </li>
               
@@ -177,7 +177,7 @@ obtained from the dielectric functions for different q-directions.</p>
 <div><p>Plot all the components of the tensor</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</dd>
+<dd>ax: matplotlib <cite>Axes</cite> or None if a new figure should be created.</dd>
 </dl>
 <table border="1" class="docutils">
 <colgroup>
@@ -325,7 +325,7 @@ computed for different q-directions in reciprocal space.</p>
 <div><p>Plot the MDF.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</dd>
+<dd>ax: matplotlib <cite>Axes</cite> or None if a new figure should be created.</dd>
 </dl>
 <table border="1" class="docutils">
 <colgroup>
@@ -642,7 +642,7 @@ working directory is created. Return path to the notebook.</p>
 <div><p>Get a matplotlib plot showing the MDFs.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
+<dd><p class="first">ax: matplotlib <cite>Axes</cite> or None if a new figure should be created.
 cplx_mode: string defining the data to print (case-insensitive).</p>
 <blockquote>
 <div>Possible choices are <cite>re</cite> for the real part, <cite>im</cite> for imaginary part only. <cite>abs</cite> for the absolute value.
@@ -797,7 +797,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <div><p>Helper function to plot data corresponds to <cite>mdf_type</cite>, <cite>cplx_mode</cite>, <cite>qpoint</cite>.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
+<dd><p class="first">ax: matplotlib <cite>Axes</cite> or None if a new figure should be created.
 mdf_type:
 cplx_mode: string defining the data to print (case-insensitive).</p>
 <blockquote>

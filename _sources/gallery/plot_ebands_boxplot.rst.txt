@@ -34,7 +34,7 @@ showing the distributions of eigenvalues with respect to the band index.
     ebands.boxplot(swarm=True)
     plt.show()
 
-**Total running time of the script:** ( 0 minutes  0.523 seconds)
+**Total running time of the script:** ( 0 minutes  0.321 seconds)
 
 
 
