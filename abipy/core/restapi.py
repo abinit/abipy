@@ -204,7 +204,6 @@ class DatabaseStructures(NotebookWriter):
         for i, structure in enumerate(self.structures):
             print(" ", file=file)
             print(marquee("%s input for %s" % (fmt, self.ids[i]), mark="#"), file=file)
-            #print("\n# " + str(structure).replace("\n", "\n# ") + "\n", file=file)
             print("# " + structure.spget_summary(verbose=verbose).replace("\n", "\n# ") + "\n", file=file)
             if not structure.is_ordered:
                 print(structure.convert(fmt="cif"), file=file)

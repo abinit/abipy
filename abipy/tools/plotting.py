@@ -83,11 +83,11 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
     """
     Use imshow for plotting 2D or 1D arrays.
 
-    :Example:
+    Example::
 
-    >>> plot_array(np.random.rand(10,10))
+        plot_array(np.random.rand(10,10))
 
-    See http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python
+    See <http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python>
 
     Args:
         array: Array-like object (1D or 2D).
@@ -226,11 +226,11 @@ class Marker(collections.namedtuple("Marker", "x y s")):
     in the graph and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
 
-    :Example:
+    Example::
 
-    >>> x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
-    >>> marker = Marker(x, y, s)
-    >>> marker.extend((x, y, s))
+        x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
+        marker = Marker(x, y, s)
+        marker.extend((x, y, s))
 
     """
     def __new__(cls, *xys):

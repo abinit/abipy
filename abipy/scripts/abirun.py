@@ -684,7 +684,7 @@ def get_parser(with_epilog=False):
     # Subparser for restart command.
     p_restart = subparsers.add_parser('restart', parents=[copts_parser, flow_selector_parser],
         help=("Restart the tasks of the flow. By default, only the task whose status==Unconverged are restarted. "
-             "Use -S `status` and/or -n node_ids to select particular tasks."))
+              "Use -S `status` and/or -n node_ids to select particular tasks."))
 
     # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
@@ -701,7 +701,7 @@ def get_parser(with_epilog=False):
     p_open = subparsers.add_parser('open', parents=[copts_parser, flow_selector_parser],
         help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help).")
     p_open.add_argument('what', nargs="?", default="o",
-        help="""\
+        help=r"""\
 Specify the files to open. Possible choices:
     i ==> input_file
     o ==> output_file

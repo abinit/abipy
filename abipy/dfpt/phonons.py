@@ -2429,7 +2429,7 @@ class PhononBandsPlotter(NotebookWriter):
         """Invoked by str"""
         return self.to_string(func=str)
 
-    def __add__(self, other):
+    def add__plotter(self, other):
         """Merge two plotters, return new plotter."""
         if not isinstance(other, self.__class__):
             raise TypeError("Don't know to to add %s to %s" % (other.__class__, self.__class__))

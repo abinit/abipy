@@ -214,7 +214,7 @@ class PhononBandsPlotterTest(AbipyTest):
         assert len(plotter.phdoses_list) == 2
 
         # __add__ merges two plotters:
-        p2 = plotter + plotter
+        p2 = plotter.add_plotter(plotter)
         assert len(p2.phbands_list) == 2
         assert len(p2.phdoses_list) == 2
 

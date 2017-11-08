@@ -89,7 +89,7 @@ class AbinitOutputTest(AbipyTest):
              if self.has_matplotlib():
                 assert ph_cycle.plot(show=False)
                 assert abo.compare_d2de_scf_cycles([abo_path], show=False)
-                assert abo.plot(show=False)
+                abo.plot(show=False)
 
              if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
