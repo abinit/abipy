@@ -25,7 +25,7 @@ __all__ = [
     "Has_ElectronBands",
     "Has_PhononBands",
     "NotebookWriter",
-    #"Has_Header",
+    "Has_Header",
 ]
 
 @six.add_metaclass(abc.ABCMeta)
@@ -416,7 +416,8 @@ class NotebookWriter(object):
             process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
 
-    def get_nbformat_nbv(self):
+    @staticmethod
+    def get_nbformat_nbv():
         """Return nbformat module, notebook version module"""
         import nbformat
         nbv = nbformat.v4

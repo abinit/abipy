@@ -139,6 +139,12 @@ def get_parser(with_epilog=False):
     path_selector.add_argument('filepath', nargs="?",
         help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
 
+    # Parent parser for commands supporting (ipython/jupyter)
+    nb_parser = argparse.ArgumentParser(add_help=False)
+    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    nb_parser.add_argument('--foreground', action='store_true', default=False,
+                            help="Run jupyter notebook in the foreground.")
+
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
@@ -357,12 +363,12 @@ closest points in this particular structure. This is usually what you want in a 
     add_format_arg(p_mpid, default="cif")
 
     # Subparser for mp_match command.
-    p_mpmatch = subparsers.add_parser('mp_match', parents=[path_selector, mp_rest_parser, copts_parser],
+    p_mpmatch = subparsers.add_parser('mp_match', parents=[path_selector, mp_rest_parser, copts_parser, nb_parser],
         help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY.")
     add_format_arg(p_mpmatch, default="abivars")
 
     # Subparser for mp_search command.
-    p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser],
+    p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser, nb_parser],
         help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
@@ -381,9 +387,8 @@ closest points in this particular structure. This is usually what you want in a 
 well as red crosses. If a number > 0 is entered, all phases with
 ehull < show_unstable will be shown.""")
 
-
     # Subparser for cod_search command.
-    p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser],
+    p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser, nb_parser],
         help="Get structure from COD database. Requires internet connection and mysql")
     p_codsearch.add_argument("formula", type=str, default=None, help="formula (e.g., Fe2O3).")
     p_codsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
@@ -713,7 +718,11 @@ def main():
         if not mp.structures:
             cprint("No structure found in database", "yellow")
             return 1
-        mp.print_results(fmt=options.format, verbose=options.verbose)
+
+        if options.notebook:
+            return mp.make_and_open_notebook(foreground=options.foreground)
+        else:
+            mp.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "mp_search":
         mp = abilab.mp_search(options.chemsys_formula_id)
@@ -721,7 +730,11 @@ def main():
             cprint("No structure found in Materials Project database", "yellow")
             return 1
         if options.select_spgnum: mp = mp.filter_by_spgnum(options.select_spgnum)
-        mp.print_results(fmt=options.format, verbose=options.verbose)
+
+        if options.notebook:
+            return mp.make_and_open_notebook(foreground=options.foreground)
+        else:
+            mp.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "mp_pd":
         if os.path.exists(options.file_or_elements):
@@ -742,7 +755,11 @@ def main():
             cprint("No structure found in COD database", "yellow")
             return 1
         if options.select_spgnum: cod = cod.filter_by_spgnum(options.select_spgnum)
-        cod.print_results(fmt=options.format, verbose=options.verbose)
+
+        if options.notebook:
+            return cod.make_and_open_notebook(foreground=options.foreground)
+        else:
+            cod.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "cod_id":
         # Get the Structure from COD

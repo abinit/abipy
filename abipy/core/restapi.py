@@ -17,6 +17,7 @@ try:
 except ImportError:
     from pymatgen.matproj.rest import MPRester, MPRestError
 from abipy.tools.pandas import print_frame
+from abipy.core.mixins import NotebookWriter
 
 
 MP_DEFAULT_ENDPOINT = "https://www.materialsproject.org/rest/v2"
@@ -148,7 +149,7 @@ class PhaseDiagramResults(object):
                 print_frame(dfs.coords, title="Atomic positions (columns give the site index):", file=file)
 
 
-class DatabaseStructures(object):
+class DatabaseStructures(NotebookWriter):
     """Store the results of a query to the MP database."""
 
     def __init__(self, structures, ids, data=None):
@@ -200,6 +201,25 @@ class DatabaseStructures(object):
                 print(structure.convert(fmt=fmt), file=file)
             print(2 * "\n", file=file)
 
+    def write_notebook(self, nbpath=None, title=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
+
+        # Use pickle files for data persistence.
+        tmpfile = self.pickle_dump()
+
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("dbs = abilab.restapi.DatabaseStructures.pickle_load('%s')" % tmpfile),
+            nbv.new_code_cell("# dbs.print_results(fmt='cif', verbose=0)"),
+            nbv.new_code_cell("import qgrid\nqgrid.show_grid(dbs.table)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 class MpStructures(DatabaseStructures):
     """Store the results of a query to the Materials Project database."""
@@ -210,14 +230,17 @@ class MpStructures(DatabaseStructures):
         """Pandas dataframe constructed from self.data. None if data is not available."""
         if not self.data: return None
         import pandas as pd
-        rows, table = [], None
-        for d in self.data:
+        rows = []
+        for d, structure in zip(self.data, self.structures):
             d = Dotdict(d)
-            rows.append(OrderedDict([(k, d.dotget(k, default=None)) for k in MP_KEYS_FOR_DATAFRAME]))
-            table = pd.DataFrame(rows, index=[r["material_id"] for r in rows],
-                                 columns=list(rows[0].keys()))
+            d = OrderedDict([(k, d.dotget(k, default=None)) for k in MP_KEYS_FOR_DATAFRAME])
+            # Add lattice parameters.
+            for k in ("a", "b", "c", "alpha", "beta", "gamma"):
+                d[k] = getattr(structure.lattice, k)
+            rows.append(d)
 
-        return table
+        return pd.DataFrame(rows, index=[r["material_id"] for r in rows],
+                             columns=list(rows[0].keys()))
 
 
 class CodStructures(DatabaseStructures):

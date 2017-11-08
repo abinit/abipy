@@ -53,9 +53,9 @@ API
 Indices and tables
 ==================
 
-  * :ref:`genindex`
-  * :ref:`modindex`
-  * :ref:`search`
+  :ref:`genindex`
+  :ref:`modindex`
+  :ref:`search`
 
 License
 =======

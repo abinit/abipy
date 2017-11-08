@@ -40,6 +40,9 @@ class TestMpRestApi(AbipyTest):
         assert mp.data is None and mp.table is None
         mp.print_results(fmt="abivars", verbose=2)
 
+        if self.has_nbformat():
+            mp.write_notebook(nbpath=self.get_tmpname(text=True))
+
         # Test abilab.cod_search
         cod = abilab.cod_search("MgB2", primitive=True)
         repr(cod); str(cod)

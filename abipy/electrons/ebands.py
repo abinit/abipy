@@ -2641,7 +2641,7 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        # Use pickle files for data persistence.
+        # Use pickle file for data persistence.
         tmpfile = self.pickle_dump()
 
         nb.cells.extend([
