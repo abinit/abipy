@@ -30,6 +30,10 @@ The documentation is produced in `_build/html`.
 
 You can run ``make help`` to see information on all possible make targets.
 
+To install dependencies::
+
+    pip install -R requirements.txt
+
 To deploy to gh-pages::
 
-   ghp-import _build/html/ -n -p
+   ./ghp-import _build/html/ -n -p

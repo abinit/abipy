@@ -56,9 +56,9 @@ class AbinitOutputTest(AbipyTest):
             assert str(timer.summarize())
 
             if self.has_matplotlib():
-                assert abo.compare_gs_scf_cycles([abo_path], show=False)
-                assert timer.plot_all(show=False)
-                assert abo.plot(show=False)
+                abo.compare_gs_scf_cycles([abo_path], show=False)
+                timer.plot_all(show=False)
+                abo.plot(show=False)
 
             if self.has_nbformat():
                 abo.write_notebook(nbpath=self.get_tmpname(text=True))
