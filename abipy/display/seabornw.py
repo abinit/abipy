@@ -1,5 +1,5 @@
 # coding: utf-8
-"""
+r"""
 Widgets for Pandas Dataframes based on seaborn API.
 
 API reference

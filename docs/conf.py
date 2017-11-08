@@ -45,9 +45,8 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinxcontrib.programoutput',
     'sphinx_gallery.gen_gallery',
-    #'sphinxcontrib.autoprogram',
-    #"sphinxcontrib.argdoc", # slow but nice
-    "sphinxarg.ext",
+    "sphinxarg.ext",         # CLI doc
+    #'nbsphinx',
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -116,7 +115,7 @@ release = relmod.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -359,7 +358,7 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/2', None),
+    'python': ('https://docs.python.org/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),

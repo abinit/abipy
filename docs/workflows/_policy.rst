@@ -1,8 +1,8 @@
 .. _task_policy:
 
------------
+^^^^^^^^^^
 TaskPolicy
------------
+^^^^^^^^^^
 
 At this point, you may wonder why we need to specify all these parameters in the configuration file.
 The reason is that, before submitting a job to a resource manager, AbiPy will use the autoparal 

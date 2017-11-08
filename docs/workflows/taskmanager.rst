@@ -1,8 +1,8 @@
 .. _taskmanager:
 
-===========
+^^^^^^^^^^^
 TaskManager
-===========
+^^^^^^^^^^^
 
 Besides post-processing tools and a programmatic interface to generate input files,
 AbiPy also provides a pythonic API to execute small Abinit tasks directly or submit calculations on supercomputing clusters.
