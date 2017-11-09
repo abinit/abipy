@@ -1662,14 +1662,12 @@ class PhononDos(Function1D):
     @classmethod
     def as_phdos(cls, obj, phdos_kwargs=None):
         """
-        Return an instance of :class:`PhononDOS` from a generic obj.
-        Supports:
+        Return an instance of :class:`PhononDOS` from a generic obj. Supports::
 
             - instances of cls
-            - files (string) that can be open with abiopen and that provide one of the following attributes:
-                [`phdos`, `phbands`]
+            - files (string) that can be open with abiopen and that provide one of the following attributes: [`phdos`, `phbands`]
             - instances of `PhononBands`
-            - objects providing a `phbands`attribute.
+            - objects providing a `phbands` attribute.
 
         Args:
             phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.

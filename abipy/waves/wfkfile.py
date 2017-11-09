@@ -251,8 +251,8 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         .. warning::
 
-        It seems there's a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
-        as the tab in vesta is not updated!
+            It seems there's a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
+            as the tab in vesta is not updated!
         """
         def wfk_visualize(spin, kpoint, band, visu_name):
             kpoint = int(kpoint.split()[0])

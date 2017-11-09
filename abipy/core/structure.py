@@ -429,7 +429,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
-        .. Example::
+        Example::
 
             Structure.rocksalt(a, ["Na", "Cl"])
 
@@ -463,7 +463,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         Build a :class:`Structure` object from a dictionary with ABINIT variables.
 
-        .. Example::
+        Example::
 
             al_structure = Structure.from_abivars(
                 acell=3*[7.5],
@@ -698,7 +698,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
             spgdata: spglib dataset with additional data reported by spglib.
 
-        .. Example::
+         Example::
 
             for irr_pos in irred_pos:
                 eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.
@@ -1737,7 +1737,7 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
             `coords` the atomic positions.
         The list of structures is available in the `structures` entry.
 
-    .. Example::
+    Example::
 
         dfs = dataframes_from_structures(files)
         dfs.lattice

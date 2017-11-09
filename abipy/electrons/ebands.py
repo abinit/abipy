@@ -1627,7 +1627,7 @@ class ElectronBands(Has_Structure):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
             colormap: Have a look at the colormaps here and decide which one you like:
-                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+                <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>
             ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
         """
         kcart_coords = self.kpoints.get_cart_coords()

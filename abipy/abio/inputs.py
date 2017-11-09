@@ -756,9 +756,9 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
     def set_kptgw(self, kptgw, bdgw):
         """
-        Set the variables (k-points, bands) for the computation of the GW corrections.
+        Set the variables (k-points, bands) for the computation of GW corrections.
 
-        Args
+        Args:
             kptgw: List of k-points in reduced coordinates.
             bdgw: Specifies the range of bands for the GW corrections.
                 Accepts iterable that be reshaped to (nkptgw, 2)

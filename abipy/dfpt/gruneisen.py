@@ -142,7 +142,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_doses(self, xlims=None, dos_names="all", with_idos=True, **kwargs):
-        """
+        r"""
         Plot the different doses stored in the GRUNS file.
 
         Args:
@@ -156,12 +156,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         if not self.doses:
             return None
-        #write(unt,'(a)')'# Phonon density of states, Gruneisen DOS and phonon group velocity DOS'
-        #write(unt,'(a)')"# Energy in Hartree, DOS in states/Hartree"
-        #write(unt,'(a,i0)')'# Tetrahedron method with nqibz= ',nqibz
-        #write(unt,"(a,f8.5)")"# Average Gruneisen parameter:", gavg
-        #write(unt,'(5a)') &
-        #  "# omega PH_DOS Gruns_DOS Gruns**2_DOS Vel_DOS  Vel**2_DOS  PH_IDOS Gruns_IDOS Gruns**2_IDOS Vel_IDOS Vel**2_IDOS"
 
         dos_names = _ALL_DOS_NAMES.keys() if dos_names == "all" else list_strings(dos_names)
         wmesh = self.doses["wmesh"]

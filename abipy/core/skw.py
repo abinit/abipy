@@ -606,7 +606,7 @@ class ElectronInterpolator(object):
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         Returns:
             matplotlib figure.

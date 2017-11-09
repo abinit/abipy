@@ -493,7 +493,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
-            the number of divisions to be used to sample the smallest reciprocal lattice vector.
+                the number of divisions to be used to sample the smallest reciprocal lattice vector.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
@@ -505,7 +505,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             `namedtuple` with the following attributes:
                 phdoses: List of :class:`PhononDos` objects
                 plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`
-                    to visualize the results.
+                to visualize the results.
         """
         num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1

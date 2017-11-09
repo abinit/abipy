@@ -15,15 +15,12 @@ _DEFAULTS = {"numq": 3001, "numr": 3001}
 
 def spline_int_jlqr(l, qmax, rcut, numq=None, numr=None):
     r"""
-    Compute
-
-    .. math:: j_n(z) = \int_0^{rcut} r^2 j_l(qr) dr
-
+    Compute :math:`j_n(z) = \int_0^{rcut} r^2 j_l(qr) dr`
     where :math:`j_l` is the Spherical Bessel function.
 
     Args:
         l: Angular momentum
-        qmax: Max |q| in integral in Ang-1
+        qmax: Max :math:`|q|` in integral in Ang-1
         rcut: Sphere radius in Angstrom.
         numq: Number of q-points in qmesh.
         numr: Number of r-points for integration.
