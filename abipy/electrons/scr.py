@@ -243,9 +243,9 @@ class ScrReader(ETSF_Reader):
     This object reads the results stored in the SCR (Screening) file produced by ABINIT.
     It provides helper functions to access the most important quantities.
 
-    #double inverse_dielectric_function(number_of_qpoints_dielectric_function,
-    # number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
-    # number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)
+    double inverse_dielectric_function(number_of_qpoints_dielectric_function,
+    number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
+    number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)
     """
     def __init__(self, filepath):
         super(ScrReader, self).__init__(filepath)
@@ -306,9 +306,7 @@ class ScrReader(ETSF_Reader):
 
     def read_emacro_lf(self, kpoint=(0, 0, 0)):
         """
-        Read the macroscopic dielectric function *with* local field effects
-
-            1/ em1_{0,0)(kpoint, omega).
+        Read the macroscopic dielectric function *with* local field effects 1 / em1_{0,0)(kpoint, omega).
 
         Return: :class:`Function1D` object.
         """
@@ -322,9 +320,7 @@ class ScrReader(ETSF_Reader):
 
     def read_emacro_nlf(self, kpoint=(0, 0, 0)):
         """
-        Read the macroscopic dielectric function *without* local field effects.
-
-            e_{0,0)(kpoint, omega).
+        Read the macroscopic dielectric function *without* local field effects e_{0,0)(kpoint, omega).
 
         Return: :class:`Function1D`
 
@@ -406,7 +402,7 @@ class ScrReader(ETSF_Reader):
 class _AwggMatrix(object):
     r"""
     Base class for two-point functions expressed in reciprocal space
-    i.e. a complex matrix $A_{G,G'}(\omega)$ where G, G' are reciprocal
+    i.e. a complex matrix :math:`A_{G,G'}(\omega)` where G, G' are reciprocal
     lattice vectors defines inside the G-sphere.
 
     This class is not supposed to be instantiated directly.
@@ -561,7 +557,7 @@ class _AwggMatrix(object):
     @add_fig_kwargs
     def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, **kwargs):
         """
-        Plot the frequency dependence of W_{G1, G2}(omega)
+        Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
         Args:
             gvec1, gvec2:
@@ -614,7 +610,7 @@ class _AwggMatrix(object):
     @add_fig_kwargs
     def plot_gg(self, cplx_mode="abs", wpos=None, **kwargs):
         """
-        Use matplotlib imshow to plot W_{GG'} matrix
+        Use matplotlib imshow to plot :math:`W_{GG'}` matrix
 
         Args:
             cplx_mode: string defining the data to print.

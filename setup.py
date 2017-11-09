@@ -33,21 +33,21 @@ cmdclass = {}
 ext_modules = []
 
 # Disable cython for the time being.
-with_cexts = False
-if with_cexts:
-    with_cython = False
-    if with_cython:
-        import numpy as np
-        #define_macros = [("CYTHON_TRACE", "1")]
-        ext_modules += [
-            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
-        ]
-        cmdclass.update({'build_ext': build_ext})
-
-    else:
-        ext_modules += [
-            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
-        ]
+#with_cexts = False
+#if with_cexts:
+#    with_cython = False
+#    if with_cython:
+#        import numpy as np
+#        #define_macros = [("CYTHON_TRACE", "1")]
+#        ext_modules += [
+#            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
+#        ]
+#        cmdclass.update({'build_ext': build_ext})
+#
+#    else:
+#        ext_modules += [
+#            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
+#        ]
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -116,7 +116,7 @@ def find_package_data():
             "variables/*",
         ],
         'abipy.data.refs' : [
-            "al_eph_/*",
+            "al_eph/*",
             "al_g0w0_spfunc/*",
             "alas_nl_dfpt/*",
             "alas_phonons/*",

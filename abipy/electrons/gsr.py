@@ -202,7 +202,6 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 supported by the GSR object.
 
         Returns:
-
             ComputedStructureEntry/ComputedEntry
         """
         # TODO
@@ -251,14 +250,13 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         nb.cells.extend([
             nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(gsr)"),
-            nbv.new_code_cell("fig = gsr.ebands.plot()"),
-            nbv.new_code_cell("fig = gsr.ebands.kpoints.plot()"),
-            nbv.new_code_cell("# fig = gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1)"),
+            nbv.new_code_cell("gsr.ebands.plot();"),
+            nbv.new_code_cell("gsr.ebands.kpoints.plot();"),
+            nbv.new_code_cell("# gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
             nbv.new_code_cell("""\
 if gsr.ebands.kpoints.is_ibz:
-    fig = gsr.ebands.get_edos().plot()"""),
+    gsr.ebands.get_edos().plot();"""),
             #nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
-
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -427,8 +425,6 @@ class GsrRobot(Robot, RobotWithEbands):
         Args:
             eos_name:
                 For the list of available models, see pymatgen.analysis.eos.
-
-        Return
         """
         # Read volumes and energies from the GSR files.
         energies, volumes = [], []

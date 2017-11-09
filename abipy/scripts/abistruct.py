@@ -306,7 +306,7 @@ closest points in this particular structure. This is usually what you want in a 
                          help="Number of divisions used to sample the smallest reciprocal lattice vector.")
     # Subparser for ktables.
     p_ktables = subparsers.add_parser('ktables', parents=[copts_parser, path_selector],
-        help=("Read structure from filepath, call spglib to sample the BZ,"
+        help=("Read structure from filepath, call spglib to sample the BZ, "
               "print k-points in the IBZ with weights."))
     p_ktables.add_argument("-m", "--mesh", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
     p_ktables.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
@@ -317,7 +317,7 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Subparser for abikmesh.
     p_abikmesh = subparsers.add_parser('abikmesh', parents=[copts_parser, path_selector],
-        help=("Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt."
+        help=("Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt. "
               "Print k-points in the IBZ with weights."))
     p_abikmesh.add_argument("--ngkpt", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
     p_abikmesh.add_argument("--shiftk", nargs="+", default=(0.5, 0.5, 0.5), type=float,
