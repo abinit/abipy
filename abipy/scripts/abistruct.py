@@ -350,12 +350,6 @@ closest points in this particular structure. This is usually what you want in a 
     mp_rest_parser.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
 
-    # Subparser for pmgdata command (deprecated)
-    p_pmgdata = subparsers.add_parser('pmgdata', parents=[copts_parser, mp_rest_parser],
-        help="Get structure from the pymatgen database. Print JSON dict. Requires internet connection and MAPI_KEY.")
-    p_pmgdata.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
-    add_format_arg(p_pmgdata, default="json")
-
     # Subparser for mp_id command.
     p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
         help="Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.")
@@ -499,8 +493,8 @@ def main():
         index = [options.filepath, "abisanitized"]
         dfs = abilab.frames_from_structures([structure, sanitized], index=index, with_spglib=True)
 
-        abilab.print_frame(dfs.lattice, title="Lattice parameters:")
-        abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+        abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
+        abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")
@@ -564,9 +558,9 @@ def main():
         index = [options.filepath, "conventional"]
         dfs = abilab.frames_from_structures([structure, conv], index=index, with_spglib=True)
 
-        abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+        abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         if options.verbose:
-            abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+            abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")
@@ -704,9 +698,7 @@ def main():
         for k in kstar:
             print(4 * " ", repr(k))
 
-    elif options.command in ("pmgdata", "mp_id"):
-        if options.command == "pmgdata":
-            warn("pmgdata is deprecated. Please use mp_id.")
+    elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.
         structure = abilab.Structure.from_material_id(options.mpid, final=True,
                                                       api_key=options.mapi_key, endpoint=options.endpoint)

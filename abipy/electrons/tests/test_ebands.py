@@ -9,7 +9,7 @@ import abipy.data as abidata
 from abipy import abilab
 
 from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
-    ElectronsReader, frame_from_ebands, Smearing)
+    ElectronsReader, dataframe_from_ebands, Smearing)
 from abipy.core.testing import AbipyTest
 
 
@@ -112,7 +112,7 @@ class ElectronBandsTest(AbipyTest):
         self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
         assert len(ni_ebands_kpath.to_json())
 
-        df = ni_ebands_kpath.to_pdframe()
+        df = ni_ebands_kpath.get_dataframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
 
         # BXSF cannot be produced because.
@@ -447,12 +447,12 @@ class ElectronBandsTest(AbipyTest):
                 #assert eb3d.mvplot_cutplanes(band=4, spin=0, show=False)
 
     def test_frame_from_ebands(self):
-        """Testing frame_from_ebands."""
+        """Testing dataframe_from_ebands."""
         gsr_kmesh = abidata.ref_file("si_scf_GSR.nc")
         si_ebands_kmesh = ElectronBands.as_ebands(gsr_kmesh)
         gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
         index = ["foo", "bar", "hello"]
-        df = frame_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
+        df = dataframe_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
         str(df)
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])

@@ -99,6 +99,10 @@ def get_parser(with_epilog=False):
     p_docsched = subparsers.add_parser('scheduler', parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
+    # Subparser for abibuild
+    p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser],
+        help="Show ABINIT build information and exit.")
+
     return parser
 
 
@@ -195,6 +199,18 @@ def main():
             if qtype is not None:
                 print("QPARAMS for %s" % qtype)
                 flowtk.show_qparams(qtype)
+
+    elif options.command == "abibuild":
+        import abipy.flowtk as flowtk
+        abinit_build = flowtk.AbinitBuild()
+        print()
+        print(abinit_build)
+        print()
+        if not options.verbose:
+            print("Use --verbose for additional info")
+        else:
+            print(abinit_build.info)
+
     else:
         raise ValueError("Don't know how to handle command %s" % options.command)
 

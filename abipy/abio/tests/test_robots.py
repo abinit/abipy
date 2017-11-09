@@ -32,7 +32,7 @@ class RobotTest(AbipyTest):
         assert Robot.class_for_ext("DDB") is abilab.DdbRobot
         assert Robot.class_for_ext("OPTIC") is abilab.OpticRobot
         with self.assertRaises(ValueError):
-            Robot.for_ext("foo")
+            Robot.class_for_ext("foo")
 
         if self.has_nbformat():
             assert robot.get_baserobot_code_cells()

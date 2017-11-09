@@ -82,6 +82,7 @@ class TestAbidoc(ScriptTest):
         r = env.run(self.script, "scheduler", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "manager", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
         r = env.run(self.script, "manager", "slurm", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, "abibuild", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbinp(ScriptTest):

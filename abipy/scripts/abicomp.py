@@ -70,9 +70,9 @@ from abipy import abilab"""),
         for i, p in enumerate(paths):
             print("%d %s" % (i, p))
         print()
-        abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+        abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         if options.verbose:
-            abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+            abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
     return 0
 
@@ -144,9 +144,9 @@ def _compare_with_database(options):
             else:
                 print()
                 dfs = abilab.dataframes_from_structures(r.structures + [this_structure], index=r.ids + ["this"])
-                abilab.print_frame(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
+                abilab.print_dataframe(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
                 if options.verbose:
-                    abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+                    abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
                 print()
 
         else:
@@ -167,9 +167,9 @@ def abicomp_xrd(options):
     structures = [abilab.Structure.from_file(p) for p in options.paths]
 
     dfs = abilab.dataframes_from_structures(structures, index=[os.path.relpath(p) for p in options.paths])
-    abilab.print_frame(dfs.lattice, title="Lattice parameters:")
+    abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
     if options.verbose:
-        abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+        abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
     from pymatgen.analysis.diffraction.xrd import XRDCalculator
     two_theta_range = tuple(float(t) for t in options.two_theta_range)
@@ -197,7 +197,7 @@ def abicomp_ebands(options):
     else:
         # Print pandas Dataframe.
         frame = plotter.get_ebands_frame()
-        abilab.print_frame(frame)
+        abilab.print_dataframe(frame)
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -267,7 +267,7 @@ def abicomp_phbands(options):
     else:
         # Print pandas Dataframe.
         frame = plotter.get_phbands_frame()
-        abilab.print_frame(frame)
+        abilab.print_dataframe(frame)
 
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -450,7 +450,7 @@ def abicomp_pseudos(options):
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
     df = dataframe_from_pseudos(options.paths, index=index)
-    abilab.print_frame(df, sortby="Z_val")
+    abilab.print_dataframe(df, sortby="Z_val")
     return 0
 
 

@@ -26,10 +26,13 @@ class Robot(NotebookWriter):
 
         with Robot([("label1", "file1"), (label2, "file2")]) as robot:
             # Do something with robot. files are automatically closed when we exit.
+
+    .. note::
+
+        __iter__  return (label, ncfile)
     """
     # TODO
-    # 1) Abstract interface from collections
-    # 2) should __iter__  return (label, ncfile) or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!
+    # 2) should  or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!
     # 3) replace ncfiles with files just to be consistent since we have DdbRobot!
 
     # filepaths are relative to `start`. None for asbolute paths. This flag is set in trim_paths
@@ -56,9 +59,6 @@ class Robot(NotebookWriter):
         raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
                          "The list of supported extensions is:\n%s" %
                          [cls.EXT for cls in Robot.__subclasses__()])
-
-    # Deprecated. Use class_for_ext
-    for_ext = class_for_ext
 
     @classmethod
     def from_dir(cls, top, walk=True, abspath=False):
@@ -179,7 +179,6 @@ class Robot(NotebookWriter):
                 print(robot)
 
             # That is equivalent to:
-
             with Robot.from_flow(flow, ext="GSR") as robot:
                 print(robot)
 

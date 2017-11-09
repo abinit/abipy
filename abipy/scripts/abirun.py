@@ -23,8 +23,9 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed, list_strings, make_banner
+from abipy.tools import duck
 from abipy.flowtk import Status
-from abipy.core.structure import frames_from_structures
+from abipy.core.structure import dataframes_from_structures
 
 
 def straceback():
@@ -36,40 +37,6 @@ def straceback():
 def parse_strings(s):
     """Parse comma separated values. Return None if s is None."""
     return s.split(",") if s is not None else s
-
-
-def as_slice(obj):
-    """
-    Convert an integer, a string or a slice object into slice.
-
-    >>> assert as_slice(5) == slice(5, 6, 1)
-    >>> assert as_slice("[1:4]") == slice(1, 4, 1)
-    >>> assert as_slice("1::2") == slice(1, None, 2)
-    """
-    if isinstance(obj, slice) or obj is None: return obj
-
-    try:
-        # integer.
-        if int(obj) == float(obj): return slice(int(obj), int(obj)+1, 1)
-    except Exception:
-        # assume string defining a python slice [start:stop:step]
-        if not obj: return None
-        if obj.count("[") + obj.count("]") not in (0, 2):
-            raise ValueError("Invalid string %s" % obj)
-
-        obj = obj.replace("[", "").replace("]", "")
-        n = obj.count(":")
-        if n == 0:
-            obj = int(obj)
-            return slice(obj, obj+1)
-
-        tokens = [int(f) if f else None for f in obj.split(":")]
-        if len(tokens) == 2: tokens.append(1)
-        if tokens[2] is None: tokens[2] = 1
-
-        return slice(*tokens)
-
-    raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
 def flowdir_wname_tname(dirname):
@@ -187,7 +154,6 @@ from abipy import abilab
         cprint("pid: %s" % str(process.pid), "yellow")
 
 
-
 def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
                             precision=3, printout=False, with_colors=False):
     """
@@ -240,7 +206,7 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
                     forces = gsr.reader.read_cart_forces(unit="eV ang^-1")
                     push_data("_out", task, gsr.structure, forces, gsr.pressure)
 
-    dfs = frames_from_structures(structures, index=index, with_spglib=with_spglib, cart_coords=False)
+    dfs = dataframes_from_structures(structures, index=index, with_spglib=with_spglib, cart_coords=False)
 
     if any(f is not None for f in max_forces):
         # Add pressure and forces to the dataframe
@@ -253,9 +219,9 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
     dfs.lattice["status"] = dfs.coords["status"] = status
 
     if printout:
-        abilab.print_frame(dfs.lattice, title="Lattice parameters:", precision=precision)
+        abilab.print_dataframe(dfs.lattice, title="Lattice parameters:", precision=precision)
         if verbose:
-            abilab.print_frame(dfs.coords, title="Atomic positions (columns give the site index):")
+            abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
         else:
             print("Use `--verbose` to print atoms.")
 
@@ -300,8 +266,8 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
             cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
 
     if not ebands_list: return
-    from abipy.electrons.ebands import frame_from_ebands
-    df = frame_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
+    from abipy.electrons.ebands import dataframe_from_ebands
+    df = dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
 
     # Add columns to the dataframe.
     status = [str(s) for s in status]
@@ -310,7 +276,7 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
     df["status"] = df["status"] = status
 
     if printout:
-        abilab.print_frame(df, title="KS electronic bands:", precision=precision)
+        abilab.print_dataframe(df, title="KS electronic bands:", precision=precision)
 
     return df
 
@@ -350,7 +316,7 @@ def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False,
     import pandas as pd
     df = pd.DataFrame(rows, index=index)
     if printout:
-        abilab.print_frame(df, title="Input variables:")
+        abilab.print_dataframe(df, title="Input variables:")
     return df
 
 
@@ -569,7 +535,10 @@ Notes:
 """
 
     developers = """\
-Options for developers:
+
+############
+# Developers
+############
 
     abirun.py prof ABIRUN_ARGS               => to profile abirun.py
     abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python"""
@@ -587,7 +556,7 @@ def get_parser(with_epilog=False):
                 return [int(t) for t in s.split(",")]
             else:
                 # Convert string to slice and return list.
-                s = as_slice(s)
+                s = duck.as_slice(s)
                 if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
                 return list(range(s.start, s.stop, s.step))
         except Exception:
@@ -595,7 +564,7 @@ def get_parser(with_epilog=False):
                     "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
 
     def parse_wslice(s):
-        s = as_slice(s)
+        s = duck.as_slice(s)
         if s is None: return s
         if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
         return s

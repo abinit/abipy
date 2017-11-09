@@ -16,7 +16,7 @@ try:
     from pymatgen.ext.matproj import MPRester, MPRestError
 except ImportError:
     from pymatgen.matproj.rest import MPRester, MPRestError
-from abipy.tools.pandas import print_frame
+from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
 
 
@@ -140,13 +140,13 @@ class PhaseDiagramResults(object):
             file: Output stream.
             verbose: Verbosity level.
         """
-        print_frame(self.table, file=file)
+        print_dataframe(self.table, file=file)
         if verbose:
-            from abipy.core.structure import frames_from_structures
-            dfs = frames_from_structures(self.structures, index=self.mpids, with_spglib=with_spglib)
-            print_frame(dfs.lattice, title="Lattice parameters:", file=file)
+            from abipy.core.structure import dataframes_from_structures
+            dfs = dataframes_from_structures(self.structures, index=self.mpids, with_spglib=with_spglib)
+            print_dataframe(dfs.lattice, title="Lattice parameters:", file=file)
             if verbose > 1:
-                print_frame(dfs.coords, title="Atomic positions (columns give the site index):", file=file)
+                print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):", file=file)
 
 
 class DatabaseStructures(NotebookWriter):
@@ -221,7 +221,7 @@ class DatabaseStructures(NotebookWriter):
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                 % (len(self.structures), self.dbname), file=file)
 
-        if self.table is not None: print_frame(self.table, file=file)
+        if self.table is not None: print_dataframe(self.table, file=file)
         if verbose and self.data is not None: pprint(self.data, stream=file)
 
         for i, structure in enumerate(self.structures):

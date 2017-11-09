@@ -12,7 +12,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.core.structure import Structure, frames_from_structures
+from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
 from abipy.abio.inputs import GEOVARS
@@ -423,8 +423,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if self.has_same_final_structures:
                 if self.initial_structure != self.final_structure:
                     # Structural relaxation.
-                    df = frames_from_structures([self.initial_structure, self.final_structure],
-                                                index=["initial", "final"])
+                    df = dataframes_from_structures([self.initial_structure, self.final_structure],
+                                                    index=["initial", "final"])
                     app("Lattice parameters:")
                     app(str(df.lattice))
                     app("Atomic coordinates:")
@@ -437,8 +437,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if self.has_same_initial_structures:
                 app(self.initial_structure.to_string(verbose=verbose))
             else:
-                df = frames_from_structures(self.initial_structures,
-                                            index=[i+1 for i in range(self.ndtset)])
+                df = dataframes_from_structures(self.initial_structures,
+                                                index=[i+1 for i in range(self.ndtset)])
                 app("Lattice parameters:")
                 app(str(df.lattice))
                 app("Atomic coordinates:")

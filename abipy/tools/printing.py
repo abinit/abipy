@@ -2,7 +2,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
-import pandas as pd
+
 
 
 def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout):
@@ -21,6 +21,7 @@ def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout
     if sortby is not None and sortby in frame:
         frame = frame.sort_values(sortby, inplace=False)
 
+    import pandas as pd
     with pd.option_context("display.max_rows", len(frame),
                            "display.max_columns", len(list(frame.keys())),
                            "display.precision", precision,
@@ -29,6 +30,3 @@ def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout
     #with pd.option_context('display.large_repr', 'truncate', 'display.max_columns', 0):
         print(frame, file=file)
         print(" ", file=file)
-
-# To maintain backward compatibility
-print_frame = print_dataframe

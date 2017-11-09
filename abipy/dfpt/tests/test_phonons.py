@@ -9,7 +9,7 @@ import abipy.data as abidata
 
 from abipy import abilab
 from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
-        PhononBandsPlotter, PhononDosPlotter, frame_from_phbands)
+        PhononBandsPlotter, PhononDosPlotter, dataframe_from_phbands)
 from abipy.dfpt.phonons import factor_ev2units, unit_tag, dos_label_from_units
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
@@ -78,7 +78,7 @@ class PhononBandsTest(AbipyTest):
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
-        df = phbands.to_dataframe()
+        df = phbands.get_dataframe()
         assert "freq" in df and "mode" in df
         self.assert_almost_equal(df["freq"].values.min(), 0)
 
@@ -218,7 +218,7 @@ class PhononBandsPlotterTest(AbipyTest):
         assert len(p2.phbands_list) == 2
         assert len(p2.phdoses_list) == 2
 
-        df = frame_from_phbands(plotter.phbands_list)
+        df = dataframe_from_phbands(plotter.phbands_list)
         assert "nqpt" in df
 
         df = plotter.get_phbands_frame()

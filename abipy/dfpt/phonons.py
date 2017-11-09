@@ -27,7 +27,6 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 
 
 __all__ = [
-    "frame_from_phbands",
     "PhononBands",
     "PhononBandsPlotter",
     "PhbstFile",
@@ -1368,7 +1367,7 @@ class PhononBands(object):
 
         return fig
 
-    def to_dataframe(self):
+    def get_dataframe(self):
         """
         Return a pandas DataFrame with the following columns:
 
@@ -1411,7 +1410,7 @@ class PhononBands(object):
             kwargs: Keyword arguments passed to seaborn boxplot.
         """
         # Get the dataframe and select bands
-        frame = self.to_dataframe()
+        frame = self.get_dataframe()
         if mode_range is not None:
             frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
 
@@ -2378,9 +2377,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
                         columns=list(odict_list[0].keys()) if odict_list else None)
 
 
-# To maintain old interface
-frame_from_phbands = dataframe_from_phbands
-
 
 class PhononBandsPlotter(NotebookWriter):
     """
@@ -2615,8 +2611,8 @@ class PhononBandsPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of PhononBandsPlotter has been replaced by combiplot. It will be removed in 0.4")
     def plot(self, *args, **kwargs):
+        """An alias for combiplot."""
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
@@ -2685,7 +2681,7 @@ class PhononBandsPlotter(NotebookWriter):
         frames = []
         for label, phbands in self.phbands_dict.items():
             # Get the dataframe, select bands and add column with label
-            frame = phbands.to_dataframe()
+            frame = phbands.get_dataframe()
             if mode_range is not None:
                 frame = frame[(frame["mode"] >= mode_range[0]) & (frame["mode"] < mode_range[1])]
             frame["label"] = label
@@ -2891,8 +2887,8 @@ class PhononDosPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of PhononDos has been replaced by combiplot. It will be removed in 0.4")
     def plot(self, **kwargs):
+        """An alias for combiplot."""
         return self.combiplot(**kwargs)
 
     @add_fig_kwargs

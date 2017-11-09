@@ -10,7 +10,7 @@ from monty.string import is_string, boxed
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.structure import Structure, frames_from_structures
+from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.mixins import Has_Structure, TextFile, NotebookWriter
 
 import logging
@@ -299,7 +299,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
                 app(structure.spget_summary())
                 app("")
 
-            dfs = frames_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
+            dfs = dataframes_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
             app(boxed("Tabular view (each row corresponds to a dataset structure)"))
             app("")
             app("Lattice parameters:")

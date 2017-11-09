@@ -41,7 +41,6 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "ElectronBands",
     "ElectronDos",
-    "frame_from_ebands",
     "dataframe_from_ebands",
     "ElectronBandsPlotter",
     "ElectronDosPlotter",
@@ -823,7 +822,7 @@ class ElectronBands(Has_Structure):
 
         return dless_states
 
-    def to_dataframe(self, e0="fermie"):
+    def get_dataframe(self, e0="fermie"):
         """
         Return a pandas DataFrame with the following columns:
 
@@ -869,10 +868,6 @@ class ElectronBands(Has_Structure):
         frame.fermie = e0
         return frame
 
-    # Alias to maintain compatibility
-    # TODO: Remove it in 0.4
-    to_pdframe = to_dataframe
-
     @add_fig_kwargs
     def boxplot(self, ax=None, e0="fermie", brange=None, swarm=False, **kwargs):
         """
@@ -889,7 +884,7 @@ class ElectronBands(Has_Structure):
             kwargs: Keyword arguments passed to seaborn boxplot.
         """
         # Get the dataframe and select bands
-        frame = self.to_dataframe(e0=e0)
+        frame = self.get_dataframe(e0=e0)
         if brange is not None:
             frame = frame[(frame["band"] >= brange[0]) & (frame["band"] < brange[1])]
 
@@ -2129,10 +2124,6 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
                         #columns=list(odict_list[0].keys()) if odict_list else None)
 
 
-# To maintain backward compatibility
-frame_from_ebands = dataframe_from_ebands
-
-
 class ElectronBandsPlotter(NotebookWriter):
     """
     Class for plotting electronic band structure and DOSes.
@@ -2362,8 +2353,8 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of ElectronBandsPlotter has been replaced by combiplot. It will be removed in 0.4")
     def plot(self, *args, **kwargs):
+        """An alias for combiplot."""
         if "align" in kwargs or "xlim" in kwargs or "ylim" in kwargs:
             raise ValueError("align|xlim|ylim options are not supported anymore.")
         return self.combiplot(*args, **kwargs)
@@ -2502,7 +2493,7 @@ class ElectronBandsPlotter(NotebookWriter):
         frames = []
         for label, ebands in self.ebands_dict.items():
             # Get the dataframe, select bands and add column with label
-            frame = ebands.to_dataframe(e0=e0)
+            frame = ebands.get_dataframe(e0=e0)
             if brange is not None:
                 frame = frame[(frame["band"] >= brange[0]) & (frame["band"] < brange[1])]
             frame["label"] = label
@@ -3148,8 +3139,8 @@ class ElectronDosPlotter(NotebookWriter):
 
         return fig
 
-    @deprecated(message="plot method of ElectronDos has been replaced by combiplot. It will be removed in 0.4")
     def plot(self, *args, **kwargs):
+        """An alias for combiplot."""
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
