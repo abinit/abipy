@@ -262,11 +262,11 @@ def software_stack():
     ])
 
     # Optional but strongly suggested.
-    try:
-        import matplotlib
-        d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
-    except ImportError:
-        pass
+    #try:
+    #    import matplotlib
+    #    d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
+    #except ImportError:
+    #    pass
 
     return d
 

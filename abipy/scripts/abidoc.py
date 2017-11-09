@@ -201,7 +201,6 @@ def main():
                 flowtk.show_qparams(qtype)
 
     elif options.command == "abibuild":
-        import abipy.flowtk as flowtk
         abinit_build = flowtk.AbinitBuild()
         print()
         print(abinit_build)

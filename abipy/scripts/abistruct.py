@@ -491,7 +491,7 @@ def main():
         sanitized = structure.abi_sanitize(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
                                            primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
         index = [options.filepath, "abisanitized"]
-        dfs = abilab.frames_from_structures([structure, sanitized], index=index, with_spglib=True)
+        dfs = abilab.dataframes_from_structures([structure, sanitized], index=index, with_spglib=True)
 
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
@@ -556,7 +556,7 @@ def main():
         conv = structure.get_conventional_standard_structure(international_monoclinic=True,
                                            symprec=options.symprec, angle_tolerance=options.angle_tolerance)
         index = [options.filepath, "conventional"]
-        dfs = abilab.frames_from_structures([structure, conv], index=index, with_spglib=True)
+        dfs = abilab.dataframes_from_structures([structure, conv], index=index, with_spglib=True)
 
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         if options.verbose:
