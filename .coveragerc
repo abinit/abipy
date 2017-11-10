@@ -33,4 +33,6 @@ omit =
     abipy/gw/*
     abipy/extensions/*
     abipy/gw/*
+    abipy/scripts/*
+    abipy/integration_tests/*
     ./docs/
