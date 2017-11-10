@@ -50,7 +50,8 @@ install:
 
   # Install abinit from abinit conda channel.
   - conda config --add channels conda-forge
-  - conda install -c abinit abinit=8.2.2
+  #- conda install -c abinit abinit=8.2.2
+  - conda install -c gmatteo abinit=8.6.1
 
   # Mayavi (optional requirement)
   #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
