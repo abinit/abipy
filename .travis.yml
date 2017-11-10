@@ -27,6 +27,7 @@ install:
 
   # Install conda https://conda.io/docs/travis.html
   - source dev_scripts/conda_installer.sh
+  - conda config --add channels conda-forge
 
   # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
@@ -36,7 +37,7 @@ install:
   - conda install pandas
   - conda install netcdf4 
   # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
-  - conda install hdf4=4.2.12
+  #- conda install hdf4=4.2.12
   - pip install pytest scripttest nose nose-exclude
   - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install pep8 python-coveralls
@@ -49,7 +50,6 @@ install:
   - pip install ipywidgets
 
   # Install abinit from abinit conda channel.
-  - conda config --add channels conda-forge
   #- conda install -c abinit abinit=8.2.2
   - conda install -c gmatteo abinit=8.6.1
   - abinit --version
