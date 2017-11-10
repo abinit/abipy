@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-"""
+r"""
+Band structure plot
+===================
+
 This example shows how to plot a band structure
-using the eigenvalues stored in the GSR file produced by abinit at the end of the GS run.
+using the eigenvalues stored in the GSR file 
+produced at the end of the GS run.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata

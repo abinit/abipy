@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Joint Density of States
+=======================
+
 This example shows how plot the different contributions
 to the electronic joint density of states of Silicon
 """
@@ -20,3 +23,7 @@ ebands.plot_ejdosvc(vrange, crange)
 
 # Plot decomposition of joint-DOS in terms of v --> c transitions
 ebands.plot_ejdosvc(vrange, crange, cumulative=False)
+
+# Show optical (vertical) transitions of energy 2.8 eV
+with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_file:
+    gsr_file.ebands.plot_transitions(2.8)

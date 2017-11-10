@@ -171,7 +171,8 @@ class ElectronInterpolator(object):
         weights = np.asarray(weights, dtype=np.float) / len(grid)
         nkibz = len(uniq)
         ibz = grid[uniq] / mesh
-        print("Number of ir-kpoints: %d" % nkibz)
+        if self.verbose:
+            print("Number of ir-kpoints: %d" % nkibz)
 
         kshift = 0.0 if is_shift is None else 0.5 * np.asarray(kshift)
         bz = (grid + kshift) / mesh
@@ -571,7 +572,7 @@ class ElectronInterpolator(object):
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         Returns:
             matplotlib figure.
@@ -605,7 +606,7 @@ class ElectronInterpolator(object):
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         Returns:
             matplotlib figure.
@@ -787,7 +788,7 @@ class SkwInterpolator(ElectronInterpolator):
             raise ValueError("Interpolation algorithm requires nkpt > 1")
 
         rprimd = np.asarray(lattice).T
-        print("rprimd", rprimd)
+        #print("rprimd", rprimd)
         self.rmet = np.matmul(rprimd.T, rprimd)
 
         # Find point group operations.
@@ -907,7 +908,7 @@ class SkwInterpolator(ElectronInterpolator):
                         print("spin", spin, "band", band, "ikpt", ik, "e0", e0, "eskw", eskw, "diff", e0 - eskw)
 
         mae *= 1e3 / (nsppol * nkpt * nband)
-        print("MAE:", mae, " [meV]")
+        print("FIT vs input data: Mean Absolute Error=", mae, " [meV]")
         if mae > 10.0:
             # Issue warning if error too large.
             print("Large error in SKW interpolation!")
@@ -969,7 +970,8 @@ class SkwInterpolator(ElectronInterpolator):
                 if dk2: der2 = dedk2[spin, ik]
                 new_eigens[spin, ik] = self.eval_sk(spin, newk, der1=der1, der2=der2)
 
-        print("Interpolation completed", time.time() - start)
+        if self.verbose:
+            print("Interpolation completed", time.time() - start)
         return dict2namedtuple(eigens=new_eigens, dedk=dedk, dedk2=dedk2)
 
     def interp_kpts_and_enforce_degs(self, kfrac_coords, ref_eigens, atol=1e-4):
@@ -1184,14 +1186,14 @@ class SkwInterpolator(ElectronInterpolator):
         msize = (2 * rmax + 1).prod()
         rtmp = np.empty((msize, 3), dtype=np.int)
         r2tmp = np.empty(msize)
-        print("rmax", rmax, "msize:", msize)
+        if self.verbose: print("rmax", rmax, "msize:", msize)
 
         start = time.time()
         for cnt, l in enumerate(itertools.product(range(-rmax[0], rmax[0] + 1),
             range(-rmax[1], rmax[1] + 1), range(-rmax[2], rmax[2] + 1))):
               rtmp[cnt] = l
               r2tmp[cnt] = np.dot(l, np.matmul(self.rmet, l))
-        print("gen points", time.time() - start)
+        if self.verbose: print("gen points", time.time() - start)
 
         start = time.time()
         # Sort r2tmp and rtmp
@@ -1214,8 +1216,9 @@ class SkwInterpolator(ElectronInterpolator):
                 nsh += 1
             r2sh[ir] = nsh
         shlim[nsh] = msize
-        print("nshells", nsh)
-        print("shells", time.time() - start)
+        if self.verbose:
+            print("nshells", nsh)
+            print("shells", time.time() - start)
 
         # Find R-points generating the stars.
         # This is the most CPU critical part. I think it's difficult to do better than this without cython
@@ -1249,7 +1252,7 @@ class SkwInterpolator(ElectronInterpolator):
             #print(len(rs), rs)
             rgen.extend(rs)
         #print(rgen)
-        print("stars", time.time() - start)
+        if self.verbose: print("stars", time.time() - start)
 
         start = time.time()
         rgen = np.array(rgen, dtype=np.int)
@@ -1263,12 +1266,13 @@ class SkwInterpolator(ElectronInterpolator):
         for ir in range(nr):
             r2vals[ir] = np.dot(rpts[ir], np.matmul(self.rmet, rpts[ir]))
 
-        if self.verbose > 10:
-            print("nstars:", nstars)
-            for r, r2 in zip(rpts, r2vals):
-                print(r, r2)
-        print("r2max ", rpts[nr-1])
-        print("end ", time.time() - start)
+        if self.verbose:
+            print("r2max ", rpts[nr-1])
+            print("end ", time.time() - start)
+            if self.verbose > 10:
+                print("nstars:", nstars)
+                for r, r2 in zip(rpts, r2vals):
+                    print(r, r2)
 
         return rpts, r2vals, ok
 
@@ -1306,7 +1310,7 @@ def extract_point_group(symrel, has_timrev):
 
     if not has_inversion and has_timrev:
         # Add inversion.
-        ptg_symrel[tmp_nsym:] = -work_symrel[tmp_nsym:]
+        ptg_symrel[tmp_nsym:] = -work_symrel[:tmp_nsym]
         for isym in range(tmp_nsym, ptg_nsym):
             ptg_symrec[isym] = mati3inv(ptg_symrel[isym])
 

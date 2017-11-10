@@ -21,17 +21,24 @@ def print_source_in_module(function, module):
     return HTML(highlight(getsource(internal_functions[function]), PythonLexer(), HtmlFormatter(full=True)))
 
 
-def print_source(function):
+def print_source(function, **kwargs):
     """
     For use inside an IPython notebook: given a function, print the source code.
+
+    Args:
+        **kwargs: Passed to HtmlFormatter
+
+    Return:
+        HTML string.
     """
     from inspect import getsource
     from pygments import highlight
     from pygments.lexers import PythonLexer
     from pygments.formatters import HtmlFormatter
     from IPython.core.display import HTML
+    if "full" not in kwargs: kwargs["full"] = True
 
-    return HTML(highlight(getsource(function), PythonLexer(), HtmlFormatter(full=True)))
+    return HTML(highlight(getsource(function), PythonLexer(), HtmlFormatter(**kwargs)))
 
 
 def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):

@@ -75,19 +75,21 @@ class GSRFileTestCase(AbipyTest):
             assert gsr.filetype
             assert gsr.filestat()
             assert len(gsr.ncdump())
-            repr(gsr)
-            str(gsr)
+            repr(gsr); str(gsr)
+            assert gsr.to_string(verbose=2)
+            assert gsr.abinit_version == "8.0.6"
             str(gsr.ebands)
             assert gsr.filepath == abidata.ref_file("si_scf_GSR.nc")
             assert gsr.nsppol == 1
             assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
+            assert gsr.mband == gsr.hdr.mband
+            assert "nelect" in gsr.hdr and gsr.nelect == gsr.hdr.nelect
             self.assert_almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             self.assert_almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
 
             # Test energy_terms
             eterms = gsr.energy_terms
-            repr(eterms)
-            str(eterms)
+            repr(eterms); str(eterms)
             assert eterms.to_string(with_doc=True)
             self.assert_almost_equal(eterms.e_xc.to("Ha"), -3.51815936301812)
             self.assert_almost_equal(eterms.e_nonlocalpsp.to("Ha"), 1.91660690901782)
@@ -130,3 +132,54 @@ class GSRFileTestCase(AbipyTest):
 
             if self.has_nbformat():
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+class GstRobotTest(AbipyTest):
+
+    def test_gsr_robot(self):
+        """Testing GSR robot"""
+        from abipy import abilab
+        gsr_path = abidata.ref_file("si_scf_GSR.nc")
+        robot = abilab.GsrRobot()
+        robot.add_file("gsr0", gsr_path)
+        assert len(robot.ncfiles) == 1
+        assert robot.EXT == "GSR"
+        repr(robot); str(robot)
+
+	# Cannot have same label
+        with self.assertRaises(ValueError):
+            robot.add_file("gsr0", gsr_path)
+
+        assert len(robot) == 1 and not robot.exceptions
+        robot.add_file("gsr1", abilab.abiopen(gsr_path))
+        assert len(robot) == 2
+        robot.show_files()
+        with self.assertRaises(AttributeError):
+            robot.is_sortable("foobar", raise_exc=True)
+        assert not robot.is_sortable("foobar")
+        assert robot.is_sortable("nkpt")
+
+        dfs = robot.get_structure_dataframes()
+        assert dfs.lattice is not None
+        assert dfs.coords is not None
+        assert len(dfs.structures) == len(robot)
+
+        ebands_plotter = robot.get_ebands_plotter()
+        edos_plotter = robot.get_edos_plotter()
+
+        if self.has_matplotlib():
+            assert ebands_plotter.gridplot(show=False)
+            assert edos_plotter.gridplot(show=False)
+
+	# Get pandas dataframe.
+        df = robot.get_dataframe()
+        assert "energy" in df
+        self.assert_equal(df["ecut"].values, 6.0)
+        self.assert_almost_equal(df["energy"].values, -241.2364683)
+
+        # FIXME
+        #eos = robot.eos_fit()
+        if self.has_nbformat():
+            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        robot.close()

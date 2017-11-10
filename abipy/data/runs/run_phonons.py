@@ -7,6 +7,7 @@ import os
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
+
 from abipy import flowtk
 
 
@@ -18,20 +19,6 @@ def scf_ph_inputs(paral_kgb=0):
     # Crystalline AlAs: computation of the second derivative of the total energy
     structure = abidata.structure_from_ucell("AlAs")
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
-
-    # List of q-points for the phonon calculation.
-    qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-             5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-            ]
-    qpoints = np.reshape(qpoints, (-1,3))
-
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(

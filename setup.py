@@ -19,35 +19,35 @@ if sys.version[0:3] < '2.7':
 # Install ipython with notebook support.
 with_ipython = False
 #with_ipython = True
-if '--with-ipython' in sys.argv:
-    with_ipython = True
-    sys.argv.remove('--with-ipython')
+#if '--with-ipython' in sys.argv:
+#    with_ipython = True
+#    sys.argv.remove('--with-ipython')
 
-with_cython = True
-try:
-    from Cython.Distutils import build_ext
-except ImportError:
-    with_cython = False
+#with_cython = True
+#try:
+#    from Cython.Distutils import build_ext
+#except ImportError:
+#    with_cython = False
 
-cmdclass = {}
+#cmdclass = {}
 ext_modules = []
 
 # Disable cython for the time being.
-with_cexts = False
-if with_cexts:
-    with_cython = False
-    if with_cython:
-        import numpy as np
-        #define_macros = [("CYTHON_TRACE", "1")]
-        ext_modules += [
-            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
-        ]
-        cmdclass.update({'build_ext': build_ext})
-
-    else:
-        ext_modules += [
-            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
-        ]
+#with_cexts = False
+#if with_cexts:
+#    with_cython = False
+#    if with_cython:
+#        import numpy as np
+#        #define_macros = [("CYTHON_TRACE", "1")]
+#        ext_modules += [
+#            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
+#        ]
+#        cmdclass.update({'build_ext': build_ext})
+#
+#    else:
+#        ext_modules += [
+#            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
+#        ]
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -104,15 +104,33 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.data': ["cifs/*.cif", "pseudos/*", "runs/*", "refs/*.nc", "variables/*"],
+        'abipy.data': [
+            "cifs/*.cif",
+            "pseudos/*",
+            "hgh_pseudos/*",
+            "runs/*",
+            "managers/*",
+            "refs/*.nc",
+            "refs/*.log",
+            "refs/*.abo",
+            "variables/*",
+        ],
         'abipy.data.refs' : [
+            "al_eph/*",
             "al_g0w0_spfunc/*",
+            "alas_nl_dfpt/*",
             "alas_phonons/*",
+            #"diamond_sigeph/*",
+            "gaas_optic/*",
             "mgb2_fatbands/*",
+            "ni_ebands/*",
             "si_bse/*",
+            "si_bse_kpoints/*",
             "si_ebands/*",
             "si_g0w0/*",
-            ],
+            "sio2_screening/*",
+            "znse_phonons/*",
+        ],
         'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
         'abipy.lessons': ["*.man"],
@@ -124,7 +142,7 @@ def find_package_data():
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data' : ["managers", 'benchmarks','runs/flow_*','runs/gspert'],
+        'abipy.data': ["managers", 'benchmarks', 'runs/flow_*', 'runs/gspert'],
     }
     return package_data
 
@@ -137,7 +155,7 @@ def find_scripts():
     """Find abipy scripts."""
     scripts = []
     # All python files in abipy/scripts
-    pyfiles = glob(os.path.join('abipy','scripts',"*.py"))
+    pyfiles = glob(os.path.join('abipy', 'scripts', "*.py"))
     scripts.extend(pyfiles)
     return scripts
 
@@ -187,12 +205,12 @@ install_requires = [
     "seaborn",
 ]
 
-if with_ipython:
-    install_requires += [
-        "ipython",
-        "jupyter",
-        "nbformat",
-    ]
+#if with_ipython:
+#    install_requires += [
+#        "ipython",
+#        "jupyter",
+#        "nbformat",
+#    ]
 
 #if with_cython:
 #    install_requires += [
@@ -213,14 +231,6 @@ if with_wxpython:
 # Find all the packages, package data, and data_files
 #---------------------------------------------------------------------------
 
-# Get the set of packages to be included.
-my_packages = find_packages(exclude=())
-
-my_scripts = find_scripts()
-
-my_package_data = find_package_data()
-my_excl_package_data = find_exclude_package_data()
-
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
@@ -238,10 +248,10 @@ setup_args = dict(
       keywords=keywords,
       classifiers=classifiers,
       install_requires=install_requires,
-      packages=my_packages,
-      package_data=my_package_data,
-      exclude_package_data=my_excl_package_data,
-      scripts=my_scripts,
+      packages=find_packages(exclude=()),
+      package_data=find_package_data(),
+      exclude_package_data=find_exclude_package_data(),
+      scripts=find_scripts(),
       download_url=download_url,
       ext_modules=ext_modules,
       )

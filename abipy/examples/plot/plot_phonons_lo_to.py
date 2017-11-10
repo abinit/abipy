@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Phonon Bands with LO-TO
+=======================
+
 This example shows how to plot the phonon band structure of AlAs 
 including the LO-TO splitting. See tutorial/lesson_rf2.html
 """

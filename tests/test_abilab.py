@@ -26,7 +26,7 @@ class AbilabTest(AbipyTest):
 
         import pandas
         df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
-        abilab.print_frame(df, title="foo")
+        abilab.print_dataframe(df, title="foo")
 
         d = abilab.software_stack()
         assert d

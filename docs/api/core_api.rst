@@ -41,6 +41,22 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`irrepsdb` Module
+----------------------
+
+.. automodule:: abipy.core.irrepsdb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`kpoints` Module
+---------------------
+
+.. automodule:: abipy.core.kpoints
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`mesh3d` Module
 --------------------
 
@@ -57,18 +73,18 @@ core Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`irrepsdb` Module
-----------------------
+:mod:`restapi` Module
+---------------------
 
-.. automodule:: abipy.core.irrepsdb
+.. automodule:: abipy.core.restapi
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`kpoints` Module
----------------------
+:mod:`skw` Module
+-----------------
 
-.. automodule:: abipy.core.kpoints
+.. automodule:: abipy.core.skw
    :members:
    :undoc-members:
    :show-inheritance:

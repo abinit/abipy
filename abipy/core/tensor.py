@@ -60,7 +60,7 @@ class Tensor(object):
     def __str__(self):
         return repr(self)
 
-    def to_string(self, with_reduced=False):
+    def to_string(self, verbose=0, with_reduced=False):
         lines = []
         app = lines.append
 

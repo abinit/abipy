@@ -65,7 +65,7 @@ getden2   1
 symchi3   1
 ppmfrq3   16.7 eV
 getwfk3   2
-ecutwfn3     6
+ecutwfn3  6
 nband3   25
 optdriver3   3
 ecuteps3   4.0
@@ -129,14 +129,14 @@ kptgw5
 ### DATASET 6 ###
 #################
 symsigma6   1
-getwfk6   2
-ecutwfn6     6
+getwfk6     2
+ecutwfn6    6
 nband6   30
 optdriver6   4
-nkptgw6   6
-ecutsigx6   6.0
+nkptgw6      6
+ecutsigx6  6.0
 ecuteps6   4.0
-getscr6   3
+getscr6    3
 bdgw6  
  1 8 1
  8 1 8

@@ -42,12 +42,13 @@ class AbinitVariableDatabaseTest(AbipyTest):
         assert database.group_by_section("ecut") == {'varbas': ['ecut']}
 
         natom_var = database["natom"]
-
         ecut_var = database["ecut"]
         assert ecut_var.name == "ecut"
         assert not ecut_var.isarray
         assert not ecut_var.depends_on_dimension("natom")
         assert not ecut_var.depends_on_dimension(natom_var)
+        assert ecut_var.url
+        assert ecut_var.html_link() and ecut_var.html_link(label="foo")
 
         spinat_var = database["spinat"]
         assert spinat_var.isarray

@@ -123,7 +123,7 @@ class Variable(yaml.YAMLObject):
         return str(s.encode("utf-8", errors="ignore"))
 
     def _repr_html_(self):
-        """For Ipython notebook"""
+        """Integration with jupyter notebooks."""
         html = "<h2>Default value:</h2>" + str(self.defaultval) + "<br/><h2>Description</h2>" + str(self.text)
         return html.replace("[[", "<b>").replace("]]", "</b>")
 
@@ -165,6 +165,24 @@ class Variable(yaml.YAMLObject):
         # This test is not very robust and can fail.
         if dimname in str(self.dimensions): return True
         return False
+
+    @property
+    def url(self):
+        """The url associated to the variable."""
+        # TODO: root will change once we move to the new website.
+        root = "https://www.abinit.org/sites/default/files/last/input_variables/html_automatically_generated/"
+        return root + "%s.html#%s" % (self.section, self.varname)
+
+    def html_link(self, label=None):
+        """String with the URL of the web page."""
+        label = self.varname if label is None else label
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, label)
+
+    def browse(self):
+        """Open variable documentation in browser."""
+        import webbrowser
+        return webbrowser.open(self.url)
+
 
 
 class ValueWithUnit(yaml.YAMLObject):
@@ -279,13 +297,8 @@ def get_abinit_variables():
 
             #print("Reading database from YAML file and generating pickle version. It may take a while...")
             from abipy import data as abidata
-            yaml_file = abidata.var_file('abinit_vars.yml')
-            with open(yaml_file, "rt") as fh:
-                var_list = yaml.load(fh)
-
-            # Build ordered dict with variables in alphabetical order.
-            var_list = sorted(var_list, key=lambda v: v.varname)
-            __VARS_DATABASE = VariableDatabase([(v.varname, v) for v in var_list])
+            yaml_path = abidata.var_file('abinit_vars.yml')
+            __VARS_DATABASE = VariableDatabase.from_file(yaml_path)
 
             # Save object to pickle file so that can we can reload it from pickle instead of yaml (slower)
             with open(pickle_file, "wb") as fh:
@@ -296,6 +309,15 @@ def get_abinit_variables():
 
 class VariableDatabase(OrderedDict):
     """Stores the mapping varname --> variable object."""
+
+    @classmethod
+    def from_file(cls, yaml_path):
+        with open(yaml_path, "rt") as fh:
+            var_list = yaml.load(fh)
+
+        # Build ordered dict with variables in alphabetical order.
+        var_list = sorted(var_list, key=lambda v: v.varname)
+        return cls([(v.varname, v) for v in var_list])
 
     @lazy_property
     def characteristics(self):
@@ -415,3 +437,23 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     except UnicodeEncodeError:
         stream.write(text.encode('ascii', 'ignore'))
     stream.write("\n")
+
+
+def repr_html_from_abinit_string(text):
+    """
+    Given a string `text` with an Abinit input file, replace all variables
+    with HTML links pointing to the official documentation. Return new string.
+    """
+    var_database = get_abinit_variables()
+
+    # https://stackoverflow.com/questions/6116978/python-replace-multiple-strings
+    # define desired replacements here e.g. rep = {"condition1": "", "condition2": "text"}
+    # ordered dict and sort by length is needed because variable names can overlap e.g. kpt, kptopt pair
+    import re
+    rep = {vname: var.html_link(label=vname) for vname, var in var_database.items()}
+    rep = OrderedDict([(re.escape(k), rep[k]) for k in sorted(rep.keys(), key=lambda n: len(n), reverse=True)])
+
+    # Use these three lines to do the replacement
+    pattern = re.compile("|".join(rep.keys()))
+    text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
+    return text.replace("\n", "<br>")

@@ -9,7 +9,8 @@ import abipy.data as abidata
 
 from abipy import abilab
 from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
-        PhononBandsPlotter, PhononDosPlotter, frame_from_phbands)
+        PhononBandsPlotter, PhononDosPlotter, dataframe_from_phbands)
+from abipy.dfpt.phonons import factor_ev2units, unit_tag, dos_label_from_units
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
 
@@ -19,13 +20,12 @@ test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
 class TestUnitTools(AbipyTest):
 
     def test_units_api(self):
-        from abipy.dfpt.phonons import _factor_ev2units, _unit_tag, _dos_label_from_units
         for units in ["ev", "meV" ,"ha", "cm-1", "cm^-1", "Thz"]:
-            _factor_ev2units(units)
-            _unit_tag(units)
-            _dos_label_from_units(units)
+            factor_ev2units(units)
+            unit_tag(units)
+            dos_label_from_units(units)
 
-        for func in [_factor_ev2units, _unit_tag, _dos_label_from_units]:
+        for func in [factor_ev2units, unit_tag, dos_label_from_units]:
             with self.assertRaises(KeyError):
                 func("foo")
 
@@ -45,8 +45,12 @@ class PhononBandsTest(AbipyTest):
         assert np.array_equal(PhononBands.as_phbands(filename).phfreqs, phbands.phfreqs)
 
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as nc:
-            same_phbands = PhononBands.as_phbands(nc)
-            self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
+            repr(nc); str(nc)
+            assert nc.to_string(verbose=1)
+            same_phbands_nc = PhononBands.as_phbands(nc)
+            self.assert_equal(same_phbands_nc.phfreqs, phbands.phfreqs)
+            # a + b gives plotter
+            assert hasattr(same_phbands_nc + phbands, "combiplot")
 
         self.serialize_with_pickle(phbands, protocols=[-1], test_eq=False)
 
@@ -57,8 +61,13 @@ class PhononBandsTest(AbipyTest):
         same_phbands = PhononBands.as_phbands(tmp_path)
         self.assert_equal(same_phbands.phfreqs, phbands.phfreqs)
 
+        # a + b + c gives plotter
+        p = phbands + same_phbands + same_phbands_nc
+        assert hasattr(p, "combiplot")
+
         assert phbands.minfreq == 0.0
         #self.assertEqual(phbands.maxfreq, 30)
+        assert phbands.factor_ev2units("eV") == factor_ev2units("eV")
 
         # Test XYZ vib
         phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4,4,4])
@@ -69,7 +78,7 @@ class PhononBandsTest(AbipyTest):
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
 
-        df = phbands.to_dataframe()
+        df = phbands.get_dataframe()
         assert "freq" in df and "mode" in df
         self.assert_almost_equal(df["freq"].values.min(), 0)
 
@@ -168,6 +177,26 @@ class PhbstFileTest(AbipyTest):
         if self.has_nbformat():
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    def test_phbst_file_with_loto(self):
+        """Testing PHBST file with LOTO terms from anaddb.nc."""
+        with abilab.abiopen(abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")) as ncfile:
+            phbands = ncfile.phbands
+
+        # Phonon frequencies with non analytical contributions, if calculated, are saved
+        # in the anaddb.nc file produced by anaddb. The results should be fetched from there
+        # and added to the phonon bands.
+        phbands.read_non_anal_from_file(abidata.ref_file("ZnSe_hex_886.anaddb.nc"))
+        nana = phbands.non_anal_ph
+        assert nana.structure == phbands.structure
+        print(nana.structure.reciprocal_lattice)
+        self.assert_almost_equal(nana.directions.flat,
+                [0.1234510847, -0.071274517, 0, 0.1646014463, 0, 0, 0, 0, 0.0751616546])
+        for direc in nana.directions:
+            assert nana.has_direction(direc, cartesian=True)
+
+        if self.has_matplotlib():
+            phbands.plot(title="ZnSe with LO-TO splitting", show=False)
+
 
 class PhononBandsPlotterTest(AbipyTest):
 
@@ -184,7 +213,12 @@ class PhononBandsPlotterTest(AbipyTest):
         assert len(plotter.phbands_list) == 2
         assert len(plotter.phdoses_list) == 2
 
-        df = frame_from_phbands(plotter.phbands_list)
+        # __add__ merges two plotters:
+        p2 = plotter.add_plotter(plotter)
+        assert len(p2.phbands_list) == 2
+        assert len(p2.phdoses_list) == 2
+
+        df = dataframe_from_phbands(plotter.phbands_list)
         assert "nqpt" in df
 
         df = plotter.get_phbands_frame()
@@ -195,6 +229,7 @@ class PhononBandsPlotterTest(AbipyTest):
             assert plotter.gridplot(units="meV", show=True)
             assert plotter.boxplot(units="cm-1", show=True)
             assert plotter.combiboxplot(units="Thz", show=True)
+            assert plotter.animate(show=False)
 
         if self.has_nbformat():
             plotter.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -237,6 +272,7 @@ class PhononDosTest(AbipyTest):
         """Testing PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
         repr(ncfile); str(ncfile)
+        ncfile.to_string(verbose=1)
         assert hasattr(ncfile, "structure")
         nw = len(ncfile.wmesh)
         assert nw == 461
@@ -359,7 +395,7 @@ class NonAnalyticalPhTest(AbipyTest):
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
 
             assert phbands.non_anal_ph is not None
-            str(phbands.non_anal_ph)
+            repr(phbands.non_anal_ph); str(phbands.non_anal_ph)
             assert phbands.structure == phbands.non_anal_ph.structure
             #assert phbands.non_anal_ph.has_direction(direction= cartesian=False)
 

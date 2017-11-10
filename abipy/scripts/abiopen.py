@@ -14,6 +14,7 @@ import argparse
 import tempfile
 
 from monty.os.path import which
+from monty.termcolor import cprint
 from monty.functools import prof_main
 from abipy import abilab
 
@@ -38,6 +39,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 %matplotlib notebook
 import numpy as np
 #import seaborn as sns
+#sns.set(context='notebook', style='darkgrid', palette='deep',
+#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 from abipy import abilab\
 """),
 
@@ -54,58 +57,63 @@ from abipy import abilab\
         raise RuntimeError("Cannot find jupyter in PATH. Install it with `pip install`")
 
     if options.foreground:
-        cmd = "jupyter notebook %s" % nbpath
-        return os.system(cmd)
-
+        return os.system("jupyter notebook %s" % nbpath)
     else:
-        cmd = "jupyter notebook %s &> /dev/null &" % nbpath
+        fd, tmpname = tempfile.mkstemp(text=True)
+        print(tmpname)
+        cmd = "jupyter notebook %s" % nbpath
         print("Executing:", cmd)
-
+        print("stdout and stderr redirected to %s" % tmpname)
         import subprocess
-        try:
-            from subprocess import DEVNULL # py3k
-        except ImportError:
-            DEVNULL = open(os.devnull, "wb")
-
-        process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL) #, stderr=DEVNULL)
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
 
 
-@prof_main
-def main():
-
-    def str_examples():
-        s = """\
+def get_epilog():
+    s = """\
 Usage example:
 
-    abiopen.py out_GSR.nc
-    abiopen.py out_DDB -nb  # To generate jupyter notebook
+    abiopen.py FILE        => Open file in ipython shell.
+    abiopen.py FILE -nb    => Generate jupyter notebook.
+    abiopen.py FILE -p     => Print info on object to terminal.
+
+`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
+Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 File extensions supported:
 """
-        return s + abilab.abiopen_ext2class_table()
+    return s + abilab.abiopen_ext2class_table()
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg:
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
-
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+def get_parser(with_epilog=False):
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
-    #parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-    #                     help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
+                         help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
     parser.add_argument('--foreground', action='store_true', default=False,
                         help="Run jupyter notebook in the foreground.")
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
+
+    return parser
+
+
+@prof_main
+def main():
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse the command line.
     try:
@@ -121,7 +129,9 @@ File extensions supported:
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    options.filepath = os.path.abspath(options.filepath)
+    if options.verbose > 2:
+        print(options)
+
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
 
@@ -129,7 +139,10 @@ File extensions supported:
         # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
         if options.print:
-            print(abifile)
+            if hasattr(abifile, "to_string"):
+                print(abifile.to_string(verbose=options.verbose))
+            else:
+                print(abifile)
             return 0
 
         import IPython

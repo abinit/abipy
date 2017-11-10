@@ -25,6 +25,7 @@ __all__ = [
     "Has_ElectronBands",
     "Has_PhononBands",
     "NotebookWriter",
+    "Has_Header",
 ]
 
 @six.add_metaclass(abc.ABCMeta)
@@ -154,10 +155,16 @@ class AbinitNcFile(_File):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
+    A AbinitNcFile has a netcdf reader to read data from file and build objects.
     """
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
+
+    @lazy_property
+    def abinit_version(self):
+        """String with abinit version: three digits separated by comma."""
+        return self.reader.rootgrp.getncattr("abinit_version")
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -208,11 +215,14 @@ class Has_Structure(object):
     def structure(self):
         """Returns the :class:`Structure` object."""
 
-    def show_bz(self, **kwargs):
+    def plot_bz(self, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
-        return self.structure.show_bz(**kwargs)
+        return self.structure.plot_bz(**kwargs)
+
+    # To maintain backward compatbility
+    show_bz = plot_bz
 
     def export_structure(self, filepath):
         """
@@ -255,15 +265,15 @@ class Has_ElectronBands(object):
         """Number of spin polarizations"""
         return self.ebands.nsppol
 
-    #@property
-    #def nspinor(self):
-    #    """Number of spinors"""
-    #    return self.ebands.nspinor
+    @property
+    def nspinor(self):
+        """Number of spinors"""
+        return self.ebands.nspinor
 
-    #@property
-    #def nspden(self):
-    #    """Number of indepedendent spin-density components."""
-    #    return self.ebands.nspden
+    @property
+    def nspden(self):
+        """Number of indepedendent spin-density components."""
+        return self.ebands.nspden
 
     @property
     def mband(self):
@@ -373,9 +383,6 @@ class NotebookWriter(object):
     """
     Mixin class for objects that are able to generate jupyter notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.
-
-    See also:
-        http://nbviewer.jupyter.org/github/maxalbert/auto-exec-notebook/blob/master/how-to-programmatically-generate-and-execute-an-ipython-notebook.ipynb
     """
     def make_and_open_notebook(self, nbpath=None, foreground=False):
         """
@@ -398,27 +405,31 @@ class NotebookWriter(object):
             raise RuntimeError("Cannot find jupyter in PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
         if foreground:
-            cmd = "jupyter notebook %s" % nbpath
-            return os.system(cmd)
+            return os.system("jupyter notebook %s" % nbpath)
         else:
-            cmd = "jupyter notebook %s &> /dev/null &" % nbpath
-            print("Executing:", cmd)
-            import subprocess
+            fd, tmpname = tempfile.mkstemp(text=True)
+            print(tmpname)
             cmd = "jupyter notebook %s" % nbpath
-
-            try:
-                from subprocess import DEVNULL # py3k
-            except ImportError:
-                DEVNULL = open(os.devnull, "wb")
-
-            process = subprocess.Popen(cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
+            print("Executing:", cmd)
+            print("stdout and stderr redirected to %s" % tmpname)
+            import subprocess
+            process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
+            return 0
+
+    @staticmethod
+    def get_nbformat_nbv():
+        """Return nbformat module, notebook version module"""
+        import nbformat
+        nbv = nbformat.v4
+        return nbformat, nbv
 
     def get_nbformat_nbv_nb(self, title=None):
         """
+        Return nbformat module, notebook version module
+        and new notebook with title and import section
         """
-        import nbformat
-        nbv = nbformat.v4
+        nbformat, nbv = self.get_nbformat_nbv()
         nb = nbv.new_notebook()
 
         if title is not None:
@@ -428,15 +439,29 @@ class NotebookWriter(object):
             nbv.new_code_cell("""\
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
-import os
+import sys, os
 import numpy as np
 
 %matplotlib notebook
 from IPython.display import display
-#import seaborn as sns   # uncomment this line to activate seaborn settings.
 
-from abipy import abilab""")
+# Use seaborn settings for plots. See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
+#import seaborn as sns
+#sns.set(context='notebook', style='darkgrid', palette='deep',
+#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+# This to render pandas DataFrames with https://github.com/quantopian/qgrid
+#import qgrid
+#qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
+
+# This to view Mayavi visualizations. See http://docs.enthought.com/mayavi/mayavi/tips.html
+#from mayavi import mlab; mlab.init_notebook(backend='x3d', width=None, height=None, local=True)
+
+from abipy import abilab
+
+# AbiPy widgets for pandas and seaborn plot APIs
+#import abipy.display.seabornw import snw
+#import abipy.display.pandasw import pdw""")
         ])
 
         return nbformat, nbv, nb
@@ -501,3 +526,14 @@ from abipy import abilab""")
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
             return filepath
+
+
+class Has_Header(object):
+    """Mixin class for netcdf files with the Abinit header."""
+
+    @lazy_property
+    def hdr(self):
+        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        return self.reader.read_abinit_hdr()
+
+    #def compare_hdr(self, other):

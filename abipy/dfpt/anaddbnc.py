@@ -5,6 +5,7 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from monty.functools import lazy_property
+from monty.string import marquee # is_string, list_strings,
 from monty.termcolor import cprint
 from abipy.core.tensor import Tensor
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -12,6 +13,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.dfpt.phonons import InteratomicForceConstants
 from abipy.dfpt.ddb import Becs
 from abipy.dfpt.tensors import NLOpticalSusceptibilityTensor
+
 
 class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
@@ -33,7 +35,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. attribute:: ifc
 
         :class:`InteratomicForceConstants` object with the interatomic force constants calculated by anaddb.
-        None, if the netcdf file does not contain the IFCs,
+        None, if the netcdf file does not contain the IFCs.
     """
 
     @classmethod
@@ -48,6 +50,25 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def close(self):
         self.reader.close()
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """
+        String representation
+
+        Args:
+            verbose: verbosity level.
+        """
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+
+        return "\n".join(lines)
 
     @property
     def structure(self):
@@ -121,7 +142,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         First-order change in the linear dielectric susceptibility.
         Returns a list of lists of 3x3 Tensor object with shape (number of atoms, 3).
         The [i][j] element of the list contains the Tensor representing the change due to the
-         displacement of the ith atom in the jth direction.
+        displacement of the ith atom in the jth direction.
         None if the file does not contain this information.
         """
         try:

@@ -6,6 +6,7 @@ and the environment on the local machine are properly configured.
 from __future__ import unicode_literals, division, print_function, absolute_import
 
 import sys
+import os
 import argparse
 import abipy.flowtk as flowtk
 import abipy.data as abidata
@@ -16,31 +17,56 @@ from monty.functools import prof_main
 from abipy import abilab
 
 
-@prof_main
-def main():
+def show_managers(options):
+    """Print table with manager files provided by AbiPy."""
+    from tabulate import tabulate
+    table = []
+    root = os.path.join(abidata.dirpath, "managers")
+    yaml_paths = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".yml") and "_manager" in f]
+    for path in yaml_paths:
+        manager = flowtk.TaskManager.from_file(path)
+        hostname = os.path.basename(path).split("_")[0]
+        table.append([hostname, manager.qadapter.QTYPE, path])
+        if options.verbose > 1:
+            print(manager)
+    print(tabulate(table, headers=["hostname", "queue-type", "filepath"], tablefmt="rst"))
+    return 0
 
-    def str_examples():
-        return """\
+def get_epilog():
+    return """\
 Usage example:
-    abicheck.py
+    abicheck.py                ==> Test abipy installation and requirements.
+    abicheck.py --with-flow    ==> Consistency check + execution of AbiPy flow.
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg:
-            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+def get_parser(with_epilog=False):
 
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
                          help='verbose, can be supplied multiple times to increase verbosity.')
     parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
+    parser.add_argument("-m", '--show-managers', default=False, action="store_true",
+                        help="Print table with manager files provided by AbiPy.")
+    return parser
+
+
+@prof_main
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
 
     # Parse the command line.
     try:
@@ -60,9 +86,15 @@ Usage example:
         # Disable colors
         termcolor.enable(False)
 
+    if options.show_managers:
+        return show_managers(options)
+
     errmsg = abilab.abicheck(verbose=options.verbose)
     if errmsg:
         cprint(errmsg, "red")
+        cprint("TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n" +
+               "If abicheck.py is failing because it cannot find the manager.yml configuration file",
+                "yellow")
         return 2
     else:
         print()

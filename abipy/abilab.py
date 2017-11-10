@@ -3,6 +3,7 @@ This module gathers the most important classes and helper functions used for scr
 """
 from __future__ import print_function, division, unicode_literals
 
+import sys
 import os
 import collections
 
@@ -27,33 +28,44 @@ from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Task
 #    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
 
 from abipy.core.release import __version__, min_abinit_version
-from abipy.core.structure import Lattice, Structure, StructureModifier, frames_from_structures
+from abipy.core import restapi
+from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
+  mp_match_structure, mp_search, cod_search)
 from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
-from abipy.abio.robots import Robot, GsrRobot, SigresRobot, MdfRobot, DdbRobot, abirobot
+from abipy.abio.robots import Robot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
+#from abipy.tools.plotting import DirTreePlotter
+from abipy.tools.printing import print_dataframe
+from abipy.tools.notebooks import print_source
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
-    frame_from_ebands)
-from abipy.electrons.gsr import GsrFile
+    dataframe_from_ebands)
+from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.psps import PspsFile
-from abipy.electrons.gw import SigresFile, SigresPlotter
-from abipy.electrons.bse import MdfFile
+from abipy.electrons.ddk import DdkFile
+from abipy.electrons.gw import SigresFile, SigresPlotter, SigresRobot
+from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
-#from abipy.electrons.sigmaph import SigmaPhFile
-from abipy.electrons.denpot import DensityNcFile, DensityFortranFile
+from abipy.electrons.denpot import (DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile,
+    DensityFortranFile, Cut3dDenPotNcFile)
 from abipy.electrons.fatbands import FatBandsFile
+from abipy.electrons.optic import OpticNcFile, OpticRobot
+from abipy.electrons.fold2bloch import Fold2BlochNcfile
 from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
     PhdosReader, phbands_gridplot)
-from abipy.dfpt.ddb import DdbFile
-#from abipy.dfpt.gruneisen import GrunsFile
+from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile
+from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile
 from abipy.waves import WfkFile
+# TODO Change name. A2f?
+from abipy.eph.eph import EphFile, EphRobot
+from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -78,7 +90,9 @@ ext2file = collections.OrderedDict([
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),
     (".psp8", Pseudo),
-    (".xml", Pseudo),
+    (".pspnc", Pseudo),
+    (".fhi", Pseudo),
+    ("JTH.xml", Pseudo),
 ])
 
 # Abinit files require a special treatment.
@@ -86,6 +100,11 @@ abiext2ncfile = collections.OrderedDict([
     ("GSR.nc", GsrFile),
     ("DEN.nc", DensityNcFile),
     ("OUT.nc", OutNcFile),
+    ("DDK.nc", DdkFile),
+    ("VHA.nc", VhartreeNcFile),
+    ("VXC.nc", VxcNcFile),
+    ("VHXC.nc", VhxcNcFile),
+    ("POT.nc", PotNcFile),
     ("WFK.nc", WfkFile),
     ("HIST.nc", HistFile),
     ("PSPS.nc", PspsFile),
@@ -94,10 +113,14 @@ abiext2ncfile = collections.OrderedDict([
     ("PHDOS.nc", PhdosFile),
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
-    #("SIGMAPH.nc", SigmaPhFile),
-    #("GRUNS.nc", GrunsFile),
+    ("GRUNS.nc", GrunsNcFile),
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
+    ("FOLD2BLOCH.nc", Fold2BlochNcfile),
+    ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
+    ("OPTIC.nc", OpticNcFile),
+    ("EPH.nc", EphFile),
+    ("SIGEPH.nc", SigEPhFile),
 ])
 
 
@@ -180,7 +203,6 @@ def abiopen(filepath):
     Args:
         filepath: string with the filename.
     """
-    #print(filepath)
     if os.path.basename(filepath) == "__AbinitFlow__.pickle":
         return Flow.pickle_load(filepath)
 
@@ -193,22 +215,6 @@ def abiopen(filepath):
 
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
-
-
-def print_frame(frame, title=None):
-    """
-    Print entire pandas DataFrame.
-
-    Args:
-        frame: pandas DataFrame.
-        title: Optional string to print as initial title.
-    """
-    if title is not None: print(title)
-    import pandas as pd
-    with pd.option_context('display.max_rows', len(frame),
-                           'display.max_columns', len(list(frame.keys()))):
-        print(frame)
-    print()
 
 
 def display_structure(obj, **kwargs):
@@ -256,11 +262,11 @@ def software_stack():
     ])
 
     # Optional but strongly suggested.
-    try:
-        import matplotlib
-        d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
-    except ImportError:
-        pass
+    #try:
+    #    import matplotlib
+    #    d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
+    #except ImportError:
+    #    pass
 
     return d
 

@@ -29,7 +29,7 @@ from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
-
+from abipy.abio.robots import Robot
 
 import logging
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         self._structure = Structure.from_abivars(**self.header)
         # Add AbinitSpacegroup (needed in guessed_ngkpt)
-        # FIXME: has_timerev is always True
+        # FIXME: kptopt is not reported in the header --> has_timerev is always set to True
         spgid, has_timerev, h = 0, True, self.header
         self._structure.set_abi_spacegroup(AbinitSpaceGroup(spgid, h.symrel, h.tnons, h.symafm, has_timerev))
 
@@ -96,17 +96,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """String representation."""
         lines = []
         app, extend = lines.append, lines.extend
-        #extend(super(DdbFile, self).__str__().splitlines())
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
-
-        app(marquee("Q-points", mark="="))
-        app(str(self.qpoints))
-        app("guessed_ngqpt: %s" % self.guessed_ngqpt)
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+        app(self.qpoints.to_string(verbose=verbose, title="Q-points"))
+        app("")
+        app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
 
         return "\n".join(lines)
 
@@ -328,7 +326,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return np.array(ngqpt, dtype=np.int)
 
-    @property
+    @lazy_property
     def params(self):
         """Dictionary with the parameters that are usually tested for convergence."""
         return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
@@ -365,7 +363,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     #    """True if the DDB file contains data requires to compute LO-TO splitting."""
     #    return self.has_bec_terms() and self.has_emacro_terms()
 
-    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None,
+    def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute phonon modes at the given q-point.
@@ -374,6 +372,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
@@ -395,16 +394,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         try:
             self.qindex(qpoint)
         except:
-            raise ValueError("input qpoint %s not in ddb.qpoints:%s\n" % (qpoint, self.qpoints))
+            raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
+                qpoint, self.filepath, self.qpoints))
 
         #if lo_to_splitting and not self.has_lo_to_data:
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
                                           anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -430,7 +430,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                                      lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
-                                     workdir=None, manager=None):
+                                     mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
 
@@ -447,6 +447,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 depending on the input structure.
             anaddb_kwargs: additional kwargs for anaddb
             verbose: verbosity level. Set it to a value > 0 to get more information
+            mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
 
@@ -457,14 +458,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         #if lo_to_splitting and not self.has_lo_to_data:
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -487,12 +488,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                          num_cpus=1, stream=sys.stdout):
         """
         Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
-        reported in the DDB file will be Fourier-interpolated on the list of qmeshes specified
-        by `nqsmalls. Useful to perform covergence studies.
+        reported in the DDB file will be Fourier-interpolated on the list of q-meshes specified
+        by `nqsmalls`. Useful to perform covergence studies.
 
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
-            the number of divisions to be used to sample the smallest reciprocal lattice vector.
+                the number of divisions to be used to sample the smallest reciprocal lattice vector.
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
@@ -502,10 +503,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Return:
             `namedtuple` with the following attributes:
-
                 phdoses: List of :class:`PhononDos` objects
                 plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`
-                    to visualize the results.
+                to visualize the results.
         """
         num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
@@ -567,21 +567,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
-    def anaget_emacro_and_becs(self, chneut=1, workdir=None, manager=None, verbose=0):
+    def anaget_emacro_and_becs(self, chneut=1, mpi_procs=1, workdir=None, manager=None, verbose=0):
         """
         Call anaddb to compute the macroscopic dielectric tensor and the Born effective charges.
 
         Args:
             chneut: Anaddb input variable. See official documentation.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            mpi_procs: Number of MPI processes to use.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return:
             emacro, becs
         """
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
-
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -603,8 +603,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return emacro, becs
 
-    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, workdir=None, manager=None,
-                   verbose=0, anaddb_kwargs=None):
+    def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
+                   mpi_procs=1, workdir=None, manager=None, verbose=0, anaddb_kwargs=None):
         """
         Execute anaddb to compute the interatomic forces.
 
@@ -612,6 +612,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+            mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
             manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
@@ -625,7 +626,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         inp = AnaddbInput.ifc(self.structure, ngqpt=ngqpt, ifcout=ifcout, q1shft=(0, 0, 0), asr=asr, chneut=chneut,
                               dipdip=dipdip, anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -639,6 +640,123 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise self.AnaddbError(task=task, report=report)
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
+
+    def update_header(self):
+        """
+        Updates the header.lines with the variables contained in the header dictionary
+        The variables are written from a list in the correct order (check if this is necessary)
+        """
+
+        header = self.header
+        #list of variables with the correct order
+        variables = ['usepaw','natom','nkpt','nsppol','nsym','ntypat','occopt','nband',
+                     'acell','amu','dilatmx','ecut','pawecutdg','ecutsm','intxc','iscf',
+                     'ixc','kpt','kptnrm','ngfft','nspden','nspinor','occ','rprim',
+                     'dfpt_sciss','spinat','symafm','symrel','tnons','tolwfr','tphysel',
+                     'tsmear','typat','wtk','xred','znucl','zion']
+
+        # Adjust variables according to usepaw and version
+        if int(self.header["usepaw"]) == 0:
+            variables.remove("pawecutdg")
+        if "sciss" in self.header:
+            # old header with sciss instead of dfpt_sciss
+            variables[variables.index("dfpt_sciss")] = "sciss"
+
+        header_lines = []
+
+        #add header
+        n = 0
+        while True:
+            line = header.lines[n]
+            n += 1
+            if "usepaw" in line:
+                break
+            header_lines.append(line)
+
+        nskip=10
+        fmti = "%5d"
+        fmtf = "%22.14e"
+        fmt3 = " "*nskip+fmtf*3+'\n'
+
+        #write all the variables in order
+        for variable in variables:
+            data = header[variable]
+            string = ""
+
+            #dfpt variable bug
+            if variable in ('dfpt_sciss', "sciss"):
+                variable = "  " + variable
+
+            #specific variables
+            if variable == 'symrel':
+                for sym in data:
+                    string += " "*15+(fmti*9)%tuple(sym.T.flatten())+'\n'
+                string = string[10:-1]
+            elif variable == 'symafm':
+                nchunks = int(len(data)/12)
+                for i in range(nchunks):
+                    string += " "*15+(fmti*12)%tuple(data[12*i:12*(i+1)])+'\n'
+                #add missing lines
+                missing_data = data[12*nchunks:]
+                if len(missing_data):
+                    fmtn = " "*15+fmti*len(missing_data)+'\n'
+                    string += fmtn%tuple(missing_data)
+                string = string[10:-1]
+            elif variable in ['typat','ngfft','symafm']:
+                string = "     "+(fmti*len(data))%tuple(data)
+            elif variable in ['occ','spinat','wtk','znucl']:
+                nchunks = int(len(data)/3)
+                for i in range(nchunks):
+                    string += fmt3%tuple(data[3*i:3*(i+1)])
+                #add missing lines
+                missing_data = data[3*nchunks:]
+                if len(missing_data):
+                    fmtn = " "*nskip+fmtf*len(missing_data)+'\n'
+                    string += fmtn%tuple(missing_data)
+                string = string[nskip:-1]
+            #general
+            elif isinstance(data,int):
+                string = "     "+fmti%data
+            elif isinstance(data,float):
+                string = fmtf%data
+            elif isinstance(data,list):
+                string = (fmtf*len(data))%tuple(data)
+            elif isinstance(data,np.ndarray):
+                #check dimensions
+                dim = len(data.shape)
+                if dim == 1:
+                    string += ""
+                elif dim == 2:
+                    for line in data:
+                        string += fmt3%tuple(line)
+                    string = string[nskip:-1]
+                else:
+                    raise ValueError('invalid dimensions: %d'%dim)
+            else:
+                raise ValueError('unkown type of variable in the dictionary')
+
+            string = "%10s%s"%(variable,string.replace('e','D'))
+            header_lines += string.split('\n')
+
+        #skip all the variables
+        n = 0
+        while True:
+            line = header.lines[n]
+            n += 1
+            if "zion" in line:
+                break
+
+        #add footer
+        nlines = len(header.lines)
+        header_lines.append("")
+        while True:
+            n += 1
+            if n >= nlines:
+                break
+            line = header.lines[n]
+            header_lines.append(line)
+
+        self.header.lines = header_lines
 
     def write(self, filepath):
         """
@@ -704,20 +822,41 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         nb.cells.extend([
             nbv.new_code_cell("ddb = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ddb)"),
-            nbv.new_code_cell("display(ddb.header)"),
+            nbv.new_code_cell("units = 'eV'\nprint(ddb)"),
+            nbv.new_code_cell("# display(ddb.header)"),
+            nbv.new_markdown_cell("## Invoke `anaddb` to compute bands and dos"),
             nbv.new_code_cell("""\
-bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                   ngqpt=None, lo_to_splitting=False,
-                                   qptbounds=None, anaddb_kwargs=None)
-phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
-            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos)"),
-            nbv.new_code_cell("fig = phbands.plot_fatbands(phdos_file=phdosfile)"),
-            nbv.new_code_cell("#fig = phbands.plot_colored_matched()"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_type()"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_type()"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_site()"),
+bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20,
+    asr=2, chneut=1, dipdip=0, lo_to_splitting=False,
+    dos_method="tetra", ngqpt=None, qptbounds=None, verbose=0, anaddb_kwargs=None)
 
+phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
+            nbv.new_markdown_cell("## q-point path"),
+            nbv.new_code_cell("fig = phbands.qpoints.plot()"),
+            nbv.new_markdown_cell("## Phonon bands with DOS"),
+            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos, units=units)"),
+            nbv.new_markdown_cell("## Phonon fatbands with DOS"),
+            nbv.new_code_cell("fig = phbands.plot_fatbands(phdos_file=phdosfile, units=units)"),
+            nbv.new_markdown_cell("## Distribution of phonon frequencies wrt mode index"),
+            nbv.new_code_cell("fig = phbands.boxplot(units=units)"),
+            nbv.new_markdown_cell("## Phonon band structure with different color for each line"),
+            nbv.new_code_cell("fig = phbands.plot_colored_matched(units=units)"),
+            nbv.new_markdown_cell("## Type-projected phonon DOS."),
+            nbv.new_code_cell("fig = phdosfile.plot_pjdos_type(units=units)"),
+            nbv.new_markdown_cell("## Type-projected phonon DOS decomposed along the three reduced directions"),
+            nbv.new_code_cell("fig = phdosfile.plot_pjdos_redirs_type(units=units)"),
+            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_site(units=units)"),
+            nbv.new_markdown_cell("## Thermodinamic properties within the harmonic approximation"),
+            nbv.new_code_cell("fig = phdosfile.phdos.plot_harmonic_thermo(tstart=5, tstop=300)"),
+
+            nbv.new_markdown_cell("## Macroscopic dielectric tensor and Born effective charges"),
+            nbv.new_code_cell("""\
+if False:
+    emacro, becs = ddb.anaget_emacro_and_becs()
+    print(emacro)
+    print(becs)"""),
+
+            nbv.new_markdown_cell("## Call `anaddb` to compute phonon DOS with different BZ samplings"),
             nbv.new_code_cell("""\
 c = None
 if False:
@@ -729,15 +868,23 @@ if c is not None:
     c.plotter.ipw_select_plot()
     #for phdos in c.phdoses"""),
 
+            nbv.new_markdown_cell("## Analysis of the IFCs in real-space"),
             nbv.new_code_cell("""\
-if False:
-    emacro, becs = ddb.anaget_emacro_and_becs()
-    print(emacro)
-    print(becs)"""),
-
-            nbv.new_code_cell("""\
+ifc = None
 if False:
     ifc = ddb.anaget_ifc(ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None, verbose=0, anaddb_kwargs=None)"""),
+
+            nbv.new_code_cell("""\
+if ifc is not None:
+    fig = ifc.plot_longitudinal_ifc(atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
+                                    max_dist=None, ax=None)"""),
+            nbv.new_code_cell("""\
+if ifc is not None:
+    fig = ifc.plot_longitudinal_ifc_short_range(atom_indices=None, atom_element=None, neighbour_element=None)"""),
+            nbv.new_code_cell("""\
+if ifc is not None:
+    fig = ifc.plot_longitudinal_ifc_ewald(atom_indices=None, atom_element=None, neighbour_element=None,
+                                          min_dist=None, max_dist=None, ax=None)"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -779,15 +926,13 @@ class Becs(Has_Structure):
     def __repr__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         lines = []
         app = lines.append
         app("Born effective charges computed with chneut: %d" % self.chneut)
 
         for site, bec in zip(self.structure, self.values):
-            # TODO: why PeriodicSite.__str__ does not give the frac_coords?
-            #print(type(site))
-            app("BEC at site: %s" % (site))
+            app("BEC at site: %s" % repr(site))
             app(str(bec))
             app("")
 
@@ -904,7 +1049,7 @@ class DielectricTensorGenerator(Has_Structure):
     def __init__(self, phfreqs, oscillator_strength, emacro, structure):
         """
         Args:
-             phfreqs: a numpy array containing the 3*(num atoms) phonon frequencies at gamma
+             phfreqs: a numpy array containing the 3 * num_atoms phonon frequencies at gamma
              oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
              emacro: a numpy array containing the dielectric tensor without frequency dependence
                 (at infinite frequency)
@@ -972,11 +1117,11 @@ class DielectricTensorGenerator(Has_Structure):
         """
         Returns a DielectricTensor object representing
         the dielectric tensor in atomic units at the specified frequency w.
+
         Args:
             w: frequency
             units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
         """
-
         if units == 'eV':
             pass
         elif units == 'Ha':
@@ -1052,3 +1197,170 @@ class DielectricTensorGenerator(Has_Structure):
         ax.legend(loc="best")
 
         return fig
+
+
+class DdbRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple DDB files.
+    """
+    EXT = "DDB"
+
+    @classmethod
+    def class_handles_filename(cls, filename):
+        """Exclude DDB.nc files. Override base class."""
+        return filename.endswith("_" + cls.EXT)
+
+    #def get_qpoints_union(self):
+    #    """
+    #    Return numpy array with the q-points in reduced coordinates found in the DDB files.
+    #    """
+    #    qpoints = []
+    #    for label, ddb in enumerate(self):
+    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
+
+    #    return np.array(qpoints)
+
+    #def get_qpoints_intersection(self):
+    #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
+    #    qpoints = []
+    #    for label, ddb in enumerate(self):
+    #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
+    #
+    #    return np.array(qpoints)
+
+    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True,
+            abspath=False, funcs=None, **kwargs):
+        """
+	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
+	by the robot and the given anaddb input arguments.
+        Build and return a pandas dataframe with results
+
+        Args:
+            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`DDBFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+
+        Return:
+            pandas DataFrame
+        """
+        # If qpoint is None, all the DDB must contain have the same q-point .
+        if qpoint is None:
+            if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
+                raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
+
+            qpoint = self[0].qpoints[0]
+            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
+                raise ValueError("All the q-points in the DDB files must be equal")
+
+        rows, row_names = [], []
+        for i, (label, ddb) in enumerate(self):
+            row_names.append(label)
+            d = OrderedDict()
+            #d = {aname: getattr(ddb, aname) for aname in attrs}
+            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+
+            # Call anaddb to get the phonon frequencies.
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
+            freqs = phbands.phfreqs[0, :]  # [nq, nmodes]
+
+            d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
+
+            # Add convergence parameters
+            d.update(ddb.params)
+
+            # Add info on structure.
+            if with_geo:
+                d.update(phbands.structure.get_dict4frame(with_spglib=True))
+
+            # Execute functions.
+            if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
+            rows.append(d)
+
+        import pandas as pd
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    # TODO: Is this really needed?
+    #def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
+    #    """
+    #    Plot the convergence of the phonon frequencies.
+    #    kwargs are passed to :class:`seaborn.PairGrid`.
+    #    """
+    #    import matplotlib.pyplot as plt
+    #    import seaborn.apionly as sns
+
+    #    # Get the dataframe for this q-point.
+    #    data = self.get_dataframe_at_qpoint(qpoint=qpoint)
+
+    #    y_vars = sorted([k for k in data if k.startswith("mode")])
+    #    #print(y_vars)
+
+    #    # Call seaborn.
+    #    grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)
+    #    grid.map(plt.plot, marker="o")
+    #    grid.add_legend()
+    #    plt.show()
+
+    def anaget_phonon_plotters(self, **kwargs):
+        r"""
+        Invoke anaddb to compute phonon bands and DOS using the arguments passed via \*\*kwargs.
+        Collect results and return `namedtuple` with the following attributes:
+
+            phbands_plotter: `PhononBandsPlotter` object.
+            phdos_plotter: `PhononDosPlotter` object.
+        """
+        if "workdir" in kwargs:
+            raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
+
+        from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
+        phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
+
+        for label, ddb in self:
+            # Invoke anaddb to get phonon bands and DOS.
+            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
+
+            # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
+            # Those results should be fetched from there and added to the phonon bands.
+            if kwargs.get("lo_to_splitting", False):
+                anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
+                phbst_file.phbands.read_non_anal_from_file(anaddb_path)
+
+            phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+            phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
+            phbst_file.close()
+            phdos_file.close()
+
+        return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        anaget_phonon_plotters_kwargs = ( "\n"
+            '\tnqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",\n'
+            '\tlo_to_splitting=False, ngqpt=None, qptbounds=None,\n'
+            '\tanaddb_kwargs=None, verbose=0')
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
+            nbv.new_code_cell("r = robot.anaget_phonon_plotters(%s)" % anaget_phonon_plotters_kwargs),
+            nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
+            nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),
+            nbv.new_code_cell("r.phdos_plotter.ipw_select_plot()"),
+            nbv.new_code_cell("r.phdos_plotter.ipw_harmonic_thermo()"),
+        ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)

@@ -15,6 +15,7 @@ class TestElectronFatbands(AbipyTest):
         """Testing MgB2 fatbands with prtdos 3."""
         fbnc_kpath = FatBandsFile(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
         repr(fbnc_kpath); str(fbnc_kpath)
+        assert fbnc_kpath.to_string(verbose=2)
         assert fbnc_kpath.ebands.kpoints.is_path
         assert not fbnc_kpath.ebands.kpoints.is_ibz
         assert fbnc_kpath.prtdos == 3
@@ -23,6 +24,8 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.pawprtdos == 0
         assert fbnc_kpath.usepaw == 0
         assert fbnc_kpath.nsppol == 1
+        assert fbnc_kpath.nspden == 1
+        assert fbnc_kpath.nspinor == 1
         assert fbnc_kpath.nkpt == 78
         assert fbnc_kpath.mband == 8
         assert fbnc_kpath.natsph_extra == 0
@@ -75,6 +78,8 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.pawprtdos == 0
         assert fbnc_kpath.usepaw == 0
         assert fbnc_kpath.nsppol == 2
+        assert fbnc_kpath.nspden == 2
+        assert fbnc_kpath.nspinor == 1
         #assert fbnc_kpath.nkpt == 78
         #assert fbnc_kpath.mband == 8
         assert fbnc_kpath.natsph_extra == 0

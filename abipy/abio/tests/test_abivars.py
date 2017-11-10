@@ -3,7 +3,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 import os
-import unittest
+import abipy.data as abidata
 
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import *
@@ -16,7 +16,7 @@ class TestAbinitInputParser(AbipyTest):
     def test_static_methods(self):
         """Testing AbinitInputParser static methods."""
         p = AbinitInputParser()
-
+        repr(p); str(p)
         assert p.varname_dtindex("acell1") == ("acell", 1)
         assert p.varname_dtindex("fa1k2") == ("fa1k", 2)
 
@@ -34,7 +34,9 @@ class TestAbinitInputFile(AbipyTest):
         s = ("acell 1 1 1 rprim 1 0 0 0 1 0 0 0 1 natom 1 "
              "ntypat 1 typat 1 znucl 14 xred 0 0 0 ")
         inp = AbinitInputFile.from_string(s)
-        print(inp)
+        repr(inp); str(inp)
+        assert inp.to_string(verbose=1)
+        assert inp._repr_html_()
         si1_structure = inp.structure
         assert inp.ndtset == 1 and len(si1_structure) == 1 and si1_structure.formula == "Si1"
 
@@ -78,7 +80,7 @@ class TestAbinitInputFile(AbipyTest):
         s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         assert s0 != s1
         assert s1.volume == 8 * s0.volume
-        print(inp)
+        repr(inp); str(inp)
 
         # same input but with global acell
         s = """
@@ -91,7 +93,10 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert s0 == inp.datasets[0].structure
         assert s1 == inp.datasets[1].structure
-        print(inp)
+        repr(inp); str(inp)
+
+        d = inp.datasets[1].get_vars()
+        assert "natom" not in d and len(d) == 0
 
         # same input in terms of an arithmetic series in acell
         s = """
@@ -104,7 +109,7 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert s0 == inp.datasets[0].structure
         assert s1 == inp.datasets[1].structure
-        print(inp)
+        str(inp)
 
     def test_input_with_serie(self):
         # Test arithmetic and geometric series with ecut.
@@ -119,7 +124,7 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.ndtset == 3
         self.assertArrayEqual([dt["ecut"] for dt in inp.datasets], [10, 15, 20])
         self.assertArrayEqual([dt["pawecutdg"] for dt in inp.datasets], [2, 6, 18])
-        print(inp)
+        repr(inp); str(inp)
 
         # Test arithmetic series with xcart.
         s = """
@@ -135,7 +140,7 @@ class TestAbinitInputFile(AbipyTest):
         s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         self.assert_almost_equal(s0.cart_coords.ravel() / bohr_to_ang, [-0.7, 0, 0, 0.7, 0, 0])
         self.assert_almost_equal(s1.cart_coords.ravel() / bohr_to_ang, [-0.8, 0, 0, 0.8, 0, 0])
-        print(inp)
+        str(inp)
 
     def test_tricky_inputs(self):
         """Testing tricky inputs"""
@@ -200,7 +205,7 @@ typat 1 1         # For the first dataset, both numbers will be read,
         assert inp.ndtset == 2 and inp.structure is None
         assert len(inp.datasets[0].structure) == 2
         assert len(inp.datasets[1].structure) == 1
-        print(inp)
+        str(inp)
 
     def test_all_inputs_in_tests(self):
         """
@@ -208,8 +213,13 @@ typat 1 1         # For the first dataset, both numbers will be read,
         Requires $ABINIT_HOME_DIR env variable.
         """
         abi_homedir = os.environ.get("ABINIT_HOME_DIR")
-        if abi_homedir is None:
-            raise unittest.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
+        if abi_homedir is not None:
+            #raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
+            abitests_dir = os.path.join(abi_homedir, "tests")
+        else:
+            abitests_dir = os.path.join(abidata.dirpath, "refs/si_bse")
 
-        retcode = validate_input_parser(abitests_dir=os.path.join(abi_homedir, "tests"))
+        from abipy.abio.abivars import validate_input_parser
+        assert os.path.exists(abitests_dir)
+        retcode = validate_input_parser(abitests_dir=abitests_dir)
         assert retcode == 0

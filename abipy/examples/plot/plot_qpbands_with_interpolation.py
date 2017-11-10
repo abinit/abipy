@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 """
+GW corrections
+==============
+
 This example shows how to interpolate the GW corrections and use the interpolated
 values to correct the KS band structure computed on a high symmetry k-path and
 the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with matplotlib.
@@ -21,7 +24,7 @@ with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr_scf:
 
 ks_edos = ks_ebands_kmesh.get_edos()
 
-# Interpolate the QP corrections and use the interpolated values to correct 
+# Interpolate the QP corrections and use the interpolated values to correct
 # the KS energies stored in `ks_ebands_kpath` and `ks_ebands_kmesh`.
 #
 # The QP energies are returned in r.qp_ebands_kpath and r.qp_ebands_kmesh.
@@ -55,6 +58,7 @@ plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 plotter.combiplot(title="Combiplot")
 plotter.boxplot(swarm=True, title="Boxplot")
 plotter.combiboxplot(swarm=True, title="Combiboxplot")
+# sphinx_gallery_thumbnail_number = 4
 plotter.gridplot(title="Gridplot")
 
 sigres.close()

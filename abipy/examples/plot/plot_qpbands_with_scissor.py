@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+GW with scissors operator
+=========================
+
 This example shows how to generate an energy-dependent scissors operator
 by fitting the GW QPState corrections as function of the KS eigenvalues
 We then use the scissors operator to correct the KS band structure

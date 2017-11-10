@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Electron DOS
+============
+
 This example shows how to compute the DOS from
 the eigenvalues stored in the WFK file with the gaussian method.
 """

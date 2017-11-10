@@ -31,6 +31,7 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=paral_kgb,
+        iomode=3,
         #prtwf=0,
     )
 

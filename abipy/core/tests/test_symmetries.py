@@ -73,12 +73,14 @@ class TestSymmetries(AbipyTest):
 
         self.assert_almost_equal(si_tnons, spgrp.tnons)
         self.assert_almost_equal(si_symafm, spgrp.symafm)
+        assert not spgrp.afm_symmops
 
         for idx, symmop in enumerate(spgrp):
+            repr(symmop); str(symmop)
             assert symmop in spgrp
             assert spgrp.count(symmop) == 1
             assert spgrp.find(symmop) == idx
-            assert abs(symmop.det) == 1
+            if symmop.det == 1: assert symmop.is_proper
 
         # Test pickle
         self.serialize_with_pickle(spgrp[0], protocols=None, test_eq=True)
@@ -106,13 +108,27 @@ class TestSymmetries(AbipyTest):
 
                 assert not err_msg
 
-        # Test little group (first test wit Gamma point)
-        ltg = spgrp.find_little_group(kpoint=[0, 0, 0])
-        assert len(ltg) == len(spgrp)
-        repr(ltg); str(ltg)
-        for o1, (o2, g0) in zip(spgrp, ltg.iter_symmop_g0()):
+        # Test little group with Gamma point.
+        lg_gamma = spgrp.find_little_group(kpoint=[0, 0, 0])
+        assert len(lg_gamma) == len(spgrp)
+        repr(lg_gamma); str(lg_gamma)
+        assert lg_gamma.is_symmorphic and not lg_gamma.on_bz_border
+        for o1, (o2, g0) in zip(spgrp, lg_gamma.iter_symmop_g0()):
             assert o1 == o2
             assert np.all(g0 == 0)
+
+        # Little group with X point.
+        #    'G' : (0.000, 0.000, 0.000),
+        #    'X' : (0.500, 0.000, 0.500),
+        #    'W' : (0.500, 0.250, 0.750),
+        #    'L' : (0.500, 0.500, 0.500),
+        #    'K' : (0.375, 0.375, 0.750),
+        #    'U' : (0.625, 0.250, 0.625)
+
+        lg_x = spgrp.find_little_group(kpoint=[0.5, 0, 0.5])
+        assert len(lg_x) == 32
+        repr(lg_x); str(lg_x)
+        assert lg_x.is_symmorphic and lg_x.on_bz_border
 
         # This is just to test from_structure but one should always try to init from file.
         other_spgroup = AbinitSpaceGroup.from_structure(structure, has_timerev=True)
@@ -129,15 +145,21 @@ class LatticeRotationTest(AbipyTest):
         I = LatticeRotation([-1,  0,  0, 0, -1,  0, 0,  0, -1])
 
         assert E.isE and E.is_proper and E.inverse() == E
+        assert E.name == "1+"
         assert I.isI and not I.is_proper and I.inverse() == I
+        assert I.name == "-2-"
 
         # Test Basic operations
         assert E != I
         assert +E == E
         assert -I == E
         assert E * I == I
+        assert E ** 2 == E
+        assert E ** -1 == E
         assert I ** 0 == E
+        assert I ** -1 == I
         assert I ** 3 == I
+        assert I ** -3 == I
 
         # Test pickle.
         self.serialize_with_pickle([E, I])
@@ -152,7 +174,7 @@ class BilbaoPointGroupTest(AbipyTest):
             #print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
             repr(ptg); str(ptg)
-            ptg.show_character_table()
+            assert len(ptg.to_string())
             #for irrep_name in ptg.irrep_names: ptg.show_irrep(irrep_name)
             assert ptg.auto_test() == 0
 
@@ -165,7 +187,7 @@ class LittleGroupTest(AbipyTest):
 
             spgrp = wfk_file.structure.abi_spacegroup
             assert spgrp is not None
-            str(spgrp)
+            repr(spgrp); str(spgrp)
 
             kpoints = [[0,0,0],
                        [0.5, 0, 0],

@@ -61,6 +61,9 @@ class TestAbinitInput(AbipyTest):
         inp["ecut" ] = 1
         assert inp.get("ecut") == 1 and len(inp) == 1 and "ecut" in inp.keys() and "foo" not in inp
 
+        # Default is kptopt 1
+        assert inp.uses_ktimereversal
+
         assert inp.mnemonics == False
         inp.set_mnemonics(True)
         assert inp.mnemonics == True
@@ -68,6 +71,11 @@ class TestAbinitInput(AbipyTest):
         # Test to_string
         assert inp.to_string(sortmode="a", with_structure=True, with_pseudos=True)
         assert inp.to_string(sortmode="section", with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=True)
+        assert inp.to_string(sortmode=None, with_structure=True, with_pseudos=False, mode="html")
+        assert inp.to_string(sortmode="a", with_structure=False, with_pseudos=False, mode="html")
+        assert inp._repr_html_()
 
         inp.set_vars(ecut=5, toldfe=1e-6)
         assert inp["ecut"] == 5
@@ -159,12 +167,23 @@ class TestAbinitInput(AbipyTest):
 
         inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(1, 2, 3, 4, 5, 6))
         assert inp["kptopt"] == 1 and inp["nshiftk"] == 2
+        assert inp.uses_ktimereversal
+
+        inp.set_gamma_sampling()
+        assert inp["kptopt"] == 1 and inp["nshiftk"] == 1
+        assert np.all(inp["shiftk"] == 0)
 
         inp.set_autokmesh(nksmall=2)
         assert inp["kptopt"] == 1 and np.all(inp["ngkpt"] == [2, 2, 2]) and inp["nshiftk"] == 4
 
         inp.set_kpath(ndivsm=3, kptbounds=None)
-        assert inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
+        assert inp["ndivsm"] == 3 and inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
+
+        inp.set_qpath(ndivsm=3, qptbounds=None)
+        assert len(inp["ph_qpath"]) == 12 and inp["ph_nqpath"] == 12 and inp["ph_ndivsm"] == 3
+
+        inp.set_phdos_qmesh(nqsmall=16, method="tetra")
+        assert inp["ph_intmeth"] == 2 and np.all(inp["ph_ngqpt"] == 16) and np.all(inp["ph_qshift"] == 0)
 
         inp.set_kptgw(kptgw=(1, 2, 3, 4, 5, 6), bdgw=(1, 2))
         assert inp["nkptgw"] == 2 and np.all(inp["bdgw"].ravel() == np.array(len(inp["kptgw"]) * [1,2]).ravel())
@@ -180,8 +199,11 @@ class TestAbinitInput(AbipyTest):
 
         prod_inps = inp.product("ngkpt", "tsmear", [[2, 2, 2], [4, 4, 4]], [0.1, 0.2, 0.3])
         assert len(prod_inps) == 6
-        assert prod_inps[0]["ngkpt"] == [2,2,2] and prod_inps[0]["tsmear"] == 0.1
-        assert prod_inps[-1]["ngkpt"] ==  [4,4,4] and prod_inps[-1]["tsmear"] == 0.3
+        assert prod_inps[0]["ngkpt"] == [2, 2, 2] and prod_inps[0]["tsmear"] == 0.1
+        assert prod_inps[-1]["ngkpt"] ==  [4, 4, 4] and prod_inps[-1]["tsmear"] == 0.3
+
+        inp["kptopt"] = 4
+        assert not inp.uses_ktimereversal
 
     # TODO
     def test_new_with_structure(self):
@@ -229,7 +251,6 @@ class TestAbinitInput(AbipyTest):
         #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
         #self.abivalidate_input(new_inp)
 
-
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
         inp_si = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
@@ -247,10 +268,31 @@ class TestAbinitInput(AbipyTest):
         inp_si.set_vars(ecut=2, toldfe=1e-6)
         self.abivalidate_input(inp_si)
 
+        # TODO: Here spglib and abinit do not agree.
+        # Test abiget_spacegroup
+        #structure_with_abispg = inp_gan.abiget_spacegroup()
+        #assert structure_with_abispg.abispg is not None
+        #assert structure_with_abispg.abispg.spgid == 227
+
+        # Test abiget_spacegroup for Si
+        structure_with_abispg = inp_si.abiget_spacegroup()
+        assert structure_with_abispg.abi_spacegroup is not None
+        assert structure_with_abispg.abi_spacegroup.spgid == 227
+
         # Test abiget_ibz
         ibz = inp_si.abiget_ibz()
-        assert np.all(ibz.points == [[ 0. ,  0. ,  0. ], [ 0.5,  0. ,  0. ], [ 0.5,  0.5,  0. ]])
+        assert np.all(ibz.points == [[ 0.,  0.,  0.], [0.5,  0.,  0.], [0.5, 0.5, 0.]])
         assert np.all(ibz.weights == [0.125,  0.5,  0.375])
+
+        # This to test what happes with wrong inputs and Abinit errors.
+        wrong = inp_si.deepcopy()
+        removed = wrong.pop_vars("ecut")
+        assert "ecut" not in wrong
+        assert "ecut" in removed
+        assert removed["ecut"] == 2
+        with self.assertRaises(wrong.Error):
+            #wrong["ecut"] = -12.0
+            wrong.abiget_ibz(ngkpt=[-1, -1, -1])
 
         # Test abiget_irred_phperts
         # [{'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]}]
@@ -473,6 +515,8 @@ class TestMultiDataset(AbipyTest):
         split = multi.split_datasets()
         assert len(split) == 2 and all(split[i] == multi[i] for i in range(multi.ndtset))
         repr(multi); str(multi)
+        assert multi.to_string(mode="text")
+        assert multi._repr_html_()
 
         inp.write(filepath=self.tmpfileindir("run.abi"))
         multi.write(filepath=self.tmpfileindir("run.abi"))
@@ -516,6 +560,8 @@ class AnaddbInputTest(AbipyTest):
         """Testing phbands_and_dos constructor."""
         inp = AnaddbInput(self.structure, comment="hello anaddb", anaddb_kwargs={"brav": 1})
         repr(inp); str(inp)
+        assert inp.to_string(sortmode="a")
+        assert inp._repr_html_()
         assert "brav" in inp
         assert inp["brav"] == 1
         assert inp.get("brav") == 1
@@ -650,10 +696,12 @@ class OpticInputTest(AbipyTest):
         """Testing OpticInput API."""
         optic_input = OpticInput()
         repr(optic_input); str(optic_input)
+        #assert optic_input._repr_html_()
 
         for var in OpticInput._VARIABLES:
             repr(var); str(var)
             assert str(var.help) and var.group
+            assert str(var.html_link(label="foo"))
 
         with self.assertRaises(optic_input.Error):
             optic_input["foo"] = 23
@@ -681,6 +729,8 @@ class OpticInputTest(AbipyTest):
         )
 
         repr(optic_input); str(optic_input)
+        # TODO
+        #assert optic_input._repr_html_()
         assert optic_input.vars
 
         # Compatible with Pickle and MSONable?
@@ -690,3 +740,12 @@ class OpticInputTest(AbipyTest):
         #self.assertMSONable(optic_input)
 
         self.abivalidate_input(optic_input)
+
+        # Test helper functions
+        si_structure = abidata.structure_from_ucell("Si")
+        comps = optic_input.only_independent_chi_components(si_structure)
+        assert comps == ["xx"]
+        assert optic_input["num_lin_comp"] == 1
+        assert optic_input["lin_comp"] == [11]
+        self.abivalidate_input(optic_input)
+        #print(optic_input)

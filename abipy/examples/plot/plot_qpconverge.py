@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+GW Convergence
+==============
+
 This example shows how to visualize the convergence of the
 QP results stored in the SIGRES produced by the GW code (sigma run).
 """
@@ -23,7 +26,7 @@ plotter.add_files(filepaths)
 plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05)
 
 # Plot the convergence of the QP energies.
-plotter.plot_qpenes(spin=0, kpoint=[0, 0, 0], 
-                    title="QP energies vs sigma_nband", hspan=0.05)
+plotter.plot_qpenes(spin=0, kpoint=[0, 0, 0], title="QP energies vs sigma_nband", hspan=0.05)
 
+# sphinx_gallery_thumbnail_number = 3
 plotter.plot_qps_vs_e0(tight_layout=True)

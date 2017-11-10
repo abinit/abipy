@@ -5,13 +5,18 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import bisect as bs
 
+from monty.collections import dict2namedtuple
+from abipy.tools import duck
+
 #########################################################################################
 # Array tools
 #########################################################################################
 
 
 def transpose_last3dims(arr):
-    """Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x)."""
+    """
+    Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
+    """
     axes = np.arange(arr.ndim)
     axes[-3:] = axes[::-1][:3]
 
@@ -58,32 +63,6 @@ def add_periodic_replicas(arr):
     return oarr
 
 #########################################################################################
-# Bisection algorithms
-#########################################################################################
-
-
-def minloc(iterable):
-    """Return the min value and its position."""
-    min_val, min_idx = iterable[0], 0
-
-    for idx, item in enumerate(iterable[1:]):
-        if item < min_val:
-            min_val, min_idx = item, idx
-
-    return min_val, min_idx
-
-
-def maxloc(iterable):
-    """Return the max value and its position."""
-    max_val, max_idx = iterable[0], 0
-
-    for idx, item in enumerate(iterable[1:]):
-        if item > max_val:
-            max_val, max_idx = item, idx
-
-    return max_val, max_idx
-
-#########################################################################################
 # Tools to facilitate iterations
 #########################################################################################
 
@@ -120,7 +99,6 @@ def iflat(iterables):
 # Sorting and ordering
 #########################################################################################
 
-
 def prune_ord(alist):
     """
     Return new list where all duplicated items in alist are removed
@@ -129,7 +107,7 @@ def prune_ord(alist):
     2) items in alist MUST be hashable.
 
     Taken from http://code.activestate.com/recipes/52560/
-    >>> prune_ord([1,1,2,3,3])
+    >>> prune_ord([1, 1, 2, 3, 3])
     [1, 2, 3]
     """
     mset = {}
@@ -139,19 +117,6 @@ def prune_ord(alist):
 # Special functions
 #########################################################################################
 
-
-def gauss_ufunc(width, center=0.0, height=None):
-    """
-    Returns a gaussian (u)function with the given parameters.
-
-    If height is None, a normalized gaussian is returned.
-    """
-    if height is None:
-        height = 1.0 / (width * np.sqrt(2 * np.pi))
-
-    return lambda x: height * np.exp(-((x - center) / width) ** 2 / 2.)
-
-
 def gaussian(x, width, center=0.0, height=None):
     """
     Returns the values of gaussian(x) where x is array-like.
@@ -159,16 +124,13 @@ def gaussian(x, width, center=0.0, height=None):
     If height is None, a normalized gaussian is returned.
     """
     x = np.asarray(x)
-
-    if height is None:
-        height = 1.0 / (width * np.sqrt(2 * np.pi))
+    if height is None: height = 1.0 / (width * np.sqrt(2 * np.pi))
 
     return height * np.exp(-((x - center) / width) ** 2 / 2.)
 
 #=====================================
 # === Data Interpolation/Smoothing ===
 #=====================================
-
 
 def smooth(x, window_len=11, window='hanning'):
     """
@@ -232,157 +194,7 @@ def smooth(x, window_len=11, window='hanning'):
 
     s = window_len // 2
     e = s + len(x)
-    #return y
     return y[s:e]
-
-
-def integrator_linspace(y, dx=1, method="simps", axis=-1):
-    """
-    Integrate y using samples along the given axis with spacing dx.
-    method is in ['simps', 'trapz', 'romb']. Note that romb requires len(y) = 2**k + 1.
-
-    Example:
-    >>> nx = 2**8+1
-    >>> x = np.linspace(0, np.pi, nx)
-    >>> dx = np.pi/(nx-1)
-    >>> y = np.sin(x)
-    >>> for method in ["simps", "trapz", "romb"]: print(integrator_linspace(y, dx=dx, method=method))
-    2.00000000025
-    1.99997490024
-    2.0
-    """
-    from scipy.integrate import simps, trapz, romb
-
-    if method == "simps":
-        return simps(y, x=None, dx=dx, axis=axis, even='avg')
-    elif method == "trapz":
-        return trapz(y, x=None, dx=dx, axis=axis)
-    elif method == "romb":
-        return romb(y, dx=dx, axis=axis, show=False)
-    else:
-        raise ValueError("Wrong method: %s" % method)
-
-
-class Interpol3D(object):
-    """Container to store and apply interpolating schemes."""
-
-    _allowed_mesh_types = [
-        'cubic',
-        'tetrahedral',
-    ]
-
-    _allowed_interpol_schemes = dict({
-        'cubic': [
-            'trilin',
-            'tricub',
-            'tripen',
-            'tricos',
-        ],
-        'tetrahedral': [
-        ],
-    })
-
-    def __init__(self, mesh_type=None, interpol_scheme=None):
-        if mesh_type:
-            self.set_mesh_type(mesh_type)
-            if interpol_scheme:
-                self.set_interpol_scheme(interpol_scheme)
-        else:
-            self.mesh_type = None
-            self.interpol_scheme = None
-
-    def set_mesh_type(self, mesh_type):
-        if not mesh_type in self._allowed_mesh_types:
-            raise ValueError("Wrong mesh type: " + str(mesh_type))
-        self.mesh_type = mesh_type
-
-    def set_interpol_scheme(self, interpol_scheme):
-        if not self.mesh_type:
-            raise ValueError("Mesh type not specified")
-        if not interpol_scheme in self._allowed_interpol_schemes[self.mesh_type]:
-            raise ValueError(
-                "Wrong interpolation scheme \"%s\" for mesh type \"%s\"" % (str(interpol_scheme), str(self.mesh_type)))
-        self.interpol_scheme = interpol_scheme
-
-    def set_values(self, values):
-        if not self.mesh_type:
-            raise ValueError("Mesh type not specified")
-        if not self.interpol_scheme:
-            raise ValueError("Interpolation scheme not specified")
-        if self.mesh_type == 'cubic':
-            if len(values) != 8:
-                raise ValueError("Wrong length of array \"values\" in set_values for mesh type %s" % self.mesh_type)
-        elif self.mesh_type == 'tetrahedral':
-            raise NotImplementedError("")
-            if len(values) != 4:
-                raise ValueError("Wrong length of array \"values\" in set_values for mesh type %s" % self.mesh_type)
-        self.values = values
-        self.initialized = True
-
-    def interp(self, x, y, z):
-        if not self.initialized:
-            raise ValueError("Interpolation not fully initialized")
-        if self.mesh_type == 'cubic':
-            if self.interpol_scheme == 'trilin':
-                return self.interp_cubic_trilin(x, y, z)
-            elif self.interpol_scheme == 'tricub':
-                return self.interp_cubic_tricub(x, y, z)
-            elif self.interpol_scheme == 'tripen':
-                return self.interp_cubic_tripen(x, y, z)
-            elif self.interpol_scheme == 'tricos':
-                return self.interp_cubic_tricos(x, y, z)
-
-    def interp_cubic_trilin(self, x, y, z):
-        fx00 = self.values[0] + x * (self.values[1] - self.values[0])
-        fx10 = self.values[2] + x * (self.values[3] - self.values[2])
-        fx01 = self.values[4] + x * (self.values[5] - self.values[4])
-        fx11 = self.values[6] + x * (self.values[7] - self.values[6])
-        fxy0 = fx00 + y * (fx10 - fx00)
-        fxy1 = fx01 + y * (fx11 - fx01)
-        return fxy0 + z * (fxy1 - fxy0)
-
-    def interp_cubic_tricub(self, x, y, z):
-        px = -2 * x * x * x + 3 * x * x
-        fx00 = self.values[0] + px * (self.values[1] - self.values[0])
-        fx10 = self.values[2] + px * (self.values[3] - self.values[2])
-        fx01 = self.values[4] + px * (self.values[5] - self.values[4])
-        fx11 = self.values[6] + px * (self.values[7] - self.values[6])
-        py = -2 * y * y * y + 3 * y * y
-        fxy0 = fx00 + py * (fx10 - fx00)
-        fxy1 = fx01 + py * (fx11 - fx01)
-        return fxy0 + (-2 * z * z * z + 3 * z * z) * (fxy1 - fxy0)
-
-    def interp_cubic_tripen(self, x, y, z, k=None):
-        if k is None:
-            a = -4
-            b = 10
-            c = -10
-            d = 5
-        else:
-            a = -(24 + 16 * k)
-            b = 60 + 40 * k
-            c = -50 - 32 * k
-            d = 15 + 8 * k
-        px = a * x * x * x * x * x + b * x * x * x * x + c * x * x * x + d * x * x
-        fx00 = self.values[0] + px * (self.values[1] - self.values[0])
-        fx10 = self.values[2] + px * (self.values[3] - self.values[2])
-        fx01 = self.values[4] + px * (self.values[5] - self.values[4])
-        fx11 = self.values[6] + px * (self.values[7] - self.values[6])
-        py = a * y * y * y * y * y + b * y * y * y * y + c * y * y * y + d * y * y
-        fxy0 = fx00 + py * (fx10 - fx00)
-        fxy1 = fx01 + py * (fx11 - fx01)
-        return fxy0 + (a * z * z * z * z * z + b * z * z * z * z + c * z * z * z + d * z * z) * (fxy1 - fxy0)
-
-    def interp_cubic_tricos(self, x, y, z):
-        px = 0.5 - 0.5 * np.cos(np.pi * x)
-        fx00 = self.values[0] + px * (self.values[1] - self.values[0])
-        fx10 = self.values[2] + px * (self.values[3] - self.values[2])
-        fx01 = self.values[4] + px * (self.values[5] - self.values[4])
-        fx11 = self.values[6] + px * (self.values[7] - self.values[6])
-        py = 0.5 - 0.5 * np.cos(np.pi * y)
-        fxy0 = fx00 + py * (fx10 - fx00)
-        fxy1 = fx01 + py * (fx11 - fx01)
-        return fxy0 + (0.5 - 0.5 * np.cos(np.pi * z)) * (fxy1 - fxy0)
 
 
 def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
@@ -390,6 +202,7 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
     Given a list of values and a tolerance tol, returns the leftmost index for which
 
         abs(value[i] - vinf) < tol if mode == "abs"
+
     or
         abs(value[i] - vinf) / vinf < tol if mode == "rel"
 
@@ -420,3 +233,124 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
         if (numpts - i - 1) < min_numpts: i = -2
 
     return i + 1
+
+
+class BlochRegularGridInterpolator(object):
+    """
+    This object interpolates the periodic part of a Bloch state in real space.
+    """
+
+    def __init__(self, structure, datar, add_replicas=True):
+        """
+        Args:
+            structure: :class:`Structure` object.
+            datar: [ndt, nx, ny, nz] array.
+            add_replicas: If True, data is padded with redundant data points.
+                in order to have a periodic 3D array of shape=[ndt, nx+1, ny+1, nz+1].
+        """
+        from scipy.interpolate import RegularGridInterpolator
+        self.structure = structure
+
+        if add_replicas:
+            datar = add_periodic_replicas(datar)
+
+        self.dtype = datar.dtype
+        # We want a 4d array (ndt arrays of shape (nx, ny, nz)
+        nx, ny, nz = datar.shape[-3:]
+        datar = np.reshape(datar, (-1,) + (nx, ny, nz))
+        self.ndt = len(datar)
+        x = np.linspace(0, 1, num=nx)
+        y = np.linspace(0, 1, num=ny)
+        z = np.linspace(0, 1, num=nz)
+
+        # Build `ndt` interpolators. Note that RegularGridInterpolator supports
+        # [nx, ny, nz, ...] arrays but then each call operates on the full set of
+        # ndt components and this complicates the declation of callbacks
+        # operating on a single component.
+        self._interpolators = [None] * self.ndt
+        for i in range(self.ndt):
+            self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i])
+
+    def eval_line(self, point1, point2, num=200, cartesian=False, kpoint=None):
+        """
+        Interpolate values along a line.
+
+        Args:
+            point1: First point of the line. Accepts 3d vector or integer.
+                The vector is in reduced coordinates unless `cartesian == True`.
+                If integer, the first point of the line is given by the i-th site of the structure
+                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
+            point2: Second point of the line. Same API as `point1`.
+            num: Number of points sampled along the line.
+            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+                coordinates (if not integers). Use True to pass points in cartesian coordinates.
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+        Return: named tuple with
+            site1, site2: None if the points do not represent atomic sites.
+            points: Points in fractional coords.
+            dist: the distance of points along the line in Ang.
+            values: numpy array of shape [ndt, num] with interpolated values.
+        """
+        site1 = None
+        if duck.is_intlike(point1):
+            if point1 > len(self.structure):
+                raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
+            site1 = self.structure[point1]
+            point1 = site1.coords if cartesian else site1.frac_coords
+
+        site2 = None
+        if duck.is_intlike(point2):
+            if point2 > len(self.structure):
+                raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
+            site2 = self.structure[point2]
+            point2 = site2.coords if cartesian else site2.frac_coords
+
+        point1 = np.reshape(point1, (3,))
+        point2 = np.reshape(point2, (3,))
+        if cartesian:
+            red_from_cart = self.structure.lattice.inv_matrix.T
+            point1 = np.dot(red_from_cart, point1)
+            point2 = np.dot(red_from_cart, point2)
+
+        p21 = point2 - point1
+        line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
+        dist = self.structure.lattice.norm(line_points)
+        line_points += point1
+
+        return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
+                               values=self.eval_points(line_points, kpoint=kpoint))
+
+    def eval_points(self, frac_coords, idt=None, cartesian=False, kpoint=None):
+        """
+        Interpolate values on an arbitrary list of points.
+
+        Args:
+            frac_coords: List of points in reduced coordinates unless `cartesian`.
+            idt: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
+            cartesian: True if points are in cartesian coordinates.
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+        Return:
+            [ndt, npoints] array or [1, npoints] if idt is not None
+        """
+        frac_coords = np.reshape(frac_coords, (-1, 3))
+        if cartesian:
+            red_from_cart = self.structure.lattice.inv_matrix.T
+            frac_coords = [np.dot(red_from, v) for v in frac_coords]
+
+        uc_coords = np.reshape(frac_coords, (-1, 3)) % 1
+
+        if idt is None:
+            values = np.empty((self.ndt, len(uc_coords)), dtype=self.dtype)
+            for idt in range(self.ndt):
+                values[idt] = self._interpolators[idt](uc_coords)
+        else:
+            values = self._interpolators[idt](uc_coords)
+
+        if kpoint is not None:
+            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
+            kpoint = np.reshape(kpoint, (3,))
+            values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
+
+        return values

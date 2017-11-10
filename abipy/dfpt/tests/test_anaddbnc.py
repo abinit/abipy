@@ -16,8 +16,8 @@ class AnaddbNcFileTest(AbipyTest):
         anaddbnc_fname = abidata.ref_file("AlAs_nl_dte_anaddb.nc")
 
         with AnaddbNcFile(anaddbnc_fname) as anc:
-            repr(anc)
-            str(anc)
+            repr(anc); str(anc)
+            anc.to_string(verbose=1)
             assert anc.structure.formula == "Al1 As1"
             assert anc.becs is not None
             assert anc.emacro is not None

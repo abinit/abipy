@@ -3,13 +3,28 @@ tools Package
 
 
 :mod:`tools` Module
-===================
+-------------------
 
 .. automodule:: abipy.tools
    :members:
    :undoc-members:
    :show-inheritance:
 
+:mod:`bessel` Module
+--------------------
+
+.. automodule:: abipy.tools.bessel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`decorators` Module
+------------------------
+
+.. automodule:: abipy.tools.decorators
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 :mod:`derivatives` Module
 -------------------------
@@ -23,6 +38,14 @@ tools Package
 ----------------------
 
 .. automodule:: abipy.tools.devtools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`duck` Module
+------------------
+
+.. automodule:: abipy.tools.duck
    :members:
    :undoc-members:
    :show-inheritance:
@@ -51,10 +74,10 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`plotting_utils` Module
-----------------------------
+:mod:`plotting` Module
+----------------------
 
-.. automodule:: abipy.tools.plotting_utils
+.. automodule:: abipy.tools.plotting
    :members:
    :undoc-members:
    :show-inheritance:

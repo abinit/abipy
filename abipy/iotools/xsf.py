@@ -141,7 +141,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     fwrite('END_BLOCK_DATAGRID_3D\n')
 
 
-def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="eV"):
+def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="eV"):
     """
     Write band structure data in the Xcrysden format (XSF)
 
@@ -151,8 +151,10 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
         nsppol: Number of spins.
         nband: Number of bands.
         ndivs: Number of divisions of the full k-mesh.
-        emesh_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with the emesh_sbk in energy unit `unit`.
+        ucdata_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with energies
+            in the unic cell mesh in unit `unit`.
         fermie: Fermi energy.
+        unit=Unit of input `ucdata_sbk` and `fermie`. Energies will be converted to Hartree before writing.
 
     .. note::
 
@@ -166,10 +168,11 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
 
     See also http://www.xcrysden.org/doc/XSF.html
     """
-    emesh_sbk = EnergyArray(emesh_sbk, unit).to("Ha")
+    # Xscryden uses Ha for energies.
+    ucdata_sbk = EnergyArray(ucdata_sbk, unit).to("Ha")
     fermie = Energy(fermie, unit).to("Ha")
 
-    emesh_sbk = np.reshape(emesh_sbk, (nsppol, nband, np.product(ndivs)))
+    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.product(ndivs)))
 
     close_it = False
     if not hasattr(file, "write"):
@@ -204,9 +207,9 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, emesh_sbk, fermie, unit="e
     for band in range(nband):
         for spin in range(nsppol):
             idx += 1
-            enebz = emesh_sbk[spin, band, :]
+            enes = ucdata_sbk[spin, band, :]
             fw(" BAND: %d\n" % idx)
-            fw("\n".join("%.18e" % v for v in enebz))
+            fw("\n".join("%.18e" % v for v in enes))
             fw("\n")
 
     fw(' END_BANDGRID_3D\n')

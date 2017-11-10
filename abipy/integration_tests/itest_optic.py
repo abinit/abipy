@@ -9,9 +9,8 @@ import abipy.flowtk as flowtk
 from abipy.core.testing import has_abinit
 
 
-
 def make_inputs(tvars):
-    """Constrcut the input files."""
+    """Construct input files."""
     structure = abidata.structure_from_ucell("GaAs")
 
     multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
@@ -67,11 +66,12 @@ def make_inputs(tvars):
     # scf_inp, nscf_inp, ddk1, ddk2, ddk3
     return multi.split_datasets()
 
+
 def itest_optic_flow(fwp, tvars):
     """Test optic calculations."""
     if tvars.paral_kgb == 1:
         pytest.xfail("Optic flow with paral_kgb==1 is expected to fail (implementation problem)")
-        
+
     """
     0.002         ! Value of the smearing factor, in Hartree
     0.0003  0.3   ! Difference between frequency values (in Hartree), and maximum frequency ( 1 Ha is about 27.211 eV)
@@ -94,7 +94,6 @@ def itest_optic_flow(fwp, tvars):
         nonlin_comp=(123, 222),
     )
     print(optic_input)
-    #raise ValueError()
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
@@ -117,7 +116,7 @@ def itest_optic_flow(fwp, tvars):
         task.start_and_wait()
         assert task.status == task.S_DONE
 
-    flow.check_status()
+    flow.check_status(show=True)
     assert flow.all_ok
 
     # Optic does not support MPI with ncores > 1 hence we have to construct a manager with mpi_procs==1
@@ -155,8 +154,7 @@ def itest_optic_flow(fwp, tvars):
     optic_task2.start_and_wait()
     assert optic_task2.status == optic_task2.S_DONE
 
-    flow.check_status()
-    flow.show_status()
+    flow.check_status(show=True)
     assert flow.all_ok
     assert all(work.finalized for work in flow)
 

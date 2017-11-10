@@ -1,14 +1,16 @@
 #!/usr/bin/env python
-"""
-This example shows how to analyze multiple MDF files
+r"""
+Multiple Bethe-Salpeter calculations
+====================================
+
+This example shows how to analyze multiple MDF files.
 """
 import abipy.data as abidata
-from abipy.abilab import abiopen
-from abipy.abio.robots import MdfRobot
+from abipy import abilab
 
 # Read data from multiple files.
 mdf_paths = abidata.ref_files("si_444_MDF.nc", "si_666_MDF.nc", "si_888_MDF.nc")
-robot = MdfRobot.from_files(mdf_paths)
+robot = abilab.MdfRobot.from_files(mdf_paths)
 
 # Build MultipleMdfPlotter
 plotter = robot.get_multimdf_plotter()

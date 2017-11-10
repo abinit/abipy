@@ -27,7 +27,7 @@ The related abinit variables
     * ndivsm    (number of points used to sample the smallest segment of the k-path)
 
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals, absolute_import
 
 
 _ipython_lesson_ = """

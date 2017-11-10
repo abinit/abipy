@@ -10,10 +10,6 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
-# Tests in this module require abinit >= 7.9.0
-#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
-
-
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
     Returns two input files: GS run and NSCF on a high symmetry k-mesh
@@ -40,6 +36,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
     # Dataset 1 (GS run)
     multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    #multi[0].set_vars(prtden=1, prtpot=1, prtvha=1, prtvxc=1, prtvhxc=1)
     multi[0].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
@@ -86,7 +83,6 @@ def itest_unconverged_scf(fwp, tvars):
     assert t0.status == t0.S_UNCONVERGED
     # Unconverged with smart-io --> WFK must be there
     assert t0.outdir.has_abiext("WFK")
-    #assert 0
 
     # Remove nstep from the input so that we use the default value.
     # Then restart the GS task and test that GS is OK.
@@ -125,7 +121,7 @@ def itest_unconverged_scf(fwp, tvars):
 
     # Test inspect methods
     if has_matplotlib():
-        t0.inspect(show=False)
+        assert t0.inspect(show=False)
 
     # Test get_results
     t0.get_results()
@@ -133,8 +129,6 @@ def itest_unconverged_scf(fwp, tvars):
 
     # Build tarball file.
     tarfile = flow.make_tarfile()
-
-    #assert flow.validate_json_schema()
 
     # Test reset_from_scratch
     t0.reset_from_scratch()
@@ -219,7 +213,7 @@ def itest_bandstructure_flow(fwp, tvars):
     assert t1.status == t1.S_OK
     assert not t1.can_run
 
-    # This one does not work yet
+    # FIXME This one does not work yet
     #fired = t1.restart()
     #atrue(fired)
     #t1.wait()
@@ -237,7 +231,7 @@ def itest_bandstructure_flow(fwp, tvars):
         assert len(task.outdir.list_filepaths(wildcard="*GSR.nc")) == 1
 
     # Test GSR robot
-    with abilab.abirobot(flow, "GSR") as robot:
+    with abilab.Robot.from_flow(flow, ext="GSR") as robot:
         table = robot.get_dataframe()
         assert table is not None
         print(table)
@@ -247,15 +241,16 @@ def itest_bandstructure_flow(fwp, tvars):
     print(timer)
 
     if has_matplotlib():
-        timer.plot_pie(show=False)
-        timer.plot_stacked_hist(show=False)
-        timer.plot_efficiency(show=False)
+        assert timer.plot_pie(show=False)
+        assert timer.plot_stacked_hist(show=False)
+        assert timer.plot_efficiency(show=False)
 
     # Test CUT3D API provided by DensityFortranFile.
     den_path = t0.outdir.has_abiext("DEN")
     assert den_path
     if not den_path.endswith(".nc"):
         denfile = abilab.DensityFortranFile(den_path)
+        str(denfile)
         workdir = flow.outdir.path
         denfile.get_cube("den.cube", workdir=workdir)
         denfile.get_xsf("den.xsf", workdir=workdir)
@@ -263,9 +258,10 @@ def itest_bandstructure_flow(fwp, tvars):
         denfile.get_molekel("den.molekel", workdir=workdir)
         denfile.get_3d_indexed("den.data_indexed", workdir=workdir)
         denfile.get_3d_formatted("den.data_formatted", workdir=workdir)
-
-    #assert flow.validate_json_schema()
-    #assert 0
+        # This feature requires Abinit 8.5.2
+        if flow.manager.abinit_build.version_ge("8.5.2"):
+            den = denfile.get_density(workdir=workdir)
+            assert den.structure is not None and hasattr(den, "datar")
 
 
 def itest_bandstructure_schedflow(fwp, tvars):
@@ -308,23 +304,19 @@ def itest_bandstructure_schedflow(fwp, tvars):
             print(gsr)
             assert gsr.nsppol == 1
             #assert gsr.structure == structure
-            ebands = gsr.ebands
 
             # TODO: This does not work yet because GSR files do not contain
             # enough info to understand if we have a path or a mesh.
-            #if i == 2:
+            #if i == 1:
                 # Bandstructure case
-                #assert ebands.has_bzpath
-                #with pytest.raises(ebands.Error):
-                #    ebands.get_edos()
+                #assert gsr.ebands.has_bzpath
+                #with pytest.raises(ValueError):
+                #    gse.ebands.get_edos()
 
-            #if i == 3:
+            #if i == 2:
             #    # DOS case
-            #    assert ebands.has_bzmesh
-            #    gsr.bands.get_edos()
-
-    #assert flow.validate_json_schema()
-    #assert 0
+            #    assert gsr.ebands.has_bzmesh
+            #    gsr.ebands.get_edos()
 
 
 def itest_htc_bandstructure(fwp, tvars):
@@ -363,22 +355,20 @@ def itest_htc_bandstructure(fwp, tvars):
     # Test if GSR files are produced and are readable.
     for i, task in enumerate(work):
         with task.open_gsr() as gsr:
-            print(gsr)
             assert gsr.nsppol == 1
             #assert gsr.structure == structure
-            ebands = gsr.ebands
+            if i == 0:
+                gsr.to_string(verbose=2)
 
-            # TODO: This does not work yet because GSR files do not contain
-            # enough info to understand if we have a path or a mesh.
-            #if i == 2:
+            if i == 1:
                 # Bandstructure case
-                #assert ebands.has_bzpath
-                #with pytest.raises(ebands.Error):
-                #    ebands.get_edos()
+                assert gsr.ebands.has_bzpath
+                assert not gsr.ebands.has_bzmesh
+                with pytest.raises(ValueError):
+                    gsr.ebands.get_edos()
 
-            if i == 3:
+            if i == 2:
                 # DOS case
-                assert ebands.has_bzmesh
-                gsr.bands.get_edos()
-
-    #assert flow.validate_json_schema()
+                assert gsr.ebands.has_bzmesh
+                assert not gsr.ebands.has_bzpath
+                gsr.ebands.get_edos()

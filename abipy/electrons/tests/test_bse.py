@@ -1,9 +1,11 @@
 """Tests for electrons.bse module"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
 import numpy as np
 import abipy.data as abidata
 
+from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.electrons.bse import *
 
@@ -50,7 +52,7 @@ class TestMDF_Reader(AbipyTest):
 
             rpa = mdf_file.get_mdf("rpa")
             repr(rpa); str(rpa)
-            rpa.to_string(with_info=True)
+            rpa.to_string(with_info=True, verbose=2)
             assert rpa.num_qpoints == 6
             assert rpa.num_qpoints == len(rpa.qfrac_coords)
             assert mdf_file.qpoints == rpa.qpoints
@@ -96,3 +98,29 @@ class MultipleMdfPlotterTest(AbipyTest):
 
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
+
+
+class MdfRobotTest(AbipyTest):
+
+    def test_mdf_robot(self):
+        """Testing MDF robot."""
+        robot = abilab.MdfRobot.from_dir(os.path.join(abidata.dirpath, "refs", "si_bse_kpoints"))
+        assert len(robot) == 3
+
+        robot = abilab.MdfRobot()
+        robot.scan_dir(os.path.join(abidata.dirpath, "refs", "si_bse_kpoints"))
+        assert len(robot) == 3
+        repr(robot); str(robot)
+
+        df = robot.get_dataframe(with_geo=True)
+        assert df is not None
+
+        plotter = robot.get_multimdf_plotter()
+        if self.has_matplotlib():
+            assert plotter.plot(show=False)
+            #robot.plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
+
+        if self.has_nbformat():
+            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        robot.close()

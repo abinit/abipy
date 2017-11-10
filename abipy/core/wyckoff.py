@@ -1,8 +1,12 @@
+"""
+This module provides functions to generate crystalline structures from Wyckoff positions
+or to retrieve Wyckoff parameters from a given structure.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 
-from monty.functools import lazy_property
+#from monty.functools import lazy_property
 from collections import Sequence, OrderedDict
 
 
@@ -98,13 +102,13 @@ class WyckoffPositions(Sequence):
 
     def params_from_frac_coords(self, frac_coords):
         """
-        Compute the wyckoff parameters from the fractional coordinates.
+        Compute the Wyckoff parameters from the fractional coordinates.
         """
         frac_coords = np.reshape(frac_coords, (-1, 3))
         assert len(self) == len(frac_coords)
         equations = []
         for i in range(len(self)):
-            eqs = self[i,:] - frac_coords[i,:]
+            eqs = self[i, :] - frac_coords[i, :]
             equations.extend(eqs)
 
         # Solve the problem.
@@ -123,10 +127,9 @@ class WyckoffPositions(Sequence):
         Return a numpy array with the difference between the
         wyckoff positions computed from the sympy expressions and the input frac_coords
         """
+        _validate_params(params, self)
         frac_coords = np.reshape(frac_coords, (-1, 3))
         assert len(self) == len(frac_coords)
-
-        _validate_params(params, self)
 
         frac_errors = np.empty((self.mult, 3))
         for i in range(len(self)):
@@ -134,15 +137,18 @@ class WyckoffPositions(Sequence):
                 frac_errors[i,j] = self[i,j].subs(params) - frac_coords[i,j]
 
         # Modulo lattice vector (with tolerance?)
-        frac_errors = frac_errors % 1
-        return frac_errors
+        return frac_errors % 1
 
 
 class Wyckoff(object):
     """
     """
+    #@classmethod
+    #def from_site2wpos_ordict(cls, site2wpos):
+    #    return cls(site2wpos)
+
     def __init__(self, site2wpos):
-        # Todo: Ordered dict.
+        # TODO: Ordered dict.
         d = {}
         for k, s in site2wpos.items():
             d[k] = WyckoffPositions.from_string(s)
@@ -159,7 +165,7 @@ class Wyckoff(object):
 
         return "\n".join(lines)
 
-    def gen_structure(self, lattice, site2params, to_unit_cell=False, struct_cls=None):
+    def generate_structure(self, lattice, site2params, to_unit_cell=False, struct_cls=None):
         """
         Generate structure object from `lattice` and dictionary `site2params`
         """
@@ -189,19 +195,19 @@ class Wyckoff(object):
         """
         Compute the value of the parameter given a Structure object.
         """
-        fcoords = structure.get_symbol2coords()
+        frac_coords = structure.get_symbol2coords()
 
         # Solve the problem.
         params = {}
         for elsym, wpos in self.site2wpos.items():
-            params[elsym] = wpos.params_from_frac_coords(fcoords[elsym])
+            params[elsym] = wpos.params_from_frac_coords(frac_coords[elsym])
 
         # Return results in a dict with symbol names.
         return params
 
     def error_of_params(self, params, structure):
-        fcoords = structure.get_symbol2coords()
+        frac_coords = structure.get_symbol2coords()
 
         for elsym, wpos in self.site2wpos.items():
-            frac_errors = wpos.error_of_params(params[elsym], fcoords[elsym])
+            frac_errors = wpos.error_of_params(params[elsym], frac_coords[elsym])
             print(frac_errors)

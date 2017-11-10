@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+DFPT SCF cycle
+==============
+
 This example shows how to plot the results of the DFPT
 self-consistent cycle reported in the main output file.
 """

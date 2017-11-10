@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+self-consistent GW
+==================
+
 This example shows how to visualize the SCGW QP amplitudes in the KS basis set.
 """
 import abipy.data as abidata

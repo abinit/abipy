@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Multiple phonon bands
+=====================
+
 This example shows how to plot several phonon band structures on a grid.
 
 We use two files produced by anaddb:

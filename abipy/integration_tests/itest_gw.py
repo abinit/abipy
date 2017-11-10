@@ -8,9 +8,6 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_abinit, has_matplotlib
 
-# Tests in this module require abinit >= 7.9.0
-#pytestmark = pytest.mark.skipif(not has_abinit("7.9.0"), reason="Requires abinit >= 7.9.0")
-
 
 def make_g0w0_inputs(ngkpt, tvars):
     """
@@ -111,8 +108,7 @@ def itest_g0w0_flow(fwp, tvars):
     for task in flow[0]:
         task.start_and_wait()
 
-    flow.check_status()
-    flow.show_status()
+    flow.check_status(show=True)
     assert all(work.finalized for work in flow)
     assert flow.all_ok
 
@@ -121,7 +117,7 @@ def itest_g0w0_flow(fwp, tvars):
     scr_task = flow[0][2]
     sig_task = flow[0][3]
 
-    # Test garbage)_collector
+    # Test garbage_collector
     # The WFK|SCR file should have been removed because we call set_garbage_collector
     assert not scf_task.outdir.has_abiext("WFK")
     assert not nscf_task.outdir.has_abiext("WFK")
@@ -132,10 +128,11 @@ def itest_g0w0_flow(fwp, tvars):
     sigfile = sig_task.outdir.list_filepaths(wildcard="*SIGRES.nc")[0]
     assert sigfile
     with abilab.abiopen(sigfile) as sigres:
+        sigres.to_string(verbose=2)
         assert sigres.nsppol == 1
 
     # Test SigmaTask inspect method
-    #if has_matplotlib
+    #if has_matplotlib():
         #sig_task.inspect(show=False)
 
     # Test get_results for Sigma and Scr
@@ -145,7 +142,7 @@ def itest_g0w0_flow(fwp, tvars):
     # Test SCR.nc file (this is optional)
     if scr_task.scr_path:
         with scr_task.open_scr() as scr:
-            print(scr)
+            scr.to_string(verbose=2)
             assert len(scr.wpts) == 2
             assert scr.nwre == 1 and scr.nwim == 1
             for iq, qpoint in enumerate(scr.qpoints[:2]):
@@ -267,49 +264,3 @@ def itest_htc_g0w0(fwp, tvars):
     assert all(work.finalized for work in flow)
 
     #assert flow.validate_json_schema()
-
-
-# TODO
-#def itest_bse_with_mdf(fwp, tvars):
-#    pseudos = abidata.pseudos("14si.pspnc")
-#    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-#
-#    kppa = scf_kppa = 1
-#    nscf_nband = 6
-#    nscf_ngkpt = [4,4,4]
-#    nscf_shiftk = [0.1, 0.2, 0.3]
-#    bs_loband = 2
-#    bs_nband = nscf_nband
-#    soenergy = 0.7
-#    mdf_epsinf = 12
-#    max_ncpus = 1
-#    ecuteps = 2
-#
-#    extra_abivars = dict(
-#        ecut=12,
-#        istwfk="*1",
-#    )
-#
-#    flow = flowtk.Flow(workdir=fwp.workdir, manager=fwp.manager)
-#
-#    # BSE calculation with model dielectric function.
-#    from pymatgen.io.abinit.calculations import bse_with_mdf
-#    work = bse_with_mdf(structure, pseudos, scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
-#                       ecuteps, bs_loband, bs_nband, soenergy, mdf_epsinf,
-#                       accuracy="normal", spin_mode="unpolarized", smearing=None,
-#                       charge=0.0, scf_solver=None, **extra_abivars)
-#
-#    flow.register_work(work)
-#    flow.allocate()
-#    flow.build_and_pickle_dump(abivalidate=True)
-#
-#    for task in flow:
-#        task.start_and_wait()
-#        assert task.status == task.S_DONE
-#
-#    flow.check_status()
-#    flow.show_status()
-#    assert all(work.finalized for work in flow)
-#    assert flow.all_ok
-#    assert flow.validate_json_schema()
-

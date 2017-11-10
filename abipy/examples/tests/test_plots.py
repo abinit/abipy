@@ -17,14 +17,16 @@ class TestPlots(AbipyTest):
     #    """Running _runplots script."""
     #    if not self.has_matplotlib():
     #        raise unittest.SkipTest("matplotlib is not installed")
-
     #    script = os.path.abspath(os.path.join(root, "..", "_runplots.py"))
     #    assert os.path.exists(script)
     #    assert os.system(script + " --backend Agg")
 
     def test_plots_with_exec(self):
         """Running plot script with exec."""
-        #raise unittest.SkipTest("Skipping matplotlib examples")
+        #if os.environ.get("TRAVIS"):
+        #    raise unittest.SkipTest("Skipping plot examples on TRAVIS")
+        # Travis issue
+
         if not self.has_matplotlib():
             raise unittest.SkipTest("matplotlib is not installed")
 
@@ -47,8 +49,9 @@ class TestPlots(AbipyTest):
             count += 1
             path = os.path.join(plot_dir, fname)
             try:
+                #execfile(path)
                 with open(path, "rt") as fh:
-                    exec(fh.read())
+                    exec(fh.read(), {}, {})
             except Exception:
                 errors.append("file %s\n %s" % (path, self.straceback()))
             plt.close("all")
@@ -56,8 +59,8 @@ class TestPlots(AbipyTest):
         print("Tested ", count, "plot scripts")
         assert count > 0
         if errors:
-            for i, e in enumerate(errors):
-                print(80 * "*")
-                print(i, e)
-                print(80 * "*")
-        assert not errors
+            #for i, e in enumerate(errors):
+            #    print(80 * "*")
+            #    print(i, e)
+            #    print(80 * "*")
+            raise RuntimeError("\n\n".join(str(e) for e in errors))

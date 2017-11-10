@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-"""
-This example shows how to use seaborn to draw a box plot showing the distributions
-of eigenvalues with respect to the band index.
+r"""
+Seaborn boxplot
+===============
+
+This example shows how to use seaborn to draw a box plot 
+showing the distributions of eigenvalues with respect to the band index.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata

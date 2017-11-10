@@ -26,8 +26,24 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`ddk` Module
+-----------------
+
+.. automodule:: abipy.electrons.ddk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`denpot` Module
+--------------------
+
+.. automodule:: abipy.electrons.denpot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`ebands` Module
----------------------
+--------------------
 
 .. automodule:: abipy.electrons.ebands
    :members:
@@ -42,6 +58,14 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`fold2bloch` Module
+------------------------
+
+.. automodule:: abipy.electrons.fold2bloch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gsr` Module
 -----------------
 
@@ -51,28 +75,29 @@ electrons Package
    :show-inheritance:
 
 :mod:`gw` Module
----------------------
+----------------
 
 .. automodule:: abipy.electrons.gw
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`denpot` Module
-----------------------
+:mod:`optic` Module
+-------------------
 
-.. automodule:: abipy.electrons.denpot
+.. automodule:: abipy.electrons.optic
    :members:
    :undoc-members:
    :show-inheritance:
 
 :mod:`psps` Module
-----------------------
+------------------
 
 .. automodule:: abipy.electrons.psps
    :members:
    :undoc-members:
    :show-inheritance:
+
 
 :mod:`scissors` Module
 ----------------------
@@ -83,7 +108,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`scr` Module
-----------------------
+-----------------
 
 .. automodule:: abipy.electrons.scr
    :members:

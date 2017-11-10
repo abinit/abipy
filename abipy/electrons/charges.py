@@ -1,5 +1,5 @@
 # coding: utf-8
-"""HirshfeldCharges"."""
+"""HirshfeldCharges."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from abipy.core.mixins import Has_Structure
@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-class HirshfeldCharges(Has_Structure, object):
+class HirshfeldCharges(Has_Structure):
 
     def __init__(self, charges, structure):
         self.charges = charges

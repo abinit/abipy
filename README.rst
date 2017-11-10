@@ -37,10 +37,10 @@ and the
 `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
 
 AbiPy supports both Python 2.7 as well as Python >= 3.4.
-Note however that Python 2.7 is more intensively tested than py3k especially at the level of workflows
+Python 2.7 is more intensively tested than py3k especially at the level of workflows
 so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
-Note, however, that the majority of the post-processing tools available in AbiPy require output files in
+Note that the majority of the post-processing tools available in AbiPy require output files in
 ``netcdf`` format so we strongly suggest to compile Abinit with netcdf support
 (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples
@@ -80,7 +80,6 @@ in the form of pre-compiled packages and ``netcdf4`` can be easily installed wit
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://pythonhosted.org/abipy/installation.html>`_.
-
 We are also working with the `Spack <https://github.com/LLNL/spack>`_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
@@ -131,10 +130,10 @@ to install the package in developmental mode
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
+To run the suite of unit tests, make sure you have ``pytest`` (recommended) 
 or ``nose`` installed and then just type::
 
-    $ py.test
+    $ pytest
 
 or::
 
@@ -150,7 +149,7 @@ In order to run the tests, you need a working set of Abinit executables and
 a ``manager.yml`` configuration file.
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
 
-    $ conda install abinit -c gmatteo
+    $ conda install abinit -c abinit
 
 For further information on the syntax of the configuration file, please consult the 
 `workflows <http://pythonhosted.org/abipy/workflows.html>`_ section.

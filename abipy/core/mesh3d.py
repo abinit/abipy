@@ -3,8 +3,9 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-from itertools import product as iproduct
 
+from itertools import product as iproduct
+from collections import deque
 from monty.functools import lazy_property
 from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
@@ -48,7 +49,7 @@ class Mesh3D(object):
             shape:
                 3 int's Number of grid points along axes.
             vectors:
-                unit cell vectors
+                unit cell vectors in real space.
 
         Attributes:
 
@@ -57,9 +58,9 @@ class Mesh3D(object):
         ``dv``      Volume per grid point.
         ==========  ========================================================
         """
-        self.shape = tuple( np.asarray(shape, np.int) )
+        self.shape = tuple(np.asarray(shape, np.int))
         self.size = np.prod(self.shape)
-        self.vectors = np.reshape(vectors, (3,3))
+        self.vectors = np.reshape(vectors, (3, 3))
 
         cross12 = np.cross(self.vectors[1], self.vectors[2])
         self.dv = abs(np.sum(self.vectors[0] * cross12.T)) / self.size
@@ -100,9 +101,9 @@ class Mesh3D(object):
         """The vector corresponding to the (ix, iy, iz) indices"""
         return ix * self.dvx + iy * self.dvy + iz * self.dvz
 
-    def to_string(self, prtvol=0):
-        s = self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
-        return s
+    def to_string(self, verbose=0):
+        """String representation."""
+        return self.__class__.__name__ + ": nx=%d, ny=%d, nz=%d" % self.shape
 
     @property
     def nx(self):
@@ -194,7 +195,9 @@ class Mesh3D(object):
         return np.reshape(arr, (-1,) + self.shape)
 
     def fft_r2g(self, fr, shift_fg=False):
-        """FFT of array fr given in real space."""
+        """
+        FFT of array fr given in real space.
+        """
         ndim, shape = fr.ndim, fr.shape
 
         if ndim == 1:
@@ -218,7 +221,9 @@ class Mesh3D(object):
         return fg / self.size
 
     def fft_g2r(self, fg, fg_ishifted=False):
-        """FFT of array fg given in G-space."""
+        """
+        FFT of array fg given in G-space.
+        """
         ndim, shape = fg.ndim, fg.shape
 
         if ndim == 1:
@@ -265,7 +270,9 @@ class Mesh3D(object):
     #    return new_mesh.fft_g2r(intp_datag)
 
     def integrate(self, fr):
-        """Integrate array(s) fr."""
+        """
+        Integrate array(s) fr.
+        """
         shape, ndim = fr.shape, fr.ndim
         assert self.size == np.prod(shape[-3:])
 
@@ -281,28 +288,51 @@ class Mesh3D(object):
 
     @lazy_property
     def gvecs(self):
-        """Array with the reduced coordinates of the G-vectors."""
+        """
+        Array with the reduced coordinates of the G-vectors.
+
+        .. note::
+
+            These are the G-vectors of the FFT box and should be used
+            when we compute quantities on the FFT mesh.
+            These vectors differ from the gvecs stored in `GSphere` that
+            are k-centered and enclosed by a sphere whose radius is defined by ecut.
+        """
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
         gy_list = np.rint(fftfreq(self.ny) * self.ny)
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
         #print(gz_list, gy_list, gx_list)
 
-        gvecs = np.empty((self.size,3), dtype=np.int)
+        gvecs = np.empty((self.size, 3), dtype=np.int)
 
         idx = -1
         for gx in gx_list:
             for gy in gy_list:
                 for gz in gz_list:
                     idx += 1
-                    gvecs[idx,:] = gx, gy, gz
+                    gvecs[idx, :] = gx, gy, gz
 
         return gvecs
+
+    @lazy_property
+    def gmods(self):
+        """[ng] array with $|G|$"""
+        gmet = np.dot(self.inv_vectors.T, self.inv_vectors)
+        gmods = np.empty(self.size)
+        for i, g in enumerate(self.gvecs):
+            gmods[i] = np.dot(g, np.dot(gmet, g))
+
+        return 2 * np.pi * np.sqrt(gmods)
+
+    #@lazy_property
+    #def gmax(self)
+    #    return self.gmods.max()
 
     @lazy_property
     def rpoints(self):
         """Array with the points in real space in reduced coordinates."""
         nx, ny, nz = self.nx, self.ny, self.nz
-        rpoints = np.empty((self.size,3))
+        rpoints = np.empty((self.size, 3))
 
         for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
             rpoints[ifft,:] = p1_fft[0]/nx, p1_fft[1]/ny, p1_fft[2]/nz

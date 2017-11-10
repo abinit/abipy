@@ -34,7 +34,6 @@ class GSphere(collections.Sequence):
         self.npw = self.gvecs.shape[0]
 
         self.istwfk = istwfk
-
         if istwfk != 1:
             raise NotImplementedError("istwfk %d is not implemented" % self.istwfk)
 
@@ -91,16 +90,16 @@ class GSphere(collections.Sequence):
                 self.istwfk == other.istwfk)
 
     def __ne__(self, other):
-        return not self == other
+        return not (self == other)
 
     def copy(self):
         """Deep copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
-    def to_string(self, prtvol=0):
+    def to_string(self, verbose=0):
         """String representation."""
         name = str(self.__class__)
-        s = name + ": kpoint = %(kpoint)s, ecut = %(ecut)f, npw = %(npw)d, istwfk = %(istwfk)d" % self.__dict__
+        s = name + ": kpoint: %(kpoint)s, ecut: %(ecut)f, npw: %(npw)d, istwfk: %(istwfk)d" % self.__dict__
         return s
 
     # TODO: Alias To be removed in 0.4

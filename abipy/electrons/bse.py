@@ -5,9 +5,10 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import itertools
-import collections
 import numpy as np
+import pandas as pd
 
+from collections import OrderedDict
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import marquee, is_string
@@ -19,6 +20,8 @@ from abipy.core.tensor import SymmetricTensor
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import set_axlims
 from abipy.tools import duck
+from abipy.abio.robots import Robot
+from abipy.electrons.ebands import RobotWithEbands
 
 
 __all__ = [
@@ -98,7 +101,7 @@ class DielectricTensor(object):
         Plot all the components of the tensor
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -199,14 +202,14 @@ class DielectricFunction(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, with_info=False):
+    def to_string(self, verbose=0, with_info=False):
         """String representation."""
         lines = []
         app = lines.append
         app(self.__class__.__name__)
         #app("calc_type: %s, has_lfe: %s, num_qpoints: %d" % (self.calc_type, self.has_lfe, self.num_qpoints))
         app("num_qpoints: %d" % (self.num_qpoints))
-        if with_info:
+        if with_info or verbose:
             app(str(self.info))
 
         return "\n".join(lines)
@@ -246,7 +249,7 @@ class DielectricFunction(object):
         Plot the MDF.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -339,15 +342,14 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """String representation."""
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-        app(marquee("Structure", mark="="))
-        app(str(self.structure))
+        app(self.structure.to_string(title="Structure"))
 
         app(marquee("Q-points", mark="="))
         app(str(self.qpoints))
@@ -468,8 +470,8 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nb.cells.extend([
             nbv.new_code_cell("mdf_file = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(mdf_file)"),
-            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Re')"),
-            nbv.new_code_cell("fig = mdf_file.plot_mdfs(cplx_mode='Im')"),
+            nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Re');"),
+            nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Im');"),
             # TODO:
             #nbv.new_code_cell("tensor_exc = mdf_file.get_tensor("exc")")
             #tensor_exc.symmetrize(mdf_file.structure)
@@ -553,7 +555,7 @@ class MdfPlotter(object):
         plotter.plot()
     """
     def __init__(self):
-        self._mdfs = collections.OrderedDict()
+        self._mdfs = OrderedDict()
 
     def add_mdf(self, label, mdf):
         """
@@ -574,7 +576,7 @@ class MdfPlotter(object):
         Get a matplotlib plot showing the MDFs.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
                 Options can be concated with "-".
@@ -657,7 +659,7 @@ class MultipleMdfPlotter(object):
 
     def __init__(self):
         # [label][mdf_type] --> DielectricFunction
-        self._mdfs = collections.OrderedDict()
+        self._mdfs = OrderedDict()
 
     def __str__(self):
         return self.to_string()
@@ -685,7 +687,7 @@ class MultipleMdfPlotter(object):
         if label in self._mdfs:
             raise ValueError("label: %s already in: %s" % (label, list(self._mdfs.keys())))
 
-        self._mdfs[label] = collections.OrderedDict()
+        self._mdfs[label] = OrderedDict()
 
         if is_string(obj):
             # Open the file.
@@ -806,7 +808,7 @@ class MultipleMdfPlotter(object):
         Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: matplotlib `Axes` or None if a new figure should be created.
             mdf_type:
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
@@ -900,3 +902,103 @@ class MultipleMdfPlotter(object):
         if not all(os.path.exists(l) for l in self._mdfs): return False
         labels = [os.path.basename(l) for l in self._mdfs]
         return len(set(labels)) == len(labels)
+
+
+class MdfRobot(Robot, RobotWithEbands):
+    """
+    This robot analyzes the results contained in multiple MDF files.
+    """
+    EXT = "MDF"
+
+    def get_multimdf_plotter(self, cls=None):
+        """
+        Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.
+        """
+        from abipy.electrons.bse import MultipleMdfPlotter
+        plotter = MultipleMdfPlotter() if cls is None else cls()
+
+        for label, mdf in self:
+            plotter.add_mdf_file(label, mdf)
+
+        return plotter
+
+    def get_dataframe(self, with_geo=False, abspath=False, funcs=None, **kwargs):
+        """
+        Build and return Pandas dataframe with the most import BSE results.
+        and the filenames as index.
+
+        Args:
+            with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`MdfFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+
+        Return:
+            pandas DataFrame
+        """
+        rows, row_names = [], []
+        for i, (label, mdf) in enumerate(self):
+            row_names.append(label)
+            d = OrderedDict([
+                ("exc_mdf", mdf.exc_mdf),
+                ("rpa_mdf", mdf.rpanlf_mdf),
+                ("gwrpa_mdf", mdf.gwnlf_mdf),
+            ])
+            #d = {aname: getattr(mdf, aname) for aname in attrs}
+            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+
+            # Add convergence parameters
+            d.update(mdf.params)
+
+            # Add info on structure.
+            if with_geo:
+                d.update(mdf.structure.get_dict4frame(with_spglib=True))
+
+            # Execute functions.
+            if funcs is not None: d.update(self._exec_funcs(funcs, mdf))
+            rows.append(d)
+
+        row_names = row_names if not abspath else _to_relpaths(row_names)
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    #@add_fig_kwargs
+    #def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
+    #    import matplotlib.pyplot as plt
+    #    frame = self.get_dataframe()
+    #    grouped = frame.groupby(hue)
+
+    #    fig, ax_list = plt.subplots(nrows=len(grouped), ncols=1, sharex=True, sharey=True, squeeze=True)
+
+    #    for i, (hue_val, group) in enumerate(grouped):
+    #        #print(group)
+    #        mdfs = group[mdf_type]
+    #        ax = ax_list[i]
+    #        ax.set_title("%s = %s" % (hue, hue_val))
+    #        for mdf in mdfs:
+    #            mdf.plot_ax(ax)
+
+    #    return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
+            nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
+            nbv.new_code_cell('plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None);'),
+            #nbv.new_code_cell(plotter.combiboxplot();"),
+        ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+        nb.cells.extend(self.get_ebands_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)

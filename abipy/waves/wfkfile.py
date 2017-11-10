@@ -6,8 +6,9 @@ import six
 import numpy as np
 
 from monty.functools import lazy_property
+from monty.string import marquee # is_string, list_strings,
 from abipy.core import Mesh3D, GSphere, Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader, Visualizer
 from abipy.electrons.ebands import ElectronsReader
 from abipy.waves.pwwave import PWWaveFunction
@@ -18,7 +19,7 @@ __all__ = [
 ]
 
 
-class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This object provides a simple interface to access and analyze
     the data stored in the WFK file produced by ABINIT.
@@ -30,15 +31,13 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         wfk = WfkFile("foo_WFK.nc")
 
         # Plot band energies.
-        wfk.plot_ebands()
+        wfk.ebands.plot_ebands()
 
         # Visualize crystalline structure with vesta.
-        visu = wfk.visualize_structure_with("vesta")
-        visu()
+        visu = wfk.visualize_structure_with("vesta")()
 
         # Visualize u(r)**2 with vesta.
-        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu="vesta")
-        visu()
+        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu_name="vesta")()
 
         # Get a wavefunction.
         wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)
@@ -49,13 +48,11 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         super(WfkFile, self).__init__(filepath)
         self.reader = reader = WFK_Reader(filepath)
+        assert reader.has_pwbasis_set
 
         # Read the electron bands
         self._ebands = reader.read_ebands()
 
-        assert reader.has_pwbasis_set
-        assert reader.cplex_ug == 2
-        self.nspinor = reader.nspinor
         self.npwarr = reader.npwarr
         self.nband_sk = reader.nband_sk
 
@@ -100,24 +97,24 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, prtvol=0):
+    def to_string(self, verbose=0):
         """
         String representation
 
         Args:
-            prtvol: verbosity level.
+            verbose: verbosity level.
         """
-        keys = ["nspinor", "nspden"]
-        lines = []
-        app = lines.append
-        for k in keys:
-            try:
-                value = self.__dict__[k]
-                if prtvol == 0 and isinstance(value, np.ndarray):
-                    continue
-                app("%s = %s" % (k, value))
-            except KeyError:
-                pass
+        lines = []; app = lines.append
+
+        app(marquee("File Info", mark="="))
+        app(self.filestat(as_string=True))
+        app("")
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
+
+        if verbose > 1:
+            app("")
+            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 
@@ -137,18 +134,17 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             returns:
                 :class:`WaveFunction` instance.
         """
-        k = self.kindex(kpoint)
+        ik = self.kindex(kpoint)
 
-        if (spin not in range(self.nsppol) or
-            k not in range(self.nkpt) or
-            band not in range(self.nband_sk[spin, k])):
+        if (spin not in range(self.nsppol) or ik not in range(self.nkpt) or
+            band not in range(self.nband_sk[spin, ik])):
             raise ValueError("Wrong (spin, band, kpt) indices")
 
         ug_skb = self.reader.read_ug(spin, kpoint, band)
 
         # Istantiate the wavefunction object and set the FFT mesh
         # using the divisions reported in the WFK file.
-        wave = PWWaveFunction(self.nspinor, spin, band, self.gspheres[k], ug_skb)
+        wave = PWWaveFunction(self.structure, self.nspinor, spin, band, self.gspheres[ik], ug_skb)
         wave.set_mesh(self.fft_mesh)
 
         return wave
@@ -165,11 +161,11 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Export data uding the format specified by filename.
         if visu is None:
-            return wave.export_ur2(filepath, self.structure)
+            return wave.export_ur2(filepath)
         else:
-            return wave.export_ur2(filepath, self.structure, visu=visu)
+            return wave.export_ur2(filepath, visu=visu)
 
-    def visualize_ur2(self, spin, kpoint, band, visu_name):
+    def visualize_ur2(self, spin, kpoint, band, visu_name="vesta"):
         """
         Visualize :math:`|u(r)|^2`  with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
@@ -185,6 +181,92 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         else:
             raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
 
+    #def classify_states(self, spin, kpoint, band_range=None, energy_range=None, atol=1e-3):
+    #    """
+    #    Classify electronic eigenstates
+
+    #    Args:
+    #        spin: spin index. Must be in (0, 1)
+    #        kpoint: Either :class:`Kpoint` instance or integer giving the sequential index in the IBZ (C-convention).
+    #        band_range: Define the set of bands included in the classification. See also `energy_range`.
+    #            `None` means all bands available in the WFK file. Accepts also range object, use e.g.
+    #            `band_range=(0, 5)` to include [0, 1, 2, 3, 4].
+    #        energy_range: Define the set of bands included in the classification. Mutually exclusive with `band_range`.
+    #            Accepts: "gap"
+    #        atol: Absolute tolerance on the energy in eV. Two states are considered degerate if
+    #            their energy differ by less than `atol`.
+
+    #    Return:
+    #    """
+    #    if band_range is not None and energy_range is not None:
+    #        raise ValueError("band_range and energy_range are mutually exclusive.")
+
+    #    if energy_range is None:
+    #        bids = ... if band_range is None else list(range(band_range))
+    #    else:
+    #        raise NotImplementedError("energy_range")
+
+    #    # Find little group of the k-point.
+    #    ik = self.kindex(kpoint)
+    #    kpoint = self.kpoints[ik]
+    #    lgk = self.structure.abi_spacegroup.find_little_group(kpoint)
+    #    #wclass = WavefuntionsClassifier(kpoint)
+
+    #    # Select bands to include, find degenerate states and group them.
+    #    from abipy.core.skw import find_degs_sk
+    #    enes = self.ebands.eigens[spin, ik, bids]
+    #    deg_list = find_degs_sk(enes, atol)
+
+    #    for deg in deg_list:
+    #        print("deg", deg)
+    #        nb = len(deg)
+    #        waves = [self.get_wave(spin, ik, band) for band in deg]
+    #        mats = []
+    #        for iclass, op_class in enumerate(lgk.groupby_class()):
+    #            op = op_class[0]
+    #            #print("op_class[0]\n", op)
+    #            #op_waves = [wave.rotate(op) for wave in waves]
+    #            op_waves = waves
+
+    #            # Compute <u1|Op|u2>
+    #            cmat = np.empty((nb, nb), dtype=np.complex)
+    #            for i in range(nb):
+    #                #print("int", waves[i].norm2())
+    #                for j in range(nb):
+    #                    cmat[i, j] = waves[i].braket(op_waves[j], space="r")
+    #                    #cmat[i, j] = 1.0
+
+    #            print(cmat)
+    #            mats.append(cmat)
+
+    #        #if wclass.classify_characters(deg, mats) /= 0:
+    #        #    cprint("Warning")
+    #        #    wclass.classify_characters_accidental(deg, full_mats)
+
+    #    #return wclass
+
+    def ipw_visualize_widget(self):
+        """
+        Return an ipython widget with controllers to visualize the wavefunctions.
+
+        .. warning::
+
+            It seems there's a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
+            as the tab in vesta is not updated!
+        """
+        def wfk_visualize(spin, kpoint, band, visu_name):
+            kpoint = int(kpoint.split()[0])
+            self.visualize_ur2(spin, kpoint, band, visu_name=visu_name)()
+
+        import ipywidgets as ipw
+        return ipw.interact_manual(
+                wfk_visualize,
+                spin=list(range(self.nsppol)),
+                kpoint=["%d %s" % (i, repr(kpt)) for i, kpt in enumerate(self.kpoints)],
+                band=list(range(self.nband)),
+                visu_name=[v.name for v in Visualizer.get_available()],
+            )
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -197,7 +279,11 @@ class WfkFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("print(wfk)"),
             nbv.new_code_cell("fig = wfk.ebands.plot()"),
             nbv.new_code_cell("fig = wfk.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = wfk.ebands.get_edos().plot()"),
+            nbv.new_code_cell("fig = wfk.ebands.plot()"),
+            nbv.new_code_cell("""\
+if wfk.ebands.kpoints.is_ibz:
+    fig = wfk.ebands.get_edos().plot()"""),
+            nbv.new_code_cell("wfk.ipw_visualize_widget()"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -211,12 +297,12 @@ class WFK_Reader(ElectronsReader):
         super(WFK_Reader, self).__init__(filepath)
 
         self.kpoints = self.read_kpoints()
-
         self.nfft1 = self.read_dimvalue("number_of_grid_points_vector1")
         self.nfft2 = self.read_dimvalue("number_of_grid_points_vector2")
         self.nfft3 = self.read_dimvalue("number_of_grid_points_vector3")
 
         self.cplex_ug = self.read_dimvalue("real_or_complex_coefficients")
+        assert self.cplex_ug == 2
 
         self.nspinor = self.read_dimvalue("number_of_spinor_components")
         self.nsppol = self.read_dimvalue("number_of_spins")
@@ -227,15 +313,8 @@ class WFK_Reader(ElectronsReader):
         self.istwfk = self.read_value("istwfk")
         self.npwarr = self.read_value("number_of_coefficients")
 
-        # G-vectors
+        # Store G-vectors
         self._kg = self.read_value("reduced_coordinates_of_plane_waves")
-
-        # Wavefunctions (complex array)
-        # TODO use variables to avoid storing the full block.
-        if self.cplex_ug == 2:
-            self.ug_block = self.read_value("coefficients_of_wavefunctions", cmode="c")
-        else:
-            raise NotImplementedError("")
 
     @lazy_property
     def basis_set(self):
@@ -272,13 +351,18 @@ class WFK_Reader(ElectronsReader):
         Read the set of G-vectors and the value of istwfk for the given k-point.
         Accepts :class:`Kpoint` object or integer.
         """
-        k = self.kindex(kpoint)
-        npw_k, istwfk = self.npwarr[k], self.istwfk[k]
-        return self._kg[k, :npw_k, :], istwfk
+        ik = self.kindex(kpoint)
+        npw_k, istwfk = self.npwarr[ik], self.istwfk[ik]
+        return self._kg[ik, :npw_k, :], istwfk
 
     def read_ug(self, spin, kpoint, band):
         """Read the Fourier components of the wavefunction."""
-        k = self.kindex(kpoint)
-        npw_k, istwfk = self.npwarr[k], self.istwfk[k]
-        # TODO use variables to avoid storing the full block.
-        return self.ug_block[spin, k, band, :, :npw_k]
+        ik = self.kindex(kpoint)
+        npw_k, istwfk = self.npwarr[ik], self.istwfk[ik]
+        if self.cplex_ug != 2:
+            raise NotImplementedError("")
+
+        # Read data from file (we don't store the full block full block in memory!).
+        var = self.rootgrp.variables["coefficients_of_wavefunctions"]
+        value = var[spin, ik, band, :, :npw_k, :]
+        return value[..., 0] + 1j*value[..., 1]  # Build complex array

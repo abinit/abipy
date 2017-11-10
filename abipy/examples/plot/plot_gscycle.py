@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Ground-state SCF cycle
+======================
+
 This example shows how to plot the results of the
 GS self-consistent cycle reported in the main output file.
 """

@@ -9,23 +9,30 @@ matrix:
     - os: linux
       python: 3.6
       env: PYTHON_VERSION=3.6
-    - os: osx
-      python: 2.7
-      language: generic
-      env: PYTHON_VERSION=2.7
+#    - os: osx
+#      python: 2.7
+#      language: generic
+#      env: PYTHON_VERSION=2.7
 
-sudo: required
-
+#dist: precise
+sudo: false
 install:
   #- sudo apt-get update
   - env
+
+  # pip-based installation.
+  #- pip install numpy
+  #- travis_wait pip install -q -r requirements.txt
+  #- travis_wait pip install -q -r requirements-optional.txt
 
   # Install conda https://conda.io/docs/travis.html
   - source dev_scripts/conda_installer.sh
 
   # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
   - conda install nomkl
-  - conda install gcc scipy sympy
+  #- conda install gcc 
+  #- conda install libgcc
+  #- conda install scipy sympy
   - conda install pandas
   - conda install netcdf4 
   # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
@@ -33,24 +40,37 @@ install:
   - pip install pytest scripttest nose nose-exclude
   - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install pep8 python-coveralls
-  - conda install matplotlib seaborn
-  - conda install ipython jupyter nbformat
-  - conda install -c conda-forge ipywidgets
+  #- conda install matplotlib seaborn
+  - pip install matplotlib seaborn
+  - pip install scikit-image
+  #- conda install ipython jupyter nbformat
+  - pip install ipython jupyter nbformat
+  #- conda install -c conda-forge ipywidgets
+  - pip install ipywidgets
 
   # Install abinit from abinit conda channel.
   - conda config --add channels conda-forge
-  - conda install -c abinit abinit=8.2.2
+  #- conda install -c abinit abinit=8.2.2
+  - conda install -c gmatteo abinit=8.6.1
+  - abinit --version
+  - abinit --build
+
+  # Mayavi (optional requirement)
+  #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
+  #- if [[ "${PYTHON_VERSION}" == "3.6" ]]; then conda install vtk && pip install mayavi; fi
+
+  # Get pymatgen from matsci
+  #- conda config --add channels matsci
+  #- conda install pymatgen
+
+  # Use my pymatgen fork
+  - git clone --depth=50 https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+
+  # Use pymatgen master
+  #- git clone --depth=50 https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
 
   # phonopy is not a requirement but we test scripts in data/runs that use it
   - conda install -c conda-forge phonopy
-
-  # Get pymatgen from matsci
-  - conda config --add channels matsci
-  - conda install pymatgen #=4.7.2
-  # Use my pymatgen fork
-  #- git clone https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
-  # pymatgen master
-  #- git clone https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
 
   - python setup.py install
   - mkdir -p ${HOME}/.abinit/abipy 
@@ -59,6 +79,11 @@ install:
   - ./dev_scripts/pyclean.py .
 
 before_script:
+    # This to run tests requiring a graphical user e.g. mayavi
+    # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
+    - "export DISPLAY=:99.0"
+    - "sh -e /etc/init.d/xvfb start"
+    - sleep 3 # give xvfb some time to start
     # https://github.com/travis-ci/travis-ci/issues/6307
     - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head; fi 
     - rm abipy/gui/__init__.py 

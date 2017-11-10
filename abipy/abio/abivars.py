@@ -10,7 +10,7 @@ from monty.string import is_string, boxed
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.structure import Structure, frames_from_structures
+from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.mixins import Has_Structure, TextFile, NotebookWriter
 
 import logging
@@ -84,7 +84,7 @@ def expand_star_syntax(s):
     >>> assert expand_star_syntax("3*2") == '2 2 2'
     >>> assert expand_star_syntax("2 *1") == '1 1'
     >>> assert expand_star_syntax("1 2*2") == '1 2 2'
-    >>> assert expand_star_syntax("*2") == '* 2'
+    >>> assert expand_star_syntax("*2") == '*2'
     """
     s = s.strip()
     if "*" not in s:
@@ -95,11 +95,12 @@ def expand_star_syntax(s):
 
     s = s.replace("*", " * ").strip()
     tokens = s.split()
+    #tokens = [c.rstrip().lstrip() for c in s.split()]
 
-    # Handle "*2" case i.e. return "* 2"
+    # Handle "*2" case i.e. return "*2"
     if len(tokens) == 2 and tokens[0] == "*":
         assert tokens[1] != "*"
-        return " ".join(tokens)
+        return "".join(tokens)
 
     #print(s, tokens)
     l = []
@@ -211,14 +212,43 @@ class Dataset(dict, Has_Structure):
             print("  kwargs", kwargs)
             raise exc
 
+    def get_vars(self):
+        """
+        Return dictionary with variables. The variables describing the crystalline structure
+        are removed from the output dictionary.
+        """
+        geovars = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
+        return {k: self[k] for k in self if k not in geovars}
+
     def __str__(self):
-        """string representation."""
+        return self.to_string()
+
+    def to_string(self, post=None, mode="text", verbose=0):
+        """
+        String representation.
+
+        Args:
+            post: String that will be appended to the name of the variables
+            mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
+        """
+        post = post if post is not None else ""
+        if mode == "html":
+            from abipy.abio.abivars_db import get_abinit_variables
+            var_database = get_abinit_variables()
+
         lines = []
         app = lines.append
         for k in sorted(list(self.keys())):
-            app("%s %s" % (k, str(self[k])))
+            vname = k + post
+            if mode == "html": vname = var_database[k].html_link(tag=vname)
+            app("%s %s" % (vname, str(self[k])))
 
-        return "\n".join(lines)
+        return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        return self.to_string(mode="html")
 
 
 class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
@@ -241,16 +271,15 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         super(AbinitInputFile, self).__init__(filepath)
 
         with open(filepath, "rt") as fh:
-            string = fh.read()
+            self.string = fh.read()
 
-        self.string = string
-        self.datasets = AbinitInputParser().parse(string)
+        self.datasets = AbinitInputParser().parse(self.string)
         self.ndtset = len(self.datasets)
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = []
         app = lines.append
@@ -261,16 +290,16 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
 
         # Print info on structure(s).
         if self.structure is not None:
-            app(self.structure.spglib_summary())
+            app(self.structure.spget_summary())
         else:
             structures = [dt.structure for dt in self.datasets]
             app("Input file contains %d structures:" % len(structures))
             for i, structure in enumerate(structures):
                 app(boxed("Dataset: %d" % (i+1)))
-                app(structure.spglib_summary())
+                app(structure.spget_summary())
                 app("")
 
-            dfs = frames_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
+            dfs = dataframes_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
             app(boxed("Tabular view (each row corresponds to a dataset structure)"))
             app("")
             app("Lattice parameters:")
@@ -280,6 +309,12 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
             app(str(dfs.coords))
 
         return "\n".join(lines)
+
+    def _repr_html_(self):
+        """Integration with jupyter notebooks."""
+        from abipy.abio.abivars_db import repr_html_from_abinit_string
+        return repr_html_from_abinit_string(self.string)
+        #return self.to_string(mode="html"))
 
     def close(self):
         """NOP, required by ABC."""
@@ -304,6 +339,8 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
                 return None
         return self.datasets[0].structure
 
+    #def to_abinit_input(self):
+
     def write_notebook(self, nbpath=None):
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -319,14 +356,14 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         has_multi_structures = self.structure is None
         if has_multi_structures:
             nb.cells.extend([
-                nbv.new_code_cell("""
+                nbv.new_code_cell("""\
 for dataset in inp.datasets:
     print(dataset.structure)"""),
             ])
 
         if self.ndtset > 1:
             nb.cells.extend([
-                nbv.new_code_cell("""
+                nbv.new_code_cell("""\
 for dataset in abinp.datasets:
     print(dataset)"""),
             ])
@@ -342,6 +379,7 @@ class AbinitInputParser(object):
         This function receives a string `s` with the Abinit input and return
         a list of :class:`Dataset` objects.
         """
+        # TODO: Parse PSEUDO section if present!
         # Remove comments from lines.
         lines = []
         for line in s.splitlines():
@@ -356,7 +394,6 @@ class AbinitInputParser(object):
         # 2) split string in tokens.
         # 3) Evaluate star syntax i.e. "3*2" ==> '2 2 2'
         # 4) Evaluate operators e.g. sqrt(0.75)
-
         tokens = " ".join(lines).split()
         # Step 3 is needed because we are gonna use python to evaluate the operators and
         # in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
@@ -621,6 +658,8 @@ def validate_input_parser(abitests_dir=None, input_files=None):
                 #    print(10*"=" + "Input File" + 10*"=")
                 #    print(fh.read())
                 #    print()
+            else:
+                cprint("NOTIMPLEMENTED", "magenta")
 
     if errpaths:
         cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
