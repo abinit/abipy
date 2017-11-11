@@ -413,7 +413,7 @@ class GsrRobot(Robot, RobotWithEbands):
             if funcs is not None: d.update(self._exec_funcs(funcs, gsr))
             rows.append(d)
 
-        row_names = row_names if not abspath else _to_relpaths(row_names)
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     # FIXME: EOS has been changed in pymatgen.

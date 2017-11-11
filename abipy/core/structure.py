@@ -180,6 +180,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
+        elif hasattr(obj, "final_structure"):
+            # This for HIST.nc file
+            return cls.as_structure(obj.final_structure)
 
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 

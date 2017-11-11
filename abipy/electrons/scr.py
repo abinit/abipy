@@ -153,7 +153,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, **kwargs):
-        """
+        r"""
         Plot the macroscopic dielectric function with local-field effects.
 
         Args:
@@ -188,7 +188,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_eelf(self, ax=None, xlims=None, **kwargs):
-        """
+        r"""
         Plot electron energy loss function.
 
         Args:
@@ -556,7 +556,7 @@ class _AwggMatrix(object):
 
     @add_fig_kwargs
     def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, **kwargs):
-        """
+        r"""
         Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
         Args:
@@ -609,7 +609,7 @@ class _AwggMatrix(object):
 
     @add_fig_kwargs
     def plot_gg(self, cplx_mode="abs", wpos=None, **kwargs):
-        """
+        r"""
         Use matplotlib imshow to plot :math:`W_{GG'}` matrix
 
         Args:

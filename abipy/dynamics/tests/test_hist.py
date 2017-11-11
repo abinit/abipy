@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals
 import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-from abipy.dynamics.hist import HistFile
+from abipy.dynamics.hist import HistFile, HistRobot
 
 
 class HistFileTest(AbipyTest):
@@ -67,3 +67,20 @@ class HistFileTest(AbipyTest):
             #assert hist.mvanimate(delay=100)
 
         hist.close()
+
+    def test_hist_robot(self):
+        """Test HistRobot."""
+        filepath = abidata.ref_file("sic_relax_HIST.nc")
+        with HistRobot.from_files(filepath) as robot:
+            robot.add_file("same hist", filepath)
+            repr(robot); str(robot)
+            assert robot.to_string(verbose=2)
+
+            # From base class
+            assert len(robot.get_structure_dataframes()) == 3
+
+            df = robot.get_dataframe()
+            assert "angle1" in df
+
+            if self.has_nbformat():
+                robot.write_notebook(nbpath=self.get_tmpname(text=True))

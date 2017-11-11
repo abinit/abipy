@@ -61,7 +61,7 @@ from abipy.dfpt.phonons import (PhbstFile, PhononBands, PhononBandsPlotter, Phdo
 from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.gruneisen import GrunsNcFile
-from abipy.dynamics.hist import HistFile
+from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 # TODO Change name. A2f?
 from abipy.eph.eph import EphFile, EphRobot
@@ -322,8 +322,7 @@ def abicheck(verbose=0):
 
 def abipy_logo1():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return r"""\
-
+    return r"""
                  `:-                                                               -:`
          --`  .+/`                              `                                  `/+.  .-.
    `.  :+.   /s-                   `yy         .yo                                   -s/   :+. .`
@@ -341,7 +340,7 @@ def abipy_logo1():
 
 def abipy_logo2():
     """http://www.text-image.com/convert/pic2ascii.cgi"""
-    return r"""\
+    return r"""
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
 MMMMMMMMMddNMMmoyNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNyomMMmhmMMMMMMMM
 MMMmmMMhomMMMy/hMMMMMMMMMMMMMMMMMMMN::MMMMMMMMMm:oMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMd+yMMMhomMmmMMM

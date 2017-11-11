@@ -81,7 +81,9 @@ def flowdir_wname_tname(dirname):
 
 
 def selected_nids(flow, options):
-    """Return the list of node ids selected by the user via the command line interface."""
+    """
+    Return the list of node ids selected by the user via the command line interface.
+    """
     task_ids = [task.node_id for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)]
 
     # Have to add the ids of the works containing the tasks.
@@ -273,10 +275,55 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
     status = [str(s) for s in status]
     df["task_class"] = task_classes
     df["ncfile"] = ncfiles
-    df["status"] = df["status"] = status
+    df["status"] = status
 
     if printout:
         abilab.print_dataframe(df, title="KS electronic bands:", precision=precision)
+
+    return df
+
+
+def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
+                      precision=3, printout=False, with_colors=False):
+    """
+    Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
+
+    Args:
+        nids: List of node identifiers. By defaults all nodes are shown
+        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        precision: Floating point output precision (number of significant digits).
+            This is only a suggestion
+        printout: True to print dataframe.
+        with_colors: True if task status should be colored.
+    """
+    #flow.check_status()
+    hist_paths, index, status, ncfiles, task_classes = [], [], [], [], []
+
+    for task in flow.iflat_tasks(nids=nids):
+        if task.status not in (flow.S_OK, flow.S_RUN): continue
+        hist_path = task.outdir.has_abiext("HIST")
+        if not hist_path: continue
+
+        hist_paths.append(hist_path)
+        index.append(task.pos_str)
+        status.append(task.status.colored if with_colors else str(task.status))
+        ncfiles.append(os.path.relpath(hist_path))
+        task_classes.append(task.__class__.__name__)
+
+    if not hist_paths: return
+    robot = abilab.HistRobot(*zip(hist_paths, hist_paths))
+    #robot = abilab.HistRobot.from_labels_paths(zip(hist_paths, hist_paths))
+    df = robot.get_dataframe(index=index, with_spglib=with_spglib)
+
+    # Add columns to the dataframe.
+    status = [str(s) for s in status]
+    df["task_class"] = task_classes
+    df["ncfile"] = ncfiles
+    df["status"] = status
+
+    if printout:
+        title = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n"
+        abilab.print_dataframe(df, title=title, precision=precision)
 
     return df
 
@@ -481,6 +528,8 @@ Usage example:
   abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
   abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
   abirun.py [FLOWDIR] ebands                => Print table with electronic properties.
+  abirun.py [FLOWDIR] hist                  => Print table with last iteratin in hist files.
+  abirun.py [FLOWDIR] cycles                => Print SCF cycles extracted from the output of the tasks.
   abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks
   abirun.py [FLOWDIR] tail                  => Use unix tail to follow the main output files of the flow.
   abirun.py [FLOWDIR] deps                  => Show task dependencies.
@@ -731,6 +780,10 @@ Specify the files to open. Possible choices:
         help="Plot data. Use --help for more info.")
     p_plot.add_argument("what", nargs="?", type=str, default="ebands", help="Object to plot.")
 
+    # Subparser for cycles.
+    p_cycles = subparsers.add_parser('cycles', parents=[copts_parser, flow_selector_parser],
+        help="Print SCF cycles extracted from the output of the tasks.")
+
     # Subparser for inspect.
     p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser],
         help="Call matplotlib to inspect the tasks (execute task.inspect method)")
@@ -754,6 +807,10 @@ Specify the files to open. Possible choices:
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, flow_selector_parser],
         help="Compare electronic bands produced by the tasks.")
+
+    # Subparser for hist command.
+    p_hist = subparsers.add_parser('hist', parents=[copts_parser, flow_selector_parser],
+        help="Compare HIST.nc files produced by the tasks.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('doc_manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -805,6 +862,11 @@ Specify the files to open. Possible choices:
         help="Exclude directories. Accept string or comma-separated strings. Ex: --exlude-dirs=indir,outdir")
     p_tar.add_argument("-l", "--light", default=False, action="store_true",
         help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
+
+    # Subparser for tricky.
+    p_tricky = subparsers.add_parser('tricky', parents=[copts_parser],
+        help=("Show tricky tasks i.e tasks that have been restarted, "
+              "launched more than once or tasks that have been corrected."))
 
     # Subparser for debug.
     p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser],
@@ -1231,6 +1293,15 @@ def main():
             except Exception as exc:
                 print(exc)
 
+    elif options.command == "cycles":
+        # Print SCF cycles.
+        for task, cycle in flow.get_task_cycles(nids=options.nids, wslice=options.wslice):
+            print()
+            cprint(repr(task), **task.status.color_opts)
+            print()
+            print(cycle)
+            print()
+
     elif options.command == "inspect":
         tasks = flow.select_tasks(nids=options.nids, wslice=options.wslice)
 
@@ -1281,6 +1352,10 @@ def main():
         flow_compare_ebands(flow, nids=selected_nids(flow, options), verbose=options.verbose,
                             with_spglib=False, printout=True, with_colors=not options.no_colors)
 
+    elif options.command == "hist":
+        flow_compare_hist(flow, nids=selected_nids(flow, options), verbose=options.verbose,
+                          with_spglib=False, printout=True, with_colors=not options.no_colors)
+
     elif options.command == "notebook":
         return flow_write_open_notebook(flow, options)
 
@@ -1300,6 +1375,9 @@ def main():
         else:
             tarfile = flow.make_light_tarfile()
             print("Created light tarball file %s" % tarfile)
+
+    elif options.command == "tricky":
+        flow.show_tricky_tasks(verbose=options.verbose)
 
     elif options.command == "debug":
         flow.debug(status=options.task_status, nids=selected_nids(flow, options))

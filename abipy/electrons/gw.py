@@ -1868,7 +1868,7 @@ class SigresRobot(Robot, RobotWithEbands):
             if funcs is not None: d.update(self._exec_funcs(funcs, sigres))
             rows.append(d)
 
-        row_names = row_names if not abspath else _to_relpaths(row_names)
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     def plot_conv_qpgap(self, x_vars, show=True, **kwargs):
