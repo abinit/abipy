@@ -7,10 +7,10 @@ hardware: &hardware
 
 job: &job
     mpi_runner: mpirun
-    shell_env:
-        PATH: $HOME/local/bin:$PATH
-    modules:
-        - python/2.7
+    shell_env:  # Use your abinit exec
+        PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH"
+    modules: # Abinit compiled with abiconfig settings
+        - openmpi/1.6.5/intel-13.0.1.117
     # pre_run is a string in verbatim mode (note |)
     pre_run: |
         ulimit unlimited
@@ -19,11 +19,14 @@ job: &job
 qadapters:
   - priority: 1
     queue:
-       qname: defq
        qtype: slurm
+       qname: Def
     limits:
-       timelimit: 3-0:0:0
+       timelimit: 0-0:30:00
        min_cores: 1
        max_cores: 12
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 10
     hardware: *hardware
     job: *job
