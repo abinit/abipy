@@ -8,22 +8,25 @@ hardware: &hardware
 job: &job
     mpi_runner: mpirun
     shell_env:
-        PATH: $HOME/local/bin:$PATH
+        PATH: "/gpfsuser/home/users/g/m/gmatteo/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
     modules:
-        - python/2.7
+        - intel/2015a
     # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit unlimited
+    #pre_run: |
+    #    "ulimit -s unlimited"
 
 # queues 
 qadapters:
   - priority: 1
     queue:
-       qname: defq
        qtype: slurm
+       qname: defq
     limits:
-       timelimit: 7-0:0:0
+       timelimit: 0-0:30:0
        min_cores: 1
        max_cores: 16
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 5
     hardware: *hardware
     job: *job
