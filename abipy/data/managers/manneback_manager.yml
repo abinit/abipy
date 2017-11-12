@@ -21,7 +21,7 @@ ObanIntel: &ObanIntel
 job: &job
     mpi_runner: mpirun
     shell_env:
-         PATH: /home/ucl/naps/vikumar/abinit-8.3.2/build/src/98_main:$PATH
+         PATH: /home/users/g/m/gmatteo/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH
     pre_run: |
         ulimit -s unlimited  # pre_run is a string in verbatim mode (note |)
         export OMP_NUM_THREADS=1
@@ -42,13 +42,13 @@ qadapters:
                 # This nodes must be excluded because they are not compatible with the Abinit build (SIGILL error).
                 exclude_nodes: mb-neh[070,201-212],mb-har[001-014],mb-har[101-116],mb-opt[111-116],mb-har[121-140],mb-sab[004,040,007,101-102],mb-wes[251-252],mb-ivy[205,206,208]
     limits:
-       timelimit: 03:59:00
+       timelimit: 00:30:00
        #timelimit_hard: 5-00:00:0
        min_cores: 1
        max_cores: 8
        hint_cores: 4
-       min_mem_per_proc: 3000
-       max_mem_per_proc: 5000
-       max_num_launches: 10
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 5
     job: *job
     hardware: *Def
