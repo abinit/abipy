@@ -13,6 +13,7 @@ class HistFileTest(AbipyTest):
         """Testing HistFile API."""
         hist = HistFile(abidata.ref_file("sic_relax_HIST.nc"))
         repr(hist); str(hist)
+        hist.to_string(verbose=2)
 
         an = hist.get_relaxation_analyzer()
         assert hist.num_steps == 7
@@ -55,8 +56,8 @@ class HistFileTest(AbipyTest):
 
         # Test matplotlib plots.
         if self.has_matplotlib():
-            hist.plot(show=False)
-            hist.plot_energies(show=False)
+            assert hist.plot(show=False)
+            assert hist.plot_energies(show=False)
 
         # Test notebook generation.
         if self.has_nbformat():

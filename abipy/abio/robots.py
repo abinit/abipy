@@ -29,7 +29,7 @@ class Robot(NotebookWriter):
 
     .. note::
 
-        __iter__  return (label, ncfile)
+        __iter__  returns (label, ncfile)
     """
     # TODO
     # 2) should  or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!

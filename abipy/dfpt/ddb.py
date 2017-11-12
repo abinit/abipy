@@ -832,22 +832,22 @@ bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20,
 
 phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
             nbv.new_markdown_cell("## q-point path"),
-            nbv.new_code_cell("fig = phbands.qpoints.plot()"),
+            nbv.new_code_cell("phbands.qpoints.plot();"),
             nbv.new_markdown_cell("## Phonon bands with DOS"),
-            nbv.new_code_cell("fig = phbands.plot_with_phdos(phdos, units=units)"),
+            nbv.new_code_cell("phbands.plot_with_phdos(phdos, units=units);"),
             nbv.new_markdown_cell("## Phonon fatbands with DOS"),
-            nbv.new_code_cell("fig = phbands.plot_fatbands(phdos_file=phdosfile, units=units)"),
+            nbv.new_code_cell("phbands.plot_fatbands(phdos_file=phdosfile, units=units);"),
             nbv.new_markdown_cell("## Distribution of phonon frequencies wrt mode index"),
-            nbv.new_code_cell("fig = phbands.boxplot(units=units)"),
+            nbv.new_code_cell("phbands.boxplot(units=units);"),
             nbv.new_markdown_cell("## Phonon band structure with different color for each line"),
-            nbv.new_code_cell("fig = phbands.plot_colored_matched(units=units)"),
+            nbv.new_code_cell("phbands.plot_colored_matched(units=units);"),
             nbv.new_markdown_cell("## Type-projected phonon DOS."),
-            nbv.new_code_cell("fig = phdosfile.plot_pjdos_type(units=units)"),
+            nbv.new_code_cell("phdosfile.plot_pjdos_type(units=units);"),
             nbv.new_markdown_cell("## Type-projected phonon DOS decomposed along the three reduced directions"),
-            nbv.new_code_cell("fig = phdosfile.plot_pjdos_redirs_type(units=units)"),
-            nbv.new_code_cell("#fig = phdosfile.plot_pjdos_redirs_site(units=units)"),
+            nbv.new_code_cell("phdosfile.plot_pjdos_redirs_type(units=units);"),
+            nbv.new_code_cell("#phdosfile.plot_pjdos_redirs_site(units=units);"),
             nbv.new_markdown_cell("## Thermodinamic properties within the harmonic approximation"),
-            nbv.new_code_cell("fig = phdosfile.phdos.plot_harmonic_thermo(tstart=5, tstop=300)"),
+            nbv.new_code_cell("phdosfile.phdos.plot_harmonic_thermo(tstart=5, tstop=300);"),
 
             nbv.new_markdown_cell("## Macroscopic dielectric tensor and Born effective charges"),
             nbv.new_code_cell("""\
@@ -876,15 +876,15 @@ if False:
 
             nbv.new_code_cell("""\
 if ifc is not None:
-    fig = ifc.plot_longitudinal_ifc(atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                                    max_dist=None, ax=None)"""),
+    ifc.plot_longitudinal_ifc(atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
+                                    max_dist=None, ax=None);"""),
             nbv.new_code_cell("""\
 if ifc is not None:
-    fig = ifc.plot_longitudinal_ifc_short_range(atom_indices=None, atom_element=None, neighbour_element=None)"""),
+    ifc.plot_longitudinal_ifc_short_range(atom_indices=None, atom_element=None, neighbour_element=None);"""),
             nbv.new_code_cell("""\
 if ifc is not None:
-    fig = ifc.plot_longitudinal_ifc_ewald(atom_indices=None, atom_element=None, neighbour_element=None,
-                                          min_dist=None, max_dist=None, ax=None)"""),
+    ifc.plot_longitudinal_ifc_ewald(atom_indices=None, atom_element=None, neighbour_element=None,
+                                    min_dist=None, max_dist=None, ax=None);"""),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -1274,7 +1274,7 @@ class DdbRobot(Robot):
 
             # Add info on structure.
             if with_geo:
-                d.update(phbands.structure.get_dict4frame(with_spglib=True))
+                d.update(phbands.structure.get_dict4pandas(with_spglib=True))
 
             # Execute functions.
             if funcs is not None: d.update(self._exec_funcs(funcs, ddb))

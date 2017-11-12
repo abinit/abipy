@@ -953,7 +953,7 @@ class MdfRobot(Robot, RobotWithEbands):
 
             # Add info on structure.
             if with_geo:
-                d.update(mdf.structure.get_dict4frame(with_spglib=True))
+                d.update(mdf.structure.get_dict4pandas(with_spglib=True))
 
             # Execute functions.
             if funcs is not None: d.update(self._exec_funcs(funcs, mdf))

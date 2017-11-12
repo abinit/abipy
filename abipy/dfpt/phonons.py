@@ -529,7 +529,7 @@ class PhononBands(object):
     #    """
     #    qindex, qpoint = self.qindex_qpoint(qpoint)
 
-    def get_dict4frame(self, with_spglib=True):
+    def get_dict4pandas(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important parameters:
 
@@ -549,7 +549,7 @@ class PhononBands(object):
             ("mean_freq", self.phfreqs.mean()), ("std_freq", self.phfreqs.std())
 
         ])
-        odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
+        odict.update(self.structure.get_dict4pandas(with_spglib=with_spglib))
 
         return odict
 
@@ -1592,7 +1592,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
         # Add geometrical information
         if with_structure:
-            d.update(self.structure.get_dict4frame(with_spglib=True))
+            d.update(self.structure.get_dict4pandas(with_spglib=True))
 
         # Build the pandas Frame and add the q-point as attribute.
         import pandas as pd
@@ -2368,7 +2368,7 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     """
     phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(phbands.get_dict4frame(with_spglib=with_spglib)) for phbands in phbands_list]
+    odict_list = [(phbands.get_dict4pandas(with_spglib=with_spglib)) for phbands in phbands_list]
 
     import pandas as pd
     return pd.DataFrame(odict_list, index=index,

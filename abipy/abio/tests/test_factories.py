@@ -339,7 +339,7 @@ class FactoryTest(AbipyTest):
 
     def test_dte_from_gsinput(self):
         """Testing for dte_from_gsinput"""
-        self.skip_if_not_abinit('8.3.2')
+        #self.skip_if_not_abinit(version='8.3.2')
         from abipy.abio.factories import dte_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized", smearing=None)
         # dte calculations only work with selected values of ixc

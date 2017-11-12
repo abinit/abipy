@@ -124,7 +124,7 @@ from abipy import abilab
         nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
         nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
         nbf.new_code_cell("flow.show_dependencies()"),
-        nbf.new_code_cell("fig = flow.plot_networkx()"),
+        nbf.new_code_cell("flow.plot_networkx();"),
         nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
         nbf.new_code_cell("flow.show_history()"),
         nbf.new_code_cell("flow.show_corrections()"),
@@ -199,7 +199,7 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
                         final_structure = hist.final_structure
                         stress_cart_tensors, pressures_hist = hist.reader.read_cart_stress_tensors()
                         forces = hist.reader.read_cart_forces(unit="eV ang^-1")[-1]
-                        push_data("_out", task, final.structure, forces, pressures_hist[-1])
+                        push_data("_out", task, final_structure, forces, pressures_hist[-1])
                 except Exception as exc:
                     cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
 
@@ -236,7 +236,7 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
     Analyze electron bands produced by the tasks. Print pandas DataFrame
 
     Args:
-        nids: List of node identifiers. By defaults all nodes are shown
+        nids: List of node identifiers. By default, all nodes are shown
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
         precision: Floating point output precision (number of significant digits).
             This is only a suggestion
@@ -268,8 +268,7 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
             cprint("Exception while opening HIST.nc file of task: %s\n%s" % (task, str(exc)), "red")
 
     if not ebands_list: return
-    from abipy.electrons.ebands import dataframe_from_ebands
-    df = dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
+    df = abilab.dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
 
     # Add columns to the dataframe.
     status = [str(s) for s in status]
@@ -865,7 +864,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for tricky.
     p_tricky = subparsers.add_parser('tricky', parents=[copts_parser],
-        help=("Show tricky tasks i.e tasks that have been restarted, "
+        help=("Show tricky tasks i.e. tasks that have been restarted, "
               "launched more than once or tasks that have been corrected."))
 
     # Subparser for debug.

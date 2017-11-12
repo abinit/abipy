@@ -363,7 +363,7 @@ class HistRobot(Robot):
 
             # Add info on structure.
             if with_geo:
-                d.update(hist.final_structure.get_dict4frame(with_spglib=with_spglib))
+                d.update(hist.final_structure.get_dict4pandas(with_spglib=with_spglib))
 
             for aname in attrs:
                 if aname in ("final_min_force", "final_max_force"):

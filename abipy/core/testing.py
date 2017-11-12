@@ -43,6 +43,7 @@ def cmp_version(this, other, op=">="):
     return op(parse_version(this), parse_version(other))
 
 
+#TODO: Replace with abinit build and manager
 def has_abinit(version=None, op=">="):
     """
     True if abinit is in $PATH.

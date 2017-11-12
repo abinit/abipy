@@ -277,12 +277,12 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         nb.cells.extend([
             nbv.new_code_cell("wfk = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(wfk)"),
-            nbv.new_code_cell("fig = wfk.ebands.plot()"),
-            nbv.new_code_cell("fig = wfk.ebands.kpoints.plot()"),
-            nbv.new_code_cell("fig = wfk.ebands.plot()"),
+            nbv.new_code_cell("wfk.ebands.plot();"),
+            nbv.new_code_cell("wfk.ebands.kpoints.plot();"),
+            nbv.new_code_cell("wfk.ebands.plot();"),
             nbv.new_code_cell("""\
 if wfk.ebands.kpoints.is_ibz:
-    fig = wfk.ebands.get_edos().plot()"""),
+    wfk.ebands.get_edos().plot();"""),
             nbv.new_code_cell("wfk.ipw_visualize_widget()"),
         ])
 

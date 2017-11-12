@@ -224,15 +224,15 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("print(ncfile.params)"),
-            #nbv.new_code_cell("fig = ncfile.ebands.plot()"),
-            nbv.new_code_cell("edos = ncfile.ebands.get_edos()\nfig = ncfile.ebands.plot_with_edos(edos)"),
+            #nbv.new_code_cell("ncfile.ebands.plot();"),
+            nbv.new_code_cell("edos = ncfile.ebands.get_edos()\nncfile.ebands.plot_with_edos(edos);"),
         ])
 
         if self.nrew > 2:
             # Plot optical properties and EELF
             nb.cells.extend([
-                nbv.new_code_cell("fig = ncfile.plot_emacro()"),
-                nbv.new_code_cell("fig = ncfile.plot_eelf()"),
+                nbv.new_code_cell("ncfile.plot_emacro();"),
+                nbv.new_code_cell("ncfile.plot_eelf();"),
             ])
 
         return self._write_nb_nbpath(nb, nbpath)

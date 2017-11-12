@@ -22,11 +22,11 @@ class AbinitTimerParser(_Parser, NotebookWriter):
             nbv.new_code_cell("parser = abilab.AbinitTimerParser()\nparser.parse(%s)" % str(filenames)),
             nbv.new_code_cell("display(parser.summarize())"),
             nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("fig = parser.plot_stacked_hist()"),
-            nbv.new_code_cell("fig = parser.plot_efficiency(what='good', nmax=5)"),
-            nbv.new_code_cell("fig = parser.plot_efficiency(what='bad', nmax=5)"),
+            nbv.new_code_cell("parser.plot_stacked_hist();"),
+            nbv.new_code_cell("parser.plot_efficiency(what='good', nmax=5);"),
+            nbv.new_code_cell("parser.plot_efficiency(what='bad', nmax=5);"),
             nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("fig = parser.plot_pie()"),
+            nbv.new_code_cell("parser.plot_pie();"),
 
             nbv.new_code_cell("""\
 for timer in parser.timers():
