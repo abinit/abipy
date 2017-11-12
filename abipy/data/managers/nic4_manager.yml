@@ -6,25 +6,35 @@ hardware: &hardware
    mem_per_node: 64Gb
 
 job: &job
-    mpi_runner: mpirun
+    #mpi_runner: "mpirun --bind-to none "
+    mpi_runner: "mpirun"
     shell_env:
-        PATH: "/home/ucl/naps/gmatteo/bzr_repos/gmatteo_7.9.1-private/build_mvapich2_intel/src/98_main:$PATH"
+        PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
     pre_run:
-       - "source /home/ucl/naps/gmatteo/.bashrc"
        - "ulimit -s unlimited"
+    modules:
+        - shared
+        - openmpi/1.7.5/intel2013_sp1.1.106
+        - intel/mkl/64/11.1/2013_sp1.1.106
+        - hdf5/1.8.13/openmpi-1.7.5-intel2013_sp1.1.106
+        - netcdf/4.3.2/openmpi-1.7.5-intel2013_sp1.1.106
+        - slurm/14.03.11
 
 # queues 
 qadapters:
   - priority: 1
     queue:
-       qname: defq
        qtype: slurm
+       qname: defq
        qparams:
           mail_type: FAIL
           #mail_user: # Othere slurm options ... 
     limits:
-       timelimit: 0:10:0
+       timelimit: 0:30:0
+       min_cores: 1
        max_cores: 16
-       min_mem_per_proc: 700
+       min_mem_per_proc: 1000
+       max_mem_per_proc: 2000
+       max_num_launches: 5
     hardware: *hardware
     job: *job
