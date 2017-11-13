@@ -153,7 +153,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, **kwargs):
-        """
+        r"""
         Plot the macroscopic dielectric function with local-field effects.
 
         Args:
@@ -188,7 +188,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_eelf(self, ax=None, xlims=None, **kwargs):
-        """
+        r"""
         Plot electron energy loss function.
 
         Args:
@@ -224,15 +224,15 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("print(ncfile.params)"),
-            #nbv.new_code_cell("fig = ncfile.ebands.plot()"),
-            nbv.new_code_cell("edos = ncfile.ebands.get_edos()\nfig = ncfile.ebands.plot_with_edos(edos)"),
+            #nbv.new_code_cell("ncfile.ebands.plot();"),
+            nbv.new_code_cell("edos = ncfile.ebands.get_edos()\nncfile.ebands.plot_with_edos(edos);"),
         ])
 
         if self.nrew > 2:
             # Plot optical properties and EELF
             nb.cells.extend([
-                nbv.new_code_cell("fig = ncfile.plot_emacro()"),
-                nbv.new_code_cell("fig = ncfile.plot_eelf()"),
+                nbv.new_code_cell("ncfile.plot_emacro();"),
+                nbv.new_code_cell("ncfile.plot_eelf();"),
             ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -556,7 +556,7 @@ class _AwggMatrix(object):
 
     @add_fig_kwargs
     def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, **kwargs):
-        """
+        r"""
         Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
         Args:
@@ -609,7 +609,7 @@ class _AwggMatrix(object):
 
     @add_fig_kwargs
     def plot_gg(self, cplx_mode="abs", wpos=None, **kwargs):
-        """
+        r"""
         Use matplotlib imshow to plot :math:`W_{GG'}` matrix
 
         Args:

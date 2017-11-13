@@ -21,19 +21,19 @@ low: &low
 job: &job
     mpi_runner: mpirun
     shell_env:
-        PATH: $HOME/local/bin:$PATH
+        PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
     modules:
-        - python/2.7
+        - openmpi/1.5.3/intel-12.0.0.084
     # pre_run is a string in verbatim mode (note |)
     pre_run: |
         ulimit unlimited
 
 # queues 
 qadapters:
-  - priority: 1
+  - priority: 3
     #max_num_launches: 20
     queue:
-       qname: high
+       qname: High
        qtype: slurm
     limits:
        timelimit: 10-0:0:0
@@ -44,7 +44,7 @@ qadapters:
 
   - priority: 2
     queue:
-       qname: middle
+       qname: Middle
        qtype: slurm
     limits:
        timelimit: 5-0:0:0
@@ -53,9 +53,9 @@ qadapters:
     hardware: *middle
     job: *job
 
-  - priority: 3
+  - priority: 1
     queue:
-       qname: low
+       qname: Low
        qtype: slurm
     limits:
        timelimit: 5-0:0:0

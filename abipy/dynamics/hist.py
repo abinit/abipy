@@ -1,21 +1,19 @@
 # coding: utf-8
-"""DDB File."""
+"""History file with structural relaxation results."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import pymatgen.core.units as units
 
+from collections import OrderedDict
 from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee # is_string, list_strings,
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
-
-__all__ = [
-    "HistFile",
-]
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -43,6 +41,31 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def __str__(self):
         return self.to_string()
+
+    @lazy_property
+    def final_energy(self):
+        return self.etotals[-1]
+
+    @lazy_property
+    def final_pressure(self):
+        """Final pressure in Gpa"""
+        cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
+        return pressures[-1]
+
+    #@lazy_property
+    #def final_max_force(self):
+
+    #def get_fstats_dict(self, step):
+    #    #for step in range(self.num_steps):
+    #    forces_hist = self.reader.read_cart_forces()
+    #    fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
+
+    #    forces = forces_hist[step]
+    #    fmods = np.sqrt([np.dot(force, force) for force in forces])
+    #    fmean_steps.append(fmods.mean())
+    #    fstd_steps.append(fmods.std())
+    #    fmin_steps.append(fmods.min())
+    #    fmax_steps.append(fmods.max())
 
     def to_string(self, verbose=0, title=None):
         """Return string representation."""
@@ -280,11 +303,103 @@ class HistFile(AbinitNcFile, NotebookWriter):
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("hist = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(hist)"),
-            nbv.new_code_cell("fig = hist.plot_energies()"),
-            nbv.new_code_cell("fig = hist.plot()"),
+            nbv.new_code_cell("hist.plot_energies();"),
+            nbv.new_code_cell("hist.plot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+class HistRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple HIST files.
+    """
+    EXT = "HIST"
+
+    def to_string(self, verbose=0):
+        s = ""
+        if verbose:
+            s = super(HistRobot, self).to_string(verbose=0)
+        df = self.get_dataframe()
+        s_df = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n\n%s" % str(df)
+        if s:
+            return "\n".join([s, str(s_df)])
+        else:
+            return str(s_df)
+
+    def get_dataframe(self, with_geo=True, index=None, abspath=False, with_spglib=True, funcs=None, **kwargs):
+        """
+        Return a pandas DataFrame with the most important final results.
+        and the filenames as index.
+
+        Args:
+            with_geo: True if structure info should be added to the dataframe
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            index: Index of the dataframe, if None, robot labels are used
+            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+
+        kwargs:
+            attrs:
+                List of additional attributes of the :class:`GsrFile` to add to
+                the pandas :class:`DataFrame`
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+        """
+        # Add attributes specified by the users
+        # TODO add more columns
+        attrs = [
+            "num_steps", "final_energy", "final_pressure",
+            #"final_min_force", "final_max_force",
+            #"ecut", "pawecutdg", "tsmear", "nkpt", "nsppol", "nspinor", "nspden",
+        ] + kwargs.pop("attrs", [])
+
+        rows, row_names = [], []
+        for label, hist in self:
+            row_names.append(label)
+            d = OrderedDict()
+
+            #fstas_dict = self.get_fstats_dict(step=-1)
+
+            # Add info on structure.
+            if with_geo:
+                d.update(hist.final_structure.get_dict4pandas(with_spglib=with_spglib))
+
+            for aname in attrs:
+                if aname in ("final_min_force", "final_max_force"):
+                    value = fstas_dict[aname]
+                else:
+                    value = getattr(hist, aname, None)
+                d[aname] = value
+
+            # Execute functions
+            if funcs is not None: d.update(self._exec_funcs(funcs, hist))
+            rows.append(d)
+
+        import pandas as pd
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
+        index = row_names if index is None else index
+        return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.HistRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("df = robot.get_dataframe()\ndisplay(df)"),
+        ])
+
+        # Mixins
+        #nb.cells.extend(self.get_baserobot_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 
 class HistReader(ETSF_Reader):

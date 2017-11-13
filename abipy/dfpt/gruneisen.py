@@ -306,10 +306,10 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.structure"),
 
-            nbv.new_code_cell("fig = ncfile.plot_doses()"),
-            nbv.new_code_cell("fig = ncfile.plot_phbands_with_gruns()"),
+            nbv.new_code_cell("ncfile.plot_doses();"),
+            nbv.new_code_cell("ncfile.plot_phbands_with_gruns();"),
 
-            #nbv.new_code_cell("fig = phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile)"),
+            #nbv.new_code_cell("phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile);"),
             nbv.new_code_cell("plotter = ncfile.get_plotter()\nprint(plotter)"),
             nbv.new_code_cell("df_phbands = plotter.get_phbands_frame()\ndisplay(df_phbands)"),
             nbv.new_code_cell("plotter.ipw_select_plot()"),

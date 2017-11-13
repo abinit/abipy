@@ -4,7 +4,6 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 
 
-
 def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout):
     """
     Print entire pandas DataFrame.

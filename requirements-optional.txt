@@ -1,4 +1,9 @@
 ipython
 jupyter
 nbformat
+networkx
+scikit-image
 #mayavi
+# Unit tests
+pytest
+pytest-xdist

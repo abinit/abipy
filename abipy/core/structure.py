@@ -35,7 +35,6 @@ __all__ = [
     "mp_search",
     "cod_search",
     "Structure",
-    "frames_from_structures",
     "dataframes_from_structures",
 ]
 
@@ -180,6 +179,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
+        elif hasattr(obj, "final_structure"):
+            # This for HIST.nc file
+            return cls.as_structure(obj.final_structure)
 
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
@@ -954,8 +956,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         return np.sqrt(self.dot(coords, coords, space=space, frac_coords=frac_coords))
 
-    # TODO Use get_dict4pandas
-    def get_dict4frame(self, with_spglib=True):
+    def get_dict4pandas(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important structural parameters:
 
@@ -1749,7 +1750,7 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
     structures = [Structure.as_structure(obj) for obj in struct_objects]
     # Build Frame with lattice parameters.
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(structure.get_dict4frame(with_spglib=with_spglib)) for structure in structures]
+    odict_list = [(structure.get_dict4pandas(with_spglib=with_spglib)) for structure in structures]
 
     import pandas as pd
     lattice_frame = pd.DataFrame(odict_list, index=index,
@@ -1769,10 +1770,6 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
                                 columns=list(range(max_numsite)) if odict_list else None)
 
     return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)
-
-
-# To maintain compatibility
-frames_from_structures = dataframes_from_structures
 
 
 class StructureModifier(object):

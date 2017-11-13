@@ -9,7 +9,7 @@ import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 
-def make_scf_nscf_inputs(paral_kgb=1):
+def make_scf_nscf_inputs(paral_kgb=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
     pseudos = abidata.pseudos("14si.pspnc")
     #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")

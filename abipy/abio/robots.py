@@ -13,7 +13,7 @@ from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
 
-# TODO: Robot for Abinit output files. HIST files
+# TODO: Robot for Abinit output files.
 
 class Robot(NotebookWriter):
     """
@@ -29,7 +29,7 @@ class Robot(NotebookWriter):
 
     .. note::
 
-        __iter__  return (label, ncfile)
+        __iter__  returns (label, ncfile)
     """
     # TODO
     # 2) should  or ncfile (not __getitem__ returns ncfiles.__getitem__ !!!
@@ -48,6 +48,10 @@ class Robot(NotebookWriter):
 
         for label, ncfile in args:
             self.add_file(label, ncfile)
+
+    #@classmethod
+    #def from_labels_paths(cls, labels_paths)
+    #    return cls(*labels_paths)
 
     @classmethod
     def class_for_ext(cls, ext):
@@ -391,21 +395,17 @@ class Robot(NotebookWriter):
         s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
         stream.write(s)
 
-    def __repr__(self):
-        """Invoked by repr(obj)"""
-        return self.to_string(func=repr)
-
     def __str__(self):
         """Invoked by str."""
-        return self.to_string(func=str)
+        return self.to_string()
 
-    def to_string(self, func=str, verbose=0):
+    def to_string(self, verbose=0):
         """String representation."""
         lines = ["%s with %d files in memory:\n" % (self.__class__.__name__, len(self.ncfiles))]
         app = lines.append
         for i, f in enumerate(self.ncfiles):
-            app(func(f))
-            if func is str: app("\n")
+            app(f.to_string(verbose=verbose))
+            app("\n")
 
         return "\n".join(lines)
 

@@ -369,6 +369,12 @@ def abicomp_gsr(options):
     """
     return _invoke_robot(options)
 
+def abicomp_hist(options):
+    """
+    Compare multiple HIST files.
+    """
+    return _invoke_robot(options)
+
 
 def abicomp_ddb(options):
     """
@@ -601,6 +607,7 @@ Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
                                                      Use `--group` to compare for similarity
+  abicomp.py hist FILE(s)                         => Compare final structures read from HIST.nc files.
   abicomp.py mp_structure FILE(s)                 => Compare structure(s) read from FILE(s) with the one(s)
                                                      given in the materials project database.
   abicomp.py cod_structure FILE(s)                => Compare structure(s) read from FILE(s) with the one(s)
@@ -717,7 +724,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for structure command.
     p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
-    p_struct.add_argument("-g", "--group", default=False, action="store_true", help="Compare a set of structures for similarity.")
+    p_struct.add_argument("-g", "--group", default=False, action="store_true",
+                          help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
                           help="Whether to use anonymous mode in StructureMatcher. Default False")
 
@@ -780,6 +788,7 @@ def get_parser(with_epilog=False):
     # Subparser for robot commands
     robot_parents = [copts_parser, ipy_parser, robot_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
+    p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)

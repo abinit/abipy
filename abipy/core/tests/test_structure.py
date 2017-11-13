@@ -30,7 +30,7 @@ class TestStructure(AbipyTest):
             # Call pymatgen machinery to get the high-symmetry stars.
             print(structure.hsym_stars)
 
-            geodict = structure.get_dict4frame()
+            geodict = structure.get_dict4pandas()
             assert geodict["abispg_num"] is not None
 
             # Export data in Xcrysden format.
@@ -213,13 +213,13 @@ class TestStructure(AbipyTest):
         if self.has_nbformat():
             mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
 
-    def test_frames_from_structures(self):
-        """Testing frames from structures."""
+    def test_dataframes_from_structures(self):
+        """Testing dataframes from structures."""
         mgb2 = abidata.structure_from_ucell("MgB2")
         sic = abidata.structure_from_ucell("SiC")
         alas = abidata.structure_from_ucell("AlAs")
-        dfs = frames_from_structures([mgb2, sic, alas], index=None, with_spglib=True, cart_coords=True)
-        dfs = frames_from_structures([mgb2, sic, alas], index=None, with_spglib=True, cart_coords=False)
+        dfs = dataframes_from_structures([mgb2, sic, alas], index=None, with_spglib=True, cart_coords=True)
+        dfs = dataframes_from_structures([mgb2, sic, alas], index=None, with_spglib=True, cart_coords=False)
 
         assert dfs.lattice is not None
         assert dfs.coords is not None

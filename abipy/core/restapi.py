@@ -117,7 +117,7 @@ class PhaseDiagramResults(object):
         pda = PDAnalyzer(self.phasediagram)
         rows = []
         for e in self.entries:
-            d = e.structure.get_dict4frame(with_spglib=True)
+            d = e.structure.get_dict4pandas(with_spglib=True)
             decomp, ehull = pda.get_decomp_and_e_above_hull(e)
 
             rows.append(OrderedDict([

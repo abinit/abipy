@@ -609,7 +609,7 @@ class ElectronBands(Has_Structure):
     #    self.fermie = fermie
     #    # TODO: Recalculate occupations.
 
-    def get_dict4frame(self, with_spglib=True):
+    def get_dict4pandas(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important parameters:
 
@@ -628,7 +628,7 @@ class ElectronBands(Has_Structure):
             ("nelect", self.nelect), ("fermie", self.fermie),
 
         ])
-        odict.update(self.structure.get_dict4frame(with_spglib=with_spglib))
+        odict.update(self.structure.get_dict4pandas(with_spglib=with_spglib))
         odict.update(self.smearing)
 
         bws = self.bandwidths
@@ -2117,7 +2117,7 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
     """
     ebands_list = [ElectronBands.as_ebands(obj) for obj in ebands_objects]
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(ebands.get_dict4frame(with_spglib=with_spglib)) for ebands in ebands_list]
+    odict_list = [(ebands.get_dict4pandas(with_spglib=with_spglib)) for ebands in ebands_list]
 
     import pandas as pd
     return pd.DataFrame(odict_list, index=index)
