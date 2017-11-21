@@ -245,7 +245,7 @@ class DensityFortranFile(AbinitFortranFile):
         """
         Internal function to run a conversion using cut3d.
         """
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = os.path.abspath(tempfile.mkdtemp() if workdir is None else workdir)
         outfile, converted_file = Cut3D().cut3d(cut3d_input, workdir)
 
         return converted_file
@@ -373,7 +373,7 @@ class DensityFortranFile(AbinitFortranFile):
         else:
             cut3d_input = Cut3DInput.hirshfeld_from_fhi_path(self.filepath, structure, fhi_all_el_path)
 
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = os.path.abspath(tempfile.mkdtemp() if workdir is None else workdir)
 
         cut3d = Cut3D()
         outfile, converted_file = cut3d.cut3d(cut3d_input, workdir)
