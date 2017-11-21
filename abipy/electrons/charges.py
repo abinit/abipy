@@ -74,23 +74,23 @@ class HirshfeldCharges(Charges):
         electron_charges = []
         reference_charges = []
         with open(filepath, 'rt') as f:
-            while True:
-                l = f.readline()
+            lines = f.readlines()
 
-                if l is None:
-                    raise RuntimeError('The file does not contain Hirshfeld harges')
-                elif "Hirshfeld Charge" in l:
-                    break
+        start_hirshfeld_i = None
+        for i, l in enumerate(lines):
+            if "Hirshfeld analysis" in l:
+                start_hirshfeld_i = i+3
+                break
+        else:
+            raise RuntimeError('The file does not contain Hirshfeld charges')
 
-            #skip one line
-            f.readline()
 
-            for i in range(len(structure)):
-                l = f.readline()
-                electron_charges.append(float(l.split()[1]))
-                reference_charges.append(-float(l.split()[0]))
+        for i in range(start_hirshfeld_i, start_hirshfeld_i+len(structure)):
+            l = lines[i]
+            electron_charges.append(float(l.split()[2]))
+            reference_charges.append(-float(l.split()[1]))
 
-        return cls(charges, structure)
+        return cls(electron_charges, structure, reference_charges)
 
 
 class BaderCharges(Charges):
