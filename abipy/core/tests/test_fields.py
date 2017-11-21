@@ -3,11 +3,13 @@
 from __future__ import print_function, division, absolute_import, unicode_literals
 
 import numpy as np
+import os
 import pymatgen.core.units as pmgu
 import abipy.data as abidata
 
 from pymatgen.core.units import bohr_to_angstrom
 from abipy.core.fields import _Field, FieldReader, Density, VxcPotential, VhartreePotential, VhxcPotential
+from abipy.core.fields import core_density_from_file
 from abipy.core.testing import AbipyTest
 from abipy.iotools import *
 
@@ -160,9 +162,18 @@ class TestScalarField(AbipyTest):
         assert total_den.structure == si_den.structure
         assert abs(total_den.get_nelect().sum() - ne) < 1e-3
 
-        # TODO@DW
-        #den.ae_core_density_on_mesh(cls, valence_density, structure, rhoc_files, maxr=2.0, nelec=None,
-        #                        method='mesh3d_dist_gridpoints', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
+        # Test creation of AE core density. Use low parameters to reduce time
+        rhoc = {"Si": core_density_from_file(os.path.join(abidata.pseudo_dir, "Si.fc"))}
+        core_den_1 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
+                                                     method='get_sites_in_sphere', small_dist_mesh=(6, 6, 6))
+        core_den_2 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
+                                                     method='mesh3d_dist_gridpoints', small_dist_mesh=(6, 6, 6))
+        self.assertAlmostEquals(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
+        self.assertArrayAlmostEqual(core_den_1.datar, core_den_2.datar)
+        with self.assertRaises(ValueError):
+            Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
+                                            method='get_sites_in_sphere', small_dist_mesh=(2,2,2))
+
 
     def test_ni_density(self):
         """Testing density object (spin polarized, collinear)."""
