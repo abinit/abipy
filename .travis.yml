@@ -78,6 +78,9 @@ install:
   - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
   - ./dev_scripts/pyclean.py .
 
+  # Install bader (http://theory.cm.utexas.edu/henkelman/code/bader/) from matsci
+  - conda install -c matsci bader
+
 before_script:
     # This to run tests requiring a graphical user e.g. mayavi
     # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI

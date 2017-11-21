@@ -388,7 +388,7 @@ class DensityFortranFile(AbinitFortranFile):
         Args:
             workdir: directory in which cut3d is executed.
         """
-        workdir = tempfile.mkdtemp() if workdir is None else workdir
+        workdir = os.path.abspath(tempfile.mkdtemp() if workdir is None else workdir)
         output_filepath = os.path.join(workdir, "field_CUT3DDENPOT.nc")
         # FIXME Converters with nspden > 1 won't work since cut3d asks for the ispden index.
         cut3d_input = Cut3DInput(infile_path=self.filepath, output_filepath=output_filepath,

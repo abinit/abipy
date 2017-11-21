@@ -334,8 +334,13 @@ class Mesh3D(object):
         nx, ny, nz = self.nx, self.ny, self.nz
         rpoints = np.empty((self.size, 3))
 
-        for ifft, p1_fft in enumerate(iproduct(range(nx), range(ny), range(nz))):
-            rpoints[ifft,:] = p1_fft[0]/nx, p1_fft[1]/ny, p1_fft[2]/nz
+        grid_points = np.meshgrid(np.linspace(0, 1, nx, endpoint=False),
+                                  np.linspace(0, 1, ny, endpoint=False),
+                                  np.linspace(0, 1, nz, endpoint=False))
+
+        rpoints[:, 0] = grid_points[0].ravel()
+        rpoints[:, 1] = grid_points[1].ravel()
+        rpoints[:, 2] = grid_points[2].ravel()
 
         return rpoints
 

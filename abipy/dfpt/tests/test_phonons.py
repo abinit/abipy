@@ -268,6 +268,8 @@ class PhononDosTest(AbipyTest):
         same_phdos = PhononDos.as_phdos(tmp_path)
         same_phdos == phdos
 
+        phdos.to_pymatgen()
+
     def test_from_phdosfile(self):
         """Testing PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
@@ -293,8 +295,8 @@ class PhononDosTest(AbipyTest):
         self.assert_almost_equal(phdos.zero_point_energy.to("Ha"), 0.0030872835637731303)
 
         u = phdos.get_internal_energy()
-        self.assert_almost_equal(u.values[0], 0.16801859138305908)
-        self.assert_almost_equal(u.values[-1], 0.25671036732970359)
+        self.assert_almost_equal(u.values[0], 0.084009326574073395)
+        self.assert_almost_equal(u.values[-1], 0.17270110252071791)
 
         s = phdos.get_entropy()
         self.assert_almost_equal(s.values[0], 1.6270193052583423e-08)
@@ -306,6 +308,8 @@ class PhononDosTest(AbipyTest):
 
         f = phdos.get_free_energy()
         self.assert_almost_equal(f.values, (u - s.mesh * s.values).values)
+
+        ncfile.to_pymatgen()
 
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)

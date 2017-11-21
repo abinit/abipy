@@ -24,7 +24,9 @@ from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
-
+from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
+from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos
+from pymatgen.phonon.dos import PhononDos as PmgPhononDos
 
 __all__ = [
     "PhononBands",
@@ -789,7 +791,7 @@ class PhononBands(object):
             elif highsym_qpts_mode == 'split':
                 data["highsym_qpts"] = split_non_collinear(qpoints)
             elif highsym_qpts_mode == 'std':
-                data["highsym_qpts"] = list(six.zip(self._make_ticks_and_labels(None)))
+                data["highsym_qpts"] = list(six.moves.zip(*self._make_ticks_and_labels(None)))
         else:
             data["highsym_qpts"] = highsym_qpts
 
@@ -810,21 +812,14 @@ class PhononBands(object):
         vectors = []
 
         for i, (qpts, phdispl_sublist) in enumerate(zip(self.split_qpoints, self.split_phdispl_cart)):
-            # the eigenvectors are needed (the mass factor is removed)
-            vect = get_dyn_mat_eigenvec(phdispl_sublist, self.structure, amu=self.amu)
-            # since phononwebsite will multiply again by exp(2*pi*q.r) this factor should be removed,
-            # because in abinit convention it is included in the eigenvectors.
-            for iqpt in range(len(qpts)):
-                q = self.qpoints[iqpt].frac_coords
-                for ai in range(self.num_atoms):
-                    vect[iqpt, :, 3*ai:3*(ai + 1)] = vect[iqpt, :, 3*ai:3*(ai + 1)] * \
-                        np.exp(-2*np.pi*1j*np.dot(self.structure[ai].frac_coords, q))
+            vect = np.array(phdispl_sublist)
 
             if match_bands:
                 vect = vect[np.arange(vect.shape[0])[:, None, None],
                             self.split_matched_indices[i][...,None],
                             np.arange(vect.shape[2])[None, None,:]]
             v = vect.reshape((len(vect), self.num_branches,self.num_atoms, 3))
+            v /= np.linalg.norm(v[0,0,0])
             v = np.stack([v.real, v.imag], axis=-1)
 
             vectors.extend(v.tolist())
@@ -1465,11 +1460,10 @@ class PhononBands(object):
                         qpts.append(q)
                         displ.append(d)
 
-        ph_freqs = np.transpose(ph_freqs)
+        ph_freqs = np.transpose(ph_freqs) * abu.eV_to_THz
         qpts = np.array(qpts)
         displ = np.transpose(displ, (1, 0, 2, 3))
 
-        from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
         return PhononBandStructureSymmLine(qpoints=qpts, frequencies=ph_freqs,
                                            lattice=self.structure.reciprocal_lattice,
                                            has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
@@ -1809,7 +1803,7 @@ class PhononDos(Function1D):
             wd2kt = w / (2 * abu.kb_eVK * temp)
             vals[it] = np.trapz(w * coth(wd2kt) * gw, x=w)
 
-        return Function1D(tmesh, 0.5 * vals + self.zero_point_energy)
+        return Function1D(tmesh, 0.5 * vals)
 
     def get_entropy(self, tstart=5, tstop=300, num=50):
         """
@@ -1925,6 +1919,14 @@ class PhononDos(Function1D):
 
         fig.tight_layout()
         return fig
+
+    def to_pymatgen(self):
+        """
+        Creates a pymatgen PhononDos object
+        """
+        factor = factor_ev2units("thz")
+
+        return PmgPhononDos(self.mesh*factor, self.values)
 
 
 class PhdosReader(ETSF_Reader):
@@ -2153,10 +2155,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
 
-            if idir in (0, 2):
-                ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
-                if idir == 2:
-                    ax.set_xlabel('Frequency %s' % unit_tag(units))
+            ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+            if idir == 2:
+                ax.set_xlabel('Frequency %s' % unit_tag(units))
 
             # Plot Type projected DOSes along reduced direction idir
             cumulative = np.zeros(len(self.wmesh))
@@ -2276,6 +2277,21 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+    def to_pymatgen(self):
+        """
+        Creates a pymatgen CompletePhononDos object
+        """
+        total_dos = self.phdos.to_pymatgen()
+
+        # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+        pjdos_atdir = self.reader.read_pjdos_atdir()
+
+        summed_pjdos = np.sum(pjdos_atdir, axis=1)
+
+        pdoss = {site: pdos for site, pdos in zip(self.structure, summed_pjdos)}
+
+        return PmgCompletePhononDos(self.structure, total_dos, pdoss)
 
 
 # FIXME: Remove. Use PhononBandsPlotter API.
