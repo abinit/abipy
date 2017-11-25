@@ -7,7 +7,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import sys
-import abipy.data as data  
+import abipy.data as data
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -17,7 +17,7 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     # Fe normal bcc structure for test of a ferromagnetic calculation
     multi = abilab.MultiDataset(structure=data.structure_from_ucell("Fe-fm"),
                                 pseudos=data.pseudos("26fe.pspnc"), ndtset=2)
-    
+
     # Global variables
     global_vars = dict(
         nsppol=nsppol,
@@ -39,8 +39,8 @@ def make_scf_nscf_inputs(nsppol, paral_kgb=1):
     # Dataset 2 (NSCF run)
     multi[1].set_kpath(ndivsm=4)
     multi[1].set_vars(tolwfr=1e-8)
-    
-    # Generate two input files for the GS and the NSCF run 
+
+    # Generate two input files for the GS and the NSCF run
     scf_input, nscf_input = multi.split_datasets()
 
     return scf_input, nscf_input
@@ -50,13 +50,13 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Create the Flow.
     flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
 
     # Create the task defining the calculation and run and register it in the flow
-    for nsppol in [1,2]:
+    for nsppol in [1, 2]:
         scf_input, nscf_input = make_scf_nscf_inputs(nsppol)
         work = flowtk.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)

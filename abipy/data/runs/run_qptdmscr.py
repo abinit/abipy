@@ -60,7 +60,8 @@ def all_inputs(paral_kgb=1):
     nscf.set_vars(iscf=-2,
                   tolwfr=1e-10,
                   nband=15,
-                  nbdbuf=5)
+                  nbdbuf=5,
+    )
 
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
@@ -71,7 +72,8 @@ def all_inputs(paral_kgb=1):
         ecutwfn=ecutwfn,
         symchi=1,
         inclvkb=0,
-        ecuteps=2.0)
+        ecuteps=2.0,
+    )
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
     sigma.set_kmesh(**gw_kmesh)
@@ -83,7 +85,7 @@ def all_inputs(paral_kgb=1):
             ecuteps=2.0,
             ecutsigx=2.0,
             symsigma=1,
-            )
+    )
 
     kptgw = [
          -2.50000000E-01, -2.50000000E-01,  0.00000000E+00,
@@ -92,7 +94,7 @@ def all_inputs(paral_kgb=1):
          -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
           5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
           0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
-      ]
+    ]
 
     bdgw = [1, 8]
 

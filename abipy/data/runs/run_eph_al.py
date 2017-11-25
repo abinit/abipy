@@ -54,17 +54,6 @@ def build_flow(options):
     )
 
     # Phonon calculation with 4x4x4
-    #qpoints = np.reshape([
-    #     0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
-    #     2.50000000e-01,  0.00000000e+00,  0.00000000e+00,
-    #     5.00000000e-01,  0.00000000e+00,  0.00000000e+00,
-    #     2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
-    #     5.00000000e-01,  2.50000000e-01,  0.00000000e+00,
-    #    -2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
-    #     5.00000000e-01,  5.00000000e-01,  0.00000000e+00,
-    #    -2.50000000e-01,  5.00000000e-01,  2.50000000e-01,
-    #    ], (-1,3))
-
     ddb_ngqpt = [4, 4, 4]
     qpoints = gs_inp.abiget_ibz(ngkpt=ddb_ngqpt, shiftk=[0, 0, 0], kptopt=1).points
 
@@ -97,7 +86,7 @@ def build_flow(options):
     flow.allocate()
 
     # EPH does not support autoparal (yet)
-    eph_task.with_fixed_mpi_omp(1, 1)
+    #eph_task.with_fixed_mpi_omp(1, 1)
 
     return flow
 

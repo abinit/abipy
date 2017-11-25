@@ -506,6 +506,14 @@ def _invoke_robot(options):
 
     else:
         print(robot.to_string(verbose=options.verbose))
+        # Print dataframe if robot provides get_dataframe method.
+        if hasattr(robot, "get_dataframe"):
+            try:
+                df = robot.get_dataframe()
+                abilab.print_dataframe(df, title="Output of robot.get_dataframe():")
+            except:
+                pass
+
         if not options.verbose:
             print("\nUse --verbose for more information")
 

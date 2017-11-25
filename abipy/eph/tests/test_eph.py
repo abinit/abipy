@@ -25,6 +25,12 @@ class EphFileTest(AbipyTest):
         assert ncfile.phbands.qpoints.is_path
         assert ncfile.phbands.qpoints.ksampling is None
 
+        # Test edos
+        # TODO
+        #ncfile.edos
+        #if self.has_matplotlib():
+            #assert ncfile.edos.plot(show=False)
+
         # Test A2f(w) function.
         a2f = ncfile.a2f_qcoarse
         assert ncfile.get_a2f_qsamp("qcoarse") is a2f

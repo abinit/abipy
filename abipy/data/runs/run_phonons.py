@@ -4,14 +4,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import os
-import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
 from abipy import flowtk
 
-
-def scf_ph_inputs(paral_kgb=0):
+def make_scf_input(paral_kgb=0):
     """
     This function constructs the input files for the phonon calculation:
     GS input + the input files for the phonon calculation.
@@ -19,9 +17,9 @@ def scf_ph_inputs(paral_kgb=0):
     # Crystalline AlAs: computation of the second derivative of the total energy
     structure = abidata.structure_from_ucell("AlAs")
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
+    gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
-    # Global variables used both for the GS and the DFPT run.
-    global_vars = dict(
+    gs_inp.set_vars(
         nband=4,
         ecut=2.0,
         ngkpt=[4, 4, 4],
@@ -32,66 +30,43 @@ def scf_ph_inputs(paral_kgb=0):
                 0.5, 0.5, 0.5],
         #shiftk=[0, 0, 0],
         paral_kgb=paral_kgb,
+        tolvrs=1.0e-10,
         ixc=1,
         nstep=25,
         diemac=9.0,
         iomode=3,
     )
 
-    gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
-    gs_inp.set_vars(global_vars)
-    gs_inp.set_vars(tolvrs=1.0e-18)
-
-    # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
-    # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
-    print("get_ibz", qpoints)
-
-    ph_inputs = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=len(qpoints))
-
-    for ph_inp, qpt in zip(ph_inputs, qpoints):
-        # Response-function calculation for phonons.
-        ph_inp.set_vars(global_vars)
-        ph_inp.set_vars(
-            rfphon=1,        # Will consider phonon-type perturbation
-            nqpt=1,          # One wavevector is to be considered
-            qpt=qpt,         # This wavevector is q=0 (Gamma)
-            tolwfr=1.0e-20,
-            kptopt=3,
-            #nstep=4,         # This is to trigger the restart.
-        )
-
-            #rfatpol   1 1   # Only the first atom is displaced
-            #rfdir   1 0 0   # Along the first reduced coordinate axis
-            #kptopt   2      # Automatic generation of k points, taking
-
-    # Split input into gs_inp and ph_inputs
-    all_inps = [gs_inp]
-    all_inps.extend(ph_inputs.split_datasets())
-
-    return all_inps
+    return gs_inp
 
 
 def build_flow(options):
     """
-    Create a `Flow` for phonon calculations:
+    Create a `Flow` for phonon calculations. The flow has two works.
 
-        1) One workflow for the GS run.
-
-        2) nqpt works for phonon calculations. Each work contains
-           nirred tasks where nirred is the number of irreducible phonon perturbations
-           for that particular q-point.
+    The first work contains a single GS task that produces the WFK file used in DFPT
+    The second work contains multiple PhononTasks that are generated automatically
+    in order to compute the dynamical matrix on a [4, 4, 4] mesh.
+    Symmetries are taken into account: only q-points in the IBZ are generated and
+    for each q-point only the independent atomic perturbations are computed.
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    all_inps = scf_ph_inputs()
-    scf_input, ph_inputs = all_inps[0], all_inps[1:]
-    #scf_input, ph_inputs = all_inps[0], all_inps[1:3]
+    flow = flowtk.Flow(workdir=workdir)
 
-    return flowtk.phonon_flow(workdir, scf_input, ph_inputs, manager=options.manager)
+    # Build input for GS calculation and register the first work.
+    scf_input = make_scf_input()
+    work0 = flow.register_scf_task(scf_input)
+
+    # This call uses the information reported in the GS task (work0[0]) to
+    # compute all the independent atomic perturbations corresponding to a [4, 4, 4] q-mesh.
+    ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=[4, 4, 4], is_ngqpt=True)
+    flow.register_work(ph_work)
+
+    return flow
 
 
 @abilab.flow_main

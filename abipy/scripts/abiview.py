@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Script to generate movies from Abinit output files.
+This script visualizes data with external graphical applications.
+It's also possible to generate movies from Abinit output files.
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
 
@@ -112,9 +113,7 @@ def abiview_phweb(options):
     for p in options.paths:
         with abilab.abiopen(p) as ncfile:
             retcode += ncfile.phbands.view_phononwebsite(open_browser=not options.no_browser)
-            #view_seekpath(ncfile.structure)
     return retcode
-
 
 #def view_seekpath(structure, verbose=1):
 #    #import tempfile

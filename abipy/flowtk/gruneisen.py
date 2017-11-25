@@ -80,7 +80,7 @@ class GruneseinenWork(Work):
         have reached status S_OK.
         """
         self.add_phonopy_works_and_build()
-        return super(PhonopyGruneisenWork, self).on_all_ok()
+        return super(GruneisenWork, self).on_all_ok()
 
     def add_phonopy_works_and_build(self):
         """

@@ -1,5 +1,9 @@
 TODO LIST:
 
+  # Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice.
+
+  #. Add mpirun_args see e.g nic4 and mpirun --bind-to None
+
   #. Add integration test for dilatmx error handler
 
   # Fix issue with DOJO_REPORT and PAW XML files.

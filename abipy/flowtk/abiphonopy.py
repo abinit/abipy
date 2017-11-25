@@ -135,7 +135,7 @@ class PhonopyWork(Work):
         file_IO.write_disp_yaml(displacements, supercell, directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
 
-        # Extract forces from the main output files.
+        # Extract forces from the main Abinit output files.
         forces_filenames = [task.output_file.path for task in self.phonopy_tasks]
         num_atoms = supercell.get_number_of_atoms()
         force_sets = parse_set_of_forces(num_atoms, forces_filenames)

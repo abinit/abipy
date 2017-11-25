@@ -17,7 +17,7 @@ from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronsReader, ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import (PhononBands, PhononDos, RobotWithPhbands,
     factor_ev2units, unit_tag, dos_label_from_units)
 from abipy.abio.robots import Robot
@@ -157,11 +157,11 @@ class A2f(object):
         eV_to_K = 11604.5250061657
         return tc * eV_to_K
 
-    def get_mustar_from_tc(self, tc):
-        """
-        Return the value of mustar that gives the critical temperature tc in McMillan equation
-        """
-        return 0
+    #def get_mustar_from_tc(self, tc):
+    #    """
+    #    Return the value of mustar that gives the critical temperature tc in McMillan equation
+    #    """
+    #    return 0
 
     @add_fig_kwargs
     def plot(self, units="eV", with_lambda=True, exchange_xy=False, ax=None,
@@ -423,6 +423,11 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def ebands(self):
         """:class:`ElectronBands` object."""
         return self.reader.read_ebands()
+
+    @lazy_property
+    def edos(self):
+        """:class:`ElectronDos` object with e-DOS computed by Abinit."""
+        return self.reader.read_edos()
 
     @property
     def structure(self):
@@ -720,6 +725,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
     """
     This robot analyzes the results contained in multiple EPH.nc files.
     """
+    #TODO: Method to plot the convergence of DOS(e_F)
     EXT = "EPH"
 
     linestyle_qsamp = dict(qcoarse="--", qintp="-")
@@ -894,6 +900,25 @@ class EphReader(ElectronsReader):
     """
     Reads data from EPH file and constructs objects.
     """
+
+    def read_edos(self):
+        """
+        Read the ElectronDos used to compute EPH quantities.
+        """
+        mesh = self.read_value("edos_mesh") * units.Ha_to_eV
+        # [nsppol+1, nw] arrays with TOT_DOS, Spin_up, Spin_down in a.u.
+        var = self.read_variable("edos_dos")
+        if var.shape[0] == 3:
+            # Spin polarized. Extract up-down components.
+            spin_dos = var[1:, :] / units.Ha_to_eV
+        else:
+            # Spin unpolarized. Extract Tot DOS
+            spin_dos = var[0, :] / units.Ha_to_eV
+
+        #spin_idos = self.read_variable("edos_idos")[1:, :] / units.Ha_to_eV
+        nelect = self.read_value("number_of_electrons")
+        fermie = self.read_value("fermi_energy") * units.Ha_to_eV
+        return ElectronDos(mesh, spin_dos, nelect, fermie=fermie)
 
     def read_phbands_qpath(self):
         """

@@ -347,7 +347,8 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
-    mp_rest_parser.add_argument("--mapi-key", default=None, help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
+    mp_rest_parser.add_argument("--mapi-key", default=None,
+        help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
 
     # Subparser for mp_id command.
@@ -358,12 +359,12 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Subparser for mp_match command.
     p_mpmatch = subparsers.add_parser('mp_match', parents=[path_selector, mp_rest_parser, copts_parser, nb_parser],
-        help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY.")
+        help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY.")
     add_format_arg(p_mpmatch, default="abivars")
 
     # Subparser for mp_search command.
     p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser, nb_parser],
-        help="Get structure from the pymatgen database. Requires internet connection and MAPI_KEY")
+        help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY")
     p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
         help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).")
     p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
@@ -373,7 +374,7 @@ closest points in this particular structure. This is usually what you want in a 
     # Subparser for mp_pd command.
     p_mp_pda = subparsers.add_parser('mp_pd', parents=[mp_rest_parser, copts_parser],
         help=("Generate phase diagram with entries from the Materials Project. "
-              "Requires internet connection and MAPI_KEY"))
+              "Requires internet connection and PMG_MAPI_KEY"))
     p_mp_pda.add_argument("file_or_elements", type=str, default=None,
         help="FILE with structure or elements e.g., Li-Fe-O).")
     p_mp_pda.add_argument("-u", "--show-unstable", type=int, default=0,
@@ -451,9 +452,10 @@ def main():
             # Here we compare Abinit wrt spglib. If spgrp is None, we create a temporary
             # task to run the code in dry-run mode.
             print("FILE does not contain Abinit symmetry operations.")
-            print("Calling Abinit in --dry-run mode to get space group.")
+            print("Calling Abinit in --dry-run mode with chkprim = 0 to get space group.")
             from abipy.data.hgh_pseudos import HGH_TABLE
             gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+            gsinp["chkprim"] = 0
             abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
             print(abistructure.spget_summary(verbose=options.verbose))
 
