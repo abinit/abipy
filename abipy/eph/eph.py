@@ -9,6 +9,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 import pymatgen.core.units as units
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from scipy.integrate import cumtrapz, simps
@@ -19,7 +20,7 @@ from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.electrons.ebands import ElectronsReader, ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import (PhononBands, PhononDos, RobotWithPhbands,
-    factor_ev2units, unit_tag, dos_label_from_units)
+    factor_ev2units, unit_tag, dos_label_from_units, wlabel_from_units)
 from abipy.abio.robots import Robot
 
 
@@ -88,9 +89,11 @@ class A2f(object):
         app("Mesh from %.4f to %.4f [eV] with %d points" % (
             self.mesh[0], self.mesh[-1], len(self.mesh)))
 
-        app("lambda_iso: %.3f, omega_log %s" % (self.lambda_iso, self.omega_log))
-        for mustar in [0.8, 0.6]:
-            app("For mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
+        # TODO: Add ElectronDos
+        app("Isotropic lambda: %.3f" % (self.lambda_iso))
+        app("Omega_log: %s [eV], %s [K]" % (self.omega_log, self.omega_log * abu.eV_to_K))
+        for mustar in (0.1, 0.2):
+            app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
 
         if verbose:
             # $\int dw [a2F(w)/w] w^n$
@@ -107,13 +110,24 @@ class A2f(object):
     @lazy_property
     def omega_log(self):
         r"""
-        Get log moment of alpha^2F.
-        exp((2/\lambda) \int dw a2F(w) ln(w)/w)
+        Get log moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
         """
-        wmesh, a2fw = self.mesh[self.iw0+1:], self.values[self.iw0+1:]
-        wmesh = wmesh * units.eV_to_Ha
-        integral = simps(a2fw * (np.log(wmesh) / wmesh), x=wmesh)
-        return np.exp(2.0 * integral / self.lambda_iso) * units.Ha_to_eV
+        #return 270 / abu.eV_to_K
+        iw = self.iw0 + 1
+        #iw = self.iw0 + 100
+        wmesh, a2fw = self.mesh[iw:], self.values[iw:]
+        #wmesh = wmesh * units.eV_to_Ha
+        #wmesh = wmesh * abu.eV_to_THz
+
+        #ax, fig, plt = get_ax_fig_plt(ax=None)
+        #ax.plot(wmesh, a2fw / wmesh * np.log(wmesh))
+        #plt.show()
+
+        integral = simps(a2fw / wmesh * np.log(wmesh), x=wmesh)
+
+        #return np.exp(2.0 / self.lambda_iso * integral) * units.Ha_to_eV
+        #return np.exp(2.0 / self.lambda_iso * integral) / abu.eV_to_THz
+        return np.exp(2.0 / self.lambda_iso * integral) #/ abu.eV_to_THz
 
     def get_moment(self, n, spin=None, cumulative=False):
         r"""
@@ -153,15 +167,17 @@ class A2f(object):
         """
         Computes the critical temperature with the McMillan equation and the input mustar.
         """
-        tc = self.omega_log / 1.2 * np.exp((-1.04 * (1.0 + self.lambda_iso)) / (self.lambda_iso - mustar * (1.0 + 0.62 * self.lambda_iso)))
-        eV_to_K = 11604.5250061657
-        return tc * eV_to_K
+        tc = (self.omega_log / 1.2) * \
+            np.exp(-1.04 * (1.0 + self.lambda_iso) / (self.lambda_iso - mustar * (1.0 + 0.62 * self.lambda_iso)))
+        return tc * abu.eV_to_K
 
-    #def get_mustar_from_tc(self, tc):
-    #    """
-    #    Return the value of mustar that gives the critical temperature tc in McMillan equation
-    #    """
-    #    return 0
+    def get_mustar_from_tc(self, tc):
+        """
+        Return the value of mustar that gives the critical temperature tc in K in the McMillan equation.
+        """
+        l = self.lambda_iso
+        num = l + (1.04 * (1 + l) / np.log(1.2 * abu.kb_eVK * tc / self.omega_log))
+        return num / (1 + 0.62 * l)
 
     @add_fig_kwargs
     def plot(self, units="eV", with_lambda=True, exchange_xy=False, ax=None,
@@ -171,8 +187,8 @@ class A2f(object):
         contributions due to the phonon branches.
 
         Args:
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
-                Case-insensitive.
+            units: Units for phonon plots. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             with_lambda:
             exchange_xy: True to exchange x-y axes.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
@@ -186,6 +202,8 @@ class A2f(object):
         """""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
+        wfactor = factor_ev2units(units)
+
         # TODO Better handling of styles
         style = dict(
             linestyle=kwargs.pop("linestyle", "-"),
@@ -194,7 +212,7 @@ class A2f(object):
         )
 
         # Plot a2f(w)
-        xx, yy = self.mesh, self.values
+        xx, yy = self.mesh * wfactor, self.values
         if exchange_xy: xx, yy = yy, xx
         ax.plot(xx, yy, label=label, **style)
 
@@ -202,7 +220,7 @@ class A2f(object):
         if with_lambda:
             lambda_w = self.get_moment(n=0, cumulative=True)
             l_ax = ax.twinx()
-            xx, yy = self.mesh, lambda_w
+            xx, yy = self.mesh * wfactor, lambda_w
             if exchange_xy: xx, yy = yy, xx
             l_ax.plot(xx, yy, label=label, **style)
             l_ax.set_ylabel(r"$\lambda(\omega)$")
@@ -210,11 +228,12 @@ class A2f(object):
         if self.nsppol == 2:
             # Plot spin resolved a2f(w).
             for spin in range(self.nsppol):
-                xx, yy = self.mesh, self.values_spin[spin]
+                xx, yy = self.mesh * wfactor, self.values_spin[spin]
                 if exchange_xy: xx, yy = yy, xx
                 ax_plot(xx, yy, marker=self.marker_spin[spin], **style)
 
-        xlabel, ylabel = r"$\omega$ [eV]", r"$\alpha^2F(\omega)$"
+        xlabel = wlabel_from_units(units)
+        ylabel = r"$\alpha^2F(\omega)$"
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -253,6 +272,9 @@ class A2f(object):
             axmat = np.reshape(axmat, (self.natom, 3))
             fig = plt.gcf()
 
+        wfactor = factor_ev2units(units)
+        wvals = self.mesh * wfactor
+
         if with_lambda:
             lax_nu = [ax.twinx() for ax in axmat.flat]
             # Share axis after creation. Based on
@@ -288,18 +310,18 @@ class A2f(object):
                 #ax.set_yticks([])
 
             if iatom == self.natom -1:
-                ax.set_xlabel(r"$\omega$ [eV]")
+                ax.set_xlabel(wlabel_from_units(units))
             #set_axlims(ax, xlims, "x")
             #set_axlims(ax, ylims, "y")
 
             # Plot total a2f(w)
-            ax.plot(self.mesh, self.values_nu[nu], **a2f_style)
+            ax.plot(wvals, self.values_nu[nu], **a2f_style)
 
             # Plot lambda(w)
             if with_lambda:
                 lambdaw_nu = self.get_moment_nu(n=0, nu=nu, cumulative=True)
                 lax = lax_nu[nu]
-                lax.plot(self.mesh, lambdaw_nu, **lambda_style)
+                lax.plot(wvals, lambdaw_nu, **lambda_style)
                 if idir == 2:
                     lax.set_ylabel(r"$\lambda_{\nu}(\omega)$", color=lambda_style["color"])
 
@@ -313,12 +335,21 @@ class A2f(object):
 
     @add_fig_kwargs
     def plot_a2(self, phdos, atol=1e-12, **kwargs):
-        """grid with 3 plots (a2F, F, a2F)."""
+        """
+        Grid with 3 plots (a2F, F, a2F).
+
+        Args:
+            phdos:
+            atol:
+
+        Returns:
+            `matplotlib` figure
+        """
         phdos = PhononDos.as_phdos(phdos)
         import matplotlib.pyplot as plt
         fig, ax_list = plt.subplots(nrows=3, ncols=1, sharex=True, sharey=False, squeeze=True)
 
-        # Spline phdos onto a2f mesh and compute a2F / F
+        # Spline phdos onto a2f mesh and compute a2F(w) / F(w)
         f = phdos.spline(self.mesh)
         f = self.values / np.where(np.abs(f) > atol, f, atol)
         ax = ax_list[0]
@@ -334,6 +365,33 @@ class A2f(object):
 
         # Plot a2f
         self.plot(ax=ax_list[2], show=False)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_tc_vs_mustar(self, start=0.1, stop=0.5, num=50, ax=None, **kwargs):
+        """
+        Plot Tc(mustar)
+
+        Args:
+            start: The starting value of the sequence.
+            stop: The end value of the sequence
+            num: int, optional
+                Number of samples to generate. Default is 50. Must be non-negative.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+
+        Returns:
+            `matplotlib` figure
+        """
+        mustar_values = np.linspace(start, stop, num=num)
+        tc_vals = [self.get_mcmillan_tc(mustar) for mustar in mustar_values]
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.plot(mustar_values, tc_vals, **kwargs)
+        ax.set_yscale("log")
+        ax.grid(True)
+        ax.set_xlabel(r"$\mu^*$")
+        ax.set_ylabel(r"$T_c [K]$")
 
         return fig
 
@@ -373,7 +431,7 @@ class A2Ftr(object):
 class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the phonon linewidths, EliashbergFunction, the phonon bands,
-    the ElectronBands on the k-mesh.
+    the `ElectronBands` and `ElectronDos` on the k-mesh.
     Provides methods to plot results.
 
     Usage example:
@@ -627,6 +685,23 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
+    def plot_a2f_interpol(self, units="eV", ax=None, ylims=None, **kwargs):
+        """
+        Plot
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        #linestyle_qsamp = dict(qcoarse="--", qintp="-")
+        for qsamp in ["qcoarse", "qintp"]:
+            a2f = self.get_a2f_qsamp(qsamp)
+            a2f.plot(units=units, ylims=ylims, ax=ax, with_lambda=False, show=False)
+            #ax.yaxis.set_ticks_position("right")
+            #ax.yaxis.set_label_position("right")
+            #ax.tick_params(labelbottom='off')
+            #ax.set_ylabel("")
+
+        return fig
+
+    @add_fig_kwargs
     def plot_with_a2f(self, units="eV", qsamp="qintp", phdos=None, ylims=None, **kwargs):
         """
         Plot phonon bands with lambda(q, nu) + a2F(w) + phonon DOS.
@@ -660,9 +735,6 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self.plot(units=units, ylims=ylims, ax=ax_phbands, show=False)
 
         # Plot a2F(w)
-        #a2f = self.a2f_qcoarse
-        #a2f.plot(units=units, exchange_xy=True, ylims=ylims, ax=ax, show=False)
-
         a2f = self.get_a2f_qsamp(qsamp)
         ax = ax_doses[0]
         a2f.plot(units=units, exchange_xy=True, ylims=ylims, ax=ax, with_lambda=False, show=False)
@@ -707,7 +779,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.ebands.plot();"),
             nbv.new_code_cell("ncfile.plot();"),
-            nbv.new_code_cell("ncfile.plot_phlinewidths();"),
+            #nbv.new_code_cell("ncfile.plot_phlinewidths();"),
             nbv.new_code_cell("ncfile.plot_with_a2f();"),
             nbv.new_code_cell("ncfile.a2f.plot();"),
         ])
@@ -973,7 +1045,7 @@ class EphReader(ElectronsReader):
         assert qsamp in ("qcoarse", "qintp")
         mesh = self.read_value("a2f_mesh_" + qsamp)  * units.Ha_to_eV
         # C shape [nsppol, natom + 1, nomega]
-        data = self.read_value("a2f_values_" + qsamp) #/ units.Ha_to_eV
+        data = self.read_value("a2f_values_" + qsamp) # * 0.25
         values_spin = data[:, 0, :].copy()
         values_spin_nu = data[:, 1:, :].copy()
         return A2f(mesh, values_spin, values_spin_nu)

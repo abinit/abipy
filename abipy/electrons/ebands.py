@@ -2794,8 +2794,8 @@ class ElectronDos(object):
     def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
-        app("nsppol=%d, nelect=%s" % (self.nsppol, self.nelect))
-        app("Fermi energy: %s (recomputed from nelect):" % self.fermie)
+        app("nsppol: %d, nelect: %s" % (self.nsppol, self.nelect))
+        app("Fermi energy: %s [eV] (recomputed from nelect):" % self.fermie)
         return "\n".join(lines)
 
     @classmethod

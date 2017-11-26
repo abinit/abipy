@@ -662,8 +662,10 @@ def get_parser(with_epilog=False):
     # Subparser for single command.
     p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
 
-    # Subparser for rapidfire command.
+    # Subparser for rapid command.
     p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
+    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
+                         help="Maximum number of launches. default: 10. Use -1 for no limit.")
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
@@ -706,8 +708,6 @@ def get_parser(with_epilog=False):
     # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
         help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument("--relaunch", action="store_true", default=False,
-        help="Relaunch tasks in rapid mode after reset.")
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', parents=[copts_parser],
@@ -1080,13 +1080,13 @@ def main():
 
     elif options.command  == "single":
         nlaunch = flow.single_shot()
-        print("Number of tasks launched: %d" % nlaunch)
         if nlaunch: flow.show_status()
+        cprint("Number of tasks launched: %d" % nlaunch, "yellow")
 
     elif options.command == "rapid":
-        nlaunch = flow.rapidfire()
-        print("Number of tasks launched: %d" % nlaunch)
+        nlaunch = flow.rapidfire(max_nlaunch=options.max_nlaunch, max_loops=1, sleep_time=5)
         if nlaunch: flow.show_status()
+        cprint("Number of tasks launched: %d" % nlaunch, "yellow")
 
     elif options.command == "scheduler":
         # Check that the env on the local machine is properly configured before starting the scheduler.
@@ -1204,19 +1204,12 @@ def main():
                 count += 1
         cprint("%d tasks have been reset" % count, "blue")
 
-        # Try to relaunch
-        nlaunch = 0
-        if options.relaunch:
-            nlaunch = flow.rapidfire()
-            cprint("Number of tasks launched: %d" % nlaunch, "magenta")
-
         flow.show_status()
 
-        if nlaunch == 0:
-            g = flow.find_deadlocks()
-            #print("deadlocked:", gdeadlocked, "\nrunnables:", grunnables, "\nrunning:", g.running)
-            if g.deadlocked and not (g.runnables or g.running):
-                cprint("*** Flow is deadlocked ***", "red")
+        g = flow.find_deadlocks()
+        #print("deadlocked:", gdeadlocked, "\nrunnables:", grunnables, "\nrunning:", g.running)
+        if g.deadlocked and not (g.runnables or g.running):
+            cprint("*** Flow is deadlocked ***", "red")
 
         flow.pickle_dump()
 

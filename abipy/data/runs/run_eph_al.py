@@ -84,6 +84,7 @@ def build_flow(options):
     eph_task = eph_work.register_eph_task(eph_inp, deps=eph_deps)
 
     flow.allocate()
+    flow.use_smartio()
 
     # EPH does not support autoparal (yet)
     #eph_task.with_fixed_mpi_omp(1, 1)

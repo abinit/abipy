@@ -1,4 +1,6 @@
 TODO LIST:
+  
+  # Check PJDOS in abinit@gitlab
 
   # Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice.
 
@@ -54,4 +56,5 @@ TODO LIST:
 
  # Add option max_num_launchers in scheduler.yml
 
- # Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t)
+ # Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
+   as well as Abinit input as string)

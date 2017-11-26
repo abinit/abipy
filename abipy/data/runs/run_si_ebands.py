@@ -54,7 +54,7 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     workdir = options.workdir
     if not options.workdir:
-        workdir = os.pathbasename(__file__).replace(".py", "").replace("run_", "flow_")
+        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs()
