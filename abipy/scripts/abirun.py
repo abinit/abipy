@@ -327,6 +327,55 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
     return df
 
 
+def flow_get_dims_dataframe(flow, nids=None, printout=False, with_colors=False):
+    """
+    Analyze output files produced by Abinit tasks. Print pandas DataFrame with dimensions.
+
+    Args:
+        nids: List of node identifiers. By defaults all nodes are shown
+        printout: True to print dataframe.
+        with_colors: True if task status should be colored.
+    """
+    abo_paths, index, status, abo_relpaths, task_classes = [], [], [], [], []
+
+    for task in flow.iflat_tasks(nids=nids):
+        if task.status not in (flow.S_OK, flow.S_RUN): continue
+        #if not task.is_abinit_task: continue
+
+        abo_paths.append(task.output_file.path)
+        index.append(task.pos_str)
+        status.append(task.status.colored if with_colors else str(task.status))
+        abo_relpaths.append(os.path.relpath(task.output_file.relpath))
+        task_classes.append(task.__class__.__name__)
+
+    if not abo_paths: return
+    # Get dimensions from output files.
+    rows = []
+    for p in abo_paths:
+        print(p)
+        with abilab.AbinitOutputFile(p) as abo:
+            try:
+                dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
+            except Exception as exc:
+                cprint("Exception while trying to get dimensions from %s\n%s" % (p, str(exc)), "yellow")
+                continue
+            rows.append(dims_dataset[1])
+
+    import pandas as pd
+    df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+
+    # Add columns to the dataframe.
+    status = [str(s) for s in status]
+    df["task_class"] = task_classes
+    df["relpath"] = abo_relpaths
+    df["status"] = status
+
+    if printout:
+        abilab.print_dataframe(df, title="Table with Abinit dimensions:\n")
+
+    return df
+
+
 def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False, with_colors=False):
     """
     Print the input of the tasks to the given stream.
@@ -527,8 +576,9 @@ Usage example:
   abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
   abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
   abirun.py [FLOWDIR] ebands                => Print table with electronic properties.
-  abirun.py [FLOWDIR] hist                  => Print table with last iteratin in hist files.
+  abirun.py [FLOWDIR] hist                  => Print table with last iteration in hist files.
   abirun.py [FLOWDIR] cycles                => Print SCF cycles extracted from the output of the tasks.
+  abirun.py [FLOWDIR] dims                  => Print table with dimensions extracted from the output of the tasks.
   abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks
   abirun.py [FLOWDIR] tail                  => Use unix tail to follow the main output files of the flow.
   abirun.py [FLOWDIR] deps                  => Show task dependencies.
@@ -669,7 +719,7 @@ def get_parser(with_epilog=False):
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
-        help="Run all tasks with a Python scheduler. Requires scheduler.yml.")
+        help="Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.")
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="Number of weeks to wait.")
     p_scheduler.add_argument('-d', '--days', default=0, type=int, help="Number of days to wait.")
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="Number of hours to wait.")
@@ -697,7 +747,7 @@ def get_parser(with_epilog=False):
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser],
-        help="Cancel the tasks in the queue. Not available if qtype == shell.")
+        help="Cancel the tasks in the queue. Not available if qtype is shell.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
@@ -782,6 +832,10 @@ Specify the files to open. Possible choices:
     # Subparser for cycles.
     p_cycles = subparsers.add_parser('cycles', parents=[copts_parser, flow_selector_parser],
         help="Print SCF cycles extracted from the output of the tasks.")
+
+    # Subparser for dims.
+    p_dims = subparsers.add_parser('dims', parents=[copts_parser, flow_selector_parser],
+        help="Print table with dimensions extracted from the output of the tasks.")
 
     # Subparser for inspect.
     p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser],
@@ -1293,6 +1347,10 @@ def main():
             print()
             print(cycle)
             print()
+
+    elif options.command == "dims":
+        flow_get_dims_dataframe(flow, nids=selected_nids(flow, options),
+                                printout=True, with_colors=not options.no_colors)
 
     elif options.command == "inspect":
         tasks = flow.select_tasks(nids=options.nids, wslice=options.wslice)

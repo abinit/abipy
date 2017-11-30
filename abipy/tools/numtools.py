@@ -95,6 +95,20 @@ def iflat(iterables):
                 yield it
 
 
+def grouper(n, iterable, fillvalue=None):
+    """
+    >>> assert grouper(3, "ABCDEFG", "x") == ["ABC", "DEF" "Gxx"]
+    """
+    # https://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks/434411#434411
+    try:
+        from itertools import zip_longest
+    except ImportError:
+        from itertools import izip_longest as zip_longest
+
+    args = [iter(iterable)] * n
+    return list(zip_longest(fillvalue=fillvalue, *args))
+
+
 #########################################################################################
 # Sorting and ordering
 #########################################################################################

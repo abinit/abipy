@@ -92,7 +92,7 @@ class A2f(object):
         # TODO: Add ElectronDos
         app("Isotropic lambda: %.3f" % (self.lambda_iso))
         app("Omega_log: %s [eV], %s [K]" % (self.omega_log, self.omega_log * abu.eV_to_K))
-        for mustar in (0.1, 0.2):
+        for mustar in (0.1, 0.12, 0.2):
             app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
 
         if verbose:
@@ -114,20 +114,15 @@ class A2f(object):
         """
         #return 270 / abu.eV_to_K
         iw = self.iw0 + 1
-        #iw = self.iw0 + 100
         wmesh, a2fw = self.mesh[iw:], self.values[iw:]
-        #wmesh = wmesh * units.eV_to_Ha
-        #wmesh = wmesh * abu.eV_to_THz
 
         #ax, fig, plt = get_ax_fig_plt(ax=None)
         #ax.plot(wmesh, a2fw / wmesh * np.log(wmesh))
         #plt.show()
 
-        integral = simps(a2fw / wmesh * np.log(wmesh), x=wmesh)
-
-        #return np.exp(2.0 / self.lambda_iso * integral) * units.Ha_to_eV
-        #return np.exp(2.0 / self.lambda_iso * integral) / abu.eV_to_THz
-        return np.exp(2.0 / self.lambda_iso * integral) #/ abu.eV_to_THz
+        fw = a2fw / wmesh * np.log(wmesh)
+        integral = simps(fw, x=wmesh)
+        return np.exp(1.0 / self.lambda_iso * integral)
 
     def get_moment(self, n, spin=None, cumulative=False):
         r"""
@@ -166,6 +161,9 @@ class A2f(object):
     def get_mcmillan_tc(self, mustar):
         """
         Computes the critical temperature with the McMillan equation and the input mustar.
+
+        Return:
+            Tc in Kelvin degrees
         """
         tc = (self.omega_log / 1.2) * \
             np.exp(-1.04 * (1.0 + self.lambda_iso) / (self.lambda_iso - mustar * (1.0 + 0.62 * self.lambda_iso)))
@@ -173,7 +171,11 @@ class A2f(object):
 
     def get_mustar_from_tc(self, tc):
         """
-        Return the value of mustar that gives the critical temperature tc in K in the McMillan equation.
+        Return the value of mustar that gives the critical temperature `tc` in the McMillan equation.
+
+        Args:
+            tc:
+                Critical temperature in Kelvin
         """
         l = self.lambda_iso
         num = l + (1.04 * (1 + l) / np.log(1.2 * abu.kb_eVK * tc / self.omega_log))
@@ -383,6 +385,7 @@ class A2f(object):
         Returns:
             `matplotlib` figure
         """
+        # TODO start and stop to avoid singularity in Mc Tc
         mustar_values = np.linspace(start, stop, num=num)
         tc_vals = [self.get_mcmillan_tc(mustar) for mustar in mustar_values]
 
@@ -424,7 +427,6 @@ class A2Ftr(object):
             if x >= 0.0: return i
         else:
             raise ValueError("Cannot find zero in energy mesh")
-
 
 
 # TODO Change name.
@@ -471,9 +473,10 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
         # E-PH section
         app(marquee("E-PH calculation", mark="="))
-        app(self.a2f_qcoarse.to_string(title="A2f coarse:", verbose=verbose))
+        app("Has transport a2Ftr(w): %s" % self.has_a2ftr)
+        app(self.a2f_qcoarse.to_string(title="A2f(w) on the ab-initio q-mesh:", verbose=verbose))
         app("")
-        app(self.a2f_qintp.to_string(title="A2f interpolated:", verbose=verbose))
+        app(self.a2f_qintp.to_string(title="A2f(w) interpolated on the dense q-mesh:", verbose=verbose))
 
         return "\n".join(lines)
 
