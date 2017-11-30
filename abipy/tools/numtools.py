@@ -97,7 +97,8 @@ def iflat(iterables):
 
 def grouper(n, iterable, fillvalue=None):
     """
-    >>> assert grouper(3, "ABCDEFG", "x") == ["ABC", "DEF" "Gxx"]
+    >>> assert grouper(3, "ABCDEFG", "x") == [('A', 'B', 'C'), ('D', 'E', 'F'), ('G', 'x', 'x')]
+    >>> assert grouper(3, [1, 2, 3, 4]) == [(1, 2, 3), (4, None, None)]
     """
     # https://stackoverflow.com/questions/434287/what-is-the-most-pythonic-way-to-iterate-over-a-list-in-chunks/434411#434411
     try:

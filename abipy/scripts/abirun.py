@@ -23,6 +23,7 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed, list_strings, make_banner
+from pymatgen.util.io_utils import ask_yesno
 from abipy.tools import duck
 from abipy.flowtk import Status
 from abipy.core.structure import dataframes_from_structures
@@ -929,6 +930,10 @@ Specify the files to open. Possible choices:
     p_debug_reset = subparsers.add_parser('debug_reset', parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
+    # Subparser for clone_task.
+    p_clone_task = subparsers.add_parser('clone_task', parents=[copts_parser, flow_selector_parser],
+        help="Clone task, change input variables and add new tasks to the flow. Requires clone_task.py.")
+
     # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
         help="Group tasks according to property.")
@@ -1438,6 +1443,72 @@ def main():
     # TODO
     #elif options.command == "debug_restart":
     #    flow_debug_restart_tasks(flow, nids=selected_nids(flow, options), verbose=options.verbose)
+
+    elif options.command == "clone_task":
+        if wname is None and tname is None:
+            cprint("Use e.g. `abirun.py FLOWDIR/w0/t0` to select the task to clone.", "yellow")
+            return 1
+
+        if flow.has_scheduler:
+            cprint("Cannot add new tasks when there's a scheduler running in background.", "yellow")
+            return 1
+
+        task_dirpath = os.path.join(flow.workdir, wname, tname)
+        for task in flow.iflat_tasks():
+            if task.workdir == task_dirpath:
+                task_id = task.node_id
+                print("Will clone task: ", repr(task))
+                break
+        else:
+            raise ValueError("Cannot find task associated to workdir `%s`" % task_dirpath)
+
+        #print(task.deps, type(task.deps))
+        py_file = "clone_task.py"
+        if not os.path.exists(py_file):
+            cprint("clone_task requires %s in the current working directory" % py_file, "yellow")
+            cprint("Will generate template file. Please edit it and rerun", "yellow")
+            template = """
+def list_of_dict_with_vars(task):
+    "
+    This function is called by `abirun.py clone_task` to build new tasks.
+    It receives the task to be cloned and retunn a list of dictionaries.
+    Each dictionary contains the Abinit variables that will be added to the initial input.
+    To build e.g. two new tasks with a different value of ecut use:
+
+    .. example:
+
+        return [
+            {"ecut": 20},
+            {"ecut": 30},
+        ]
+    "
+    #return [
+    #    {"ecut": 20, nband: 10},
+    #    {"ecut": 30, nband: 20},
+    #]
+"""
+            with open(py_file, "wt") as fh:
+                fh.write(template)
+            return 1
+        else:
+            print("Importing `list_of_dict_with_vars` from ", pyfile)
+            import imp
+            mod = imp.load_source(pyfile.replace(".py", ""), pyfile)
+
+        dict_list = mod.list_of_dict_with_vars(task)
+        if not dict_list:
+            cprint("list_of_dict_with_vars returned empty list", "red")
+            return 1
+
+        for d in dict_list:
+            print("Registering new task with vars:", d)
+            task.work.register(task.input.new_with_vars(**d),
+                               deps=task.deps, task_class=task.__class__)
+
+        task.work.finalized = False
+        flow.allocate()
+        if ask_yesno("Do you want to rebuild the flow? [Y/n]"):
+            flow.build_and_pickle_dump()
 
     elif options.command == "group":
         d = defaultdict(list)
