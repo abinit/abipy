@@ -2,6 +2,7 @@
 """History file with structural relaxation results."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import os
 import numpy as np
 import pymatgen.core.units as units
 
@@ -9,6 +10,7 @@ from collections import OrderedDict
 from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee # is_string, list_strings,
+from pymatgen.core.periodic_table import Element
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
@@ -48,7 +50,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     @lazy_property
     def final_pressure(self):
-        """Final pressure in Gpa"""
+        """Final pressure in Gpa."""
         cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
         return pressures[-1]
 
@@ -131,6 +133,84 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
+
+    def to_xdatcar(self, filepath=None, groupby_type=True, **kwargs):
+        """
+        Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
+
+        Args:
+            kwargs: keywords arguments passed to Xdatcar constructor.
+        """
+        filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type, overwrite=True)
+        from pymatgen.io.vasp.outputs import Xdatcar
+        return Xdatcar(filepath, **kwargs)
+
+    def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False):
+        """
+        Write Xdatcar file with unit cell and atomic positions to file `filepath`.
+
+        Args:
+            filepath: Xdatcar filename. If None, a temporary file is created.
+            groupby_type: If True, atoms are grouped by type. Note that this option
+                may change the order of the atoms. This option is needed because
+                there are post-processing tools (e.g. ovito) that do not work as expected
+                if the atoms in the structure are not grouped by type.
+            overwrite: raise RuntimeError, if False and filepath exists.
+
+        Return:
+            path to Xdatcar file.
+        """
+        if filepath is not None and os.path.exists(filepath) and not overwrite:
+            raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
+        if filepath is None:
+            import tempfile
+            fd, filepath = tempfile.mkstemp(text=True)
+
+        # int typat[natom], double znucl[npsp]
+        typat = self.reader.read_value("typat")
+        znucl = self.reader.read_value("znucl")
+        if len(typat) != len(znucl):
+            raise RuntimeError("Alchemical mixing is not supported.")
+        symb2pos = OrderedDict()
+        symbols_atom = []
+        for iatom, itype in enumerate(typat):
+            itype = itype - 1
+            symbol = Element.from_Z(int(znucl[itype])).symbol
+            if symbol not in symb2pos: symb2pos[symbol] = []
+            symb2pos[symbol].append(iatom)
+            symbols_atom.append(symbol)
+
+        if not groupby_type:
+            group_ids = np.arange(self.reader.natom)
+        else:
+            group_ids = []
+            for pos_list in symb2pos.values():
+                group_ids.extend(pos_list)
+            group_ids = np.array(group_ids, dtype=np.int)
+
+        comment = " %s\n" % self.initial_structure.formula
+        with open(filepath, "wt") as fh:
+            # comment line  + scaling factor set to 1.0
+            fh.write(comment)
+            fh.write("1.0\n")
+            for vec in self.initial_structure.lattice.matrix:
+                fh.write("%.12f %.12f %.12f\n" % (vec[0], vec[1], vec[2]))
+            if not groupby_type:
+                fh.write(" ".join(symbols_atom) + "\n")
+                fh.write("1 " * len(symbols_atom) + "\n")
+            else:
+                fh.write(" ".join(symb2pos.keys()) + "\n")
+                fh.write(" ".join(str(len(p)) for p in symb2pos.values()) + "\n")
+
+            # Write atomic positions in reduced coordinates.
+            xred_list = self.reader.read_value("xred")
+            for step in range(self.num_steps):
+                fh.write("Direct configuration= %d\n" % (step + 1))
+                frac_coords = xred_list[step, group_ids]
+                for fs in frac_coords:
+                    fh.write("%.12f %.12f %.12f\n" % (fs[0], fs[1], fs[2]))
+
+        return filepath
 
     @add_fig_kwargs
     def plot(self, axlist=None, **kwargs):
