@@ -34,7 +34,7 @@ Check out the list of plotting scripts available in our
 To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
 <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
 and the
-`AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
+`AbiPy lessons <https://nbviewer.jupyter.org/github/abinit/abitutorials/tree/master/abitutorials/index.ipynb>`_.
 
 AbiPy supports both Python 2.7 as well as Python >= 3.4.
 Python 2.7 is more intensively tested than py3k especially at the level of workflows
