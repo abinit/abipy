@@ -9,7 +9,7 @@ import pymatgen.core.units as units
 from collections import OrderedDict
 from monty.functools import lazy_property
 from monty.collections import AttrDict
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee # is_string, list_strings
 from pymatgen.core.periodic_table import Element
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.structure import Structure
@@ -479,7 +479,6 @@ class HistRobot(Robot):
         #nb.cells.extend(self.get_baserobot_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
-
 
 
 class HistReader(ETSF_Reader):

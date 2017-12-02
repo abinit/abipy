@@ -1201,7 +1201,7 @@ def main():
         methname = "open_" + options.ncext.lower()
         # List of netcdf file objects.
         ncfiles = [getattr(task, methname)() for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)
-                    if hasattr(task, methname)]
+                   if hasattr(task, methname)]
 
         if ncfiles:
             # Start ipython shell with namespace
