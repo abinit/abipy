@@ -146,7 +146,7 @@ The documentation of the **developmental** version is hosted on `github pages <h
 The Github version include test files for complete unit testing.
 To run the suite of unit tests, make sure you have ``pytest`` installed and then type::
 
-    $ py.test
+    $ pytest
 
 in the AbiPy root directory.
 
