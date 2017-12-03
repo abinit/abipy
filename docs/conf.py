@@ -61,15 +61,18 @@ extensions += [
 
 sphinx_gallery_conf = {
     # path to your examples scripts
-    'examples_dirs': '../abipy/examples/plot',
+    'examples_dirs': ["../abipy/examples/plot", "../abipy/examples/flows",],
     # path where to save gallery generated examples
-    'gallery_dirs': 'gallery',
-    #'filename_pattern': '/plot_',
+    'gallery_dirs': ["gallery", "flow_gallery",],
+    #'filename_pattern': "/plot_",
     'backreferences_dir': False,
     #'find_mayavi_figures': True,
     'reference_url': {
-        # The module you locally document uses None
-        'abipy': None,
+        'abipy': None,  # The module you locally document uses None
+        'numpy': 'https://docs.scipy.org/doc/numpy/',
+        'matplotlib': 'https://matplotlib.org',
+        'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
+        "pymatgen": "http://pymatgen.org/",
     }
 }
 

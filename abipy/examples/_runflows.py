@@ -13,7 +13,7 @@ import tempfile
 from subprocess import call, Popen
 from abipy import __version__
 
-root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+#root = os.path.abspath(os.path.join(os.path.dirname(__file__)), "flows")
 
 
 def main():
@@ -65,7 +65,7 @@ def main():
         options.exclude = options.exclude.split(",")
         print("Will exclude:\n", options.exclude)
 
-    root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), "flows"))
     scripts = []
     for fname in os.listdir(root):
         if fname in options.exclude: continue

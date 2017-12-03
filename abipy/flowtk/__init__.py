@@ -57,6 +57,7 @@ def flow_main(main):
         def execute():
             """This is the function that performs the work depending on options."""
             flow = main(options)
+            #flow.build_and_pickle_dump()
 
             if options.scheduler:
                 flow.rmtree()

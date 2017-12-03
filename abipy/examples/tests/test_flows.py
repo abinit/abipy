@@ -1,5 +1,5 @@
 """
-This script runs all the python scripts located in this directory
+This script runs all the flows in the `flow` directory.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -11,10 +11,11 @@ from subprocess import call
 from abipy.core.testing import AbipyTest
 import abipy.flowtk as flowtk
 
-root = os.path.dirname(__file__)
+root = os.path.join(os.path.dirname(__file__), "..", "flows")
 
 
 class TestScripts(AbipyTest):
+
     #def test_all_scripts(self):
     #    """Testing all scripts in abipy/data/runs"""
     #    root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -61,4 +62,5 @@ class TestScripts(AbipyTest):
                 print(80 * "*")
                 print(i, e)
                 print(80 * "*")
+
         assert not errors
