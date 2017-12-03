@@ -268,7 +268,5 @@ def main():
     # Dispatch
     return globals()["abiview_" + options.command](options)
 
-    return 0
-
 if __name__ == "__main__":
     sys.exit(main())

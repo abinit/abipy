@@ -946,7 +946,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for networkx.
     p_networkx = subparsers.add_parser('networkx', parents=[copts_parser], #, flow_selector_parser],
-        help="Draw flow and node dependecies with networkx package.")
+        help="Draw flow and node dependencies with networkx package.")
     p_networkx.add_argument('--nxmode', default="status",
         help="Type of network plot. Possible values: `status`, `network`. Default: `status`.")
     p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels.")
