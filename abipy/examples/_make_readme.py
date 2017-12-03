@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""This script extracts the docstrings from the run_*.py scripts located in this directory."""
+"""
+This script extracts the docstrings from the run_*.py scripts located in this directory.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys

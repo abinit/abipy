@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-"""
+r"""
 Flow for quasi-harmonic calculations
+====================================
+
+Warning: This code is still under development.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -8,6 +11,7 @@ import sys
 import os
 import abipy.abilab as abilab
 import abipy.data as abidata
+from abipy import flowtk
 
 from abipy.flowtk.qha import QhaFlow
 
@@ -36,7 +40,18 @@ def build_flow(options):
     return flow
 
 
-@abilab.flow_main
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    __name__ = None
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).plot_networkx()
+
+
+
+
+@flowtk.flow_main
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()

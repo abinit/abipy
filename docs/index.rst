@@ -41,7 +41,7 @@ Workflows
    :maxdepth: 1
 
    workflows/taskmanager.rst
-   flow_gallery
+   flow_gallery/index.rst
 
 API
 ===

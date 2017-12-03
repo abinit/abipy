@@ -24,7 +24,13 @@ This directory contains:
 
 To build the HTML documentation, install sphinx then type `make html` that will execute::
 
-  sphinx-build -b html -d _build/doctrees . _build/html
+    sphinx-build -b html -d _build/doctrees . _build/html
+
+Remeber to issue::
+
+    export GENERATE_SPHINX_GALLERY=1
+
+to activate the generation of the thumbnails in examples/flows.
 
 The documentation is produced in `_build/html`.
 

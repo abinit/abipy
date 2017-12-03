@@ -31,8 +31,9 @@ class TestScripts(AbipyTest):
         count, errors = 0, []
         for fname in os.listdir(root):
             if not (fname.endswith(".py") and fname.startswith("run_")): continue
+            print("Testing:", fname)
             count += 1
-            s = "abipy.data.runs." + fname.replace(".py", "")
+            s = "abipy.examples.flows." + fname.replace(".py", "")
             module = importlib.import_module(s)
             # flow will be produced in a temporary workdir.
             workdir = tempfile.mkdtemp(prefix='flow_' + os.path.basename(fname))
@@ -51,11 +52,13 @@ class TestScripts(AbipyTest):
                 flow = module.build_flow(options)
                 assert flow is not None
                 flow.build_and_pickle_dump()
-
+                flow.show_status()
+                #flow.make_scheduler().start()
             except Exception:
                 errors.append("file %s\n %s" % (s, self.straceback()))
 
         print("Tested ", count, "scripts")
+        #assert 0
         assert count > 0
         if errors:
             for i, e in enumerate(errors):

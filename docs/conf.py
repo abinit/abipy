@@ -64,7 +64,8 @@ sphinx_gallery_conf = {
     'examples_dirs': ["../abipy/examples/plot", "../abipy/examples/flows",],
     # path where to save gallery generated examples
     'gallery_dirs': ["gallery", "flow_gallery",],
-    #'filename_pattern': "/plot_",
+    #'filename_pattern': "/plot_*",
+    'filename_pattern': "(/plot_*|/run_*)",
     'backreferences_dir': False,
     #'find_mayavi_figures': True,
     'reference_url': {

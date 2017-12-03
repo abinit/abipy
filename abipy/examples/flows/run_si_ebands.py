@@ -1,6 +1,13 @@
 #!/usr/bin/env python
-"""Flow for computing the band structure of silicon."""
+r"""
+Band structure Flow
+===================
+
+Flow for computing the band structure of silicon.
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
+
+__file__ = "run_si_ebands.py"
 
 import sys
 import os
@@ -63,7 +70,17 @@ def build_flow(options):
     return flowtk.bandstructure_flow(workdir, scf_input, nscf_input, manager=options.manager)
 
 
-@abilab.flow_main
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    __name__ = None
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).plot_networkx()
+
+
+
+@flowtk.flow_main
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()

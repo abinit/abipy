@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 """
+Wyckoff Flow
+============
+
 This example shows how to compute the band structure of a set of
 crystalline structures obtained by changing a set of internal paramaters
 """
@@ -11,7 +14,6 @@ import abipy.data as abidata
 
 from abipy import abilab
 from abipy import flowtk
-
 
 def special_positions(lattice, u):
     """Construct the crystalline `Structure` for given value of the internal parameter u."""
@@ -92,7 +94,16 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     return flowtk.BandStructureWork(gs_inp, nscf_inp)
 
 
-@abilab.flow_main
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    __name__ = None
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).plot_networkx()
+
+
+@flowtk.flow_main
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()

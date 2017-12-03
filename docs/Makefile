@@ -43,8 +43,10 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/*
 	-rm -rf gallery/*
+	-rm -rf flow_gallery/*
 
 html:
+	echo $(GENERATE_SPHINX_GALLERY)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

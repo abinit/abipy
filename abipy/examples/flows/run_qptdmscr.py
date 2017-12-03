@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""
+r"""
+Screening Flow with q-point parallelism
+=======================================
+
 This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
 """
@@ -122,7 +125,16 @@ def build_flow(options):
                                     manager=options.manager)
 
 
-@abilab.flow_main
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    __name__ = None
+    #import tempfile
+    #options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    #build_flow(options).plot_networkx()
+
+
+@flowtk.flow_main
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()

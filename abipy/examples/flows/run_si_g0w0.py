@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-"""This script shows how to compute the G0W0 corrections in silicon."""
+r"""
+G0W0 Flow
+=========
+
+This script shows how to compute the G0W0 corrections in silicon.
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
@@ -116,7 +121,18 @@ def build_flow(options):
     return flowtk.g0w0_flow(workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
 
 
-@abilab.flow_main
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    __name__ = None
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).plot_networkx()
+
+
+
+
+@flowtk.flow_main
 def main(options):
     flow = build_flow(options)
     flow.build_and_pickle_dump()

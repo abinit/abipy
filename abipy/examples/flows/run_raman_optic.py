@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-"""
-This script shows how to perform a RAMAN calculation with excitonic effects
+r"""
+Raman Flow
+==========
+
+This script shows how to perform a Raman calculation with excitonic effects
 included with the BSE formalism.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -151,7 +154,17 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
     return work
 
 
-@abilab.flow_main
+# This block generates the thumbnails in the Abipy gallery.
+# You can safely REMOVE this part if you are using this script for production runs.
+if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    __name__ = None
+    import tempfile
+    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
+    build_flow(options).plot_networkx()
+
+
+
+@flowtk.flow_main
 def main(options):
     # Define the flow, build files and dirs
     # and save the object in cpickle format.
