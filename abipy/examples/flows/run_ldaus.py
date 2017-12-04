@@ -76,11 +76,10 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Create the work for the band structure calculation.
     structure = abidata.structure_from_ucell("NiO")
@@ -116,13 +115,14 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__ == "__main__":

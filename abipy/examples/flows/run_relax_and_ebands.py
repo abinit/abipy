@@ -11,7 +11,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -26,8 +26,8 @@ def make_ion_ioncell_inputs(paral_kgb=1):
     #structure.scale_lattice(structure.volume * 0.6)
 
     global_vars = dict(
-        ecut=28,  
-        ngkpt=[4,4,4], 
+        ecut=28,
+        ngkpt=[4,4,4],
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
@@ -103,20 +103,19 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
     multi[1].set_vars(tolwfr=1e-12)
-    
-    # Generate two input files for the GS and the NSCF run 
+
+    # Generate two input files for the GS and the NSCF run
     scf_input, nscf_input = multi.split_datasets()
     return scf_input, nscf_input
 
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Create the flow
-    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     paral_kgb = 1
     #paral_kgb = 0  # This one is OK
@@ -134,10 +133,10 @@ def build_flow(options):
     # The scf task in bands work restarts from the DEN file of the last task in relax_work
     if paral_kgb == 0:
         # cg works fine if we restart from the WFK
-        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"}) 
+        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"})
     else:
         # --> This triggers an infamous bug in abinit
-        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"}) 
+        bands_work.scf_task.add_deps({relax_work[-1]: "WFK"})
 
         # --> This is ok if we used fourier_interp to change the FFT mesh.
         #bands_work.scf_task.add_deps({relax_work[-1]: "DEN"})
@@ -163,12 +162,14 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__ == "__main__":

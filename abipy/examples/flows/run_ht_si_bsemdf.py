@@ -9,7 +9,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 from abipy import abilab
@@ -17,9 +17,8 @@ from abipy import abilab
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize pseudos and Structure.
     pseudos = abidata.pseudos("14si.pspnc")
@@ -36,15 +35,15 @@ def build_flow(options):
     ecuteps = 2
     ecut = 12
 
-    flow = flowtk.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # BSE calculation with model dielectric function.
     multi = abilab.bse_with_mdf_inputs(
-        structure, pseudos, 
-        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk, 
-        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf, 
-        ecut=ecut,#$ pawecutdg=None, 
-        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="unpolarized", 
+        structure, pseudos,
+        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
+        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf,
+        ecut=ecut,#$ pawecutdg=None,
+        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="unpolarized",
         smearing=None)
         #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
@@ -72,9 +71,12 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
 
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__ == "__main__":

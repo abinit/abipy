@@ -21,9 +21,8 @@ def build_flow(options):
     Create a `Flow` for phonon calculations with phonopy:
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize structure and pseudos
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -37,7 +36,7 @@ def build_flow(options):
     gsinp.set_autokmesh(nksmall=4)
     #gsinp.set_vars(ngkpt=[4, 4, 4])
 
-    flow = flowtk.Flow(workdir=workdir)
+    flow = flowtk.Flow(workdir=options.workdir)
     # Use a 2x2x2 supercell to compute phonons with phonopy
     work = PhonopyGruneisenWork.from_gs_input(gsinp, voldelta=0.01, scdims=[4, 4, 4])
     flow.register_work(work)
@@ -54,12 +53,14 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__ == "__main__":

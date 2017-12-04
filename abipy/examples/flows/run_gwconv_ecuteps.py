@@ -22,7 +22,7 @@ def make_inputs(paral_kgb=1):
     These files are then used as templates for the convergence study
     wrt ecuteps and the number of bands in W.
     """
-    multi = abilab.MultiDataset(abidata.structure_from_ucell("SiC"), 
+    multi = abilab.MultiDataset(abidata.structure_from_ucell("SiC"),
                                 pseudos=abidata.pseudos("14si.pspnc", "6c.pspnc"), ndtset=4)
 
     ecut = 12
@@ -63,7 +63,7 @@ def make_inputs(paral_kgb=1):
         inclvkb=0,
         ecuteps=ecuteps,
     )
-        
+
     # SIGMA
     multi[3].set_vars(
         optdriver=4,
@@ -82,24 +82,23 @@ def make_inputs(paral_kgb=1):
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Get our templates
     scf_inp, nscf_inp, scr_inp, sig_inp = make_inputs()
-    
+
     ecuteps_list = np.arange(2, 8, 2)
     max_ecuteps = max(ecuteps_list)
 
-    flow = flowtk.Flow(workdir=workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Band structure work to produce the WFK file
     bands = flowtk.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands)
 
     # Build a work made of two SCR runs with different value of nband
-    # Use max_ecuteps for the dielectric matrix (sigma tasks will 
+    # Use max_ecuteps for the dielectric matrix (sigma tasks will
     # read a submatrix when we test the convergence wrt to ecuteps.
     scr_work = flowtk.Work()
 
@@ -131,12 +130,14 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__=="__main__":

@@ -12,7 +12,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import os
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -27,8 +27,8 @@ def make_ion_ioncell_inputs(paral_kgb=0):
     structure.scale_lattice(structure.volume * 0.6)
 
     global_vars = dict(
-        ecut=4,  
-        ngkpt=[4,4,4], 
+        ecut=4,
+        ngkpt=[4,4,4],
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
@@ -72,12 +72,11 @@ def make_ion_ioncell_inputs(paral_kgb=0):
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Create the flow
-    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs()
@@ -106,14 +105,10 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    return build_flow(options)
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

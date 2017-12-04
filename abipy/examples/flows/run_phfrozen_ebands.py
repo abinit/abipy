@@ -10,7 +10,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import numpy as np
-import abipy.data as data  
+import abipy.data as data
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -44,8 +44,8 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
     multi[1].set_vars(tolwfr=1e-12)
-    
-    # Generate two input files for the GS and the NSCF run 
+
+    # Generate two input files for the GS and the NSCF run
     scf_input, nscf_input = multi.split_datasets()
 
     return scf_input, nscf_input
@@ -53,10 +53,9 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
-    if not options.workdir: 
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_") 
-                                                                                                                         
+    if not options.workdir:
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
+
     # build the structures
     base_structure = abilab.Structure.from_file(data.cif_file("si.cif"))
     modifier = abilab.StructureModifier(base_structure)
@@ -68,12 +67,12 @@ def build_flow(options):
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
-    flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
+    flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     for structure in displaced_structures:
         # Create the work for the band structure calculation.
         scf_input, nscf_input = make_scf_nscf_inputs(structure)
-                                                                   
+
         work = flowtk.BandStructureWork(scf_input, nscf_input)
         flow.register_work(work)
 
@@ -89,13 +88,14 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 import sys
-import abipy.data as data  
+import abipy.data as data
 import abipy.abilab as abilab
 from abipy import flowtk
 
@@ -17,9 +17,9 @@ from abipy import flowtk
 def make_inputs(ngkpt, paral_kgb=1):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
-    # Dataset 1: ground state calculation 
-    # Dataset 2: NSCF calculation 
-    # Dataset 3: calculation of the screening 
+    # Dataset 1: ground state calculation
+    # Dataset 2: NSCF calculation
+    # Dataset 3: calculation of the screening
     # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
     multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), pseudos=data.pseudos("14si.pspnc"), ndtset=6)
@@ -34,18 +34,18 @@ def make_inputs(ngkpt, paral_kgb=1):
     )
 
     # This grid contains the Gamma point, which is the point at which
-    # we will compute the (direct) band gap. 
+    # we will compute the (direct) band gap.
     gw_kmesh = dict(
         ngkpt=ngkpt,
-        shiftk=[0.0, 0.0, 0.0,  
-                0.0, 0.5, 0.5,  
-                0.5, 0.0, 0.5,  
+        shiftk=[0.0, 0.0, 0.0,
+                0.0, 0.5, 0.5,
+                0.5, 0.0, 0.5,
                 0.5, 0.5, 0.0]
     )
 
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
     ecut = 6
-       
+
     multi.set_vars(
         ecut=ecut,
         timopt=-1,
@@ -72,12 +72,12 @@ def make_inputs(ngkpt, paral_kgb=1):
 
     # Dataset3: Calculation of the screening.
     multi[2].set_vars(
-        optdriver=3,   
-        nband=25,    
-        ecutwfn=ecut,   
+        optdriver=3,
+        nband=25,
+        ecutwfn=ecut,
         symchi=1,
         inclvkb=0,
-        ecuteps=4.0,    
+        ecuteps=4.0,
         ppmfrq="16.7 eV",
     )
 
@@ -96,7 +96,7 @@ def make_inputs(ngkpt, paral_kgb=1):
     for idx, nband in enumerate([10, 20, 30]):
         multi[3+idx].set_vars(
             optdriver=4,
-            nband=nband,      
+            nband=nband,
             ecutwfn=ecut,
             ecuteps=4.0,
             ecutsigx=6.0,
@@ -111,14 +111,13 @@ def make_inputs(ngkpt, paral_kgb=1):
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_") 
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
 
-    return flowtk.g0w0_flow(workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
+    return flowtk.g0w0_flow(options.workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
 
 
 # This block generates the thumbnails in the Abipy gallery.
@@ -130,13 +129,9 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
-
 @flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    return build_flow(options)
 
 
 if __name__ == "__main__":

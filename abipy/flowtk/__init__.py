@@ -1,3 +1,7 @@
+from __future__ import division, print_function, unicode_literals, absolute_import
+
+import os
+
 from pymatgen.io.abinit.abiobjects import *
 #from pymatgen.io.abinit.calculations import *
 from pymatgen.io.abinit.events import EventsParser, autodoc_event_handlers
@@ -40,6 +44,7 @@ def flow_main(main):
 
     @wraps(main)
     def wrapper(*args, **kwargs):
+        # Build the parse and parse input args.
         parser = build_flow_main_parser()
         options = parser.parse_args()
 
@@ -57,18 +62,18 @@ def flow_main(main):
         def execute():
             """This is the function that performs the work depending on options."""
             flow = main(options)
-            #flow.build_and_pickle_dump()
+
+            if options.remove and os.path.isdir(options.workdir):
+                print("Removing old directory:", options.workdir)
+                import shutil
+                shutil.rmtree(options.workdir)
 
             if options.scheduler:
-                flow.rmtree()
                 return flow.make_scheduler().start()
-
             elif options.batch:
-                flow.rmtree()
-                flow.build_and_pickle_dump()
                 return flow.batch()
-
-            return 0
+            else:
+                return flow.build_and_pickle_dump()
 
         if options.prof:
             # Profile execute

@@ -37,17 +37,15 @@ def build_flow(options):
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
     # Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.
-    workdir = options.workdir
     if not options.workdir:
-        workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
-    #workdir = os.path.join(os.path.dirname(__file__), base_structure.formula.replace(" ","") + "_RAMAN")
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     manager = options.manager
     #shell_manager = manager.to_shell_manager(mpi_procs=1)
     #shell_manager =  manager.deepcopy()
     #ddk_manager = manager.deepcopy()
 
-    flow = flowtk.Flow(workdir, manager=manager, remove=options.remove)
+    flow = flowtk.Flow(options.workdir, manager=manager)
 
     # Generate the different shifts to average
     ndiv = 1
@@ -57,7 +55,7 @@ def build_flow(options):
     for structure, eta in zip(displaced_structures, etas):
         for ishift,shift in enumerate(all_shifts):
             flow.register_work(raman_work(structure, pseudos, ngkpt, shift),
-                               workdir="eta_" +str(eta) + "shift_" + str(ishift))
+                               workdir="eta_" + str(eta) + "shift_" + str(ishift))
 
     return flow
 
@@ -163,14 +161,14 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     build_flow(options).plot_networkx()
 
 
-
 @flowtk.flow_main
 def main(options):
-    # Define the flow, build files and dirs
-    # and save the object in cpickle format.
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    """
+    This is our main function that will be invoked by the script.
+    flow_main is a decorator implementing the command line interface.
+    Command line args are stored in `options`.
+    """
+    return build_flow(options)
 
 
 if __name__ == "__main__":
