@@ -59,13 +59,8 @@ def flow_main(main):
         # Istantiate the manager.
         options.manager = TaskManager.as_manager(options.manager)
 
-        #if options.dry_run:
-        #    import tempfile
-        #    options.workdir = tempfile.mkdtemp()
-
         def execute():
             """This is the function that performs the work depending on options."""
-            assert options.workdir
             flow = main(options)
 
             if options.plot:

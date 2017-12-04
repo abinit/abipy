@@ -115,7 +115,7 @@ def build_flow(options):
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
-    scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2,2,2])
+    scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2, 2, 2])
 
     return flowtk.g0w0_flow(options.workdir, scf, nscf, scr, [sig1, sig2, sig3], manager=options.manager)
 
