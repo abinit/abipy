@@ -3,7 +3,6 @@ r"""
 Band structure Flow with factory functions
 ==========================================
 
-
 Band structure of silicon with the HT interface.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
@@ -41,7 +40,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx()
+    build_flow(options).plot_networkx(tight_layout=True)
 
 
 @flowtk.flow_main

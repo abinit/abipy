@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 r"""
-Optic Flow
-==========
+Flow for Non-linear optic with DFPT
+===================================
 
-Flow to compute non-linear optical properties with optic.
+Flow to compute non-linear optical properties with DFPT (static limit).
 """
 from __future__ import division, print_function, unicode_literals
 
@@ -68,7 +68,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx()
+    build_flow(options).plot_networkx(tight_layout=True)
 
 
 

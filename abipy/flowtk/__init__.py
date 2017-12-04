@@ -59,20 +59,45 @@ def flow_main(main):
         # Istantiate the manager.
         options.manager = TaskManager.as_manager(options.manager)
 
+        #if options.dry_run:
+        #    import tempfile
+        #    options.workdir = tempfile.mkdtemp()
+
         def execute():
             """This is the function that performs the work depending on options."""
+            assert options.workdir
             flow = main(options)
+
+            if options.plot:
+                flow.plot_networkx(tight_layout=True)
+
+            if options.abivalidate:
+                print("Validating input files of the flow...")
+                isok, errors = flow.abivalidate_inputs()
+                if not isok:
+                    for e in errors:
+                        if e.retcode == 0: continue
+                        lines = e.log_file.readlines()
+                        i = len(lines) - 50 if len(lines) >= 50 else 0
+                        print("Last 50 line from logfile:")
+                        print("".join(lines[i:]))
+                    raise RuntimeError("flow.abivalidate_input failed. See messages above.")
+                else:
+                    print("Validation succeeded")
 
             if options.remove and os.path.isdir(options.workdir):
                 print("Removing old directory:", options.workdir)
                 import shutil
                 shutil.rmtree(options.workdir)
 
-            if options.scheduler:
+            if options.dry_run:
+                return 0
+            elif options.scheduler:
                 return flow.make_scheduler().start()
             elif options.batch:
                 return flow.batch()
             else:
+                # Default behaviour.
                 return flow.build_and_pickle_dump()
 
         if options.prof:
@@ -95,21 +120,18 @@ def build_flow_main_parser():
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-
     parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
-
     parser.add_argument("-m", '--manager', default=None,
                         help="YAML file with the parameters of the task manager. "
                              "Default None i.e. the manager is read from standard locations: "
                              "working directory first then ~/.abinit/abipy/manager.yml.")
-
     parser.add_argument("-s", '--scheduler', action="store_true", default=False,
                         help="Run the flow with the scheduler")
-
-    parser.add_argument("-b", '--batch', action="store_true", default=False,
-                        help="Run the flow in batch mode")
-
+    parser.add_argument("-b", '--batch', action="store_true", default=False, help="Run the flow in batch mode")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
-
+    parser.add_argument("-p", "--plot", default=False, action="store_true", help="Plot flow with networkx.")
+    parser.add_argument("-d", "--dry-run", default=False, action="store_true", help="Don't write directory with flow.")
+    parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
     parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
+
     return parser

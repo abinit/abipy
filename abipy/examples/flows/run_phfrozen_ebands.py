@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Frozen phonon Flow
-==================
+Flow for e-Bands with frozen phonon
+===================================
 
 Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
@@ -85,7 +85,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx()
+    build_flow(options).plot_networkx(tight_layout=True)
 
 
 @flowtk.flow_main

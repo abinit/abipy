@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Raman Flow
-==========
+Raman Flow with independent-particle approximation (optic)
+==========================================================
 
 This script shows how to perform a Raman calculation with excitonic effects
 included with the BSE formalism.
@@ -158,7 +158,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx()
+    build_flow(options).plot_networkx(tight_layout=True)
 
 
 @flowtk.flow_main

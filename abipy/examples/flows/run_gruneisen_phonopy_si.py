@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Phonons with Phonopy and AbiPy
-==============================
+Gruneisen with Phonopy and AbiPy
+================================
 
-Compute phonon frequencies with phonopy (supercells and finite-difference method).
+Compute Gruneisedn parameters with phonopy (supercells and finite-difference method).
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -50,7 +50,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx()
+    build_flow(options).plot_networkx(tight_layout=True)
 
 
 @flowtk.flow_main

@@ -59,13 +59,15 @@ extensions += [
     'IPython.sphinxext.ipython_console_highlighting',
 ]
 
+from sphinx_gallery.sorting import FileNameSortKey
 sphinx_gallery_conf = {
     # path to your examples scripts
     'examples_dirs': ["../abipy/examples/plot", "../abipy/examples/flows",],
     # path where to save gallery generated examples
     'gallery_dirs': ["gallery", "flow_gallery",],
-    #'filename_pattern': "/plot_*",
     'filename_pattern': "(/plot_*|/run_*)",
+    'default_thumb_file': '_static/abipy_logo.png',
+    'within_subsection_order': FileNameSortKey,
     'backreferences_dir': False,
     #'find_mayavi_figures': True,
     'reference_url': {
