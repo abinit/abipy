@@ -16,7 +16,7 @@ import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 
-def make_ion_ioncell_inputs(paral_kgb=1):
+def make_ion_ioncell_inputs(paral_kgb=0):
     pseudos = abidata.pseudos("14si.pspnc")
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 

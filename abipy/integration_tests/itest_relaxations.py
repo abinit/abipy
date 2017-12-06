@@ -209,5 +209,5 @@ def itest_dilatmx_error_handler(fwp, tvars):
      t0 = work[0]
      assert t0.status == t0.S_OK
      print(t0.corrections)
-     assert t0.num_corrections == 1
+     assert t0.num_corrections > 0
      assert t0.corrections[0]["event"]["@class"] == "DilatmxError"

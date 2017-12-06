@@ -84,7 +84,7 @@ def make_inputs(nspinor, paral_kgb=1):
         nband=nband_gs + nbdbuf,
         nbdbuf=nbdbuf,
         tolwfr=1.e-18,
-        iscf=-2
+        iscf=-2,
         nbdbuf=4,
     )
     multi[1].set_kpath(ndivsm=10)

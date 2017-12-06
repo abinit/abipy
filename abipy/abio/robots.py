@@ -7,6 +7,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
+import inspect
 
 from collections import OrderedDict, deque
 from monty.string import is_string, list_strings
@@ -160,7 +161,7 @@ class Robot(NotebookWriter):
         return cls(*items)
 
     @classmethod
-    def from_flow(cls, flow, outdirs="all", nids=None, ext=None):
+    def from_flow(cls, flow, outdirs="all", nids=None, ext=None, task_class=None):
         """
         Build a robot from a Flow object.
 
@@ -174,6 +175,8 @@ class Robot(NotebookWriter):
                 Default: `all` that is equivalent to "flow+work+task"
             nids: List of node identifiers used to select particular nodes. Not used if None
             ext: File extension associated to the robot. Mainly used if method is invoked with the BaseClass
+            task_class: Task class or string with the class name used to select the tasks in the flow.
+                None implies no filtering.
 
         Usage example:
 
@@ -207,21 +210,27 @@ class Robot(NotebookWriter):
             raise ValueError("Wrong outdirs string %s" % outdirs)
 
         if "flow" in tokens:
-            robot.add_extfile_of_node(flow, nids=nids)
+            robot.add_extfile_of_node(flow, nids=nids, task_class=task_class)
 
         if "work" in tokens:
             for work in flow:
-                robot.add_extfile_of_node(work, nids=nids)
+                robot.add_extfile_of_node(work, nids=nids, task_class=task_class)
 
         if "task" in tokens:
             for task in flow.iflat_tasks():
-                robot.add_extfile_of_node(task, nids=nids)
+                robot.add_extfile_of_node(task, nids=nids, task_class=task_class)
 
         return robot
 
-    def add_extfile_of_node(self, node, nids=None):
+    def add_extfile_of_node(self, node, nids=None, task_class=None):
         """
         Add the file produced by this node to the robot.
+
+        Args:
+            node: Flow/Work/Task object.
+            nids: List of node identifiers used to select particular nodes. Not used if None
+            task_class: Task class or string wtih class name used to select the tasks in the flow.
+                None implies no filtering.
         """
         if nids and node.node_id not in nids: return
         filepath = node.outdir.has_abiext(self.EXT)
@@ -231,6 +240,13 @@ class Robot(NotebookWriter):
             except OSError:
                 # current working directory may not be defined!
                 label = filepath
+
+            if task_class is not None:
+                # Filter by task_class (class or string with class name)
+                if inspect.isclass(task_class) and not isinstance(node, task_class):
+                    return None
+                if node.__class__.__name__.lower() != task_class.lower():
+                    return None
 
             self.add_file(label, filepath)
 
@@ -391,9 +407,14 @@ class Robot(NotebookWriter):
     def labels(self):
         return list(self._ncfiles.keys())
 
+    def get_label_files_str(self):
+        """Return string with [label, filepath]."""
+        from tabulate import tabulate
+        return tabulate([(label, ncfile.filepath) for label, ncfile in self], headers=["Label", "Path"])
+
     def show_files(self, stream=sys.stdout):
-        s = "\n".join(["%s --> %s" % (label, ncfile.filepath) for label, ncfile in self])
-        stream.write(s)
+        """Show label --> file path"""
+        stream.write(self.get_label_files_str())
 
     def __str__(self):
         """Invoked by str."""
@@ -429,7 +450,6 @@ class Robot(NotebookWriter):
             return True
         except AttributeError:
             if not raise_exc: return False
-            import inspect
             attrs = []
             for key, obj in inspect.getmembers(self.ncfiles[0]):
                 # Ignores anything starting with underscore

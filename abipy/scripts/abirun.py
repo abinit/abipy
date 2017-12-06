@@ -583,6 +583,7 @@ Usage example:
   abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks
   abirun.py [FLOWDIR] tail                  => Use unix tail to follow the main output files of the flow.
   abirun.py [FLOWDIR] deps                  => Show task dependencies.
+  abirun.py [FLOWDIR] listext GSR SIGRES    => Show output files with the given extension.
 
 ###############
 # Miscelleanous
@@ -794,11 +795,11 @@ Specify the files to open. Possible choices:
         help="Document the options available in scheduler.yml.")
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
-    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow. " +
-                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs. " +
-                       "In this case chroot is the absolute path to the flow on the **localhost** " +
-                       "Note that it is not possible to change the flow from remote when chroot is used."))
+    #p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
+    #p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow. " +
+    #                   "Mainly used for opening a flow located on a remote filesystem mounted with sshfs. " +
+    #                   "In this case chroot is the absolute path to the flow on the **localhost** " +
+    #                   "Note that it is not possible to change the flow from remote when chroot is used."))
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
@@ -821,6 +822,8 @@ Specify the files to open. Possible choices:
     p_robot = subparsers.add_parser('robot', parents=[copts_parser, flow_selector_parser],
                                     help="Use a robot to analyze the results of multiple tasks (requires ipython).")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file.")
+    p_robot.add_argument("-t", '--task_class', type=str, default=None,
+                         help="Select output files produced by this task class e.g. NscfTask.")
     p_robot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Generate jupyter notebook")
     p_robot.add_argument('--foreground', action='store_true', default=False,
                          help="Run jupyter notebook in the foreground.")
@@ -954,7 +957,7 @@ Specify the files to open. Possible choices:
     # Subparser for listext.
     p_listext = subparsers.add_parser('listext', parents=[copts_parser],
         help="List all the output files with the given extension that have been produced by the nodes.")
-    p_listext.add_argument('listexts', nargs="+", help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
+    p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     # Subparser for timer.
     p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
@@ -1095,16 +1098,16 @@ def main():
 
     retcode = 0
 
-    if options.command == "gui":
-        if options.chroot:
-            # Change the workdir of flow.
-            print("Will chroot to %s..." % options.chroot)
-            flow.chroot(options.chroot)
+    #if options.command == "gui":
+    #    if options.chroot:
+    #        # Change the workdir of flow.
+    #        print("Will chroot to %s..." % options.chroot)
+    #        flow.chroot(options.chroot)
 
-        from abipy.gui.flowviewer import wxapp_flow_viewer
-        wxapp_flow_viewer(flow).MainLoop()
+    #    from abipy.gui.flowviewer import wxapp_flow_viewer
+    #    wxapp_flow_viewer(flow).MainLoop()
 
-    elif options.command == "new_manager":
+    if options.command == "new_manager":
         # Read the new manager from file.
         new_manager = flowtk.TaskManager.from_file(options.manager_file)
 
@@ -1225,15 +1228,17 @@ def main():
 
         nlaunch, excs = 0, []
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            if options.verbose:
-                print("Will try to restart %s, with status %s" % (task, task.status))
+            #if options.verbose:
+            print("Will try to restart %s, with status %s" % (task, task.status))
             try:
                 fired = task.restart()
-                if fired: nlaunch += 1
+                if fired:
+                    nlaunch += 1
+                    print("\tTask restarted")
             except Exception:
                 excs.append(straceback())
 
-        cprint("Number of jobs restarted %d" % nlaunch, "blue")
+        cprint("Total number of jobs restarted %d" % nlaunch, "blue")
         if nlaunch:
             # update database
             flow.pickle_dump()
@@ -1316,20 +1321,20 @@ def main():
         flow.show_dependencies()
 
     elif options.command == "robot":
-        # Build robot from flow and file extension.
+        print("Building robot for file extension:", options.robot_ext, "with task_class:", options.task_class)
         robot = abilab.Robot.from_flow(flow, outdirs="all", nids=selected_nids(flow, options),
-                                       ext=options.robot_ext)
+                                       ext=options.robot_ext, task_class=options.task_class)
         if len(robot) == 0:
             cprint("Empty robot. No notebook will be produced", "yellow")
             return 1
 
         if options.notebook:
-            print(robot)
+            robot.show_files()
             return robot.make_and_open_notebook(foreground=options.foreground)
         else:
             import IPython
-            IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
-                          robot=robot)
+            header = robot.get_label_files_str() + "\n\nType `robot` in the terminal and use <TAB> to list its methods."
+            IPython.embed(header=header, robot=robot)
 
     elif options.command == "plot":
         fext = dict(ebands="gsr")[options.what]
@@ -1375,22 +1380,6 @@ def main():
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 
         plot_graphs()
-
-        # This works with py3k but not with py2
-        #p = Process(target=plot_graphs)
-        #p.start()
-        #num_tasks = len(tasks)
-
-        #if num_tasks == 1:
-        #    p.join()
-        #else:
-        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks,
-        #           color="magenta", end="", flush=True)
-        #    try:
-        #        p.join()
-        #    except KeyboardInterrupt:
-        #        print("\nTerminating thread...")
-        #        p.terminate()
 
     elif options.command == "inputs":
         flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
@@ -1547,7 +1536,14 @@ def list_of_dict_with_vars(task):
         flow.plot_networkx(mode=options.nxmode, with_edge_labels=options.edge_labels)
 
     elif options.command == "listext":
+
+        if not options.listexts:
+            print("\nPlease specify the file extension(s), e.g. GSR SIGRES.\nList of available extensions:\n")
+            print(abilab.abiopen_ext2class_table())
+            return 0
+
         for ext in options.listexts:
+            print("")
             flow.listext(ext)
             print("")
 

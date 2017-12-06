@@ -2,6 +2,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import os
 
+from monty.termcolor import cprint
 from pymatgen.io.abinit.abiobjects import *
 #from pymatgen.io.abinit.calculations import *
 from pymatgen.io.abinit.events import EventsParser, autodoc_event_handlers
@@ -59,6 +60,11 @@ def flow_main(main):
         # Istantiate the manager.
         options.manager = TaskManager.as_manager(options.manager)
 
+        if options.tempdir:
+            import tempfile
+            options.workdir = tempfile.mkdtemp()
+            print("Working in temporary directory", options.workdir)
+
         def execute():
             """This is the function that performs the work depending on options."""
             flow = main(options)
@@ -86,14 +92,20 @@ def flow_main(main):
                 shutil.rmtree(options.workdir)
 
             if options.dry_run:
-                return 0
+                print("Dry-run mode.")
+                retcode = 0
             elif options.scheduler:
-                return flow.make_scheduler().start()
+                retcode = flow.make_scheduler().start()
+                if retcode == 0:
+                    retcode = 0 if flow.all_ok else 1
             elif options.batch:
-                return flow.batch()
+                retcode = flow.batch()
             else:
                 # Default behaviour.
-                return flow.build_and_pickle_dump()
+                retcode = flow.build_and_pickle_dump()
+
+            cprint("Return code: %d" % retcode, "red" if retcode != 0 else "green")
+            return retcode
 
         if options.prof:
             # Profile execute
@@ -109,7 +121,9 @@ def flow_main(main):
 
 
 def build_flow_main_parser():
-    """Build the parser used in the abipy/data/runs scripts."""
+    """
+    Build and return the parser used in the abipy/data/runs scripts.
+    """
     import argparse
     parser = argparse.ArgumentParser()
 
@@ -127,6 +141,7 @@ def build_flow_main_parser():
     parser.add_argument("-p", "--plot", default=False, action="store_true", help="Plot flow with networkx.")
     parser.add_argument("-d", "--dry-run", default=False, action="store_true", help="Don't write directory with flow.")
     parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
+    parser.add_argument("-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory.")
     parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
 
     return parser

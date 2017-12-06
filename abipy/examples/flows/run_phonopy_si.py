@@ -12,6 +12,7 @@ import os
 import abipy.abilab as abilab
 import abipy.data as abidata
 import abipy.flowtk as flowtk
+
 from abipy.flowtk.abiphonopy import PhonopyWork
 
 
@@ -38,7 +39,7 @@ def build_flow(options):
     flow = flowtk.Flow(workdir=options.workdir)
 
     # Use a 2x2x2 supercell to compute phonons with phonopy
-    work = PhonopyWork.from_gs_input(gsinp, scdims=[2,2,2])
+    work = PhonopyWork.from_gs_input(gsinp, scdims=[2, 2, 2])
     flow.register_work(work)
 
     return flow

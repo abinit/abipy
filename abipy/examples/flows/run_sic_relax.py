@@ -29,7 +29,7 @@ def build_flow(options):
     global_vars = dict(
         chksymbreak=0,
         ecut=20,
-        paral_kgb=0,
+        paral_kgb=1,
         iomode=3,
     )
 
