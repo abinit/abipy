@@ -10,7 +10,7 @@ import abipy.data as abidata
 from abipy import abilab
 from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, InteratomicForceConstants, phbands_gridplot,
         PhononBandsPlotter, PhononDosPlotter, dataframe_from_phbands)
-from abipy.dfpt.phonons import factor_ev2units, unit_tag, dos_label_from_units
+from abipy.dfpt.phonons import factor_ev2units, unit_tag, dos_label_from_units, wlabel_from_units
 from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
 
@@ -21,9 +21,10 @@ class TestUnitTools(AbipyTest):
 
     def test_units_api(self):
         for units in ["ev", "meV" ,"ha", "cm-1", "cm^-1", "Thz"]:
-            factor_ev2units(units)
-            unit_tag(units)
-            dos_label_from_units(units)
+            assert factor_ev2units(units)
+            assert unit_tag(units)
+            assert dos_label_from_units(units)
+            assert wlabel_from_units(units)
 
         for func in [factor_ev2units, unit_tag, dos_label_from_units]:
             with self.assertRaises(KeyError):

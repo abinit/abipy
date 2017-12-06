@@ -30,7 +30,6 @@ class AbinitOutputTest(AbipyTest):
         with AbinitOutputFile(abo_path) as abo:
             repr(abo); str(abo)
             assert abo.to_string(verbose=2)
-
             assert abo.version == "8.0.6"
             assert abo.run_completed
             assert not abo.dryrun_mode
@@ -42,6 +41,25 @@ class AbinitOutputTest(AbipyTest):
             assert abo.initial_structure.abi_spacegroup is not None
             assert abo.initial_structure == abo.final_structure
             abo.diff_datasets(1, 2, dryrun=True)
+
+            # Test the parsing of dimension and spginfo
+            dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset()
+            assert len(dims_dataset) == 2 and list(dims_dataset.keys()) == [1, 2]
+            dims1 = dims_dataset[1]
+            assert dims1["iscf"] == 7
+            assert dims1["nfft"] == 5832
+            self.assert_almost_equal(dims1["mem_per_proc_mb"], 3.045)
+            self.assert_almost_equal(dims1["wfk_size_mb"], 0.717)
+            self.assert_almost_equal(dims1["denpot_size_mb"], 0.046)
+            assert spginfo_dataset[1]["spg_symbol"] == "Fd-3m"
+            assert spginfo_dataset[1]["spg_number"] == 227
+            assert spginfo_dataset[1]["bravais"] == "Bravais cF (face-center cubic)"
+            dims2 = dims_dataset[2]
+            assert dims2["iscf"] == -2
+            assert dims2["n1xccc"] == 2501
+            self.assert_almost_equal(dims2["mem_per_proc_mb"], 1.901)
+            self.assert_almost_equal(dims2["wfk_size_mb"], 0.340)
+            self.assert_almost_equal(dims2["denpot_size_mb"], 0.046)
 
             print(abo.events)
             gs_cycle = abo.next_gs_scf_cycle()
@@ -106,6 +124,20 @@ class AbinitOutputTest(AbipyTest):
             assert len(abo.initial_structures) == 1
 
             assert abo.initial_structure.abi_spacegroup is not None
+
+            # This to test get_dims_spginfo_dataset with one dataset.
+            dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
+            assert len(dims_dataset) == 1
+            dims = dims_dataset[1]
+            assert dims["nsppol"] == 1
+            assert dims["nsym"] == 48
+            assert dims["nkpt"] == 29
+            self.assert_almost_equal(dims["mem_per_proc_mb"], 3.389)
+            self.assert_almost_equal(dims["wfk_size_mb"], 0.717)
+            self.assert_almost_equal(dims["denpot_size_mb"], 0.046)
+            assert spg_dataset[1]["spg_symbol"] == "Fd-3m"
+            assert spg_dataset[1]["spg_number"] == 227
+            assert spg_dataset[1]["bravais"] == "Bravais cF (face-center cubic)"
 
     def test_all_outputs_in_tests(self):
         """

@@ -122,7 +122,7 @@ def cod_search(formula, primitive=False):
     Get a list of structures corresponding to a chemical formula
 
     Args:
-        formula_ (str): Chemical formula (e.g., Fe2O3)
+        formula (str): Chemical formula (e.g., Fe2O3)
         primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.
 
     Returns:

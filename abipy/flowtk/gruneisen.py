@@ -14,17 +14,13 @@ from .works import Work
 
 class GruneseinenFlow(Flow):
     """
-    This work compute the Grüneisen parameters with phonopy. The workflow is as follows:
+    This work compute the Grüneisen parameters with the DFPT part of Abinit and
+    finite differences in anaddb.
 
-    It is necessary to run three phonon calculations.
+    It is necessary to run three phonon calculations with DFPT.
     One is calculated at the equilibrium volume and the remaining two are calculated
     at the slightly larger volume and smaller volume than the equilibrium volume.
     The unitcells at these volumes have to be fully relaxed under the constraint of each volume.
-
-    .. attribute:: scdims(3)
-
-	numpy arrays with the number of cells in the supercell along the three reduced directions.
-
     """
     @classmethod
     def from_gs_input(cls, gsinp, voldelta, workdir=None, manager=None):
@@ -80,7 +76,7 @@ class GruneseinenWork(Work):
         have reached status S_OK.
         """
         self.add_phonopy_works_and_build()
-        return super(PhonopyGruneisenWork, self).on_all_ok()
+        return super(GruneisenWork, self).on_all_ok()
 
     def add_phonopy_works_and_build(self):
         """

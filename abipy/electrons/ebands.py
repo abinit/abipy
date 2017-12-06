@@ -2746,12 +2746,12 @@ class ElectronDos(object):
     def __init__(self, mesh, spin_dos, nelect, fermie=None):
         """
         Args:
-            mesh: array-like object with the mesh points.
+            mesh: array-like object with the mesh points in eV.
             spin_dos: array-like object with the DOS value for the different spins.
                       spin_dos[1, nw] if spin-unpolarized.
                       spin_dos[2, nw] if spin-polarized case.
             nelect: Number of electrons in the unit cell.
-            fermie: Fermi level in eV. If None, fermie is obtained from the idos.
+            fermie: Fermi level in eV. If None, fermie is obtained from the idos integral.
 
         .. note::
 
@@ -2785,8 +2785,7 @@ class ElectronDos(object):
             try:
                 self.fermie = self.find_mu(self.nelect)
             except ValueError:
-                print("tot_idos values:")
-                print(self.tot_idos)
+                print("tot_idos values:\n", self.tot_idos)
                 raise
 
     def __str__(self):
@@ -2795,8 +2794,8 @@ class ElectronDos(object):
     def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
-        app("nsppol=%d, nelect=%s" % (self.nsppol, self.nelect))
-        app("Fermi energy: %s (recomputed from nelect):" % self.fermie)
+        app("nsppol: %d, nelect: %s" % (self.nsppol, self.nelect))
+        app("Fermi energy: %s [eV] (recomputed from nelect):" % self.fermie)
         return "\n".join(lines)
 
     @classmethod
@@ -3465,9 +3464,13 @@ class Bands3D(object):
             return e0
 
     @add_fig_kwargs
-    def plot_isosurfaces(self, e0="fermie", verbose=1, **kwargs):
+    def plot_isosurfaces(self, e0="fermie", verbose=0, **kwargs):
         """
-        Plot isosurface with matplotlib (warning: requires skimage package, rendering could be slow).
+        Plot isosurface with matplotlib
+
+        .. warning::
+
+            Requires scikit-image package, matplotlib rendering is usually slow.
 
         Args:
             e0: Isolevel in eV. Default: Fermi energy.
@@ -3514,7 +3517,7 @@ class Bands3D(object):
 
         return fig
 
-    def mvplot_isosurfaces(self, e0="fermie", verbose=1, show=True):
+    def mvplot_isosurfaces(self, e0="fermie", verbose=0, figure=None, show=True):
         """
         Plot isosurface with mayavi
 
@@ -3537,7 +3540,7 @@ class Bands3D(object):
 
         # Plot isosurface with mayavi.
         from abipy.display import mvtk
-        figure, mlab = mvtk.get_fig_mlab(figure=None)
+        figure, mlab = mvtk.get_fig_mlab(figure=figure)
         mvtk.plot_unit_cell(self.reciprocal_lattice, figure=figure)
         mvtk.plot_wigner_seitz(self.reciprocal_lattice, figure=figure)
         cell = self.reciprocal_lattice.matrix
@@ -3551,7 +3554,7 @@ class Bands3D(object):
 
                 polydata = cp.actor.actors[0].mapper.input
                 pts = np.array(polydata.points) #  - 1  # TODO this + mpdivs should be correct
-                print("shape:", pts.shape, pts)
+                if verbose: print("shape:", pts.shape, pts)
                 polydata.points = np.dot(pts, cell / np.array(data.shape)[:, np.newaxis])
                 #polydata.points = np.dot(pts, cell / np.array(self.mpdivs)[:, np.newaxis])
                 mlab.view(distance="auto", figure=figure)
@@ -3631,13 +3634,13 @@ class Bands3D(object):
         #if show: mlab.show()
         #return
 
-    def mvplot_cutplanes(self, band, spin=0, show=True, **kwargs):
+    def mvplot_cutplanes(self, band, spin=0, figure=None, show=True, **kwargs):
         """Plot cutplanes with mayavi."""
         data = np.reshape(self.ucdata_sbk[spin, band], self.kdivs) - self.fermie
         contours = [-1.0, 0.0, 1.0]
 
         from abipy.display import mvtk
-        figure, mlab = mvtk.get_fig_mlab(figure=None)
+        figure, mlab = mvtk.get_fig_mlab(figure=figure)
         src = mlab.pipeline.scalar_field(data)
 
         mlab.pipeline.image_plane_widget(src, plane_orientation='x_axes', slice_index=self.kdivs[0]//2)

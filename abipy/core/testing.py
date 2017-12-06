@@ -470,6 +470,22 @@ class AbipyTest(PymatgenTest):
 
         assert not errors
 
+    def abivalidate_flow(self, flow):
+        """
+        Invoke Abinit to test validity of the inputs of a flow
+        """
+        isok, errors = flow.abivalidate_inputs()
+        if not isok:
+            for e in errors:
+                if e.retcode == 0: continue
+                #print("type abinput:", type(abinput))
+                #print("abinput:\n", abinput)
+                lines = e.log_file.readlines()
+                i = len(lines) - 50 if len(lines) >= 50 else 0
+                print("Last 50 line from logfile:")
+                print("".join(lines[i:]))
+            raise RuntimeError("flow.abivalidate_input failed. See messages above.")
+
 
 class AbipyFileTest(AbipyTest):
     """

@@ -41,7 +41,8 @@ pip-log.txt
 
 # Sphinx autodoc
 docs/_build
-docs/examples
+docs/gallery
+docs/flow_gallery
 
 # MacOSX stuff
 .DS_Store

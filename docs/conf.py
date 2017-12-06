@@ -16,7 +16,6 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 sys.path.insert(0, os.path.abspath('../abipy'))
-#sys.path.insert(0, os.path.abspath('sphinxext'))
 
 import imp
 mod_name = "../abipy/core/release.py"
@@ -60,17 +59,23 @@ extensions += [
     'IPython.sphinxext.ipython_console_highlighting',
 ]
 
+from sphinx_gallery.sorting import FileNameSortKey
 sphinx_gallery_conf = {
     # path to your examples scripts
-    'examples_dirs': '../abipy/examples/plot',
+    'examples_dirs': ["../abipy/examples/plot", "../abipy/examples/flows",],
     # path where to save gallery generated examples
-    'gallery_dirs': 'gallery',
-    #'filename_pattern': '/plot_',
+    'gallery_dirs': ["gallery", "flow_gallery",],
+    'filename_pattern': "(/plot_*|/run_*)",
+    'default_thumb_file': '_static/abipy_logo.png',
+    'within_subsection_order': FileNameSortKey,
     'backreferences_dir': False,
     #'find_mayavi_figures': True,
     'reference_url': {
-        # The module you locally document uses None
-        'abipy': None,
+        'abipy': None,  # The module you locally document uses None
+        'numpy': 'https://docs.scipy.org/doc/numpy/',
+        'matplotlib': 'https://matplotlib.org',
+        'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
+        "pymatgen": "http://pymatgen.org/",
     }
 }
 

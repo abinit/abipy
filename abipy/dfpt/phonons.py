@@ -42,33 +42,54 @@ def factor_ev2units(units):
     """
     Return conversion factor eV --> units (case-insensitive)
     """
-    eV_to_cm1 = 8065.5440044136285
     d = {"ev": 1, "mev": 1000, "ha": eV_to_Ha,
-         "cm-1": eV_to_cm1, 'cm^-1': eV_to_cm1, "thz": abu.eV_to_THz,
+         "cm-1": abu.eV_to_cm1, 'cm^-1': abu.eV_to_cm1,
+         "thz": abu.eV_to_THz,
          }
     try:
-        return d[units.lower()]
+        return d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
 def unit_tag(units):
+    """
+    Return latex string for `units`.
+    """
     d = {"ev": "[eV]", "mev": "[meV]", "ha": '[Ha]',
          "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]", "thz": '[Thz]',
          }
     try:
-        return d[units.lower()]
+        return d[units.lower().strip()]
+    except KeyError:
+        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+
+def wlabel_from_units(units):
+    """
+    Return latex string for frequencies in `units`.
+    """
+    d = {'ev': 'Energy [eV]', 'mev': 'Energy [meV]', 'ha': 'Energy [Ha]',
+        'cm-1': r'Frequency [cm$^{-1}$]',
+        'cm^-1': r'Frequency [cm$^{-1}$]',
+        'thz': r'Frequency [Thz]',
+    }
+    try:
+        return d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
 def dos_label_from_units(units):
+    """
+    Return latex string for phonon DOS values in `units`.
+    """
     d = {"ev": "[states/eV]", "mev": "[states/meV]", "ha": '[states/Ha]',
          "cm-1": "[states/cm$^{-1}$]", 'cm^-1': "[states/cm$^{-1}$]",
          "thz": '[states/Thz]',
          }
     try:
-        return d[units.lower()]
+        return d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
@@ -842,21 +863,8 @@ class PhononBands(object):
         ax.grid(True)
 
         # Handle conversion factor.
-        # TODO: Encapsulate this part.
-        units = units.lower()
-        if units == 'ev':
-            ax.set_ylabel('Energy [eV]')
-        elif units == 'mev':
-            ax.set_ylabel('Energy [meV]')
-        elif units == 'ha':
-            ax.set_ylabel('Energy [Ha]')
-        elif units in ('cm-1', 'cm^-1'):
-            ax.set_ylabel(r'Frequency [cm$^{-1}$]')
-        elif units == 'thz':
-            ax.set_ylabel(r'Frequency [Thz]')
-        else:
-            if units:
-                raise ValueError('Value for units `{}` unknown'.format(units))
+        if units:
+            ax.set_ylabel(wlabel_from_units(units))
 
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))

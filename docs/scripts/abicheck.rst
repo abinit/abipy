@@ -14,6 +14,8 @@ The command ``abicheck.py --with-flow`` can be used to run a small AbiPy flow in
 check the interface with the Abinit executables.
 
 
+Complete command line reference
+
 .. argparse::
    :ref: abipy.scripts.abicheck.get_parser
    :prog: abicheck.py

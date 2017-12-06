@@ -43,6 +43,7 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/*
 	-rm -rf gallery/*
+	-rm -rf flow_gallery/*
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

@@ -99,8 +99,9 @@ def abinp_autoparal(options):
 
 
 def abinp_abispg(options):
-    """Call Abinit to find space group."""
+    """Call Abinit with chkprim = 0 to find space group."""
     inp = build_abinit_input_from_file(options)
+    inp["chkprim"] = 0
     r = inp.abivalidate()
     if r.retcode != 0:
         print(r.log_file, r.stderr_file)

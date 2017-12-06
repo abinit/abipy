@@ -23,6 +23,7 @@ from monty.os.path import which
 from monty.functools import prof_main
 from monty.termcolor import cprint, get_terminal_size
 from monty.string import boxed, list_strings, make_banner
+from pymatgen.util.io_utils import ask_yesno
 from abipy.tools import duck
 from abipy.flowtk import Status
 from abipy.core.structure import dataframes_from_structures
@@ -327,6 +328,55 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
     return df
 
 
+def flow_get_dims_dataframe(flow, nids=None, printout=False, with_colors=False):
+    """
+    Analyze output files produced by Abinit tasks. Print pandas DataFrame with dimensions.
+
+    Args:
+        nids: List of node identifiers. By defaults all nodes are shown
+        printout: True to print dataframe.
+        with_colors: True if task status should be colored.
+    """
+    abo_paths, index, status, abo_relpaths, task_classes = [], [], [], [], []
+
+    for task in flow.iflat_tasks(nids=nids):
+        if task.status not in (flow.S_OK, flow.S_RUN): continue
+        #if not task.is_abinit_task: continue
+
+        abo_paths.append(task.output_file.path)
+        index.append(task.pos_str)
+        status.append(task.status.colored if with_colors else str(task.status))
+        abo_relpaths.append(os.path.relpath(task.output_file.relpath))
+        task_classes.append(task.__class__.__name__)
+
+    if not abo_paths: return
+    # Get dimensions from output files.
+    rows = []
+    for p in abo_paths:
+        print(p)
+        with abilab.AbinitOutputFile(p) as abo:
+            try:
+                dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
+            except Exception as exc:
+                cprint("Exception while trying to get dimensions from %s\n%s" % (p, str(exc)), "yellow")
+                continue
+            rows.append(dims_dataset[1])
+
+    import pandas as pd
+    df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+
+    # Add columns to the dataframe.
+    status = [str(s) for s in status]
+    df["task_class"] = task_classes
+    df["relpath"] = abo_relpaths
+    df["status"] = status
+
+    if printout:
+        abilab.print_dataframe(df, title="Table with Abinit dimensions:\n")
+
+    return df
+
+
 def flow_compare_abivars(flow, varnames, nids=None, wslice=None, printout=False, with_colors=False):
     """
     Print the input of the tasks to the given stream.
@@ -527,11 +577,13 @@ Usage example:
   abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
   abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
   abirun.py [FLOWDIR] ebands                => Print table with electronic properties.
-  abirun.py [FLOWDIR] hist                  => Print table with last iteratin in hist files.
+  abirun.py [FLOWDIR] hist                  => Print table with last iteration in hist files.
   abirun.py [FLOWDIR] cycles                => Print SCF cycles extracted from the output of the tasks.
+  abirun.py [FLOWDIR] dims                  => Print table with dimensions extracted from the output of the tasks.
   abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks
   abirun.py [FLOWDIR] tail                  => Use unix tail to follow the main output files of the flow.
   abirun.py [FLOWDIR] deps                  => Show task dependencies.
+  abirun.py [FLOWDIR] listext GSR SIGRES    => Show output files with the given extension.
 
 ###############
 # Miscelleanous
@@ -662,12 +714,14 @@ def get_parser(with_epilog=False):
     # Subparser for single command.
     p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
 
-    # Subparser for rapidfire command.
+    # Subparser for rapid command.
     p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
+    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
+                         help="Maximum number of launches. default: 10. Use -1 for no limit.")
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
-        help="Run all tasks with a Python scheduler. Requires scheduler.yml.")
+        help="Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.")
     p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="Number of weeks to wait.")
     p_scheduler.add_argument('-d', '--days', default=0, type=int, help="Number of days to wait.")
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="Number of hours to wait.")
@@ -695,7 +749,7 @@ def get_parser(with_epilog=False):
 
     # Subparser for cancel command.
     p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser],
-        help="Cancel the tasks in the queue. Not available if qtype == shell.")
+        help="Cancel the tasks in the queue. Not available if qtype is shell.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
@@ -706,8 +760,6 @@ def get_parser(with_epilog=False):
     # Subparser for reset command.
     p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
         help="Reset the tasks of the flow with the specified status.")
-    p_reset.add_argument("--relaunch", action="store_true", default=False,
-        help="Relaunch tasks in rapid mode after reset.")
 
     # Subparser for move command.
     p_move = subparsers.add_parser('move', parents=[copts_parser],
@@ -743,11 +795,11 @@ Specify the files to open. Possible choices:
         help="Document the options available in scheduler.yml.")
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
-    p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow. " +
-                       "Mainly used for opening a flow located on a remote filesystem mounted with sshfs. " +
-                       "In this case chroot is the absolute path to the flow on the **localhost** " +
-                       "Note that it is not possible to change the flow from remote when chroot is used."))
+    #p_gui = subparsers.add_parser('gui', parents=[copts_parser], help="Open the GUI (requires wxPython).")
+    #p_gui.add_argument("--chroot", default="", type=str, help=("Use chroot as new directory of the flow. " +
+    #                   "Mainly used for opening a flow located on a remote filesystem mounted with sshfs. " +
+    #                   "In this case chroot is the absolute path to the flow on the **localhost** " +
+    #                   "Note that it is not possible to change the flow from remote when chroot is used."))
 
     # Subparser for new_manager.
     p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
@@ -770,6 +822,8 @@ Specify the files to open. Possible choices:
     p_robot = subparsers.add_parser('robot', parents=[copts_parser, flow_selector_parser],
                                     help="Use a robot to analyze the results of multiple tasks (requires ipython).")
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR", help="The file extension of the netcdf file.")
+    p_robot.add_argument("-t", '--task_class', type=str, default=None,
+                         help="Select output files produced by this task class e.g. NscfTask.")
     p_robot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Generate jupyter notebook")
     p_robot.add_argument('--foreground', action='store_true', default=False,
                          help="Run jupyter notebook in the foreground.")
@@ -782,6 +836,10 @@ Specify the files to open. Possible choices:
     # Subparser for cycles.
     p_cycles = subparsers.add_parser('cycles', parents=[copts_parser, flow_selector_parser],
         help="Print SCF cycles extracted from the output of the tasks.")
+
+    # Subparser for dims.
+    p_dims = subparsers.add_parser('dims', parents=[copts_parser, flow_selector_parser],
+        help="Print table with dimensions extracted from the output of the tasks.")
 
     # Subparser for inspect.
     p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser],
@@ -875,6 +933,10 @@ Specify the files to open. Possible choices:
     p_debug_reset = subparsers.add_parser('debug_reset', parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
+    # Subparser for clone_task.
+    p_clone_task = subparsers.add_parser('clone_task', parents=[copts_parser, flow_selector_parser],
+        help="Clone task, change input variables and add new tasks to the flow. Requires clone_task.py.")
+
     # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
         help="Group tasks according to property.")
@@ -887,7 +949,7 @@ Specify the files to open. Possible choices:
 
     # Subparser for networkx.
     p_networkx = subparsers.add_parser('networkx', parents=[copts_parser], #, flow_selector_parser],
-        help="Draw flow and node dependecies with networkx package.")
+        help="Draw flow and node dependencies with networkx package.")
     p_networkx.add_argument('--nxmode', default="status",
         help="Type of network plot. Possible values: `status`, `network`. Default: `status`.")
     p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels.")
@@ -895,7 +957,7 @@ Specify the files to open. Possible choices:
     # Subparser for listext.
     p_listext = subparsers.add_parser('listext', parents=[copts_parser],
         help="List all the output files with the given extension that have been produced by the nodes.")
-    p_listext.add_argument('listexts', nargs="+", help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
+    p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     # Subparser for timer.
     p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
@@ -1036,16 +1098,16 @@ def main():
 
     retcode = 0
 
-    if options.command == "gui":
-        if options.chroot:
-            # Change the workdir of flow.
-            print("Will chroot to %s..." % options.chroot)
-            flow.chroot(options.chroot)
+    #if options.command == "gui":
+    #    if options.chroot:
+    #        # Change the workdir of flow.
+    #        print("Will chroot to %s..." % options.chroot)
+    #        flow.chroot(options.chroot)
 
-        from abipy.gui.flowviewer import wxapp_flow_viewer
-        wxapp_flow_viewer(flow).MainLoop()
+    #    from abipy.gui.flowviewer import wxapp_flow_viewer
+    #    wxapp_flow_viewer(flow).MainLoop()
 
-    elif options.command == "new_manager":
+    if options.command == "new_manager":
         # Read the new manager from file.
         new_manager = flowtk.TaskManager.from_file(options.manager_file)
 
@@ -1080,13 +1142,13 @@ def main():
 
     elif options.command  == "single":
         nlaunch = flow.single_shot()
-        print("Number of tasks launched: %d" % nlaunch)
         if nlaunch: flow.show_status()
+        cprint("Number of tasks launched: %d" % nlaunch, "yellow")
 
     elif options.command == "rapid":
-        nlaunch = flow.rapidfire()
-        print("Number of tasks launched: %d" % nlaunch)
+        nlaunch = flow.rapidfire(max_nlaunch=options.max_nlaunch, max_loops=1, sleep_time=5)
         if nlaunch: flow.show_status()
+        cprint("Number of tasks launched: %d" % nlaunch, "yellow")
 
     elif options.command == "scheduler":
         # Check that the env on the local machine is properly configured before starting the scheduler.
@@ -1142,7 +1204,7 @@ def main():
         methname = "open_" + options.ncext.lower()
         # List of netcdf file objects.
         ncfiles = [getattr(task, methname)() for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)
-                    if hasattr(task, methname)]
+                   if hasattr(task, methname)]
 
         if ncfiles:
             # Start ipython shell with namespace
@@ -1166,15 +1228,17 @@ def main():
 
         nlaunch, excs = 0, []
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            if options.verbose:
-                print("Will try to restart %s, with status %s" % (task, task.status))
+            #if options.verbose:
+            print("Will try to restart %s, with status %s" % (task, task.status))
             try:
                 fired = task.restart()
-                if fired: nlaunch += 1
+                if fired:
+                    nlaunch += 1
+                    print("\tTask restarted")
             except Exception:
                 excs.append(straceback())
 
-        cprint("Number of jobs restarted %d" % nlaunch, "blue")
+        cprint("Total number of jobs restarted %d" % nlaunch, "blue")
         if nlaunch:
             # update database
             flow.pickle_dump()
@@ -1204,19 +1268,12 @@ def main():
                 count += 1
         cprint("%d tasks have been reset" % count, "blue")
 
-        # Try to relaunch
-        nlaunch = 0
-        if options.relaunch:
-            nlaunch = flow.rapidfire()
-            cprint("Number of tasks launched: %d" % nlaunch, "magenta")
-
         flow.show_status()
 
-        if nlaunch == 0:
-            g = flow.find_deadlocks()
-            #print("deadlocked:", gdeadlocked, "\nrunnables:", grunnables, "\nrunning:", g.running)
-            if g.deadlocked and not (g.runnables or g.running):
-                cprint("*** Flow is deadlocked ***", "red")
+        g = flow.find_deadlocks()
+        #print("deadlocked:", gdeadlocked, "\nrunnables:", grunnables, "\nrunning:", g.running)
+        if g.deadlocked and not (g.runnables or g.running):
+            cprint("*** Flow is deadlocked ***", "red")
 
         flow.pickle_dump()
 
@@ -1264,20 +1321,20 @@ def main():
         flow.show_dependencies()
 
     elif options.command == "robot":
-        # Build robot from flow and file extension.
+        print("Building robot for file extension:", options.robot_ext, "with task_class:", options.task_class)
         robot = abilab.Robot.from_flow(flow, outdirs="all", nids=selected_nids(flow, options),
-                                       ext=options.robot_ext)
+                                       ext=options.robot_ext, task_class=options.task_class)
         if len(robot) == 0:
             cprint("Empty robot. No notebook will be produced", "yellow")
             return 1
 
         if options.notebook:
-            print(robot)
+            robot.show_files()
             return robot.make_and_open_notebook(foreground=options.foreground)
         else:
             import IPython
-            IPython.embed(header=str(robot) + "\nType `robot` in the terminal and use <TAB> to list its methods",
-                          robot=robot)
+            header = robot.get_label_files_str() + "\n\nType `robot` in the terminal and use <TAB> to list its methods."
+            IPython.embed(header=header, robot=robot)
 
     elif options.command == "plot":
         fext = dict(ebands="gsr")[options.what]
@@ -1301,6 +1358,10 @@ def main():
             print(cycle)
             print()
 
+    elif options.command == "dims":
+        flow_get_dims_dataframe(flow, nids=selected_nids(flow, options),
+                                printout=True, with_colors=not options.no_colors)
+
     elif options.command == "inspect":
         tasks = flow.select_tasks(nids=options.nids, wslice=options.wslice)
 
@@ -1319,22 +1380,6 @@ def main():
                     cprint("Task %s does not provide an inspect method" % task, color="blue")
 
         plot_graphs()
-
-        # This works with py3k but not with py2
-        #p = Process(target=plot_graphs)
-        #p.start()
-        #num_tasks = len(tasks)
-
-        #if num_tasks == 1:
-        #    p.join()
-        #else:
-        #    cprint("Will produce %d matplotlib plots. Press <CTRL+C> to interrupt..." % num_tasks,
-        #           color="magenta", end="", flush=True)
-        #    try:
-        #        p.join()
-        #    except KeyboardInterrupt:
-        #        print("\nTerminating thread...")
-        #        p.terminate()
 
     elif options.command == "inputs":
         flow.show_inputs(varnames=options.varnames, nids=selected_nids(flow, options))
@@ -1388,6 +1433,72 @@ def main():
     #elif options.command == "debug_restart":
     #    flow_debug_restart_tasks(flow, nids=selected_nids(flow, options), verbose=options.verbose)
 
+    elif options.command == "clone_task":
+        if wname is None and tname is None:
+            cprint("Use e.g. `abirun.py FLOWDIR/w0/t0` to select the task to clone.", "yellow")
+            return 1
+
+        if flow.has_scheduler:
+            cprint("Cannot add new tasks when there's a scheduler running in background.", "yellow")
+            return 1
+
+        task_dirpath = os.path.join(flow.workdir, wname, tname)
+        for task in flow.iflat_tasks():
+            if task.workdir == task_dirpath:
+                task_id = task.node_id
+                print("Will clone task: ", repr(task))
+                break
+        else:
+            raise ValueError("Cannot find task associated to workdir `%s`" % task_dirpath)
+
+        #print(task.deps, type(task.deps))
+        py_file = "clone_task.py"
+        if not os.path.exists(py_file):
+            cprint("clone_task requires %s in the current working directory" % py_file, "yellow")
+            cprint("Will generate template file. Please edit it and rerun", "yellow")
+            template = """
+def list_of_dict_with_vars(task):
+    "
+    This function is called by `abirun.py clone_task` to build new tasks.
+    It receives the task to be cloned and retunn a list of dictionaries.
+    Each dictionary contains the Abinit variables that will be added to the initial input.
+    To build e.g. two new tasks with a different value of ecut use:
+
+    .. example:
+
+        return [
+            {"ecut": 20},
+            {"ecut": 30},
+        ]
+    "
+    #return [
+    #    {"ecut": 20, nband: 10},
+    #    {"ecut": 30, nband: 20},
+    #]
+"""
+            with open(py_file, "wt") as fh:
+                fh.write(template)
+            return 1
+        else:
+            print("Importing `list_of_dict_with_vars` from ", pyfile)
+            import imp
+            mod = imp.load_source(pyfile.replace(".py", ""), pyfile)
+
+        dict_list = mod.list_of_dict_with_vars(task)
+        if not dict_list:
+            cprint("list_of_dict_with_vars returned empty list", "red")
+            return 1
+
+        for d in dict_list:
+            print("Registering new task with vars:", d)
+            task.work.register(task.input.new_with_vars(**d),
+                               deps=task.deps, task_class=task.__class__)
+
+        task.work.finalized = False
+        flow.allocate()
+        if ask_yesno("Do you want to rebuild the flow? [Y/n]"):
+            flow.build_and_pickle_dump()
+
     elif options.command == "group":
         d = defaultdict(list)
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
@@ -1425,7 +1536,14 @@ def main():
         flow.plot_networkx(mode=options.nxmode, with_edge_labels=options.edge_labels)
 
     elif options.command == "listext":
+
+        if not options.listexts:
+            print("\nPlease specify the file extension(s), e.g. GSR SIGRES.\nList of available extensions:\n")
+            print(abilab.abiopen_ext2class_table())
+            return 0
+
         for ext in options.listexts:
+            print("")
             flow.listext(ext)
             print("")
 

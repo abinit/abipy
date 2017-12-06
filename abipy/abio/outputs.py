@@ -414,6 +414,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return self.to_string()
 
     def to_string(self, verbose=0):
+        """String representation."""
         lines = ["ndtset: %d, completed: %s" % (self.ndtset, self.run_completed)]
         app = lines.append
 
@@ -445,6 +446,119 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 app(str(df.coords))
 
         return "\n".join(lines)
+
+    def get_dims_spginfo_dataset(self, verbose=0):
+        """
+        Parse the section with the dimensions of the calculation.
+
+        Args:
+            verbose: Verbosity level.
+
+        Return: (dims_dataset, spginfo_dataset)
+            where dims_dataset[i] is an OrderedDict with the dimensions of dataset `i`
+            spginfo_dataset[i] is a dictionary with space group information.
+        """
+        # If single dataset, we have to parse
+        #
+        #  Symmetries : space group Fd -3 m (#227); Bravais cF (face-center cubic)
+        # ================================================================================
+        #  Values of the parameters that define the memory need of the present run
+        #      intxc =       0    ionmov =       0      iscf =       7    lmnmax =       6
+        #      lnmax =       6     mgfft =      18  mpssoang =       3    mqgrid =    3001
+        #      natom =       2  nloc_mem =       1    nspden =       1   nspinor =       1
+        #     nsppol =       1      nsym =      48    n1xccc =    2501    ntypat =       1
+        #     occopt =       1   xclevel =       2
+        # -    mband =           8        mffmem =           1         mkmem =          29
+        #        mpw =         202          nfft =        5832          nkpt =          29
+        # ================================================================================
+        # P This job should need less than                       3.389 Mbytes of memory.
+        #   Rough estimation (10% accuracy) of disk space for files :
+        # _ WF disk file :      0.717 Mbytes ; DEN or POT disk file :      0.046 Mbytes.
+        # ================================================================================
+
+        # If multi datasets we have to parse:
+
+        #  DATASET    2 : space group F-4 3 m (#216); Bravais cF (face-center cubic)
+        # ================================================================================
+        #  Values of the parameters that define the memory need for DATASET  2.
+        #      intxc =       0    ionmov =       0      iscf =       7    lmnmax =       2
+        #      lnmax =       2     mgfft =      12  mpssoang =       3    mqgrid =    3001
+        #      natom =       2  nloc_mem =       1    nspden =       1   nspinor =       1
+        #     nsppol =       1      nsym =      24    n1xccc =    2501    ntypat =       2
+        #     occopt =       1   xclevel =       1
+        # -    mband =          10        mffmem =           1         mkmem =           2
+        #        mpw =          69          nfft =        1728          nkpt =           2
+        # ================================================================================
+        # P This job should need less than                       1.331 Mbytes of memory.
+        #   Rough estimation (10% accuracy) of disk space for files :
+        # _ WF disk file :      0.023 Mbytes ; DEN or POT disk file :      0.015 Mbytes.
+        # ================================================================================
+
+        magic = "Values of the parameters that define the memory need"
+        memory_pre = "P This job should need less than"
+        magic_exit = "------------- Echo of variables that govern the present computation"
+        filesizes_pre = "_ WF disk file :"
+
+        def parse_spgline(line):
+            """Parse the line with space group info, return dict."""
+            # Could use regular expressions ...
+            i = line.find("space group")
+            spg_str, brav_str = line[i:].replace("space group", "").split(";")
+            toks = spg_str.split()
+            return {
+                "spg_symbol": "".join(toks[:-1]),
+                "spg_number": int(toks[-1].replace("(", "").replace(")", "").replace("#", "")),
+                "bravais": brav_str.strip(),
+            }
+
+        from abipy.tools.numtools import grouper
+        dims_dataset, spginfo_dataset = OrderedDict(), OrderedDict()
+        inblock = 0
+        with open(self.filepath, "rt") as fh:
+            for line in fh:
+                line = line.strip()
+                if line.startswith(magic_exit):
+                    break
+                if not line or line.startswith("===") or line.startswith("---") or line.startswith("Rough estimation"):
+                    continue
+
+                if verbose: print("inblock:", inblock, " at line:", line)
+
+                if line.startswith("DATASET") or line.startswith("Symmetries :"):
+                    # Get dataset index, parse space group and lattice info, init new dims dict.
+                    inblock = 1
+                    if line.startswith("Symmetries :"):
+                        # No multidataset
+                        dtindex = 1
+                    else:
+                        tokens = line.split()
+                        dtindex = int(tokens[1])
+
+                    dims_dataset[dtindex] = dims = OrderedDict()
+                    spginfo_dataset[dtindex] = parse_spgline(line)
+                    continue
+
+                if inblock == 1 and line.startswith(magic):
+                    inblock = 2
+                    continue
+
+                if inblock == 2:
+                    # Lines with data.
+                    if line.startswith(memory_pre):
+                        dims["mem_per_proc_mb"] = float(line.replace(memory_pre, "").split()[0])
+                    elif line.startswith(filesizes_pre):
+                        tokens = line.split()
+                        mbpos = [i - 1 for i, t in enumerate(tokens) if t.startswith("Mbytes")]
+                        assert len(mbpos) == 2
+                        dims["wfk_size_mb"] = float(tokens[mbpos[0]])
+                        dims["denpot_size_mb"] = float(tokens[mbpos[1]])
+                    else:
+                        if line and line[0] == "-": line = line[1:]
+                        tokens = grouper(2, line.replace("=", "").split())
+                        if verbose: print("tokens:", tokens)
+                        dims.update([(t[0], int(t[1])) for t in tokens])
+
+            return dims_dataset, spginfo_dataset
 
     def next_gs_scf_cycle(self):
         """

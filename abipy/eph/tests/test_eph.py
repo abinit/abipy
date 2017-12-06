@@ -25,6 +25,12 @@ class EphFileTest(AbipyTest):
         assert ncfile.phbands.qpoints.is_path
         assert ncfile.phbands.qpoints.ksampling is None
 
+        # Test edos
+        # TODO
+        #ncfile.edos
+        #if self.has_matplotlib():
+            #assert ncfile.edos.plot(show=False)
+
         # Test A2f(w) function.
         a2f = ncfile.a2f_qcoarse
         assert ncfile.get_a2f_qsamp("qcoarse") is a2f
@@ -38,10 +44,11 @@ class EphFileTest(AbipyTest):
         #self.assert_almost_equal(m1/2, a2f.get_moment(n=1, spin=0))
         #self.assert_almost_equal(self.lambda_iso, )
         #self.assert_almost_equal(self.omega_log, )
-        #self.assert_almost_equal(a2f.get_mcmillan_Tc(mustar=0.8), )
-        #tc = 10
-        #mustar = a2f.get_mustar_from_tc(tc)
-        #self.assert_almost_equal(a2f.get_mcmillan_Tc(mustar), tc)
+        tc = a2f.get_mcmillan_tc(mustar=0.1)
+        #self.assert_almost_equal(tc, )
+        mustar = a2f.get_mustar_from_tc(tc)
+        self.assert_almost_equal(mustar, 0.1)
+        #self.assert_almost_equal(a2f.get_mcmillan_tc(mustar), tc)
 
         assert not ncfile.has_a2ftr
         assert ncfile.a2ftr_qcoarse is None
@@ -52,6 +59,7 @@ class EphFileTest(AbipyTest):
         if self.has_matplotlib():
             # Test A2f plot methods
             assert ncfile.a2f_qcoarse.plot(show=False)
+            assert ncfile.a2f_qcoarse.plot_tc_vs_mustar(show=False)
             assert ncfile.a2f_qintp.plot_a2(phdos_path, show=False)
             assert ncfile.a2f_qintp.plot_nuterms(show=False)
 

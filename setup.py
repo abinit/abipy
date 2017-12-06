@@ -16,13 +16,6 @@ if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
 
-# Install ipython with notebook support.
-with_ipython = False
-#with_ipython = True
-#if '--with-ipython' in sys.argv:
-#    with_ipython = True
-#    sys.argv.remove('--with-ipython')
-
 #with_cython = True
 #try:
 #    from Cython.Distutils import build_ext
@@ -133,7 +126,6 @@ def find_package_data():
         ],
         'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
-        'abipy.lessons': ["*.man"],
     }
 
     #package_data.update(ref_files)
@@ -205,13 +197,6 @@ install_requires = [
     "seaborn",
 ]
 
-#if with_ipython:
-#    install_requires += [
-#        "ipython",
-#        "jupyter",
-#        "nbformat",
-#    ]
-
 #if with_cython:
 #    install_requires += [
 #        "cython",
@@ -268,17 +253,6 @@ Please read the following if you are about to use abipy for the first time:
     in ~/.abinit/abipy or in the working directory in which you execute the flow.
     Examples are provided in abipy/data/managers
 
-[2]
-    If you are completely new to abipy you may want to start from the abipy lessons.
-    The simplest way is to move to an empty directory, start an ipython session and type:
-
-    In [1]: from abipy.lessons.lesson_kpoint_convergence import Lesson()
-
-followed by:
-
-    In [2]: Lesson()
-
-This will print the lessons documentation with further instructions.
 Have fun!
 """)
 

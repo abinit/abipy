@@ -54,6 +54,16 @@ class HistFileTest(AbipyTest):
         same_structure = abilab.Structure.from_file(abidata.ref_file("sic_relax_HIST.nc"))
         self.assert_almost_equal(same_structure.frac_coords, hist.final_structure.frac_coords)
 
+        # Test to_xdatcar converter
+        xdatcar = hist.to_xdatcar(filepath=None, groupby_type=True)
+        assert xdatcar.natoms == [1, 1] and len(xdatcar.structures) == hist.num_steps
+        self.assert_almost_equal(xdatcar.structures[0].volume, hist.structures[0].volume)
+        self.assert_almost_equal(xdatcar.structures[-1].frac_coords, hist.structures[-1].frac_coords)
+
+        xdatcar_nogroup = hist.to_xdatcar(filepath=None, groupby_type=False)
+        assert xdatcar.structures[0] ==  xdatcar_nogroup.structures[0]
+        assert xdatcar.structures[-1] ==  xdatcar_nogroup.structures[-1]
+
         # Test matplotlib plots.
         if self.has_matplotlib():
             assert hist.plot(show=False)

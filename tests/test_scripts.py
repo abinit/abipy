@@ -347,7 +347,7 @@ class TestAbirun(ScriptTest):
         # Test abirun commands requiring a flow (no submission)
         for command in ["status", "debug", "debug_reset", "deps", "inputs", "corrections", "events",
                         "history", "handlers", "cancel", "tail", "inspect", "structures", "ebands", "hist",
-                        "cycles", "tricky",]:
+                        "cycles", "dims", "tricky",]:
             r = env.run(self.script, flowdir, command, self.loglevel, self.verbose, *no_logo_colors,
                         expect_stderr=self.expect_stderr)
             assert r.returncode == 0
