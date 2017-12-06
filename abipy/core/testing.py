@@ -141,19 +141,6 @@ def get_mock_module():
     return mock
 
 
-#def has_mongodb(host='localhost', port=27017, name='mongodb_test', username=None, password=None):
-#    try:
-#        from pymongo import MongoClient
-#        connection = MongoClient(host, port, j=True)
-#        db = connection[name]
-#        if username:
-#            db.authenticate(username, password)
-#
-#        return True
-#    except:
-#        return False
-
-
 def json_read_abinit_input_from_path(json_path):
     """
     Read a json file from the absolute path `json_path`, return AbinitInput instance.
@@ -310,10 +297,6 @@ class AbipyTest(PymatgenTest):
         mlab.options.offscreen = True
         mlab.options.backend = "test"
         return True
-
-    #def assertFwSerializable(self, obj):
-    #    assert '_fw_name' in obj.to_dict()
-    #    self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
 
     @staticmethod
     def get_abistructure_from_abiref(basename):

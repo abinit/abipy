@@ -31,6 +31,10 @@ class FactoryTest(AbipyTest):
         self.si_structure = abidata.structure_from_cif("si.cif")
         self.si_pseudo = abidata.pseudos("14si.pspnc")
 
+        self.gan_structure = abidata.structure_from_cif("gan.cif")
+        self.n_pseudo = abidata.pseudos("7n.pspnc")
+        self.ga_pseudo = abidata.pseudos("31ga.pspnc")
+
     def test_gs_input(self):
         """Testing gs_input factory."""
         inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
@@ -341,9 +345,13 @@ class FactoryTest(AbipyTest):
         """Testing for dte_from_gsinput"""
         #self.skip_if_not_abinit(version='8.3.2')
         from abipy.abio.factories import dte_from_gsinput
-        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized", smearing=None)
+        pseudos = [self.ga_pseudo.pseudo_with_symbol('Ga'), self.n_pseudo.pseudo_with_symbol('N')]
+        gs_inp = gs_input(self.gan_structure, pseudos, kppa=None, ecut=2,
+                          spin_mode="unpolarized", smearing=None)
         # dte calculations only work with selected values of ixc
         gs_inp['ixc'] = 7
+        multi = dte_from_gsinput(gs_inp, use_phonons=False, skip_dte_permutations=False)
+        self.abivalidate_multi(multi)
         multi = dte_from_gsinput(gs_inp, use_phonons=True, skip_dte_permutations=True)
         self.abivalidate_multi(multi)
 
