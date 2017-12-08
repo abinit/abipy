@@ -527,7 +527,6 @@ class HistRobot(Robot):
             ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
-        fig.tight_layout()
         return fig
 
     def write_notebook(self, nbpath=None):

@@ -5,11 +5,12 @@ AbiPy Flow Gallery
 
 This gallery contains python scripts to generate AbiPy flows from the command line.
 
-Run the script to generate the directory with the flow.
-Use the `-s` option to generate the flow and run it with the scheduler. 
-Use `--help` for see available options.
+Run the scripts to generate the directory with the flow and then 
+use ``abirun.py`` to execute the flow.
+Alternatively, one can use the `-s` option to generate the flow and run it immediately with the scheduler. 
+Use `--help` for available options.
 
-warning
+WARNING:
 
     The following examples show how to use python and the AbiPy API to generate and run 
     Abinit calculations in a semi-automatic way. 

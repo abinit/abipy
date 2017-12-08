@@ -13,7 +13,7 @@ nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO
 # pytest --cov-config .coveragerc --cov=abipy --cov-append -v abipy/integration_tests
 
 # Generate documentation
-if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
+if [[ "${PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
     ./docs/install_reqs.sh;
     cd ./docs && export GENERATE_SPHINX_GALLERY=1 && make && unset GENERATE_SPHINX_GALLERY && cd ..;
 fi
