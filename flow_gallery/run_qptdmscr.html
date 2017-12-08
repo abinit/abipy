@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Screening Flow with q-point parallelism &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Raman Flow with BSE and frozen phonon" href="run_raman_bse.html" />
+    <link rel="prev" title="Optic Flow" href="run_optic.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Screening Flow with q-point parallelism</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_optic.html" title="Previous Chapter: Optic Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Optic Flow</span>
+    </a>
+  </li>
+  <li>
+    <a href="run_raman_bse.html" title="Next Chapter: Raman Flow with BSE and frozen phonon"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Raman Flow wi... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_qptdmscr.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="screening-flow-with-q-point-parallelism">
+<span id="sphx-glr-flow-gallery-run-qptdmscr-py"></span><h1>Screening Flow with q-point parallelism<a class="headerlink" href="#screening-flow-with-q-point-parallelism" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to compute the SCR file by splitting the calculation of the SCR file
+over q-points with the input variables nqptdm and qptdm.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">data</span>
+
+<span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">all_inputs</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build the input files of the calculation.</span>
+<span class="sd">    Returns: gs_input, nscf_input, scr_input, sigma_input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ecut</span> <span class="o">=</span> <span class="n">ecutwfn</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span>
+        <span class="n">istwfk</span><span class="o">=</span><span class="s2">&quot;*1&quot;</span><span class="p">,</span>
+        <span class="n">paral_kgb</span><span class="o">=</span><span class="n">paral_kgb</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">cif_file</span><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">),</span>
+                                <span class="n">pseudos</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">),</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
+
+    <span class="n">gs</span><span class="p">,</span> <span class="n">nscf</span><span class="p">,</span> <span class="n">scr</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+
+    <span class="c1"># This grid is the most economical, but does not contain the Gamma point.</span>
+    <span class="n">gs_kmesh</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># This grid contains the Gamma point, which is the point at which</span>
+    <span class="c1"># we will compute the (direct) band gap.</span>
+    <span class="n">gw_kmesh</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Dataset 1 (GS run)</span>
+    <span class="n">gs</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="o">**</span><span class="n">gs_kmesh</span><span class="p">)</span>
+    <span class="n">gs</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1"># Dataset 2 (NSCF run)</span>
+    <span class="c1"># Here we select the second dataset directly with the syntax inp[2]</span>
+    <span class="n">nscf</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="o">**</span><span class="n">gw_kmesh</span><span class="p">)</span>
+    <span class="n">nscf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+                  <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+                  <span class="n">nband</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                  <span class="n">nbdbuf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Dataset3: Calculation of the screening.</span>
+    <span class="n">scr</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="o">**</span><span class="n">gw_kmesh</span><span class="p">)</span>
+
+    <span class="n">scr</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">optdriver</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">ecutwfn</span><span class="o">=</span><span class="n">ecutwfn</span><span class="p">,</span>
+        <span class="n">symchi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">inclvkb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">ecuteps</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)</span>
+    <span class="n">sigma</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="o">**</span><span class="n">gw_kmesh</span><span class="p">)</span>
+
+    <span class="n">sigma</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+            <span class="n">optdriver</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">nband</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+            <span class="n">ecutwfn</span><span class="o">=</span><span class="n">ecutwfn</span><span class="p">,</span>
+            <span class="n">ecuteps</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+            <span class="n">ecutsigx</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+            <span class="n">symsigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">kptgw</span> <span class="o">=</span> <span class="p">[</span>
+         <span class="o">-</span><span class="mf">2.50000000E-01</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.50000000E-01</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>
+         <span class="o">-</span><span class="mf">2.50000000E-01</span><span class="p">,</span>  <span class="mf">2.50000000E-01</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>
+          <span class="mf">5.00000000E-01</span><span class="p">,</span>  <span class="mf">5.00000000E-01</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>
+         <span class="o">-</span><span class="mf">2.50000000E-01</span><span class="p">,</span>  <span class="mf">5.00000000E-01</span><span class="p">,</span>  <span class="mf">2.50000000E-01</span><span class="p">,</span>
+          <span class="mf">5.00000000E-01</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>
+          <span class="mf">0.00000000E+00</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">bdgw</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+
+    <span class="n">sigma</span><span class="o">.</span><span class="n">set_kptgw</span><span class="p">(</span><span class="n">kptgw</span><span class="p">,</span> <span class="n">bdgw</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct the flow for G0W0 calculations.</span>
+<span class="sd">    The calculation of the SCR file is split into nqptdm independent calculations.</span>
+<span class="sd">    Partial SCR files are then merged with mrgddb before starting the sigma run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build the input files for GS, NSCF, SCR and SIGMA runs.</span>
+    <span class="n">gs</span><span class="p">,</span> <span class="n">nscf</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">,</span> <span class="n">sigma_input</span> <span class="o">=</span> <span class="n">all_inputs</span><span class="p">()</span>
+
+    <span class="c1"># Construct the flow.</span>
+    <span class="k">return</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">G0W0WithQptdmFlow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">gs</span><span class="p">,</span> <span class="n">nscf</span><span class="p">,</span> <span class="n">scr_input</span><span class="p">,</span> <span class="n">sigma_input</span><span class="p">,</span>
+                                    <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c1">#import tempfile</span>
+    <span class="c1">#options = flowtk.build_flow_main_parser().parse_args([&quot;-w&quot;, tempfile.mkdtemp()])</span>
+    <span class="c1">#build_flow(options).plot_networkx(tight_layout=True)</span>
+
+
+<span class="nd">@flowtk.flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.001 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_qptdmscr.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_qptdmscr.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_qptdmscr.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_qptdmscr.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

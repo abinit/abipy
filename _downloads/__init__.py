@@ -1,7 +1,6 @@
 r"""
-AbiPy examples
-==============
+AbiPy Flow Gallery
+==================
 
-There are a variety of ways to use AbiPy, and most of them are
-illustrated in the examples in this directory.
+This gallery contains python scripts to generate AbiPy flows from the command line.
 """

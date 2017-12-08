@@ -1,1 +1,0 @@
-plot_array(np.random.rand(10,10))

@@ -24,7 +24,7 @@ plotter = ElectronDosPlotter()
 for width in widths:
     # Compute DOS and add it to the plotter.
    edos = gs_bands.get_edos(method="gaussian", step=step, width=width)
-   label = "$\sigma = %s$ [eV]" % width
+   label = r"$\sigma = %s$ [eV]" % width
    plotter.add_edos(label, edos)
 
 plotter.combiplot()

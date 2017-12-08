@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -160,7 +161,6 @@
     <span class="s2">&quot;mp_search&quot;</span><span class="p">,</span>
     <span class="s2">&quot;cod_search&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Structure&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;frames_from_structures&quot;</span><span class="p">,</span>
     <span class="s2">&quot;dataframes_from_structures&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -248,7 +248,7 @@
 <span class="sd">    Get a list of structures corresponding to a chemical formula</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        formula_ (str): Chemical formula (e.g., Fe2O3)</span>
+<span class="sd">        formula (str): Chemical formula (e.g., Fe2O3)</span>
 <span class="sd">        primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
 
 <span class="sd">    Returns:</span>
@@ -305,6 +305,9 @@
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;final_structure&quot;</span><span class="p">):</span>
+            <span class="c1"># This for HIST.nc file</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">final_structure</span><span class="p">)</span>
 
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to convert </span><span class="si">%s</span><span class="s2"> into a structure&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span></div>
 
@@ -554,7 +557,7 @@
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
 
-<span class="sd">        .. Example::</span>
+<span class="sd">        Example::</span>
 
 <span class="sd">            Structure.rocksalt(a, [&quot;Na&quot;, &quot;Cl&quot;])</span>
 
@@ -588,7 +591,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a :class:`Structure` object from a dictionary with ABINIT variables.</span>
 
-<span class="sd">        .. Example::</span>
+<span class="sd">        Example::</span>
 
 <span class="sd">            al_structure = Structure.from_abivars(</span>
 <span class="sd">                acell=3*[7.5],</span>
@@ -823,7 +826,7 @@
 <span class="sd">            eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
 <span class="sd">            spgdata: spglib dataset with additional data reported by spglib.</span>
 
-<span class="sd">        .. Example::</span>
+<span class="sd">         Example::</span>
 
 <span class="sd">            for irr_pos in irred_pos:</span>
 <span class="sd">                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</span>
@@ -1079,8 +1082,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="n">frac_coords</span><span class="p">))</span></div>
 
-    <span class="c1"># TODO Use get_dict4pandas</span>
-<div class="viewcode-block" id="Structure.get_dict4frame"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_dict4frame">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict4frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.get_dict4pandas"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_dict4pandas">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict4pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a :class:`OrderedDict` with the most important structural parameters:</span>
 
@@ -1794,7 +1796,7 @@
             <span class="n">pseudo</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">pseudo_with_symbol</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
             <span class="n">nval</span> <span class="o">+=</span> <span class="n">pseudo</span><span class="o">.</span><span class="n">Z_val</span>
 
-        <span class="k">return</span> <span class="n">nval</span></div>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">nval</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">nval</span><span class="p">)</span> <span class="o">==</span> <span class="n">nval</span> <span class="k">else</span> <span class="n">nval</span></div>
 
 <div class="viewcode-block" id="Structure.valence_electrons_per_atom"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.valence_electrons_per_atom">[docs]</a>    <span class="k">def</span> <span class="nf">valence_electrons_per_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1862,7 +1864,7 @@
 <span class="sd">            `coords` the atomic positions.</span>
 <span class="sd">        The list of structures is available in the `structures` entry.</span>
 
-<span class="sd">    .. Example::</span>
+<span class="sd">    Example::</span>
 
 <span class="sd">        dfs = dataframes_from_structures(files)</span>
 <span class="sd">        dfs.lattice</span>
@@ -1874,7 +1876,7 @@
     <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">struct_objects</span><span class="p">]</span>
     <span class="c1"># Build Frame with lattice parameters.</span>
     <span class="c1"># Use OrderedDict to have columns ordered nicely.</span>
-    <span class="n">odict_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">))</span> <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
+    <span class="n">odict_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">))</span> <span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">structures</span><span class="p">]</span>
 
     <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="n">lattice_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">odict_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
@@ -1894,10 +1896,6 @@
                                 <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">max_numsite</span><span class="p">))</span> <span class="k">if</span> <span class="n">odict_list</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">lattice</span><span class="o">=</span><span class="n">lattice_frame</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_frame</span><span class="p">,</span> <span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">)</span></div>
-
-
-<span class="c1"># To maintain compatibility</span>
-<span class="n">frames_from_structures</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span>
 
 
 <span class="k">class</span> <span class="nc">StructureModifier</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -2060,7 +2058,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

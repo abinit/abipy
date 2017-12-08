@@ -15,16 +15,7 @@ This example shows how to plot the Fermi surface with matplotlib
     :align: center
 
 
-.. rst-class:: sphx-glr-script-out
 
- Out::
-
-    Bands for isosurface: [[2, 3, 4]]
-
-
-
-
-|
 
 
 .. code-block:: python
@@ -49,7 +40,7 @@ This example shows how to plot the Fermi surface with matplotlib
     # If you have mayavi installed, try:
     #eb3d.mvplot_isosurfaces()
 
-**Total running time of the script:** ( 0 minutes  1.231 seconds)
+**Total running time of the script:** ( 0 minutes  1.288 seconds)
 
 
 

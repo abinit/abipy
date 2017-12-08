@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -149,7 +150,7 @@ and the e-ph coupling strenght in metals.</p>
 <span class="n">Name</span><span class="p">:</span> <span class="n">al_888k_161616q_EPH</span><span class="o">.</span><span class="n">nc</span>
 <span class="n">Directory</span><span class="p">:</span> <span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">gmatteo</span><span class="o">/</span><span class="n">git_repos</span><span class="o">/</span><span class="n">abipy</span><span class="o">/</span><span class="n">abipy</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">al_eph</span>
 <span class="n">Size</span><span class="p">:</span> <span class="mf">129.04</span> <span class="n">kb</span>
-<span class="n">Access</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Wed</span> <span class="n">Nov</span>  <span class="mi">8</span> <span class="mi">14</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">43</span> <span class="mi">2017</span>
+<span class="n">Access</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Fri</span> <span class="n">Dec</span>  <span class="mi">8</span> <span class="mi">20</span><span class="p">:</span><span class="mi">54</span><span class="p">:</span><span class="mi">34</span> <span class="mi">2017</span>
 <span class="n">Modification</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Wed</span> <span class="n">Nov</span>  <span class="mi">8</span> <span class="mi">01</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">19</span> <span class="mi">2017</span>
 <span class="n">Change</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Wed</span> <span class="n">Nov</span>  <span class="mi">8</span> <span class="mi">01</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">19</span> <span class="mi">2017</span>
 
@@ -176,17 +177,22 @@ and the e-ph coupling strenght in metals.</p>
 <span class="n">Has</span> <span class="n">non</span><span class="o">-</span><span class="n">analytical</span> <span class="n">contribution</span> <span class="k">for</span> <span class="n">q</span> <span class="o">--&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="kc">False</span>
 
 <span class="o">==============================</span> <span class="n">E</span><span class="o">-</span><span class="n">PH</span> <span class="n">calculation</span> <span class="o">==============================</span>
-<span class="n">A2f</span> <span class="n">coarse</span><span class="p">:</span>
+<span class="n">Has</span> <span class="n">transport</span> <span class="n">a2Ftr</span><span class="p">(</span><span class="n">w</span><span class="p">):</span> <span class="kc">False</span>
+<span class="n">A2f</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="n">on</span> <span class="n">the</span> <span class="n">ab</span><span class="o">-</span><span class="n">initio</span> <span class="n">q</span><span class="o">-</span><span class="n">mesh</span><span class="p">:</span>
 <span class="n">Mesh</span> <span class="kn">from</span> <span class="mf">0.0010</span> <span class="n">to</span> <span class="mf">0.0488</span> <span class="p">[</span><span class="n">eV</span><span class="p">]</span> <span class="k">with</span> <span class="mi">479</span> <span class="n">points</span>
-<span class="n">lambda_iso</span><span class="p">:</span> <span class="mf">0.217</span><span class="p">,</span> <span class="n">omega_log</span> <span class="mf">3.30945357916e-05</span>
-<span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.8</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">2.00060928927</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-<span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.6</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">4.90536667594</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+<span class="n">Isotropic</span> <span class="k">lambda</span><span class="p">:</span> <span class="mf">0.217</span>
+<span class="n">Omega_log</span><span class="p">:</span> <span class="mf">0.0300091375283</span> <span class="p">[</span><span class="n">eV</span><span class="p">],</span> <span class="mf">348.241197454</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.1</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">0.00143246457827</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.12</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">4.65131401583e-05</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.2</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">1.44375663501e+58</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
 
-<span class="n">A2f</span> <span class="n">interpolated</span><span class="p">:</span>
+<span class="n">A2f</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="n">interpolated</span> <span class="n">on</span> <span class="n">the</span> <span class="n">dense</span> <span class="n">q</span><span class="o">-</span><span class="n">mesh</span><span class="p">:</span>
 <span class="n">Mesh</span> <span class="kn">from</span> <span class="mf">0.0010</span> <span class="n">to</span> <span class="mf">0.0488</span> <span class="p">[</span><span class="n">eV</span><span class="p">]</span> <span class="k">with</span> <span class="mi">479</span> <span class="n">points</span>
-<span class="n">lambda_iso</span><span class="p">:</span> <span class="mf">0.239</span><span class="p">,</span> <span class="n">omega_log</span> <span class="mf">3.21858550178e-05</span>
-<span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.8</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">2.07581764005</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-<span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.6</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">5.47222245623</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+<span class="n">Isotropic</span> <span class="k">lambda</span><span class="p">:</span> <span class="mf">0.239</span>
+<span class="n">Omega_log</span><span class="p">:</span> <span class="mf">0.0295942843752</span> <span class="p">[</span><span class="n">eV</span><span class="p">],</span> <span class="mf">343.427031814</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.1</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">0.00919655159085</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.12</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">0.00088744298154</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.2</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">1.10732077542e-55</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="line-block">
@@ -214,7 +220,7 @@ and the e-ph coupling strenght in metals.</p>
     <span class="c1">#eph.a2f_qintp.plot_a2(phdos_path)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  2.465 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  2.340 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_a2f.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_a2f.py</span></code></a></div>
@@ -237,7 +243,7 @@ and the e-ph coupling strenght in metals.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

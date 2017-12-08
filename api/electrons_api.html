@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -860,17 +861,56 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <p>HirshfeldCharges.</p>
 <dl class="class">
 <dt id="abipy.electrons.charges.HirshfeldCharges">
-<em class="property">class </em><code class="descclassname">abipy.electrons.charges.</code><code class="descname">HirshfeldCharges</code><span class="sig-paren">(</span><em>charges</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
+<em class="property">class </em><code class="descclassname">abipy.electrons.charges.</code><code class="descname">HirshfeldCharges</code><span class="sig-paren">(</span><em>electron_charges</em>, <em>structure</em>, <em>reference_charges=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.charges.Charges</span></code></p>
+<p>Class representing the charges obtained from the Hirshfeld analysis.
+The charges refer to the total charges for each atom (i.e. Z-n_electrons).
+An eccess of electron has a negative charge</p>
 <dl class="classmethod">
 <dt id="abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile">
 <em class="property">classmethod </em><code class="descname">from_cut3d_outfile</code><span class="sig-paren">(</span><em>filepath</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#HirshfeldCharges.from_cut3d_outfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generates a HirshfeldCharges object from the outputfile of cut3d and a structure.</p>
+</dd></dl>
 
-<dl class="attribute">
-<dt id="abipy.electrons.charges.HirshfeldCharges.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.electrons.charges.HirshfeldCharges.structure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.charges.BaderCharges">
+<em class="property">class </em><code class="descclassname">abipy.electrons.charges.</code><code class="descname">BaderCharges</code><span class="sig-paren">(</span><em>electron_charges</em>, <em>structure</em>, <em>reference_charges=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#BaderCharges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.BaderCharges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.charges.Charges</span></code></p>
+<p>Class representing the charges obtained from the Bader analysis.
+TThe charges refer to the total charges for each atom (i.e. Z-n_electrons).
+An eccess of electron has a negative charge</p>
+<dl class="classmethod">
+<dt id="abipy.electrons.charges.BaderCharges.from_files">
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>density_path</em>, <em>pseudopotential_paths</em>, <em>with_core=True</em>, <em>workdir=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/charges.html#BaderCharges.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.charges.BaderCharges.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the abinit density files and the bader executable from Henkelmann et al. to calculate
+the bader charges of the system. If pseudopotentials are given, the atomic charges will be
+extracted as well.</p>
+<p>The extraction of the core charges may be a time consuming calculation, depending on the
+size of the system. A tuning of the parameters may be required (see Density.ae_core_density_on_mesh).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>density_path</strong> – Path to the abinit density file. Can be a fortran _DEN or a netCDF DEN.nc file.
+In case of fortran file, requires cut3d (version &gt;= 8.6.1) for the convertion.</li>
+<li><strong>pseudopotential_paths</strong> – Dictionary {element: pseudopotential path} for all the elements present
+in the system.</li>
+<li><strong>with_core</strong> – Core charges will be extracted from the pseudopotentials with the
+Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</li>
+<li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
+<li><strong>**kwargs</strong> – arguments passed to the method Density.ae_core_density_on_mesh</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An instance of BaderCharges</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -881,7 +921,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.electrons.ddk.DdkFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.ddk.</code><code class="descname">DdkFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ddk.html#DdkFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ddk.DdkFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>File containing the DDK matrix elements for a single <cite>idir</cite> direction</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">DdkFile</span><span class="p">(</span><span class="s2">&quot;out_DDK.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ddk</span><span class="p">:</span>
@@ -1548,8 +1588,60 @@ additional data required by Abipy if you need a complete conversion.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.ebands.ElectronBands.get_dict4frame">
-<code class="descname">get_dict4frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_dict4frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_dict4frame" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.electrons.ebands.ElectronBands.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>e0='fermie'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pandas DataFrame with the following columns:</p>
+<blockquote>
+<div>[‘spin’, ‘kidx’, ‘band’, ‘eig’, ‘occ’, ‘kpoint’]</div></blockquote>
+<p>where:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>spin</td>
+<td>spin index</td>
+</tr>
+<tr class="row-odd"><td>kidx</td>
+<td>k-point index</td>
+</tr>
+<tr class="row-even"><td>band</td>
+<td>band index</td>
+</tr>
+<tr class="row-odd"><td>eig</td>
+<td>KS eigenvalue in eV.</td>
+</tr>
+<tr class="row-even"><td>occ</td>
+<td>Occupation of the state.</td>
+</tr>
+<tr class="row-odd"><td>kpoint</td>
+<td><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object</td>
+</tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
+- <cite>fermie</cite>: shift all eigenvalues to have zero energy at the Fermi energy (<cite>self.fermie</cite>).
+-  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+-  None: Don’t shift energies, equivalent to e0=0
+The Fermi energy is saved in frame.fermie</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBands.get_dict4pandas">
+<code class="descname">get_dict4pandas</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.get_dict4pandas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.get_dict4pandas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the most important parameters:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2007,7 +2099,7 @@ e0: Option used to define the zero of energy in the band structure plot. Possibl
 </div></blockquote>
 <dl class="docutils">
 <dt>colormap: Have a look at the colormaps here and decide which one you like:</dt>
-<dd><a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></dd>
+<dd>&lt;<a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a>&gt;</dd>
 </dl>
 <p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes3D</span></code> or None if a new figure should be created.</p>
 </dd>
@@ -2248,113 +2340,9 @@ Require k-points in IBZ and gamma-centered k-mesh.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.electrons.ebands.ElectronBands.to_dataframe">
-<code class="descname">to_dataframe</code><span class="sig-paren">(</span><em>e0='fermie'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a pandas DataFrame with the following columns:</p>
-<blockquote>
-<div>[‘spin’, ‘kidx’, ‘band’, ‘eig’, ‘occ’, ‘kpoint’]</div></blockquote>
-<p>where:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="35%" />
-<col width="65%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Column</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>spin</td>
-<td>spin index</td>
-</tr>
-<tr class="row-odd"><td>kidx</td>
-<td>k-point index</td>
-</tr>
-<tr class="row-even"><td>band</td>
-<td>band index</td>
-</tr>
-<tr class="row-odd"><td>eig</td>
-<td>KS eigenvalue in eV.</td>
-</tr>
-<tr class="row-even"><td>occ</td>
-<td>Occupation of the state.</td>
-</tr>
-<tr class="row-odd"><td>kpoint</td>
-<td><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object</td>
-</tr>
-</tbody>
-</table>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
-- <cite>fermie</cite>: shift all eigenvalues to have zero energy at the Fermi energy (<cite>self.fermie</cite>).
--  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
--  None: Don’t shift energies, equivalent to e0=0
-The Fermi energy is saved in frame.fermie</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBands.to_json">
 <code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBands.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.to_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a json string representation of the MSONable object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.electrons.ebands.ElectronBands.to_pdframe">
-<code class="descname">to_pdframe</code><span class="sig-paren">(</span><em>e0='fermie'</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.ebands.ElectronBands.to_pdframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a pandas DataFrame with the following columns:</p>
-<blockquote>
-<div>[‘spin’, ‘kidx’, ‘band’, ‘eig’, ‘occ’, ‘kpoint’]</div></blockquote>
-<p>where:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="35%" />
-<col width="65%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Column</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>spin</td>
-<td>spin index</td>
-</tr>
-<tr class="row-odd"><td>kidx</td>
-<td>k-point index</td>
-</tr>
-<tr class="row-even"><td>band</td>
-<td>band index</td>
-</tr>
-<tr class="row-odd"><td>eig</td>
-<td>KS eigenvalue in eV.</td>
-</tr>
-<tr class="row-even"><td>occ</td>
-<td>Occupation of the state.</td>
-</tr>
-<tr class="row-odd"><td>kpoint</td>
-<td><code class="xref py py-class docutils literal"><span class="pre">Kpoint</span></code> object</td>
-</tr>
-</tbody>
-</table>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>e0</strong> – Option used to define the zero of energy in the band structure plot. Possible values:
-- <cite>fermie</cite>: shift all eigenvalues to have zero energy at the Fermi energy (<cite>self.fermie</cite>).
--  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
--  None: Don’t shift energies, equivalent to e0=0
-The Fermi energy is saved in frame.fermie</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
@@ -2659,30 +2647,6 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.electrons.ebands.frame_from_ebands">
-<code class="descclassname">abipy.electrons.ebands.</code><code class="descname">frame_from_ebands</code><span class="sig-paren">(</span><em>ebands_objects</em>, <em>index=None</em>, <em>with_spglib=True</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.ebands.frame_from_ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a pandas dataframe with the most important results available in a list of band structures.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ebands_objects</strong> – List of objects that can be converted to structure.
-Support netcdf filenames or <a class="reference internal" href="#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code></a> objects
-See <cite>ElectronBands.as_ebands</cite> for the complete list.</li>
-<li><strong>index</strong> – Index of the dataframe.</li>
-<li><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="abipy.electrons.ebands.dataframe_from_ebands">
 <code class="descclassname">abipy.electrons.ebands.</code><code class="descname">dataframe_from_ebands</code><span class="sig-paren">(</span><em>ebands_objects</em>, <em>index=None</em>, <em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#dataframe_from_ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.dataframe_from_ebands" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a pandas dataframe with the most important results available in a list of band structures.</p>
@@ -2745,6 +2709,12 @@ Used only if <cite>dos</cite> is not None and it not an ElectronDos instance.</l
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.add_ebands_from_file">
 <code class="descname">add_ebands_from_file</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.add_ebands_from_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.ebands.ElectronBandsPlotter.add_plotter">
+<code class="descname">add_plotter</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.add_plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.add_plotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge two plotters, return new plotter.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.animate">
@@ -3091,8 +3061,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.plot" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronBandsPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronBandsPlotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for combiplot.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronBandsPlotter.to_string">
@@ -3286,8 +3257,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronDosPlotter.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.ebands.ElectronDosPlotter.plot" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/ebands.html#ElectronDosPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.ebands.ElectronDosPlotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for combiplot.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.ebands.ElectronDosPlotter.write_notebook">
@@ -3305,7 +3277,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.electrons.fatbands.FatBandsFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.fatbands.</code><code class="descname">FatBandsFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/fatbands.html#FatBandsFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.fatbands.FatBandsFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Provides methods to analyze the data stored in the FATBANDS.nc file.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="s2">&quot;out_FATBANDS.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fb</span><span class="p">:</span>
@@ -4030,7 +4002,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.electrons.fold2bloch.Fold2BlochNcfile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.fold2bloch.</code><code class="descname">Fold2BlochNcfile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/fold2bloch.html#Fold2BlochNcfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.fold2bloch.Fold2BlochNcfile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Netcdf file with output data produced by Fold2Bloch.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">Fold2BlochNcfile</span><span class="p">(</span><span class="s2">&quot;foo_FOLD2BLOCH.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fb</span><span class="p">:</span>
@@ -4188,7 +4160,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.electrons.gsr.GsrFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.gsr.</code><code class="descname">GsrFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>File containing the results of a ground-state calculation.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">GsrFile</span><span class="p">(</span><span class="s2">&quot;foo_GSR.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">gsr</span><span class="p">:</span>
@@ -4803,7 +4775,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
+<dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -5063,7 +5035,7 @@ the values in the sigres.params dictionaries.</p>
 <dl class="class">
 <dt id="abipy.electrons.optic.OpticNcFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.optic.</code><code class="descname">OpticNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/optic.html#OpticNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.optic.OpticNcFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>This file contains the results produced by optic. Provides methods to plot optical
 properties and susceptibilty tensors. Used by OpticRobot to analyze multiple files.</p>
 <p>Usage example:</p>
@@ -6344,7 +6316,7 @@ Used if dos_filepath is not None.</li>
 <dl class="class">
 <dt id="abipy.electrons.scr.ScrFile">
 <em class="property">class </em><code class="descclassname">abipy.electrons.scr.</code><code class="descname">ScrFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>This object provides an interface to the <cite>SCR.nc</cite> file produced by the GW code.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ScrFile</span><span class="p">(</span><span class="s2">&quot;foo_SCR.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
@@ -6548,9 +6520,9 @@ working directory is created. Return path to the notebook.</p>
 <dd><p>Bases: <a class="reference internal" href="iotools_api.html#abipy.iotools.ETSF_Reader" title="abipy.iotools.ETSF_Reader"><code class="xref py py-class docutils literal"><span class="pre">abipy.iotools.ETSF_Reader</span></code></a></p>
 <p>This object reads the results stored in the SCR (Screening) file produced by ABINIT.
 It provides helper functions to access the most important quantities.</p>
-<p>#double inverse_dielectric_function(number_of_qpoints_dielectric_function,
-# number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
-# number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)</p>
+<p>double inverse_dielectric_function(number_of_qpoints_dielectric_function,
+number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
+number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)</p>
 <dl class="method">
 <dt id="abipy.electrons.scr.ScrReader.find_kpoint_fileindex">
 <code class="descname">find_kpoint_fileindex</code><span class="sig-paren">(</span><em>kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.find_kpoint_fileindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.find_kpoint_fileindex" title="Permalink to this definition">¶</a></dt>
@@ -6573,18 +6545,14 @@ Accepts <code class="xref py py-class docutils literal"><span class="pre">Kpoint
 <dl class="method">
 <dt id="abipy.electrons.scr.ScrReader.read_emacro_lf">
 <code class="descname">read_emacro_lf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_emacro_lf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_emacro_lf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the macroscopic dielectric function <em>with</em> local field effects</p>
-<blockquote>
-<div>1/ em1_{0,0)(kpoint, omega).</div></blockquote>
+<dd><p>Read the macroscopic dielectric function <em>with</em> local field effects 1 / em1_{0,0)(kpoint, omega).</p>
 <p>Return: <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code> object.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.electrons.scr.ScrReader.read_emacro_nlf">
 <code class="descname">read_emacro_nlf</code><span class="sig-paren">(</span><em>kpoint=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/scr.html#ScrReader.read_emacro_nlf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.scr.ScrReader.read_emacro_nlf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the macroscopic dielectric function <em>without</em> local field effects.</p>
-<blockquote>
-<div>e_{0,0)(kpoint, omega).</div></blockquote>
+<dd><p>Read the macroscopic dielectric function <em>without</em> local field effects e_{0,0)(kpoint, omega).</p>
 <p>Return: <code class="xref py py-class docutils literal"><span class="pre">Function1D</span></code></p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -6640,7 +6608,7 @@ with the dot notation i.e. d.key.</td>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

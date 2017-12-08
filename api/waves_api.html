@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -345,7 +346,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.waves.wfkfile.WfkFile">
 <em class="property">class </em><code class="descclassname">abipy.waves.wfkfile.</code><code class="descname">WfkFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Header" title="abipy.core.mixins.Has_Header"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Header</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>This object provides a simple interface to access and analyze
 the data stored in the WFK file produced by ABINIT.</p>
 <p>Usage example:</p>
@@ -419,8 +420,11 @@ the data stored in the WFK file produced by ABINIT.</p>
 <dt id="abipy.waves.wfkfile.WfkFile.ipw_visualize_widget">
 <code class="descname">ipw_visualize_widget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/waves/wfkfile.html#WfkFile.ipw_visualize_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.waves.wfkfile.WfkFile.ipw_visualize_widget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an ipython widget with controllers to visualize the wavefunctions.</p>
-<p>It seems there’s a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It seems there’s a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
 as the tab in vesta is not updated!</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -487,7 +491,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

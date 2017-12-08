@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Band structure with/without spin-orbit &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Flow for phonons with DFPT" href="run_phonons.html" />
+    <link rel="prev" title="Flow for e-Bands with frozen phonon" href="run_phfrozen_ebands.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Band structure with/without spin-orbit</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_phfrozen_ebands.html" title="Previous Chapter: Flow for e-Bands with frozen phonon"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Flow for e-Ba...</span>
+    </a>
+  </li>
+  <li>
+    <a href="run_phonons.html" title="Next Chapter: Flow for phonons with DFPT"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Flow for phon... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_gaas_ebands_soc.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="band-structure-with-without-spin-orbit">
+<span id="sphx-glr-flow-gallery-run-gaas-ebands-soc-py"></span><h1>Band structure with/without spin-orbit<a class="headerlink" href="#band-structure-with-without-spin-orbit" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to compute the band structure of GaAs with and without spin-orbit term.
+We essentially build two BandStructureWork inside a loop over nspinor in [1, 2]
+nspinor = 1 corresponds to a standard collinear calculation for non-magnetic systems while
+nspinor = 2 gives us the non-collinear case with spinor wavefunctions required for the treatment of SOC.
+Some of the variables in the input files must be changed depending on the value of nspinor.</p>
+<p>We use relativistic NC pseudos made of two terms: scalar pseudo + SOC term.
+The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
+<img alt="../_images/sphx_glr_run_gaas_ebands_soc_001.png" class="align-center" src="../_images/sphx_glr_run_gaas_ebands_soc_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">num_electrons</span><span class="p">:</span> <span class="mi">28</span>
+<span class="mi">14</span>
+<span class="mi">28</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="kn">as</span> <span class="nn">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="c1"># Set working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;GaAs&quot;</span><span class="p">)</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Ga-d_r.psp8&quot;</span><span class="p">,</span> <span class="s2">&quot;As-d_r.psp8&quot;</span><span class="p">)</span>
+    <span class="n">num_electrons</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;num_electrons:&quot;</span><span class="p">,</span> <span class="n">num_electrons</span><span class="p">)</span>
+
+    <span class="c1"># Usa same shifts in all tasks.</span>
+    <span class="n">ngkpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+    <span class="n">shiftk</span><span class="o">=</span> <span class="p">[[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+             <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+             <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+             <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]]</span>
+
+    <span class="c1"># NSCF run on k-path with large number of bands</span>
+    <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>  <span class="c1"># L point</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>  <span class="c1"># Gamma point</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># X point</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Initialize the flow.</span>
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">nspinor</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+        <span class="c1"># Multi will contain two datasets (GS + NSCF) for the given nspinor.</span>
+        <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Global variables.</span>
+        <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+            <span class="n">ecut</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span>
+            <span class="n">nspinor</span><span class="o">=</span><span class="n">nspinor</span><span class="p">,</span>
+            <span class="n">nspden</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="n">so_psp</span><span class="o">=</span><span class="s2">&quot;*0&quot;</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;*1&quot;</span><span class="p">,</span>   <span class="c1"># Important!</span>
+            <span class="c1">#paral_kgb=1,</span>
+        <span class="p">)</span>
+
+        <span class="n">nband_occ</span> <span class="o">=</span> <span class="n">num_electrons</span> <span class="o">//</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">num_electrons</span>
+        <span class="c1">#nband_occ = int(nband_occ)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">nband_occ</span><span class="p">)</span>
+
+        <span class="c1"># Dataset 1 (GS run)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="n">nband_occ</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="n">nband_occ</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.e-12</span><span class="p">)</span>
+        <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">kptbounds</span><span class="o">=</span><span class="n">kptbounds</span><span class="p">)</span>
+
+        <span class="c1"># Get the SCF and the NSCF input.</span>
+        <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">flowtk</span><span class="o">.</span><span class="n">BandStructureWork</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">flow</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="nd">@flowtk.flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.127 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_gaas_ebands_soc.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_gaas_ebands_soc.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_gaas_ebands_soc.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_gaas_ebands_soc.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

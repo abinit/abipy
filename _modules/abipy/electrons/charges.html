@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -128,46 +129,176 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
+<span class="kn">from</span> <span class="nn">abipy.core.fields</span> <span class="k">import</span> <span class="n">Density</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.denpot</span> <span class="k">import</span> <span class="n">DensityFortranFile</span>
+<span class="kn">from</span> <span class="nn">pymatgen.command_line.bader_caller</span> <span class="k">import</span> <span class="n">BaderAnalysis</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.pseudos</span> <span class="k">import</span> <span class="n">Pseudo</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">bohr_to_angstrom</span>
+<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">requires</span>
+<span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;HirshfeldCharges&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BaderCharges&quot;</span>
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="HirshfeldCharges"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.HirshfeldCharges">[docs]</a><span class="k">class</span> <span class="nc">HirshfeldCharges</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Charges</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base charges class, describing the atomic chrages in a DFT calculation.</span>
+<span class="sd">    The charges refer to the total charges for each atom (i.e. Z-n_electrons).</span>
+<span class="sd">    An eccess of electron has a negative charge</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">charges</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">charges</span> <span class="o">=</span> <span class="n">charges</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">electron_charges</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">reference_charges</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            electron_charges: Charges coming from the electron for each element of the structure (with negative sign)</span>
+<span class="sd">            structure: The crystal structure</span>
+<span class="sd">            reference_charges: Reference charges associated to each atom of the structure, considered as isolated</span>
+<span class="sd">                (with negative sign). Should represent either all the electrons or just the valence, depending on the</span>
+<span class="sd">                charge density used to perform the analysis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">electron_charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">electron_charges</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reference_charges</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">net_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List of net charges for each atom of the structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_charges</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;reference charges are required to calculate the net transfer&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">electron_charges</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_charges</span>
+
+
+<div class="viewcode-block" id="HirshfeldCharges"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.HirshfeldCharges">[docs]</a><span class="k">class</span> <span class="nc">HirshfeldCharges</span><span class="p">(</span><span class="n">Charges</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing the charges obtained from the Hirshfeld analysis.</span>
+<span class="sd">    The charges refer to the total charges for each atom (i.e. Z-n_electrons).</span>
+<span class="sd">    An eccess of electron has a negative charge</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="HirshfeldCharges.from_cut3d_outfile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_cut3d_outfile</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
-        <span class="n">charges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a HirshfeldCharges object from the outputfile of cut3d and a structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">electron_charges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reference_charges</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                <span class="n">l</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
 
-                <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The file does not contain Hirshfeld harges&#39;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="s2">&quot;Hirshfeld Charge&quot;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
-                    <span class="k">break</span>
+        <span class="n">start_hirshfeld_i</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;Hirshfeld analysis&quot;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">start_hirshfeld_i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">3</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The file does not contain Hirshfeld charges&#39;</span><span class="p">)</span>
 
-            <span class="c1">#skip one line</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
 
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)):</span>
-                <span class="n">l</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
-                <span class="n">charges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_hirshfeld_i</span><span class="p">,</span> <span class="n">start_hirshfeld_i</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)):</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">electron_charges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]))</span>
+            <span class="n">reference_charges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]))</span>
 
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">charges</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">electron_charges</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">reference_charges</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BaderCharges"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.BaderCharges">[docs]</a><span class="k">class</span> <span class="nc">BaderCharges</span><span class="p">(</span><span class="n">Charges</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing the charges obtained from the Bader analysis.</span>
+<span class="sd">    TThe charges refer to the total charges for each atom (i.e. Z-n_electrons).</span>
+<span class="sd">    An eccess of electron has a negative charge</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaderCharges.from_files"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.BaderCharges.from_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="nd">@requires</span><span class="p">(</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;bader&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;bader.exe&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;BaderCharges.from_files requires the executable bader to be in the path.&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_path</span><span class="p">,</span> <span class="n">pseudopotential_paths</span><span class="p">,</span> <span class="n">with_core</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses the abinit density files and the bader executable from Henkelmann et al. to calculate</span>
+<span class="sd">        the bader charges of the system. If pseudopotentials are given, the atomic charges will be</span>
+<span class="sd">        extracted as well.</span>
+
+<span class="sd">        The extraction of the core charges may be a time consuming calculation, depending on the</span>
+<span class="sd">        size of the system. A tuning of the parameters may be required (see Density.ae_core_density_on_mesh).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            density_path: Path to the abinit density file. Can be a fortran _DEN or a netCDF DEN.nc file.</span>
+<span class="sd">                In case of fortran file, requires cut3d (version &gt;= 8.6.1) for the convertion.</span>
+<span class="sd">            pseudopotential_paths: Dictionary {element: pseudopotential path} for all the elements present</span>
+<span class="sd">                in the system.</span>
+<span class="sd">            with_core: Core charges will be extracted from the pseudopotentials with the</span>
+<span class="sd">                Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            **kwargs: arguments passed to the method Density.ae_core_density_on_mesh</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An instance of BaderCharges</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># read the valence density</span>
+        <span class="c1"># if density is not a netcdf file, convert with cut3d</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">density_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nc&#39;</span><span class="p">):</span>
+            <span class="n">dff</span> <span class="o">=</span> <span class="n">DensityFortranFile</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">density_path</span><span class="p">)</span>
+            <span class="n">density</span> <span class="o">=</span> <span class="n">dff</span><span class="o">.</span><span class="n">get_density</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">density</span> <span class="o">=</span> <span class="n">Density</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">density_path</span><span class="p">)</span>
+
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">density</span><span class="o">.</span><span class="n">structure</span>
+
+        <span class="n">atomic_charges</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">with_core</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pseudopotential_paths</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;pseudopotentials should be provided to extract the core densities&quot;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pseudo_dojo.ppcodes.oncvpsp</span> <span class="k">import</span> <span class="n">psp8_get_densities</span>
+            <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PseudoDojo package required to extract core densities. &quot;</span>
+                      <span class="s2">&quot;Please install it with `pip install pseudo_dojo`&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">exc</span>
+
+            <span class="c1"># extract core charge from pseudopotentials on a radial grid in the correct units</span>
+            <span class="n">rhoc</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">specie</span><span class="p">,</span> <span class="n">ppath</span> <span class="ow">in</span> <span class="n">pseudopotential_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">psp8_get_densities</span><span class="p">(</span><span class="n">ppath</span><span class="p">)</span>
+                <span class="n">rhoc</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">rmesh</span> <span class="o">*</span> <span class="n">bohr_to_angstrom</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">aecore</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">bohr_to_angstrom</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)]</span>
+
+            <span class="n">workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span> <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">workdir</span>
+
+            <span class="c1"># extrapolate the core density on the density grid</span>
+            <span class="n">core_density</span> <span class="o">=</span> <span class="n">Density</span><span class="o">.</span><span class="n">ae_core_density_on_mesh</span><span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">rhoc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">density</span> <span class="o">+=</span> <span class="n">core_density</span>
+            <span class="n">atomic_charges</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">Z</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="n">pseudopotential_paths</span><span class="p">:</span>
+            <span class="n">pseudos</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">Pseudo</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudopotential_paths</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="n">atomic_charges</span> <span class="o">=</span> <span class="p">[</span><span class="n">pseudos</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">Z_val</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">]</span>
+
+        <span class="n">chgcar_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;CHGCAR&#39;</span><span class="p">)</span>
+        <span class="n">density</span><span class="o">.</span><span class="n">to_chgcar</span><span class="p">(</span><span class="n">chgcar_path</span><span class="p">)</span>
+
+        <span class="n">ba</span> <span class="o">=</span> <span class="n">BaderAnalysis</span><span class="p">(</span><span class="n">chgcar_path</span><span class="p">)</span>
+
+        <span class="n">charges</span> <span class="o">=</span> <span class="p">[</span><span class="n">ba</span><span class="o">.</span><span class="n">get_charge</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">))]</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">charges</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">atomic_charges</span><span class="p">)</span></div></div>
 </pre></div>
 
     </div>
@@ -182,7 +313,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

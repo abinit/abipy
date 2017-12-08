@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -145,59 +146,64 @@
 <li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ddb">ddb</a><ul>
+<li><a class="reference internal" href="#hist">hist</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#sigres">sigres</a><ul>
+<li><a class="reference internal" href="#ddb">ddb</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mdf">mdf</a><ul>
+<li><a class="reference internal" href="#sigres">sigres</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat12">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat13">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#optic">optic</a><ul>
+<li><a class="reference internal" href="#mdf">mdf</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat13">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#eph">eph</a><ul>
+<li><a class="reference internal" href="#optic">optic</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat14">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#sigeph">sigeph</a><ul>
+<li><a class="reference internal" href="#eph">eph</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat15">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pseudos">pseudos</a><ul>
+<li><a class="reference internal" href="#sigeph">sigeph</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat16">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#time">time</a><ul>
+<li><a class="reference internal" href="#pseudos">pseudos</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat17">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#gs_scf">gs_scf</a><ul>
+<li><a class="reference internal" href="#time">time</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat18">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat19">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dfpt2_scf">dfpt2_scf</a><ul>
+<li><a class="reference internal" href="#gs_scf">gs_scf</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat19">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat20">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#text">text</a><ul>
+<li><a class="reference internal" href="#dfpt2_scf">dfpt2_scf</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat20">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat21">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#text">text</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat21">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat22">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -253,7 +259,7 @@
       
   <div class="section" id="abicomp-py">
 <span id="abicomp"></span><h1><code class="docutils literal"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h1>
-<p>This script is used to analyze/compare results stored in multiple <code class="docutils literal"><span class="pre">netcdf</span></code> files.
+<p>This script compares results stored in multiple <code class="docutils literal"><span class="pre">netcdf</span></code> files.
 For example, one can compare the crystalline structure used in different calculations
 or compare the electronic bands stored in two or more <code class="docutils literal"><span class="pre">netcdf</span></code> files (e.g. <code class="docutils literal"><span class="pre">GSR.nc</span></code> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).
 By default the script displays the results/plots directly within the shell.
@@ -268,7 +274,7 @@ Use <code class="docutils literal"><span class="pre">--ipython</span></code> to 
 </div>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abicomp.py --help
 usage: abicomp.py [-h] [-V]
-                  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
+                  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,hist,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
                   ...
 
 optional arguments:
@@ -278,7 +284,7 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
+  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,hist,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
                         sub-command help
     structure           Compare crystalline structures. Use `--group` to
                         compare for similarity.&quot;
@@ -298,6 +304,7 @@ subcommands:
                         `--show` option to list the attributes available (in
                         the first file).
     gsr                 Compare multiple GSR files.
+    hist                Compare multiple HIST files.
     ddb                 Compare multiple DDB files. Assume DDB files with a
                         list of q-points in the IBZ corresponding to
                         homogeneous sampling i.e. files that have been merged
@@ -323,6 +330,7 @@ Usage example:
 
   abicomp.py structure */*/outdata/out_GSR.nc     =&gt; Compare structures in multiple files.
                                                      Use `--group` to compare for similarity
+  abicomp.py hist FILE(s)                         =&gt; Compare final structures read from HIST.nc files.
   abicomp.py mp_structure FILE(s)                 =&gt; Compare structure(s) read from FILE(s) with the one(s)
                                                      given in the materials project database.
   abicomp.py cod_structure FILE(s)                =&gt; Compare structure(s) read from FILE(s) with the one(s)
@@ -400,8 +408,9 @@ Use `abicomp.py --help` for help and `abicomp.py COMMAND --help` to get the docu
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
 </div>
+<p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">mp_structure</span><span class="p">,</span><span class="n">cod_structure</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">edos</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">gsr</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">sigres</span><span class="p">,</span><span class="n">mdf</span><span class="p">,</span><span class="n">optic</span><span class="p">,</span><span class="n">eph</span><span class="p">,</span><span class="n">sigeph</span><span class="p">,</span><span class="n">pseudos</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">gs_scf</span><span class="p">,</span><span class="n">dfpt2_scf</span><span class="p">,</span><span class="n">text</span><span class="p">}</span>
+                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">mp_structure</span><span class="p">,</span><span class="n">cod_structure</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">edos</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">gsr</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">sigres</span><span class="p">,</span><span class="n">mdf</span><span class="p">,</span><span class="n">optic</span><span class="p">,</span><span class="n">eph</span><span class="p">,</span><span class="n">sigeph</span><span class="p">,</span><span class="n">pseudos</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">gs_scf</span><span class="p">,</span><span class="n">dfpt2_scf</span><span class="p">,</span><span class="n">text</span><span class="p">}</span>
                   <span class="o">...</span>
 </pre></div>
 </div>
@@ -426,7 +435,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: structure, mp_structure, cod_structure, xrd, ebands, edos, phbands, phdos, attr, gsr, ddb, sigres, mdf, optic, eph, sigeph, pseudos, time, gs_scf, dfpt2_scf, text</p>
+<td><p class="first">Possible choices: structure, mp_structure, cod_structure, xrd, ebands, edos, phbands, phdos, attr, gsr, hist, ddb, sigres, mdf, optic, eph, sigeph, pseudos, time, gs_scf, dfpt2_scf, text</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -513,7 +522,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <blockquote>
 <div>Compare the crystalline structure(s) read from FILE with the one(s)
 reported in the materials project database.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
                         <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -550,6 +560,17 @@ reported in the materials project database.</div></blockquote>
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
@@ -559,7 +580,8 @@ reported in the materials project database.</div></blockquote>
 <blockquote>
 <div>Compare the crystalline structure(s) read from FILE with the one(s)
 given in the COD database (<a class="reference external" href="http://www.crystallography.net/cod">http://www.crystallography.net/cod</a>).</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">cod_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
                          <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -595,6 +617,17 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <kbd>--loglevel</kbd></td>
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
 <p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
 </td></tr>
 </tbody>
 </table>
@@ -1088,14 +1121,13 @@ Use <cite>–show</cite> option to list the attributes available (in the first f
 </table>
 </div>
 </div>
-<div class="section" id="ddb">
-<h3>ddb<a class="headerlink" href="#ddb" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="hist">
+<h3>hist<a class="headerlink" href="#hist" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare multiple DDB files. Assume DDB files with a list of q-points in the IBZ
-corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare multiple HIST files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat10">
@@ -1157,13 +1189,14 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="sigres">
-<h3>sigres<a class="headerlink" href="#sigres" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ddb">
+<h3>ddb<a class="headerlink" href="#ddb" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare multiple SIGRES files.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare multiple DDB files. Assume DDB files with a list of q-points in the IBZ
+corresponding to homogeneous sampling i.e. files that have been merged with mrgddb.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat11">
@@ -1225,13 +1258,13 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="mdf">
-<h3>mdf<a class="headerlink" href="#mdf" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="sigres">
+<h3>sigres<a class="headerlink" href="#sigres" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare macroscopic dielectric functions stored in multiple MDF files.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare multiple SIGRES files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat12">
@@ -1293,13 +1326,13 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="optic">
-<h3>optic<a class="headerlink" href="#optic" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="mdf">
+<h3>mdf<a class="headerlink" href="#mdf" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare results stored in OPTIC.nc files.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare macroscopic dielectric functions stored in multiple MDF files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat13">
@@ -1361,13 +1394,13 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="eph">
-<h3>eph<a class="headerlink" href="#eph" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="optic">
+<h3>optic<a class="headerlink" href="#optic" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare results stored in EPH.nc files.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">eph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare results stored in OPTIC.nc files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat14">
@@ -1429,13 +1462,13 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="sigeph">
-<h3>sigeph<a class="headerlink" href="#sigeph" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="eph">
+<h3>eph<a class="headerlink" href="#eph" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare multiple SIGEPH files.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
-                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare results stored in EPH.nc files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">eph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+               <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat15">
@@ -1497,11 +1530,13 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="pseudos">
-<h3>pseudos<a class="headerlink" href="#pseudos" title="Permalink to this headline">¶</a></h3>
-<p>“Compare multiple pseudos Print table to terminal.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">pseudos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
-                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div class="section" id="sigeph">
+<h3>sigeph<a class="headerlink" href="#sigeph" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare multiple SIGEPH files.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">walk</span><span class="p">]</span>
+                  <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat16">
@@ -1537,17 +1572,37 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nb, --notebook</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-ipy, --ipython</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke ipython terminal.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--no-walk</kbd></td>
+<td><p class="first">Don’t enter subdirectories.</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="time">
-<h3>time<a class="headerlink" href="#time" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>Analyze/plot the timing data of single or multiple runs.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">time</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXT</span><span class="p">]</span>
-                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div class="section" id="pseudos">
+<h3>pseudos<a class="headerlink" href="#pseudos" title="Permalink to this headline">¶</a></h3>
+<p>“Compare multiple pseudos Print table to terminal.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">pseudos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat17">
@@ -1564,6 +1619,52 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </div>
 <div class="section" id="Named Arguments_repeat18">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="time">
+<h3>time<a class="headerlink" href="#time" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Analyze/plot the timing data of single or multiple runs.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">time</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">ipy</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXT</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat18">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat19">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1617,51 +1718,6 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat18">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat18" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>paths</kbd></td>
-<td>List of files to compare.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="Named Arguments_repeat19">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>-v, --verbose</kbd></td>
-<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
-<p class="last">Default: 0</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--loglevel</kbd></td>
-<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
-<p class="last">Default: “ERROR”</p>
-</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="section" id="dfpt2_scf">
-<h3>dfpt2_scf<a class="headerlink" href="#dfpt2_scf" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>Compare DFPT SCF cycles.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">dfpt2_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
-                     <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
-</pre></div>
-</div>
 <div class="section" id="Positional Arguments_repeat19">
 <h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat19" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
@@ -1699,12 +1755,12 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </table>
 </div>
 </div>
-<div class="section" id="text">
-<h3>text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="dfpt2_scf">
+<h3>dfpt2_scf<a class="headerlink" href="#dfpt2_scf" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Compare 2+ text files in the browser</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">text</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIFFMODE</span><span class="p">]</span>
-                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Compare DFPT SCF cycles.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">dfpt2_scf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                     <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat20">
@@ -1721,6 +1777,51 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </div>
 <div class="section" id="Named Arguments_repeat21">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">Verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="text">
+<h3>text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Compare 2+ text files in the browser</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">text</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIFFMODE</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat21">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat21" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>paths</kbd></td>
+<td>List of files to compare.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat22">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat22" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1765,7 +1866,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

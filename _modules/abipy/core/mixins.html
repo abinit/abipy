@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -150,7 +151,7 @@
     <span class="s2">&quot;Has_ElectronBands&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Has_PhononBands&quot;</span><span class="p">,</span>
     <span class="s2">&quot;NotebookWriter&quot;</span><span class="p">,</span>
-    <span class="c1">#&quot;Has_Header&quot;,</span>
+    <span class="s2">&quot;Has_Header&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -539,9 +540,11 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;stdout and stderr redirected to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpname</span><span class="p">)</span>
             <span class="kn">import</span> <span class="nn">subprocess</span>
             <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">fd</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">fd</span><span class="p">)</span>
-            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;pid: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span></div>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;pid: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">pid</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="NotebookWriter.get_nbformat_nbv"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv">[docs]</a>    <span class="k">def</span> <span class="nf">get_nbformat_nbv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NotebookWriter.get_nbformat_nbv"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.get_nbformat_nbv">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_nbformat_nbv</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Return nbformat module, notebook version module&quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">nbformat</span>
         <span class="n">nbv</span> <span class="o">=</span> <span class="n">nbformat</span><span class="o">.</span><span class="n">v4</span>
@@ -651,13 +654,13 @@
             <span class="k">return</span> <span class="n">filepath</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">Has_Header</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Has_Header"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Header">[docs]</a><span class="k">class</span> <span class="nc">Has_Header</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mixin class for netcdf files with the Abinit header.&quot;&quot;&quot;</span>
 
-    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="Has_Header.hdr"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Header.hdr">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">hdr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:class:`AttrDict` with the Abinit header e.g. hdr.ecut.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_hdr</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_hdr</span><span class="p">()</span></div></div>
 
     <span class="c1">#def compare_hdr(self, other):</span>
 </pre></div>
@@ -674,7 +677,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

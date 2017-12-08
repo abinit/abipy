@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Relaxation Flow &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="G0W0 Flow with factory functions" href="run_ht_si_g0w0ppm.html" />
+    <link rel="prev" title="Phonopy + Abinit Flow" href="run_phonopy_si.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Relaxation Flow</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_phonopy_si.html" title="Previous Chapter: Phonopy + Abinit Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Phonopy + Abinit Flow</span>
+    </a>
+  </li>
+  <li>
+    <a href="run_ht_si_g0w0ppm.html" title="Next Chapter: G0W0 Flow with factory functions"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">G0W0 Flow wit... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_sic_relax.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="relaxation-flow">
+<span id="sphx-glr-flow-gallery-run-sic-relax-py"></span><h1>Relaxation Flow<a class="headerlink" href="#relaxation-flow" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to build a very simple Flow for the structural relaxation of SiC.
+One could use a similar logic to perform multiple relaxations with different input parameters…</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">data</span>
+<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="kn">as</span> <span class="nn">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">,</span> <span class="s2">&quot;6c.pspnc&quot;</span><span class="p">)</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;SiC&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Initialize the input</span>
+    <span class="n">relax_inp</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">AbinitInput</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">)</span>
+
+    <span class="c1"># Set variables</span>
+    <span class="n">relax_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">iomode</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="c1"># Relaxation part</span>
+        <span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">optcell</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">strfact</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>       <span class="c1"># Important!</span>
+        <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.15</span><span class="p">,</span>     <span class="c1"># Important!</span>
+        <span class="n">toldff</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
+        <span class="n">tolmxf</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">ntime</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># K-points sampling</span>
+    <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="n">relax_inp</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span>
+
+    <span class="c1"># Initialize the flow</span>
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+    <span class="c1"># Register the task.</span>
+    <span class="n">flow</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">relax_inp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">flow</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="nd">@flowtk.flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<img alt="../_images/sphx_glr_run_sic_relax_001.png" class="align-center" src="../_images/sphx_glr_run_sic_relax_001.png" />
+<p>Run the script with:</p>
+<blockquote>
+<div>run_sic_relax.py -s</div></blockquote>
+<p>then use:</p>
+<blockquote>
+<div>abirun.py flow_sic_relax structures</div></blockquote>
+<p>to compare the input and output structures of the tasks:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Lattice parameters:
+          formula  natom  angle0  angle1  angle2      a      b      c  volume  <span class="se">\</span>
+w0_t0_in   Si1 C1      <span class="m">2</span>    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">3</span>.065  <span class="m">3</span>.065  <span class="m">3</span>.065  <span class="m">20</span>.351
+w0_t0_out  Si1 C1      <span class="m">2</span>    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">3</span>.065  <span class="m">3</span>.065  <span class="m">3</span>.065  <span class="m">20</span>.355
+
+          abispg_num  P <span class="o">[</span>GPa<span class="o">]</span>  Max<span class="p">|</span>F<span class="p">|</span> eV/ang task_class              status
+w0_t0_in        None      NaN            NaN  RelaxTask  Completed
+w0_t0_out       None   -0.001            <span class="m">0</span>.0  RelaxTask  Completed
+
+Use <span class="sb">`</span>--verbose<span class="sb">`</span> to print atoms.
+</pre></div>
+</div>
+<p>As you can see, the pressure at the end of the RelaxTask is very small (forces are zero by symmetry):</p>
+<p>To visualize the evolution of the lattice parameters during the structura relaxation use:</p>
+<blockquote>
+<div>abiopen.py flow_sic_relax/w0/t0/outdata/out_HIST.nc</div></blockquote>
+<p>and then inside the ipython terminal, type:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
+
+<span class="gp">In [2]: </span><span class="n">abifile</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="Structural relaxation of SiC." src="https://github.com/abinit/abipy_assets/blob/master/run_sic_relax.png?raw=true" />
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.112 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_sic_relax.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_sic_relax.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_sic_relax.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_sic_relax.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

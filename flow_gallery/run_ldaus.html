@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Flow for LDA+U calculations &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="G0W0 convergence study" href="run_gwconv_ecuteps.html" />
+    <link rel="prev" title="Relaxation Flow" href="run_relax.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Flow for LDA+U calculations</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_relax.html" title="Previous Chapter: Relaxation Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation Flow</span>
+    </a>
+  </li>
+  <li>
+    <a href="run_gwconv_ecuteps.html" title="Next Chapter: G0W0 convergence study"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">G0W0 converge... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_ldaus.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="flow-for-lda-u-calculations">
+<span id="sphx-glr-flow-gallery-run-ldaus-py"></span><h1>Flow for LDA+U calculations<a class="headerlink" href="#flow-for-lda-u-calculations" title="Permalink to this headline">¶</a></h1>
+<p>This example shows how to compute the LDA+U band structure of NiO
+with PAW for several values of U-J.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="kn">as</span> <span class="nn">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">make_scf_nscf_dos_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">luj_params</span><span class="p">,</span> <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># Input file taken from tldau_2.in</span>
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="c1"># Global variables</span>
+    <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1">#</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">pawecutdg</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">occopt</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+        <span class="n">tsmear</span><span class="o">=</span><span class="mf">0.015</span><span class="p">,</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">paral_kgb</span><span class="o">=</span><span class="n">paral_kgb</span><span class="p">,</span>
+        <span class="c1">#</span>
+        <span class="c1"># Spin</span>
+        <span class="n">nsppol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">nspden</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">nspinor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">spinat</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
+                <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>
+                <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+        <span class="c1"># Kpoint Grid</span>
+        <span class="c1"># The k point grid is not symmetric, but the calculations being</span>
+        <span class="c1"># for the ground-state, this is not a problem.</span>
+    <span class="p">)</span>
+
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">luj_params</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
+
+    <span class="c1"># GS run.</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">iscf</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">toldfe</span><span class="o">=</span><span class="mf">1.0e-8</span><span class="p">,</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Band structure run.</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
+
+    <span class="c1"># DOS calculation.</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">iscf</span><span class="o">=-</span><span class="mi">3</span><span class="p">,</span>   <span class="c1"># NSCF calculation</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nksmall</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+        <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+        <span class="n">nshiftk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.e-8</span><span class="p">,</span>
+        <span class="c1">#pawprtdos=1,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Generate two input files for the GS and the NSCF run</span>
+    <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">dos_input</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">dos_input</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+    <span class="c1"># Create the work for the band structure calculation.</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;NiO&quot;</span><span class="p">)</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;28ni.paw&quot;</span><span class="p">,</span> <span class="s2">&quot;8o.2.paw&quot;</span><span class="p">)</span>
+
+    <span class="c1"># The code below set up the parameters for the LDA+U calculation in NiO.</span>
+    <span class="c1">#usepawu   1</span>
+    <span class="c1">#lpawu   2 -1</span>
+    <span class="c1">#upawu  8.0 0.0 eV</span>
+    <span class="c1">#jpawu  0.8 0.0 eV</span>
+    <span class="n">usepawu</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">u_values</span> <span class="o">=</span> <span class="p">[</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">u_values</span><span class="p">:</span>
+        <span class="c1"># Apply U-J on Ni only.</span>
+        <span class="n">luj_params</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">LdauParams</span><span class="p">(</span><span class="n">usepawu</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+        <span class="n">luj_params</span><span class="o">.</span><span class="n">luj_for_symbol</span><span class="p">(</span><span class="s2">&quot;Ni&quot;</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="mf">0.1</span><span class="o">*</span><span class="n">u</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">)</span>
+
+        <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">dos_input</span> <span class="o">=</span> <span class="n">make_scf_nscf_dos_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">luj_params</span><span class="p">)</span>
+
+        <span class="n">work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">BandStructureWork</span><span class="p">(</span><span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span><span class="p">,</span> <span class="n">dos_inputs</span><span class="o">=</span><span class="n">dos_input</span><span class="p">)</span>
+        <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">flow</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="nd">@flowtk.flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<img alt="../_images/sphx_glr_run_ldaus_001.png" class="align-center" src="../_images/sphx_glr_run_ldaus_001.png" />
+<p>Run the script with:</p>
+<blockquote>
+<div>run_ldaus.py -s</div></blockquote>
+<p>then use:</p>
+<blockquote>
+<div>abirun.py flow_ldaus/ ebands</div></blockquote>
+<p>to analyze all GSR files produced by flow.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>KS electronic bands:
+       nsppol  nspinor  nspden  nkpt  nband  nelect  fermie formula  natom  <span class="se">\</span>
+w0_t0       <span class="m">1</span>        <span class="m">1</span>       <span class="m">2</span>     <span class="m">3</span>     <span class="m">40</span>    <span class="m">48</span>.0   <span class="m">6</span>.084  Ni2 O2      <span class="m">4</span>
+w0_t1       <span class="m">1</span>        <span class="m">1</span>       <span class="m">2</span>   <span class="m">129</span>     <span class="m">40</span>    <span class="m">48</span>.0   <span class="m">6</span>.084  Ni2 O2      <span class="m">4</span>
+w0_t2       <span class="m">1</span>        <span class="m">1</span>       <span class="m">2</span>   <span class="m">213</span>     <span class="m">40</span>    <span class="m">48</span>.0   <span class="m">6</span>.169  Ni2 O2      <span class="m">4</span>
+w1_t0       <span class="m">1</span>        <span class="m">1</span>       <span class="m">2</span>     <span class="m">3</span>     <span class="m">40</span>    <span class="m">48</span>.0   <span class="m">6</span>.855  Ni2 O2      <span class="m">4</span>
+w1_t1       <span class="m">1</span>        <span class="m">1</span>       <span class="m">2</span>   <span class="m">129</span>     <span class="m">40</span>    <span class="m">48</span>.0   <span class="m">6</span>.855  Ni2 O2      <span class="m">4</span>
+w1_t2       <span class="m">1</span>        <span class="m">1</span>       <span class="m">2</span>   <span class="m">213</span>     <span class="m">40</span>    <span class="m">48</span>.0   <span class="m">6</span>.432  Ni2 O2      <span class="m">4</span>
+
+       angle0  angle1  angle2      a      b      c  volume abispg_num  <span class="se">\</span>
+w0_t0    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">2</span>.964  <span class="m">2</span>.964  <span class="m">5</span>.927  <span class="m">36</span>.809        <span class="m">166</span>
+w0_t1    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">2</span>.964  <span class="m">2</span>.964  <span class="m">5</span>.927  <span class="m">36</span>.809        <span class="m">166</span>
+w0_t2    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">2</span>.964  <span class="m">2</span>.964  <span class="m">5</span>.927  <span class="m">36</span>.809        <span class="m">166</span>
+w1_t0    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">2</span>.964  <span class="m">2</span>.964  <span class="m">5</span>.927  <span class="m">36</span>.809        <span class="m">166</span>
+w1_t1    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">2</span>.964  <span class="m">2</span>.964  <span class="m">5</span>.927  <span class="m">36</span>.809        <span class="m">166</span>
+w1_t2    <span class="m">60</span>.0    <span class="m">60</span>.0    <span class="m">60</span>.0  <span class="m">2</span>.964  <span class="m">2</span>.964  <span class="m">5</span>.927  <span class="m">36</span>.809        <span class="m">166</span>
+
+         scheme  occopt  tsmear_ev  bandwidth_spin0  fundgap_spin0  <span class="se">\</span>
+w0_t0  gaussian       <span class="m">7</span>      <span class="m">0</span>.408           <span class="m">99</span>.343          <span class="m">3</span>.324
+w0_t1  gaussian       <span class="m">7</span>      <span class="m">0</span>.408           <span class="m">99</span>.680          <span class="m">3</span>.049
+w0_t2  gaussian       <span class="m">7</span>      <span class="m">0</span>.408           <span class="m">99</span>.838          <span class="m">2</span>.560
+w1_t0  gaussian       <span class="m">7</span>      <span class="m">0</span>.408           <span class="m">99</span>.318          <span class="m">4</span>.626
+w1_t1  gaussian       <span class="m">7</span>      <span class="m">0</span>.408           <span class="m">99</span>.628          <span class="m">3</span>.352
+w1_t2  gaussian       <span class="m">7</span>      <span class="m">0</span>.408           <span class="m">99</span>.826          <span class="m">3</span>.155
+
+       dirgap_spin0 task_class                               ncfile  node_id  <span class="se">\</span>
+w0_t0         <span class="m">3</span>.351    ScfTask  flow_ldaus/w0/t0/outdata/out_GSR.nc   <span class="m">241313</span>
+w0_t1         <span class="m">3</span>.352   NscfTask  flow_ldaus/w0/t1/outdata/out_GSR.nc   <span class="m">241314</span>
+w0_t2         <span class="m">3</span>.041   NscfTask  flow_ldaus/w0/t2/outdata/out_GSR.nc   <span class="m">241315</span>
+w1_t0         <span class="m">4</span>.626    ScfTask  flow_ldaus/w1/t0/outdata/out_GSR.nc   <span class="m">241317</span>
+w1_t1         <span class="m">3</span>.928   NscfTask  flow_ldaus/w1/t1/outdata/out_GSR.nc   <span class="m">241318</span>
+w1_t2         <span class="m">3</span>.983   NscfTask  flow_ldaus/w1/t2/outdata/out_GSR.nc   <span class="m">241319</span>
+
+                   status
+w0_t0  Completed
+w0_t1  Completed
+w0_t2  Completed
+w1_t0  Completed
+w1_t1  Completed
+w1_t2  Completed
+</pre></div>
+</div>
+<p>The second task in each work (w*_t1) is a NSCF run along the high symmetry path.
+and we can compare the results of these two task by specifying the node identifiers:</p>
+<blockquote>
+<div>abirun.py flow_ldaus/ ebands -p –nids=241314,241318</div></blockquote>
+<img alt="Band structure of Si in the IBZ and along a k-path" src="https://github.com/abinit/abipy_assets/blob/master/run_ldaus.png?raw=true" />
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.254 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_ldaus.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_ldaus.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_ldaus.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_ldaus.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

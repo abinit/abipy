@@ -34,7 +34,7 @@ This example shows how to plot the results produced by fold2bloch.
     Name: h6_FOLD2BLOCH.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs
     Size: 35.26 kb
-    Access Time: Wed Nov  8 14:18:30 2017
+    Access Time: Fri Dec  8 20:54:23 2017
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -96,7 +96,7 @@ This example shows how to plot the results produced by fold2bloch.
         # sphinx_gallery_thumbnail_number = 2
         ncfile.plot_unfolded(kbounds, klabels, title="Unfolded bands")
 
-**Total running time of the script:** ( 0 minutes  0.628 seconds)
+**Total running time of the script:** ( 0 minutes  0.660 seconds)
 
 
 

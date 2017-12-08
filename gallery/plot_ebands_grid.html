@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Effective masses" href="plot_ederivatives.html" />
+    <link rel="next" title="Optic results" href="plot_optic.html" />
     <link rel="prev" title="Phonon Bands with LO-TO" href="plot_phonons_lo_to.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -105,7 +106,7 @@
     </a>
   </li>
   <li>
-    <a href="plot_ederivatives.html" title="Next Chapter: Effective masses"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Effective masses &raquo;</span>
+    <a href="plot_optic.html" title="Next Chapter: Optic results"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Optic results &raquo;</span>
     </a>
   </li>
               
@@ -153,23 +154,23 @@ si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">nsppol</span>  <span class="n">nkpt</span>  <span class="n">nband</span>  <span class="n">nelect</span>    <span class="n">fermie</span> <span class="n">formula</span>  <span class="n">natom</span>  <span class="n">angle0</span>  \
-<span class="n">BZ</span> <span class="n">sampling</span>       <span class="mi">1</span>    <span class="mi">29</span>      <span class="mi">8</span>     <span class="mf">8.0</span>  <span class="mf">5.598453</span>     <span class="n">Si2</span>      <span class="mi">2</span>    <span class="mf">60.0</span>
-<span class="n">k</span><span class="o">-</span><span class="n">path</span>            <span class="mi">1</span>    <span class="mi">14</span>      <span class="mi">8</span>     <span class="mf">8.0</span>  <span class="mf">5.598453</span>     <span class="n">Si2</span>      <span class="mi">2</span>    <span class="mf">60.0</span>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">nsppol</span>  <span class="n">nspinor</span>  <span class="n">nspden</span>  <span class="n">nkpt</span>  <span class="n">nband</span>  <span class="n">nelect</span>    <span class="n">fermie</span> <span class="n">formula</span>  \
+<span class="n">BZ</span> <span class="n">sampling</span>       <span class="mi">1</span>        <span class="mi">1</span>       <span class="mi">1</span>    <span class="mi">29</span>      <span class="mi">8</span>     <span class="mf">8.0</span>  <span class="mf">5.598453</span>     <span class="n">Si2</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>            <span class="mi">1</span>        <span class="mi">1</span>       <span class="mi">1</span>    <span class="mi">14</span>      <span class="mi">8</span>     <span class="mf">8.0</span>  <span class="mf">5.598453</span>     <span class="n">Si2</span>
 
-             <span class="n">angle1</span>  <span class="n">angle2</span>      <span class="o">...</span>          <span class="n">volume</span>  <span class="n">abispg_num</span>  <span class="n">spglib_symb</span>  \
-<span class="n">BZ</span> <span class="n">sampling</span>    <span class="mf">60.0</span>    <span class="mf">60.0</span>      <span class="o">...</span>       <span class="mf">40.888292</span>         <span class="mi">227</span>        <span class="n">Fd</span><span class="o">-</span><span class="mi">3</span><span class="n">m</span>
-<span class="n">k</span><span class="o">-</span><span class="n">path</span>         <span class="mf">60.0</span>    <span class="mf">60.0</span>      <span class="o">...</span>       <span class="mf">40.888292</span>         <span class="mi">227</span>        <span class="n">Fd</span><span class="o">-</span><span class="mi">3</span><span class="n">m</span>
+             <span class="n">natom</span>  <span class="n">angle0</span>     <span class="o">...</span>          <span class="n">volume</span>  <span class="n">abispg_num</span>  <span class="n">spglib_symb</span>  \
+<span class="n">BZ</span> <span class="n">sampling</span>      <span class="mi">2</span>    <span class="mf">60.0</span>     <span class="o">...</span>       <span class="mf">40.888292</span>         <span class="mi">227</span>        <span class="n">Fd</span><span class="o">-</span><span class="mi">3</span><span class="n">m</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>           <span class="mi">2</span>    <span class="mf">60.0</span>     <span class="o">...</span>       <span class="mf">40.888292</span>         <span class="mi">227</span>        <span class="n">Fd</span><span class="o">-</span><span class="mi">3</span><span class="n">m</span>
 
-             <span class="n">spglib_num</span> <span class="n">scheme</span> <span class="n">occopt</span>  <span class="n">tsmear_ev</span> <span class="n">bandwidth_spin0</span>  \
-<span class="n">BZ</span> <span class="n">sampling</span>         <span class="mi">227</span>   <span class="n">none</span>      <span class="mi">1</span>   <span class="mf">0.272114</span>       <span class="mf">11.855874</span>
-<span class="n">k</span><span class="o">-</span><span class="n">path</span>              <span class="mi">227</span>   <span class="n">none</span>      <span class="mi">1</span>   <span class="mf">0.272114</span>       <span class="mf">11.855854</span>
+             <span class="n">spglib_num</span>  <span class="n">scheme</span>  <span class="n">occopt</span> <span class="n">tsmear_ev</span> <span class="n">bandwidth_spin0</span>  \
+<span class="n">BZ</span> <span class="n">sampling</span>         <span class="mi">227</span>    <span class="n">none</span>       <span class="mi">1</span>  <span class="mf">0.272114</span>       <span class="mf">11.855874</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>              <span class="mi">227</span>    <span class="n">none</span>       <span class="mi">1</span>  <span class="mf">0.272114</span>       <span class="mf">11.855854</span>
 
-             <span class="n">fundgap_spin0</span>  <span class="n">dirgap_spin0</span>
-<span class="n">BZ</span> <span class="n">sampling</span>       <span class="mf">0.562277</span>      <span class="mf">2.531798</span>
-<span class="n">k</span><span class="o">-</span><span class="n">path</span>            <span class="mf">0.524340</span>      <span class="mf">2.531828</span>
+             <span class="n">fundgap_spin0</span> <span class="n">dirgap_spin0</span>
+<span class="n">BZ</span> <span class="n">sampling</span>       <span class="mf">0.562277</span>     <span class="mf">2.531798</span>
+<span class="n">k</span><span class="o">-</span><span class="n">path</span>            <span class="mf">0.524340</span>     <span class="mf">2.531828</span>
 
-<span class="p">[</span><span class="mi">2</span> <span class="n">rows</span> <span class="n">x</span> <span class="mi">23</span> <span class="n">columns</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">2</span> <span class="n">rows</span> <span class="n">x</span> <span class="mi">25</span> <span class="n">columns</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="line-block">
@@ -203,7 +204,7 @@ si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion
 <span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  4.839 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  5.594 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_ebands_grid.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_ebands_grid.py</span></code></a></div>
@@ -226,7 +227,7 @@ si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

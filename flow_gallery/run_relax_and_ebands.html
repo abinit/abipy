@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Flow for Relaxation + Bands &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Raman Flow with independent-particle approximation (optic)" href="run_raman_optic.html" />
+    <link rel="prev" title="Raman Flow with BSE and frozen phonon" href="run_raman_bse.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Flow for Relaxation + Bands</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_raman_bse.html" title="Previous Chapter: Raman Flow with BSE and frozen phonon"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Raman Flow wi...</span>
+    </a>
+  </li>
+  <li>
+    <a href="run_raman_optic.html" title="Next Chapter: Raman Flow with independent-particle approximation (optic)"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Raman Flow wi... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_relax_and_ebands.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="flow-for-relaxation-bands">
+<span id="sphx-glr-flow-gallery-run-relax-and-ebands-py"></span><h1>Flow for Relaxation + Bands<a class="headerlink" href="#flow-for-relaxation-bands" title="Permalink to this headline">¶</a></h1>
+<p>This script shows how to perform a structural relaxation and a band structure calculation</p>
+<p>WARNING: The API could change!</p>
+<img alt="../_images/sphx_glr_run_relax_and_ebands_001.png" class="align-center" src="../_images/sphx_glr_run_relax_and_ebands_001.png" />
+<p class="sphx-glr-script-out">Out:</p>
+<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">ScfTask</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="mi">242988</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=../../../../../../../</span><span class="n">var</span><span class="o">/</span><span class="n">folders</span><span class="o">/</span><span class="mi">89</span><span class="o">/</span><span class="mi">47</span><span class="n">k8wfdj11x035svqf8qnl4m0000gn</span><span class="o">/</span><span class="n">T</span><span class="o">/</span><span class="n">tmphqmmbstw</span><span class="o">/</span><span class="n">w1</span><span class="o">/</span><span class="n">t0</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">setting</span> <span class="n">prtwf</span> <span class="n">to</span> <span class="o">-</span><span class="mi">1</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="kn">as</span> <span class="nn">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">make_ion_ioncell_inputs</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">cif_file</span><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Perturb the structure (random perturbation of 0.1 Angstrom)</span>
+    <span class="c1"># then compress the volume to trigger dilatmx.</span>
+    <span class="c1">#structure.perturb(distance=0.1)</span>
+    <span class="c1">#structure.scale_lattice(structure.volume * 0.6)</span>
+
+    <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+        <span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
+        <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">nshiftk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">paral_kgb</span><span class="o">=</span><span class="n">paral_kgb</span><span class="p">,</span>
+        <span class="c1">#prtwf=0,</span>
+    <span class="p">)</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Global variables</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
+
+    <span class="c1"># Dataset 1 (Atom Relaxation)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">optcell</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">tolrff</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">tolmxf</span><span class="o">=</span><span class="mf">5.0e-5</span><span class="p">,</span>
+        <span class="n">ntime</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="c1">#ntime=3,  #To test the restart</span>
+        <span class="c1">#dilatmx=1.1, # FIXME: abinit crashes if I don&#39;t use this</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Dataset 2 (Atom + Cell Relaxation)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">optcell</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">ecutsm</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.02</span><span class="p">,</span>
+        <span class="n">tolrff</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">tolmxf</span><span class="o">=</span><span class="mf">5.0e-5</span><span class="p">,</span>
+        <span class="n">strfact</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">ntime</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="c1">#ntime=3,  # To test the restart</span>
+        <span class="p">)</span>
+
+    <span class="n">ion_inp</span><span class="p">,</span> <span class="n">ioncell_inp</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ion_inp</span><span class="p">,</span> <span class="n">ioncell_inp</span>
+
+
+<span class="k">def</span> <span class="nf">make_scf_nscf_inputs</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns two input files: GS run and NSCF on a high symmetry k-mesh.&quot;&quot;&quot;</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span>
+    <span class="c1">#pseudos = data.pseudos(&quot;Si.GGA_PBE-JTH-paw.xml&quot;)</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">abidata</span><span class="o">.</span><span class="n">cif_file</span><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">),</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Global variables</span>
+    <span class="n">ecut</span> <span class="o">=</span> <span class="mi">28</span>
+    <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span>
+                       <span class="n">nband</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                       <span class="n">timopt</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">istwfk</span><span class="o">=</span><span class="s2">&quot;*1&quot;</span><span class="p">,</span>
+                       <span class="n">nstep</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                       <span class="n">paral_kgb</span><span class="o">=</span><span class="n">paral_kgb</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">multi</span><span class="o">.</span><span class="n">ispaw</span><span class="p">:</span>
+        <span class="n">global_vars</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pawecutdg</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">ecut</span><span class="p">)</span>
+
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
+
+    <span class="c1"># Dataset 1 (GS run)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+
+    <span class="c1"># Dataset 2 (NSCF run)</span>
+    <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="c1"># L point</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="c1"># Gamma point</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="c1"># X point</span>
+    <span class="p">]</span>
+
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_kpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">kptbounds</span><span class="o">=</span><span class="n">kptbounds</span><span class="p">)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">)</span>
+
+    <span class="c1"># Generate two input files for the GS and the NSCF run</span>
+    <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">scf_input</span><span class="p">,</span> <span class="n">nscf_input</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="c1"># Working directory (default is the name of the script with &#39;.py&#39; removed and &quot;run_&quot; replaced by &quot;flow_&quot;)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span><span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create the flow</span>
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+    <span class="n">paral_kgb</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#paral_kgb = 0  # This one is OK</span>
+
+    <span class="c1"># Create a relaxation work and add it to the flow.</span>
+    <span class="n">ion_inp</span><span class="p">,</span> <span class="n">ioncell_inp</span> <span class="o">=</span> <span class="n">make_ion_ioncell_inputs</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="n">paral_kgb</span><span class="p">)</span>
+
+    <span class="n">relax_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">RelaxWork</span><span class="p">(</span><span class="n">ion_inp</span><span class="p">,</span> <span class="n">ioncell_inp</span><span class="p">)</span>
+    <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">relax_work</span><span class="p">)</span>
+
+    <span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span> <span class="o">=</span> <span class="n">make_scf_nscf_inputs</span><span class="p">(</span><span class="n">paral_kgb</span><span class="o">=</span><span class="n">paral_kgb</span><span class="p">)</span>
+
+    <span class="n">bands_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">BandStructureWork</span><span class="p">(</span><span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span><span class="p">)</span>
+
+    <span class="c1"># The scf task in bands work restarts from the DEN file of the last task in relax_work</span>
+    <span class="k">if</span> <span class="n">paral_kgb</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># cg works fine if we restart from the WFK</span>
+        <span class="n">bands_work</span><span class="o">.</span><span class="n">scf_task</span><span class="o">.</span><span class="n">add_deps</span><span class="p">({</span><span class="n">relax_work</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># --&gt; This triggers an infamous bug in abinit</span>
+        <span class="n">bands_work</span><span class="o">.</span><span class="n">scf_task</span><span class="o">.</span><span class="n">add_deps</span><span class="p">({</span><span class="n">relax_work</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+
+        <span class="c1"># --&gt; This is ok if we used fourier_interp to change the FFT mesh.</span>
+        <span class="c1">#bands_work.scf_task.add_deps({relax_work[-1]: &quot;DEN&quot;})</span>
+
+    <span class="c1"># All task in bands_work will fetch the relaxed structure from the last task in relax_work</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">bands_work</span><span class="p">:</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">add_deps</span><span class="p">({</span><span class="n">relax_work</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;@structure&quot;</span><span class="p">})</span>
+
+    <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">bands_work</span><span class="p">)</span>
+    <span class="n">flow</span><span class="o">.</span><span class="n">allocate</span><span class="p">()</span>
+    <span class="n">flow</span><span class="o">.</span><span class="n">use_smartio</span><span class="p">()</span>
+    <span class="n">flow</span><span class="o">.</span><span class="n">set_garbage_collector</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">flow</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="nd">@flowtk.flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.123 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_relax_and_ebands.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_relax_and_ebands.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_relax_and_ebands.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_relax_and_ebands.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

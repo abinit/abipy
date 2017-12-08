@@ -39,9 +39,9 @@ filenames = [
 robot = abilab.OpticRobot.from_files(filenames)
 
 # sphinx_gallery_thumbnail_number = 3
-robot.plot_linopt_convergence(title="Convergence of $\epsilon$ wrt nkpt")
+robot.plot_linopt_convergence(title=r"Convergence of $\epsilon$ wrt nkpt")
 
-robot.plot_shg_convergence(title="Convergence of $\chi^2(-2\omega,\omega,\omega)$ wrt nkpt")
+robot.plot_shg_convergence(title=r"Convergence of $\chi^2(-2\omega,\omega,\omega)$ wrt nkpt")
 
 # Remember to close the file or use the `with` context manager.
 robot.close()

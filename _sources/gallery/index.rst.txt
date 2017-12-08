@@ -5,9 +5,13 @@
 AbiPy Gallery
 =============
 
-There are a variety of ways to use AbiPy, and most of them are
-illustrated in the examples in this directory.
+There are a variety of ways to use the AbiPy post-processing tools, 
+and most of them are illustrated in the examples in this directory.
 Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
+
+Remember that one can also generate a jupyter notebook directly from the command line with the command:
+
+    abiopen.py FILE -nb
 
 
 
@@ -153,6 +157,26 @@ Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple  structure relaxations with the HIST ...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_multiple_hist.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_multiple_hist
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results  stored in the SIGRES produced by the GW cod...">
 
 .. only:: html
@@ -190,46 +214,6 @@ Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
    :hidden:
 
    /gallery/plot_qpscfgw
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze DDK.nc files  containing the velocity matrix elements. ">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr__plot_ddk_thumb.png
-
-        :ref:`sphx_glr_gallery__plot_ddk.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/_plot_ddk
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Kohn-Sham energies with markers providing a graphical repres...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpmarkers_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_qpmarkers.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_qpmarkers
 
 .. raw:: html
 
@@ -313,6 +297,26 @@ Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the GS self-consistent cycle reported in the main...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_gscycle_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_gscycle.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_gscycle
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html ">
 
 .. only:: html
@@ -350,26 +354,6 @@ Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
    :hidden:
 
    /gallery/plot_fermisurface
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the results of the GS self-consistent cycle reported in the main...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_gscycle_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_gscycle.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_gscycle
 
 .. raw:: html
 
@@ -770,26 +754,6 @@ Execute the ``_runplots.py`` script for an overview of the AbiPy capabilities.
    :hidden:
 
    /gallery/plot_ebands_grid
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot the derivatives of the KS eigenvalues along a high s...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ederivatives_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_ederivatives.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_ederivatives
 
 .. raw:: html
 

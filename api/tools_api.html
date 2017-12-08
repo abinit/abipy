@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -163,15 +164,15 @@
 <dl class="function">
 <dt id="abipy.tools.bessel.spline_int_jlqr">
 <code class="descclassname">abipy.tools.bessel.</code><code class="descname">spline_int_jlqr</code><span class="sig-paren">(</span><em>l</em>, <em>qmax</em>, <em>rcut</em>, <em>numq=None</em>, <em>numr=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/bessel.html#spline_int_jlqr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.bessel.spline_int_jlqr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute</p>
-<img src="../_images/mathmpl/math-e6ff1ca209.png" class="center" /><p>where <img src="../_images/mathmpl/math-04518ae605.png" style="position: relative; bottom: -7px"/> is the Spherical Bessel function.</p>
+<dd><p>Compute <img src="../_images/mathmpl/math-e6ff1ca209.png" style="position: relative; bottom: -22px"/>
+where <img src="../_images/mathmpl/math-04518ae605.png" style="position: relative; bottom: -7px"/> is the Spherical Bessel function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>l</strong> – Angular momentum</li>
-<li><strong>qmax</strong> – Max <a href="#id1"><span class="problematic" id="id2">|q|</span></a> in integral in Ang-1</li>
+<li><strong>qmax</strong> – Max <img src="../_images/mathmpl/math-49e9b62f77.png" style="position: relative; bottom: -7px"/> in integral in Ang-1</li>
 <li><strong>rcut</strong> – Sphere radius in Angstrom.</li>
 <li><strong>numq</strong> – Number of q-points in qmesh.</li>
 <li><strong>numr</strong> – Number of r-points for integration.</li>
@@ -276,6 +277,17 @@ Open file in the browser.</p>
 <div class="section" id="module-abipy.tools.duck">
 <span id="duck-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">duck</span></code> Module<a class="headerlink" href="#module-abipy.tools.duck" title="Permalink to this headline">¶</a></h2>
 <p>Duck-typing tests</p>
+<dl class="function">
+<dt id="abipy.tools.duck.as_slice">
+<code class="descclassname">abipy.tools.duck.</code><code class="descname">as_slice</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#as_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.as_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an integer, a string or a slice object into slice.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="s2">&quot;[1:4]&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="s2">&quot;1::2&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="function">
 <dt id="abipy.tools.duck.is_intlike">
 <code class="descclassname">abipy.tools.duck.</code><code class="descname">is_intlike</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#is_intlike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.is_intlike" title="Permalink to this definition">¶</a></dt>
@@ -538,6 +550,15 @@ By default, vinf = values[-1]</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="abipy.tools.numtools.grouper">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">grouper</code><span class="sig-paren">(</span><em>n</em>, <em>iterable</em>, <em>fillvalue=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#grouper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.grouper" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">grouper</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;ABCDEFG&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">[(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">grouper</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span> <span class="o">==</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="abipy.tools.numtools.iflat">
 <code class="descclassname">abipy.tools.numtools.</code><code class="descname">iflat</code><span class="sig-paren">(</span><em>iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#iflat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.iflat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterator over all elements of a nested iterable. It’s recursive!</p>
@@ -674,8 +695,11 @@ plt: matplotlib pyplot module.</td>
 <dt id="abipy.tools.plotting.plot_array">
 <code class="descclassname">abipy.tools.plotting.</code><code class="descname">plot_array</code><span class="sig-paren">(</span><em>array</em>, <em>color_map=None</em>, <em>cplx_mode='abs'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#plot_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.plot_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use imshow for plotting 2D or 1D arrays.</p>
-<p>(<a class="reference external" href="../api/tools_api-1.py">Source code</a>)</p>
-<p>See <a class="reference external" href="http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python">http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python</a></p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>See &lt;<a class="reference external" href="http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python">http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python</a>&gt;</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -835,17 +859,10 @@ example: size_kwargs=dict(w=3, h=4)</td>
 A marker is a list of tuple(x, y, s) where x, and y are the position
 in the graph and s is the size of the marker.
 Used for plotting purpose e.g. QP data, energy derivatives…</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">marker</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">]</span>
+<span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="n">marker</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
 </pre></div>
 </div>
 <dl class="method">
@@ -895,7 +912,7 @@ the first set contains all the points with negative size.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

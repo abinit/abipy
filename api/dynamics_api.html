@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -150,7 +151,7 @@
 <span class="target" id="module-abipy.dynamics"></span></div>
 <div class="section" id="module-abipy.dynamics.hist">
 <span id="hist-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">hist</span></code> Module<a class="headerlink" href="#module-abipy.dynamics.hist" title="Permalink to this headline">¶</a></h2>
-<p>DDB File.</p>
+<p>History file with structural relaxation results.</p>
 <dl class="class">
 <dt id="abipy.dynamics.hist.HistFile">
 <em class="property">class </em><code class="descclassname">abipy.dynamics.hist.</code><code class="descname">HistFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile" title="Permalink to this definition">¶</a></dt>
@@ -170,6 +171,17 @@
 <dt id="abipy.dynamics.hist.HistFile.etotals">
 <code class="descname">etotals</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.etotals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.etotals" title="Permalink to this definition">¶</a></dt>
 <dd><p>numpy array with total energies in eV at the different steps.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dynamics.hist.HistFile.final_energy">
+<code class="descname">final_energy</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.final_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.final_energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dynamics.hist.HistFile.final_pressure">
+<code class="descname">final_pressure</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.final_pressure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.final_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Final pressure in Gpa.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -259,6 +271,13 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dynamics.hist.HistFile.plot_ax">
+<code class="descname">plot_ax</code><span class="sig-paren">(</span><em>ax</em>, <em>what</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_ax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_ax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to plot quantity <cite>what</cite> on axis <cite>ax</cite>.
+kwargs are passed to matplotlib plot method</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.plot_energies">
 <code class="descname">plot_energies</code><span class="sig-paren">(</span><em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot_energies" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
@@ -321,9 +340,209 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dynamics.hist.HistFile.to_xdatcar">
+<code class="descname">to_xdatcar</code><span class="sig-paren">(</span><em>filepath=None</em>, <em>groupby_type=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.to_xdatcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.to_xdatcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> – keywords arguments passed to Xdatcar constructor.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistFile.write_xdatcar">
+<code class="descname">write_xdatcar</code><span class="sig-paren">(</span><em>filepath='XDATCAR'</em>, <em>groupby_type=True</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.write_xdatcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.write_xdatcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write Xdatcar file with unit cell and atomic positions to file <cite>filepath</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filepath</strong> – Xdatcar filename. If None, a temporary file is created.</li>
+<li><strong>groupby_type</strong> – If True, atoms are grouped by type. Note that this option
+may change the order of the atoms. This option is needed because
+there are post-processing tools (e.g. ovito) that do not work as expected
+if the atoms in the structure are not grouped by type.</li>
+<li><strong>overwrite</strong> – raise RuntimeError, if False and filepath exists.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">path to Xdatcar file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dynamics.hist.HistReader">
+<em class="property">class </em><code class="descclassname">abipy.dynamics.hist.</code><code class="descname">HistReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="iotools_api.html#abipy.iotools.ETSF_Reader" title="abipy.iotools.ETSF_Reader"><code class="xref py py-class docutils literal"><span class="pre">abipy.iotools.ETSF_Reader</span></code></a></p>
+<p>This object reads data from the HIST file.</p>
+<dl class="attribute">
+<dt id="abipy.dynamics.hist.HistReader.natom">
+<code class="descname">natom</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.natom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.natom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of atoms un the unit cell</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dynamics.hist.HistReader.num_steps">
+<code class="descname">num_steps</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.num_steps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.num_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of iterations present in the HIST file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistReader.read_all_structures">
+<code class="descname">read_all_structures</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_all_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_all_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of structures at the different iteration steps.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistReader.read_cart_forces">
+<code class="descname">read_cart_forces</code><span class="sig-paren">(</span><em>unit='eV ang^-1'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_cart_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_cart_forces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return a numpy array with the cartesian forces in unit <cite>unit</cite>.
+Shape (num_steps, natom, 3)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistReader.read_cart_stress_tensors">
+<code class="descname">read_cart_stress_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_cart_stress_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_cart_stress_tensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)
+and the list of pressures in GPa unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistReader.read_eterms">
+<code class="descname">read_eterms</code><span class="sig-paren">(</span><em>unit='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_eterms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_eterms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistReader.read_reduced_forces">
+<code class="descname">read_reduced_forces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_reduced_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_reduced_forces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return a numpy array with the forces in reduced coordinates
+Shape (num_steps, natom, 3)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.dynamics.hist.HistRobot">
+<em class="property">class </em><code class="descclassname">abipy.dynamics.hist.</code><code class="descname">HistRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a></p>
+<p>This robot analyzes the results contained in multiple HIST files.</p>
+<dl class="attribute">
+<dt id="abipy.dynamics.hist.HistRobot.EXT">
+<code class="descname">EXT</code><em class="property"> = 'HIST'</em><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.EXT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistRobot.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>index=None</em>, <em>abspath=False</em>, <em>with_spglib=True</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pandas DataFrame with the most important final results.
+and the filenames as index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>index</strong> – Index of the dataframe, if None, robot labels are used</li>
+<li><strong>with_spglib</strong> – If True, spglib is invoked to get the spacegroup symbol and number</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>kwargs:</dt>
+<dd><dl class="first last docutils">
+<dt>attrs:</dt>
+<dd>List of additional attributes of the <code class="xref py py-class docutils literal"><span class="pre">GsrFile</span></code> to add to
+the pandas <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></dd>
+<dt>funcs: Function or list of functions to execute to add more data to the DataFrame.</dt>
+<dd>Each function receives a <code class="xref py py-class docutils literal"><span class="pre">GsrFile</span></code> object and returns a tuple (key, value)
+where key is a string with the name of column and value is the value to be inserted.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistRobot.gridplot">
+<code class="descname">gridplot</code><span class="sig-paren">(</span><em>what='abc'</em>, <em>sharex=False</em>, <em>sharey=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.gridplot" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot multiple HIST files on a grid.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>what: Quantity to plot. Must be in [“energy”, “abc”, “angles”, “volume”, “pressure”, “forces”]
+sharex: True if xaxis should be shared.
+sharey: True if yaxis should be shared.</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistRobot.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dynamics.hist.HistRobot.what_list">
+<code class="descname">what_list</code><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.what_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>List with all quantities that can be plotted (what argument).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dynamics.hist.HistRobot.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -345,7 +564,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

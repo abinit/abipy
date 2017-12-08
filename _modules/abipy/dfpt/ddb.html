@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -618,7 +619,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives</span>
-<span class="sd">            the number of divisions to be used to sample the smallest reciprocal lattice vector.</span>
+<span class="sd">                the number of divisions to be used to sample the smallest reciprocal lattice vector.</span>
 <span class="sd">            asr, chneut, dipdp: Anaddb input variable. See official documentation.</span>
 <span class="sd">            dos_method: Technique for DOS computation in  Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
 <span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening</span>
@@ -630,7 +631,7 @@
 <span class="sd">            `namedtuple` with the following attributes:</span>
 <span class="sd">                phdoses: List of :class:`PhononDos` objects</span>
 <span class="sd">                plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`</span>
-<span class="sd">                    to visualize the results.</span>
+<span class="sd">                to visualize the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">num_cpus</span> <span class="o">=</span> <span class="n">get_ncpus</span><span class="p">()</span> <span class="o">//</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">num_cpus</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">num_cpus</span>
         <span class="k">if</span> <span class="n">num_cpus</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">num_cpus</span> <span class="o">=</span> <span class="mi">1</span>
@@ -957,22 +958,22 @@
 
 <span class="s2">phbands, phdos = bstfile.phbands, phdosfile.phdos&quot;&quot;&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## q-point path&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.qpoints.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phbands.qpoints.plot();&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Phonon bands with DOS&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.plot_with_phdos(phdos, units=units)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phbands.plot_with_phdos(phdos, units=units);&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Phonon fatbands with DOS&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.plot_fatbands(phdos_file=phdosfile, units=units)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phbands.plot_fatbands(phdos_file=phdosfile, units=units);&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Distribution of phonon frequencies wrt mode index&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.boxplot(units=units)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phbands.boxplot(units=units);&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Phonon band structure with different color for each line&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phbands.plot_colored_matched(units=units)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phbands.plot_colored_matched(units=units);&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Type-projected phonon DOS.&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phdosfile.plot_pjdos_type(units=units)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phdosfile.plot_pjdos_type(units=units);&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Type-projected phonon DOS decomposed along the three reduced directions&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phdosfile.plot_pjdos_redirs_type(units=units)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#fig = phdosfile.plot_pjdos_redirs_site(units=units)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phdosfile.plot_pjdos_redirs_type(units=units);&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#phdosfile.plot_pjdos_redirs_site(units=units);&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Thermodinamic properties within the harmonic approximation&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = phdosfile.phdos.plot_harmonic_thermo(tstart=5, tstop=300)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;phdosfile.phdos.plot_harmonic_thermo(tstart=5, tstop=300);&quot;</span><span class="p">),</span>
 
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;## Macroscopic dielectric tensor and Born effective charges&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
@@ -1001,15 +1002,15 @@
 
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">if ifc is not None:</span>
-<span class="s2">    fig = ifc.plot_longitudinal_ifc(atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,</span>
-<span class="s2">                                    max_dist=None, ax=None)&quot;&quot;&quot;</span><span class="p">),</span>
+<span class="s2">    ifc.plot_longitudinal_ifc(atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,</span>
+<span class="s2">                                    max_dist=None, ax=None);&quot;&quot;&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">if ifc is not None:</span>
-<span class="s2">    fig = ifc.plot_longitudinal_ifc_short_range(atom_indices=None, atom_element=None, neighbour_element=None)&quot;&quot;&quot;</span><span class="p">),</span>
+<span class="s2">    ifc.plot_longitudinal_ifc_short_range(atom_indices=None, atom_element=None, neighbour_element=None);&quot;&quot;&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">if ifc is not None:</span>
-<span class="s2">    fig = ifc.plot_longitudinal_ifc_ewald(atom_indices=None, atom_element=None, neighbour_element=None,</span>
-<span class="s2">                                          min_dist=None, max_dist=None, ax=None)&quot;&quot;&quot;</span><span class="p">),</span>
+<span class="s2">    ifc.plot_longitudinal_ifc_ewald(atom_indices=None, atom_element=None, neighbour_element=None,</span>
+<span class="s2">                                    min_dist=None, max_dist=None, ax=None);&quot;&quot;&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -1399,7 +1400,7 @@
 
             <span class="c1"># Add info on structure.</span>
             <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
             <span class="c1"># Execute functions.</span>
             <span class="k">if</span> <span class="n">funcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">funcs</span><span class="p">,</span> <span class="n">ddb</span><span class="p">))</span>
@@ -1503,7 +1504,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

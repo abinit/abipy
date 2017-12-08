@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -267,7 +268,7 @@
 
 <div class="viewcode-block" id="GrunsNcFile.plot_doses"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_doses">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_doses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_names</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">with_idos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the different doses stored in the GRUNS file.</span>
 
 <span class="sd">        Args:</span>
@@ -281,12 +282,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1">#write(unt,&#39;(a)&#39;)&#39;# Phonon density of states, Gruneisen DOS and phonon group velocity DOS&#39;</span>
-        <span class="c1">#write(unt,&#39;(a)&#39;)&quot;# Energy in Hartree, DOS in states/Hartree&quot;</span>
-        <span class="c1">#write(unt,&#39;(a,i0)&#39;)&#39;# Tetrahedron method with nqibz= &#39;,nqibz</span>
-        <span class="c1">#write(unt,&quot;(a,f8.5)&quot;)&quot;# Average Gruneisen parameter:&quot;, gavg</span>
-        <span class="c1">#write(unt,&#39;(5a)&#39;) &amp;</span>
-        <span class="c1">#  &quot;# omega PH_DOS Gruns_DOS Gruns**2_DOS Vel_DOS  Vel**2_DOS  PH_IDOS Gruns_IDOS Gruns**2_IDOS Vel_IDOS Vel**2_IDOS&quot;</span>
 
         <span class="n">dos_names</span> <span class="o">=</span> <span class="n">_ALL_DOS_NAMES</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">dos_names</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span>
         <span class="n">wmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s2">&quot;wmesh&quot;</span><span class="p">]</span>
@@ -437,10 +432,10 @@
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.structure&quot;</span><span class="p">),</span>
 
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_doses()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_phbands_with_gruns()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_doses();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_phbands_with_gruns();&quot;</span><span class="p">),</span>
 
-            <span class="c1">#nbv.new_code_cell(&quot;fig = phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile)&quot;),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile);&quot;),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter = ncfile.get_plotter()</span><span class="se">\n</span><span class="s2">print(plotter)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df_phbands = plotter.get_phbands_frame()</span><span class="se">\n</span><span class="s2">display(df_phbands)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;plotter.ipw_select_plot()&quot;</span><span class="p">),</span>
@@ -598,7 +593,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

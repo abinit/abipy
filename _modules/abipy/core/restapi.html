@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -141,7 +142,8 @@
     <span class="kn">from</span> <span class="nn">pymatgen.ext.matproj</span> <span class="k">import</span> <span class="n">MPRester</span><span class="p">,</span> <span class="n">MPRestError</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pymatgen.matproj.rest</span> <span class="k">import</span> <span class="n">MPRester</span><span class="p">,</span> <span class="n">MPRestError</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.pandas</span> <span class="k">import</span> <span class="n">print_frame</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.printing</span> <span class="k">import</span> <span class="n">print_dataframe</span>
+<span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
 
 
 <span class="n">MP_DEFAULT_ENDPOINT</span> <span class="o">=</span> <span class="s2">&quot;https://www.materialsproject.org/rest/v2&quot;</span>
@@ -241,7 +243,7 @@
         <span class="n">pda</span> <span class="o">=</span> <span class="n">PDAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phasediagram</span><span class="p">)</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4frame</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">decomp</span><span class="p">,</span> <span class="n">ehull</span> <span class="o">=</span> <span class="n">pda</span><span class="o">.</span><span class="n">get_decomp_and_e_above_hull</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
             <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([</span>
@@ -264,17 +266,20 @@
 <span class="sd">            file: Output stream.</span>
 <span class="sd">            verbose: Verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">print_frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">print_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">frames_from_structures</span>
-            <span class="n">dfs</span> <span class="o">=</span> <span class="n">frames_from_structures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpids</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span>
-            <span class="n">print_frame</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Lattice parameters:&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">dataframes_from_structures</span>
+            <span class="n">dfs</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpids</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span>
+            <span class="n">print_dataframe</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Lattice parameters:&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">print_frame</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Atomic positions (columns give the site index):&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div></div>
+                <span class="n">print_dataframe</span><span class="p">(</span><span class="n">dfs</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Atomic positions (columns give the site index):&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="DatabaseStructures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures">[docs]</a><span class="k">class</span> <span class="nc">DatabaseStructures</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Store the results of a query to the MP database.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DatabaseStructures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures">[docs]</a><span class="k">class</span> <span class="nc">DatabaseStructures</span><span class="p">(</span><span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Store the results of a query to the MP database.</span>
+<span class="sd">    This object is immutable, use add_entry to create a new instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -286,6 +291,9 @@
         <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">,</span> <span class="n">structures</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">ids</span><span class="p">,</span> <span class="n">data</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;bool(self)&quot;&quot;&quot;</span>
@@ -298,10 +306,38 @@
          <span class="n">new_data</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inds</span><span class="p">]</span>
          <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inds</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inds</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DatabaseStructures.table"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures.table">[docs]</a>    <span class="nd">@lazy_property</span>
-    <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Pandas dataframe constructed from self.data. None if data is not available.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
+<div class="viewcode-block" id="DatabaseStructures.add_entry"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures.add_entry">[docs]</a>    <span class="k">def</span> <span class="nf">add_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">entry_id</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add new entry, return new object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">           structure: New structure object.</span>
+<span class="sd">           entry_id: ID associated to new structure.</span>
+<span class="sd">           data_dict: Option dictionary with metadata.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">data_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="n">new_data</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="p">[{}]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="p">[</span><span class="n">data_dict</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="o">+</span> <span class="p">[</span><span class="n">structure</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span> <span class="o">+</span> <span class="p">[</span><span class="n">entry_id</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lattice_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;pandas DataFrame with lattice parameters.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure_dataframes</span><span class="o">.</span><span class="n">lattice</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coords_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;pandas DataFrame with atomic positions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure_dataframes</span><span class="o">.</span><span class="n">coords</span>
+
+<div class="viewcode-block" id="DatabaseStructures.structure_dataframes"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures.structure_dataframes">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">structure_dataframes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pandas dataframes constructed from self.structures.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">dataframes_from_structures</span>
+        <span class="k">return</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DatabaseStructures.print_results"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures.print_results">[docs]</a>    <span class="k">def</span> <span class="nf">print_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;abivars&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -311,19 +347,40 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Found </span><span class="si">%s</span><span class="s2"> structures in </span><span class="si">%s</span><span class="s2"> database (use `verbose` to get further info)</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbname</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">print_frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">print_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">pprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> input for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
-            <span class="c1">#print(&quot;\n# &quot; + str(structure).replace(&quot;\n&quot;, &quot;\n# &quot;) + &quot;\n&quot;, file=file)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;# &quot;</span> <span class="o">+</span> <span class="n">structure</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># &quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">structure</span><span class="o">.</span><span class="n">is_ordered</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">),</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div></div>
+            <span class="nb">print</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DatabaseStructures.write_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.DatabaseStructures.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="c1"># Use pickle files for data persistence.</span>
+        <span class="n">tmpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pickle_dump</span><span class="p">()</span>
+
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;dbs = abilab.restapi.DatabaseStructures.pickle_load(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="n">tmpfile</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;import qgrid&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# dbs.print_results(fmt=&#39;cif&#39;, verbose=0)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# qgrid.show_grid(dbs.lattice_dataframe)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;# qgrid.show_grid(dbs.coords_dataframe)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;qgrid.show_grid(dbs.table)&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="MpStructures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.MpStructures">[docs]</a><span class="k">class</span> <span class="nc">MpStructures</span><span class="p">(</span><span class="n">DatabaseStructures</span><span class="p">):</span>
@@ -335,21 +392,34 @@
         <span class="sd">&quot;&quot;&quot;Pandas dataframe constructed from self.data. None if data is not available.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-        <span class="n">rows</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="p">[],</span> <span class="kc">None</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">):</span>
             <span class="n">d</span> <span class="o">=</span> <span class="n">Dotdict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">dotget</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">MP_KEYS_FOR_DATAFRAME</span><span class="p">]))</span>
-            <span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;material_id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">],</span>
-                                 <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">dotget</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">MP_KEYS_FOR_DATAFRAME</span><span class="p">])</span>
+            <span class="c1"># Add lattice parameters.</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">):</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">table</span></div></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div></div>
 
 
 <div class="viewcode-block" id="CodStructures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.CodStructures">[docs]</a><span class="k">class</span> <span class="nc">CodStructures</span><span class="p">(</span><span class="n">DatabaseStructures</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Store the results of a query to the COD database http://www.crystallography.net/cod/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">dbname</span> <span class="o">=</span> <span class="s2">&quot;COD&quot;</span></div>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="s2">&quot;COD&quot;</span>
+
+<div class="viewcode-block" id="CodStructures.table"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.CodStructures.table">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pandas dataframe constructed. Essentially geometrical info and space groups found by spglib</span>
+<span class="sd">        as COD data is rather limited.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_dataframe</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># Add sg from COD</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;cod_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sg&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">df</span></div></div>
 
 
 <div class="viewcode-block" id="Dotdict"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.restapi.Dotdict">[docs]</a><span class="k">class</span> <span class="nc">Dotdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
@@ -390,7 +460,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

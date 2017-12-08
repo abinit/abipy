@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>AbiPy Flow Gallery &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="AbiPy Flow Gallery" href="__init__.html" />
+    <link rel="prev" title="TaskManager" href="../workflows/taskmanager.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">AbiPy Flow Gallery</a><ul>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../workflows/taskmanager.html" title="Previous Chapter: TaskManager"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; TaskManager</span>
+    </a>
+  </li>
+  <li>
+    <a href="__init__.html" title="Next Chapter: AbiPy Flow Gallery"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">AbiPy Flow Gallery &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/index.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="abipy-flow-gallery">
+<span id="id1"></span><h1>AbiPy Flow Gallery<a class="headerlink" href="#abipy-flow-gallery" title="Permalink to this headline">¶</a></h1>
+<p>This gallery contains python scripts to generate AbiPy flows from the command line.</p>
+<p>Run the scripts to generate the directory with the flow and then
+use <code class="docutils literal"><span class="pre">abirun.py</span></code> to execute the flow.
+Alternatively, one can use the <cite>-s</cite> option to generate the flow and run it immediately with the scheduler.
+See <cite>–help</cite> for see available options.</p>
+<div class="sphx-glr-thumbcontainer" tooltip="This gallery contains python scripts to generate AbiPy flows from the command line. "><div class="figure" id="id2">
+<img alt="../_images/sphx_glr___init___thumb.png" src="../_images/sphx_glr___init___thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="__init__.html#sphx-glr-flow-gallery-init-py"><span class="std std-ref">AbiPy Flow Gallery</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example show how to build a flow to compute the band structure and the DOS of silicon. Inp..."><div class="figure" id="id3">
+<img alt="../_images/sphx_glr_run_ht_si_ebands_thumb.png" src="../_images/sphx_glr_run_ht_si_ebands_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_ebands.html#sphx-glr-flow-gallery-run-ht-si-ebands-py"><span class="std std-ref">Band structure Flow with factory functions</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute phonon frequencies with phonopy (supercells and finite-differ..."><div class="figure" id="id4">
+<img alt="../_images/sphx_glr_run_phonopy_si_thumb.png" src="../_images/sphx_glr_run_phonopy_si_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonopy_si.html#sphx-glr-flow-gallery-run-phonopy-si-py"><span class="std std-ref">Phonopy + Abinit Flow</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a very simple Flow for the structural relaxation of SiC. One co..."><div class="figure" id="id5">
+<img alt="../_images/sphx_glr_run_sic_relax_thumb.png" src="../_images/sphx_glr_run_sic_relax_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_sic_relax.html#sphx-glr-flow-gallery-run-sic-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="G0W0 corrections with the HT interface. "><div class="figure" id="id6">
+<img alt="../_images/sphx_glr_run_ht_si_g0w0ppm_thumb.png" src="../_images/sphx_glr_run_ht_si_g0w0ppm_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_g0w0ppm.html#sphx-glr-flow-gallery-run-ht-si-g0w0ppm-py"><span class="std std-ref">G0W0 Flow with factory functions</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit). "><div class="figure" id="id7">
+<img alt="../_images/sphx_glr_run_nonlinear_thumb.png" src="../_images/sphx_glr_run_nonlinear_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_nonlinear.html#sphx-glr-flow-gallery-run-nonlinear-py"><span class="std std-ref">Flow for Non-linear optic with DFPT</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions). "><div class="figure" id="id8">
+<img alt="../_images/sphx_glr_run_ht_si_bsemdf_thumb.png" src="../_images/sphx_glr_run_ht_si_bsemdf_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ht_si_bsemdf.html#sphx-glr-flow-gallery-run-ht-si-bsemdf-py"><span class="std std-ref">Bethe-Salpeter Flow with factory functions</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the band structure of silicon. "><div class="figure" id="id9">
+<img alt="../_images/sphx_glr_run_si_ebands_thumb.png" src="../_images/sphx_glr_run_si_ebands_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_ebands.html#sphx-glr-flow-gallery-run-si-ebands-py"><span class="std std-ref">Band structure Flow</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Calculation of the band structure of Fe with and without magnetization. See also &lt;~abinit/tutor..."><div class="figure" id="id10">
+<img alt="../_images/sphx_glr_run_fe_ebands_thumb.png" src="../_images/sphx_glr_run_fe_ebands_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_fe_ebands.html#sphx-glr-flow-gallery-run-fe-ebands-py"><span class="std std-ref">Band structure w/wo magnetization</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op..."><div class="figure" id="id11">
+<img alt="../_images/sphx_glr_run_relax_vs_kpts_thumb.png" src="../_images/sphx_glr_run_relax_vs_kpts_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts.html#sphx-glr-flow-gallery-run-relax-vs-kpts-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the band structure and the electron DOS of M..."><div class="figure" id="id12">
+<img alt="../_images/sphx_glr_run_mgb2_edoses_thumb.png" src="../_images/sphx_glr_run_mgb2_edoses_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_mgb2_edoses.html#sphx-glr-flow-gallery-run-mgb2-edoses-py"><span class="std std-ref">Flow for convergence studies of e-DOS wrt ngkpt</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0) "><div class="figure" id="id13">
+<img alt="../_images/sphx_glr_run_phfrozen_ebands_thumb.png" src="../_images/sphx_glr_run_phfrozen_ebands_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phfrozen_ebands.html#sphx-glr-flow-gallery-run-phfrozen-ebands-py"><span class="std std-ref">Flow for e-Bands with frozen phonon</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the band structure of GaAs with and without spin-orbit term. ..."><div class="figure" id="id14">
+<img alt="../_images/sphx_glr_run_gaas_ebands_soc_thumb.png" src="../_images/sphx_glr_run_gaas_ebands_soc_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gaas_ebands_soc.html#sphx-glr-flow-gallery-run-gaas-ebands-soc-py"><span class="std std-ref">Band structure with/without spin-orbit</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the phonon band structure of AlAs with AbiPy flows. Symmetrie..."><div class="figure" id="id15">
+<img alt="../_images/sphx_glr_run_phonons_thumb.png" src="../_images/sphx_glr_run_phonons_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_phonons.html#sphx-glr-flow-gallery-run-phonons-py"><span class="std std-ref">Flow for phonons with DFPT</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation in two steps:"><div class="figure" id="id16">
+<img alt="../_images/sphx_glr_run_relax_thumb.png" src="../_images/sphx_glr_run_relax_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax.html#sphx-glr-flow-gallery-run-relax-py"><span class="std std-ref">Relaxation Flow</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure" id="id17">
+<img alt="../_images/sphx_glr_run_ldaus_thumb.png" src="../_images/sphx_glr_run_ldaus_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W. "><div class="figure" id="id18">
+<img alt="../_images/sphx_glr_run_gwconv_ecuteps_thumb.png" src="../_images/sphx_glr_run_gwconv_ecuteps_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_gwconv_ecuteps.html#sphx-glr-flow-gallery-run-gwconv-ecuteps-py"><span class="std std-ref">G0W0 convergence study</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. "><div class="figure" id="id19">
+<img alt="../_images/sphx_glr_run_si_g0w0_thumb.png" src="../_images/sphx_glr_run_si_g0w0_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_g0w0.html#sphx-glr-flow-gallery-run-si-g0w0-py"><span class="std std-ref">G0W0 Flow</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure" id="id20">
+<img alt="../_images/sphx_glr_run_optic_thumb.png" src="../_images/sphx_glr_run_optic_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the SCR file by splitting the calculation of the SCR file ove..."><div class="figure" id="id21">
+<img alt="../_images/sphx_glr_run_qptdmscr_thumb.png" src="../_images/sphx_glr_run_qptdmscr_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_qptdmscr.html#sphx-glr-flow-gallery-run-qptdmscr-py"><span class="std std-ref">Screening Flow with q-point parallelism</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure" id="id22">
+<img alt="../_images/sphx_glr_run_raman_bse_thumb.png" src="../_images/sphx_glr_run_raman_bse_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a structural relaxation and a band structure calculation"><div class="figure" id="id23">
+<img alt="../_images/sphx_glr_run_relax_and_ebands_thumb.png" src="../_images/sphx_glr_run_relax_and_ebands_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_and_ebands.html#sphx-glr-flow-gallery-run-relax-and-ebands-py"><span class="std std-ref">Flow for Relaxation + Bands</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure" id="id24">
+<img alt="../_images/sphx_glr_run_raman_optic_thumb.png" src="../_images/sphx_glr_run_raman_optic_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_optic.html#sphx-glr-flow-gallery-run-raman-optic-py"><span class="std std-ref">Raman Flow with independent-particle approximation (optic)</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div style='clear:both'></div><div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/flow_gallery_python.zip" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">flow_gallery_python.zip</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/flow_gallery_jupyter.zip" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">all</span> <span class="pre">examples</span> <span class="pre">in</span> <span class="pre">Jupyter</span> <span class="pre">notebooks:</span> <span class="pre">flow_gallery_jupyter.zip</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

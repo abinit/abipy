@@ -20,7 +20,6 @@ The installation process is greatly simplified if you install the required
 python packages through one of the following python distributions:
 
   * `Anaconda <https://continuum.io/downloads>`_
-
   * `Canopy <https://www.enthought.com/products/canopy>`_
 
 We routinely use ``conda`` to test new developments with multiple versions of Python and multiple virtual environments.
@@ -57,12 +56,6 @@ Optional libraries that are required if you need certain features:
     Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
     To use ``jupyter`` you will also need a web browser to open the notebook.
     (recommended)
-
-``wxPython`` and ``wxmplot`` for the GUI
-
-    Use ``conda install wxpython``
-    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
-    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
 
 .. _anaconda_howto:
 
@@ -107,15 +100,15 @@ matsci channel to install pymatgen and other packages.
 
 Once you have completed the installation of AbiPy and pymatgen, open the ``ipython`` shell and type::
 
+    # make sure spglib library works
+    import spglib
+
+    # make sure pymatgen is installed
+    import pymatgen
+
     from abipy import abilab
 
 to check the installation.
-
-Optionally, you may want to execute::
-
-    $ conda install wxpython
-
-to install the ``wxpython`` graphical toolkit required for the GUIs.
 
 Note that one can use ``conda`` to create different environments with different
 versions of the python interpreter or different libraries.
@@ -128,8 +121,8 @@ Using different environments is very useful to keep different versions and branc
 Developmental version
 ---------------------
 
-Getting the developmental version of AbiPy is easy. You can clone it from the 
-`github repository <https://github.com/abinit/abipy>`_ using this command:
+Getting the developmental version of AbiPy is easy.
+You can clone it from the  `github repository <https://github.com/abinit/abipy>`_ using this command:
 
 .. code-block:: console
 
@@ -145,24 +138,15 @@ or alternately::
 
 to install the package in developmental mode 
 (Develop mode is the recommended approach if you are planning to implement new features.
- In this case you may also opt to first fork AbiPy on Git and then clone your own fork.
- This will allow you to push any changes to you own fork and also get them merged in the main branch).
+In this case you may also opt to first fork AbiPy on Git and then clone your own fork.
+This will allow you to push any changes to you own fork and also get them merged in the main branch).
 
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have ``py.test`` (recommended) 
-or ``nose`` installed. Unit tests require two additional packages that can be installed with::
+To run the suite of unit tests, make sure you have ``pytest`` installed and then type::
 
-   $ pip install nose-exclude scripttest
-
-once this is in place just type::
-
-    $ py.test
-
-or::
-
-    $ nosetests
+    $ pytest
 
 in the AbiPy root directory.
 

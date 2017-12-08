@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -278,7 +279,7 @@
 
 <div class="viewcode-block" id="ScrFile.plot_emacro"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_emacro">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_emacro</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the macroscopic dielectric function with local-field effects.</span>
 
 <span class="sd">        Args:</span>
@@ -313,7 +314,7 @@
 
 <div class="viewcode-block" id="ScrFile.plot_eelf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_eelf">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_eelf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot electron energy loss function.</span>
 
 <span class="sd">        Args:</span>
@@ -349,15 +350,15 @@
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile)&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(ncfile.params)&quot;</span><span class="p">),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;fig = ncfile.ebands.plot()&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;edos = ncfile.ebands.get_edos()</span><span class="se">\n</span><span class="s2">fig = ncfile.ebands.plot_with_edos(edos)&quot;</span><span class="p">),</span>
+            <span class="c1">#nbv.new_code_cell(&quot;ncfile.ebands.plot();&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;edos = ncfile.ebands.get_edos()</span><span class="se">\n</span><span class="s2">ncfile.ebands.plot_with_edos(edos);&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrew</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="c1"># Plot optical properties and EELF</span>
             <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_emacro()&quot;</span><span class="p">),</span>
-                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = ncfile.plot_eelf()&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_emacro();&quot;</span><span class="p">),</span>
+                <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;ncfile.plot_eelf();&quot;</span><span class="p">),</span>
             <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
@@ -368,9 +369,9 @@
 <span class="sd">    This object reads the results stored in the SCR (Screening) file produced by ABINIT.</span>
 <span class="sd">    It provides helper functions to access the most important quantities.</span>
 
-<span class="sd">    #double inverse_dielectric_function(number_of_qpoints_dielectric_function,</span>
-<span class="sd">    # number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,</span>
-<span class="sd">    # number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)</span>
+<span class="sd">    double inverse_dielectric_function(number_of_qpoints_dielectric_function,</span>
+<span class="sd">    number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,</span>
+<span class="sd">    number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ScrReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -431,9 +432,7 @@
 
 <div class="viewcode-block" id="ScrReader.read_emacro_lf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_emacro_lf">[docs]</a>    <span class="k">def</span> <span class="nf">read_emacro_lf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read the macroscopic dielectric function *with* local field effects</span>
-
-<span class="sd">            1/ em1_{0,0)(kpoint, omega).</span>
+<span class="sd">        Read the macroscopic dielectric function *with* local field effects 1 / em1_{0,0)(kpoint, omega).</span>
 
 <span class="sd">        Return: :class:`Function1D` object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -447,9 +446,7 @@
 
 <div class="viewcode-block" id="ScrReader.read_emacro_nlf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_emacro_nlf">[docs]</a>    <span class="k">def</span> <span class="nf">read_emacro_nlf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read the macroscopic dielectric function *without* local field effects.</span>
-
-<span class="sd">            e_{0,0)(kpoint, omega).</span>
+<span class="sd">        Read the macroscopic dielectric function *without* local field effects e_{0,0)(kpoint, omega).</span>
 
 <span class="sd">        Return: :class:`Function1D`</span>
 
@@ -531,7 +528,7 @@
 <span class="k">class</span> <span class="nc">_AwggMatrix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for two-point functions expressed in reciprocal space</span>
-<span class="sd">    i.e. a complex matrix $A_{G,G&#39;}(\omega)$ where G, G&#39; are reciprocal</span>
+<span class="sd">    i.e. a complex matrix :math:`A_{G,G&#39;}(\omega)` where G, G&#39; are reciprocal</span>
 <span class="sd">    lattice vectors defines inside the G-sphere.</span>
 
 <span class="sd">    This class is not supposed to be instantiated directly.</span>
@@ -685,8 +682,8 @@
 
     <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the frequency dependence of W_{G1, G2}(omega)</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            gvec1, gvec2:</span>
@@ -738,8 +735,8 @@
 
     <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_gg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="n">wpos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Use matplotlib imshow to plot W_{GG&#39;} matrix</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use matplotlib imshow to plot :math:`W_{GG&#39;}` matrix</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            cplx_mode: string defining the data to print.</span>
@@ -949,7 +946,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

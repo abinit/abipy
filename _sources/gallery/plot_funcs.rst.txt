@@ -40,18 +40,18 @@ This example shows how to use the Function1D object to analyze and plot results.
 
     # Spline sine on the coarse mesh sx, and plot the data.
     sx = np.linspace(0, 2*np.pi, num=25)
-    splsine = sine.spline(sx) 
+    splsine = sine.spline(sx)
 
     plt.plot(sx, splsine, "ro", label="splined sine")
 
-    # Compute the 1-st and 2-nd order derivatives 
+    # Compute the 1-st and 2-nd order derivatives
     # with finite differences (5-point stencil).
     for order in [1,2]:
         der = sine.finite_diff(order=order)
         der.plot_ax(ax, label="D sin(x) %d" % order)
 
     # Integrate the sine function and plot the results.
-    (1 - sine.integral()).plot_ax(ax, marker=".", label="$1 - \int\,\sin(x)\,dx$")
+    (1 - sine.integral()).plot_ax(ax, marker=".", label=r"$1 - \int\,\sin(x)\,dx$")
 
     plt.legend(loc="best")
     plt.show()

@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -168,6 +169,7 @@
     <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">parse_version</span><span class="p">(</span><span class="n">this</span><span class="p">),</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
 
 
+<span class="c1">#TODO: Replace with abinit build and manager</span>
 <span class="k">def</span> <span class="nf">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    True if abinit is in $PATH.</span>
@@ -263,19 +265,6 @@
             <span class="k">raise</span>
 
     <span class="k">return</span> <span class="n">mock</span>
-
-
-<span class="c1">#def has_mongodb(host=&#39;localhost&#39;, port=27017, name=&#39;mongodb_test&#39;, username=None, password=None):</span>
-<span class="c1">#    try:</span>
-<span class="c1">#        from pymongo import MongoClient</span>
-<span class="c1">#        connection = MongoClient(host, port, j=True)</span>
-<span class="c1">#        db = connection[name]</span>
-<span class="c1">#        if username:</span>
-<span class="c1">#            db.authenticate(username, password)</span>
-<span class="c1">#</span>
-<span class="c1">#        return True</span>
-<span class="c1">#    except:</span>
-<span class="c1">#        return False</span>
 
 
 <span class="k">def</span> <span class="nf">json_read_abinit_input_from_path</span><span class="p">(</span><span class="n">json_path</span><span class="p">):</span>
@@ -609,7 +598,23 @@
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div></div>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div>
+
+<div class="viewcode-block" id="AbipyTest.abivalidate_flow"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_flow">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Invoke Abinit to test validity of the inputs of a flow</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">isok</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">abivalidate_inputs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isok</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">retcode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="c1">#print(&quot;type abinput:&quot;, type(abinput))</span>
+                <span class="c1">#print(&quot;abinput:\n&quot;, abinput)</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">50</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">50</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Last 50 line from logfile:&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;flow.abivalidate_input failed. See messages above.&quot;</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="AbipyFileTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyFileTest</span><span class="p">(</span><span class="n">AbipyTest</span><span class="p">):</span>
@@ -685,7 +690,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

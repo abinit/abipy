@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -140,15 +141,12 @@
 
 <div class="viewcode-block" id="spline_int_jlqr"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.bessel.spline_int_jlqr">[docs]</a><span class="k">def</span> <span class="nf">spline_int_jlqr</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">qmax</span><span class="p">,</span> <span class="n">rcut</span><span class="p">,</span> <span class="n">numq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">numr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute</span>
-
-<span class="sd">    .. math:: j_n(z) = \int_0^{rcut} r^2 j_l(qr) dr</span>
-
+<span class="sd">    Compute :math:`j_n(z) = \int_0^{rcut} r^2 j_l(qr) dr`</span>
 <span class="sd">    where :math:`j_l` is the Spherical Bessel function.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        l: Angular momentum</span>
-<span class="sd">        qmax: Max |q| in integral in Ang-1</span>
+<span class="sd">        qmax: Max :math:`|q|` in integral in Ang-1</span>
 <span class="sd">        rcut: Sphere radius in Angstrom.</span>
 <span class="sd">        numq: Number of q-points in qmesh.</span>
 <span class="sd">        numr: Number of r-points for integration.</span>
@@ -185,7 +183,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

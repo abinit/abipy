@@ -24,7 +24,7 @@ and the e-ph coupling strenght in metals.
     Name: al_888k_161616q_EPH.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/al_eph
     Size: 129.04 kb
-    Access Time: Wed Nov  8 14:18:43 2017
+    Access Time: Fri Dec  8 20:54:34 2017
     Modification Time: Wed Nov  8 01:06:19 2017
     Change Time: Wed Nov  8 01:06:19 2017
 
@@ -51,17 +51,22 @@ and the e-ph coupling strenght in metals.
     Has non-analytical contribution for q --> 0: False
 
     ============================== E-PH calculation ==============================
-    A2f coarse:
+    Has transport a2Ftr(w): False
+    A2f(w) on the ab-initio q-mesh:
     Mesh from 0.0010 to 0.0488 [eV] with 479 points
-    lambda_iso: 0.217, omega_log 3.30945357916e-05
-    For mustar 0.8: McMillan Tc: 2.00060928927 [K]
-    For mustar 0.6: McMillan Tc: 4.90536667594 [K]
+    Isotropic lambda: 0.217
+    Omega_log: 0.0300091375283 [eV], 348.241197454 [K]
+            For mustar 0.1: McMillan Tc: 0.00143246457827 [K]
+            For mustar 0.12: McMillan Tc: 4.65131401583e-05 [K]
+            For mustar 0.2: McMillan Tc: 1.44375663501e+58 [K]
 
-    A2f interpolated:
+    A2f(w) interpolated on the dense q-mesh:
     Mesh from 0.0010 to 0.0488 [eV] with 479 points
-    lambda_iso: 0.239, omega_log 3.21858550178e-05
-    For mustar 0.8: McMillan Tc: 2.07581764005 [K]
-    For mustar 0.6: McMillan Tc: 5.47222245623 [K]
+    Isotropic lambda: 0.239
+    Omega_log: 0.0295942843752 [eV], 343.427031814 [K]
+            For mustar 0.1: McMillan Tc: 0.00919655159085 [K]
+            For mustar 0.12: McMillan Tc: 0.00088744298154 [K]
+            For mustar 0.2: McMillan Tc: 1.10732077542e-55 [K]
 
 
 
@@ -92,7 +97,7 @@ and the e-ph coupling strenght in metals.
         # Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.
         #eph.a2f_qintp.plot_a2(phdos_path)
 
-**Total running time of the script:** ( 0 minutes  2.465 seconds)
+**Total running time of the script:** ( 0 minutes  2.340 seconds)
 
 
 

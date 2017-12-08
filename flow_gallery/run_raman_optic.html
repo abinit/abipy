@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Raman Flow with independent-particle approximation (optic) &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API documentation" href="../api/index.html" />
+    <link rel="prev" title="Flow for Relaxation + Bands" href="run_relax_and_ebands.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Raman Flow with independent-particle approximation (optic)</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="run_relax_and_ebands.html" title="Previous Chapter: Flow for Relaxation + Bands"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Flow for Rela...</span>
+    </a>
+  </li>
+  <li>
+    <a href="../api/index.html" title="Next Chapter: API documentation"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API documentation &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/flow_gallery/run_raman_optic.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="raman-flow-with-independent-particle-approximation-optic">
+<span id="sphx-glr-flow-gallery-run-raman-optic-py"></span><h1>Raman Flow with independent-particle approximation (optic)<a class="headerlink" href="#raman-flow-with-independent-particle-approximation-optic" title="Permalink to this headline">¶</a></h1>
+<p>This script shows how to perform a Raman calculation with excitonic effects
+included with the BSE formalism.</p>
+<img alt="../_images/sphx_glr_run_raman_optic_001.png" class="align-center" src="../_images/sphx_glr_run_raman_optic_001.png" />
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">abipy.abilab</span> <span class="kn">as</span> <span class="nn">abilab</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
+<span class="kn">import</span> <span class="nn">abipy.flowtk</span> <span class="kn">as</span> <span class="nn">flowtk</span>
+
+
+<span class="k">def</span> <span class="nf">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="c1"># Get the unperturbed structure.</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span>
+    <span class="n">base_structure</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">)</span>
+
+    <span class="n">ngkpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+
+    <span class="n">etas</span> <span class="o">=</span> <span class="p">[</span><span class="o">-.</span><span class="mo">001</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">+.</span><span class="mo">001</span><span class="p">]</span>
+    <span class="n">ph_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">base_structure</span><span class="p">)),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">ph_displ</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">ph_displ</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Build new structures by displacing atoms according to the phonon displacement</span>
+    <span class="c1"># ph_displ (in cartesian coordinates). The Displacement is normalized so that</span>
+    <span class="c1"># the maximum atomic diplacement is 1 Angstrom and then multiplied by eta.</span>
+    <span class="n">modifier</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">StructureModifier</span><span class="p">(</span><span class="n">base_structure</span><span class="p">)</span>
+
+    <span class="n">displaced_structures</span> <span class="o">=</span> <span class="n">modifier</span><span class="o">.</span><span class="n">displace</span><span class="p">(</span><span class="n">ph_displ</span><span class="p">,</span> <span class="n">etas</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c1"># Initialize flow. Each workflow in the flow defines a complete BSE calculation for given eta.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span><span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
+
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+
+    <span class="c1"># Generate the different shifts to average</span>
+    <span class="n">ndiv</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">shift1D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">ndiv</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ndiv</span><span class="p">)</span>
+    <span class="n">all_shifts</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">shift1D</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">shift1D</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">shift1D</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">structure</span><span class="p">,</span> <span class="n">eta</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">displaced_structures</span><span class="p">,</span> <span class="n">etas</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ishift</span><span class="p">,</span><span class="n">shift</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_shifts</span><span class="p">):</span>
+            <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">raman_work</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shift</span><span class="p">),</span>
+                               <span class="n">workdir</span><span class="o">=</span><span class="s2">&quot;eta_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">eta</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;shift_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ishift</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">flow</span>
+
+
+<span class="k">def</span> <span class="nf">raman_work</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">):</span>
+    <span class="c1"># Generate 3 different input files for computing optical properties with Optic.</span>
+
+    <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">istwfk</span><span class="o">=</span><span class="s2">&quot;*1&quot;</span><span class="p">,</span>
+        <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">diemac</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">ixc</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+        <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="c1">#accesswff=3</span>
+    <span class="p">)</span>
+
+    <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="o">=</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
+    <span class="n">multi</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">)</span>
+
+    <span class="c1"># GS run</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">nbdbuf</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Note kptopt 2 in NSCF and DDK</span>
+    <span class="c1"># In principle kptopt 2 is needed only in DDK.</span>
+    <span class="c1"># one could do a first NSCF run with kptopt 1, reread with kptopt 2 and enter DDK...</span>
+
+    <span class="c1"># NSCF run</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+       <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+       <span class="n">nband</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+       <span class="n">nbdbuf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+       <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+       <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.e-12</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># DDK along 3 directions</span>
+    <span class="c1"># Third dataset : ddk response function along axis 1</span>
+    <span class="c1"># Fourth dataset : ddk response function along axis 2</span>
+    <span class="c1"># Fifth dataset : ddk response function along axis 3</span>
+    <span class="k">for</span> <span class="n">idir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">rfdir</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rfdir</span><span class="p">[</span><span class="n">idir</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">multi</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="n">idir</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+           <span class="n">iscf</span><span class="o">=-</span><span class="mi">3</span><span class="p">,</span>
+           <span class="n">nband</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+           <span class="n">nbdbuf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+           <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+           <span class="n">nline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+           <span class="n">prtwf</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+           <span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+           <span class="n">nqpt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+           <span class="n">qpt</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+           <span class="n">rfdir</span><span class="o">=</span><span class="n">rfdir</span><span class="p">,</span>
+           <span class="n">rfelfd</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+           <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.e-12</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">scf_inp</span><span class="p">,</span> <span class="n">nscf_inp</span><span class="p">,</span> <span class="n">ddk1</span><span class="p">,</span> <span class="n">ddk2</span><span class="p">,</span> <span class="n">ddk3</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
+    <span class="n">ddk_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ddk1</span><span class="p">,</span> <span class="n">ddk2</span><span class="p">,</span> <span class="n">ddk3</span><span class="p">]</span>
+
+    <span class="n">work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Work</span><span class="p">()</span>
+    <span class="n">scf_t</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">scf_inp</span><span class="p">)</span>
+    <span class="n">nscf_t</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_t</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
+
+    <span class="n">ddk_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">ddk_inputs</span><span class="p">:</span>
+        <span class="n">ddk_t</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">register_ddk_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">nscf_t</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+        <span class="n">ddk_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ddk_t</span><span class="p">)</span>
+
+
+    <span class="n">optic_input</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">OpticInput</span><span class="p">(</span>
+        <span class="n">broadening</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>     <span class="c1"># Value of the smearing factor, in Hartree</span>
+        <span class="n">domega</span><span class="o">=</span><span class="mf">0.0003</span><span class="p">,</span>        <span class="c1"># Frequency mesh.</span>
+        <span class="n">maxomega</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+        <span class="n">scissor</span><span class="o">=</span><span class="mf">0.000</span><span class="p">,</span>        <span class="c1"># Scissor shift if needed, in Hartree</span>
+        <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>      <span class="c1"># Tolerance on closeness of singularities (in Hartree)</span>
+        <span class="n">num_lin_comp</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>       <span class="c1"># Number of components of linear optic tensor to be computed</span>
+        <span class="n">lin_comp</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="c1"># Linear coefficients to be computed (x=1, y=2, z=3)</span>
+        <span class="n">num_nonlin_comp</span><span class="o">=</span><span class="mi">0</span>     <span class="c1"># Number of components of nonlinear optic tensor to be computed</span>
+        <span class="c1">#nonlin_comp=(123, 222),</span>
+    <span class="p">)</span>
+
+    <span class="n">optic_t</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">OpticTask</span><span class="p">(</span><span class="n">optic_input</span><span class="p">,</span> <span class="n">nscf_node</span><span class="o">=</span><span class="n">nscf_t</span><span class="p">,</span> <span class="n">ddk_nodes</span><span class="o">=</span><span class="n">ddk_nodes</span><span class="p">)</span>
+    <span class="n">work</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">optic_t</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">work</span>
+
+
+<span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
+<span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="nd">@flowtk.flow_main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is our main function that will be invoked by the script.</span>
+<span class="sd">    flow_main is a decorator implementing the command line interface.</span>
+<span class="sd">    Command line args are stored in `options`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.169 seconds)</p>
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_raman_optic.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_raman_optic.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/run_raman_optic.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">run_raman_optic.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 08, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

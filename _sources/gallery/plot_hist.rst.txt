@@ -67,7 +67,7 @@ structure relaxation run using the HIST.nc file.
 
     hist.close()
 
-**Total running time of the script:** ( 0 minutes  0.609 seconds)
+**Total running time of the script:** ( 0 minutes  0.516 seconds)
 
 
 

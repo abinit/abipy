@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -1678,16 +1679,21 @@ If None, we use the default high-symmetry k-path defined in the pymatgen databas
 <dl class="method">
 <dt id="abipy.abio.inputs.AbinitInput.set_kptgw">
 <code class="descname">set_kptgw</code><span class="sig-paren">(</span><em>kptgw</em>, <em>bdgw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AbinitInput.set_kptgw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AbinitInput.set_kptgw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the variables (k-points, bands) for the computation of the GW corrections.</p>
-<dl class="docutils">
-<dt>Args</dt>
-<dd><p class="first">kptgw: List of k-points in reduced coordinates.
-bdgw: Specifies the range of bands for the GW corrections.</p>
-<blockquote class="last">
-<div>Accepts iterable that be reshaped to (nkptgw, 2)
-or a tuple of two integers if the extrema are the same for each k-point.</div></blockquote>
-</dd>
-</dl>
+<dd><p>Set the variables (k-points, bands) for the computation of GW corrections.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>kptgw</strong> – List of k-points in reduced coordinates.</li>
+<li><strong>bdgw</strong> – Specifies the range of bands for the GW corrections.
+Accepts iterable that be reshaped to (nkptgw, 2)
+or a tuple of two integers if the extrema are the same for each k-point.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2897,6 +2903,25 @@ For example:</p>
 <dd><p>List of final structures.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.abio.outputs.AbinitOutputFile.get_dims_spginfo_dataset">
+<code class="descname">get_dims_spginfo_dataset</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.get_dims_spginfo_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.get_dims_spginfo_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the section with the dimensions of the calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> – Verbosity level.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Return: (dims_dataset, spginfo_dataset)</dt>
+<dd>where dims_dataset[i] is an OrderedDict with the dimensions of dataset <cite>i</cite>
+spginfo_dataset[i] is a dictionary with space group information.</dd>
+</dl>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.abio.outputs.AbinitOutputFile.has_same_final_structures">
 <code class="descname">has_same_final_structures</code><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.has_same_final_structures" title="Permalink to this definition">¶</a></dt>
@@ -2957,7 +2982,8 @@ For example:</p>
 <dl class="method">
 <dt id="abipy.abio.outputs.AbinitOutputFile.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AbinitOutputFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AbinitOutputFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>String representation.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.outputs.AbinitOutputFile.write_notebook">
@@ -3043,10 +3069,28 @@ A Robot supports the <cite>with</cite> context manager:</p>
     <span class="c1"># Do something with robot. files are automatically closed when we exit.</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">__iter__  returns (label, ncfile)</p>
+</div>
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.add_extfile_of_node">
-<code class="descname">add_extfile_of_node</code><span class="sig-paren">(</span><em>node</em>, <em>nids=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_extfile_of_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_extfile_of_node" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_extfile_of_node</code><span class="sig-paren">(</span><em>node</em>, <em>nids=None</em>, <em>task_class=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_extfile_of_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_extfile_of_node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add the file produced by this node to the robot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – Flow/Work/Task object.</li>
+<li><strong>nids</strong> – List of node identifiers used to select particular nodes. Not used if None</li>
+<li><strong>task_class</strong> – Task class or string wtih class name used to select the tasks in the flow.
+None implies no filtering.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -3098,12 +3142,6 @@ True if the file should be added to the plotter.</li>
 <dt id="abipy.abio.robots.Robot.exceptions">
 <code class="descname">exceptions</code><a class="headerlink" href="#abipy.abio.robots.Robot.exceptions" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of exceptions.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.abio.robots.Robot.for_ext">
-<em class="property">classmethod </em><code class="descname">for_ext</code><span class="sig-paren">(</span><em>ext</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.abio.robots.Robot.for_ext" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the Robot subclass associated to the given extension.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -3177,7 +3215,7 @@ This method should be invoked with a concrete robot class, for example:</p>
 
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_flow">
-<em class="property">classmethod </em><code class="descname">from_flow</code><span class="sig-paren">(</span><em>flow</em>, <em>outdirs='all'</em>, <em>nids=None</em>, <em>ext=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_flow" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">from_flow</code><span class="sig-paren">(</span><em>flow</em>, <em>outdirs='all'</em>, <em>nids=None</em>, <em>ext=None</em>, <em>task_class=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_flow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a robot from a Flow object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3193,6 +3231,8 @@ Cannot use <cite>+</cite> and <cite>-</cite> flags in the same string.
 Default: <cite>all</cite> that is equivalent to “flow+work+task”</li>
 <li><strong>nids</strong> – List of node identifiers used to select particular nodes. Not used if None</li>
 <li><strong>ext</strong> – File extension associated to the robot. Mainly used if method is invoked with the BaseClass</li>
+<li><strong>task_class</strong> – Task class or string with the class name used to select the tasks in the flow.
+None implies no filtering.</li>
 </ul>
 </td>
 </tr>
@@ -3203,7 +3243,6 @@ Default: <cite>all</cite> that is equivalent to “flow+work+task”</li>
     <span class="k">print</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
 
 <span class="c1"># That is equivalent to:</span>
-
 <span class="k">with</span> <span class="n">Robot</span><span class="o">.</span><span class="n">from_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;GSR&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
     <span class="k">print</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
 </pre></div>
@@ -3231,6 +3270,12 @@ Default: <cite>all</cite> that is equivalent to “flow+work+task”</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.abio.robots.Robot.get_label_files_str">
+<code class="descname">get_label_files_str</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_label_files_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_label_files_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return string with [label, filepath].</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.abio.robots.Robot.get_lattice_dataframe">
 <code class="descname">get_lattice_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_lattice_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_lattice_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return pandas DataFrame with lattice parameters.</p>
@@ -3253,6 +3298,12 @@ True if the file should be added to the plotter.</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.abio.robots.Robot.get_supported_extensions">
+<em class="property">classmethod </em><code class="descname">get_supported_extensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_supported_extensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_supported_extensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of strings with extensions supported by Robot subclasses.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3321,7 +3372,8 @@ If raise_exc is True, AttributeError with an explicit message is raised.</p>
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.show_files">
 <code class="descname">show_files</code><span class="sig-paren">(</span><em>stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.show_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.show_files" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Show label –&gt; file path</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.sortby">
@@ -3358,7 +3410,7 @@ If None, no sorting is performed.</li>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>func=&lt;class 'str'&gt;</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.to_string" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>String representation.</p>
 </dd></dl>
 
@@ -3379,7 +3431,7 @@ It also provides tools to analye and to visualize the parallel efficiency.</p>
 <dl class="class">
 <dt id="abipy.abio.timer.AbinitTimerParser">
 <em class="property">class </em><code class="descclassname">abipy.abio.timer.</code><code class="descname">AbinitTimerParser</code><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2017.11.6)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.abitimer.html#pymatgen.io.abinit.abitimer.AbinitTimerParser" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.abitimer.AbinitTimerParser</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <dl class="method">
 <dt id="abipy.abio.timer.AbinitTimerParser.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/timer.html#AbinitTimerParser.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.timer.AbinitTimerParser.write_notebook" title="Permalink to this definition">¶</a></dt>
@@ -3405,7 +3457,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

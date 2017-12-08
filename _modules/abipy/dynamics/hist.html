@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -124,23 +125,23 @@
       
   <h1>Source code for abipy.dynamics.hist</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;DDB File.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;History file with structural relaxation results.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">units</span>
 
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span> <span class="c1"># is_string, list_strings,</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span> <span class="c1"># is_string, list_strings</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
-
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;HistFile&quot;</span><span class="p">,</span>
-<span class="p">]</span>
 
 
 <div class="viewcode-block" id="HistFile"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile">[docs]</a><span class="k">class</span> <span class="nc">HistFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -168,6 +169,31 @@
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HistFile.final_energy"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.final_energy">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">final_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">etotals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="HistFile.final_pressure"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.final_pressure">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">final_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Final pressure in Gpa.&quot;&quot;&quot;</span>
+        <span class="n">cart_stress_tensors</span><span class="p">,</span> <span class="n">pressures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensors</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pressures</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def final_max_force(self):</span>
+
+    <span class="c1">#def get_fstats_dict(self, step):</span>
+    <span class="c1">#    #for step in range(self.num_steps):</span>
+    <span class="c1">#    forces_hist = self.reader.read_cart_forces()</span>
+    <span class="c1">#    fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []</span>
+
+    <span class="c1">#    forces = forces_hist[step]</span>
+    <span class="c1">#    fmods = np.sqrt([np.dot(force, force) for force in forces])</span>
+    <span class="c1">#    fmean_steps.append(fmods.mean())</span>
+    <span class="c1">#    fstd_steps.append(fmods.std())</span>
+    <span class="c1">#    fmin_steps.append(fmods.min())</span>
+    <span class="c1">#    fmax_steps.append(fmods.max())</span>
 
 <div class="viewcode-block" id="HistFile.to_string"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return string representation.&quot;&quot;&quot;</span>
@@ -234,6 +260,140 @@
         <span class="kn">from</span> <span class="nn">pymatgen.analysis.structure_analyzer</span> <span class="k">import</span> <span class="n">RelaxationAnalyzer</span>
         <span class="k">return</span> <span class="n">RelaxationAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_structure</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="HistFile.to_xdatcar"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.to_xdatcar">[docs]</a>    <span class="k">def</span> <span class="nf">to_xdatcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kwargs: keywords arguments passed to Xdatcar constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="n">groupby_type</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.outputs</span> <span class="k">import</span> <span class="n">Xdatcar</span>
+        <span class="k">return</span> <span class="n">Xdatcar</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistFile.write_xdatcar"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.write_xdatcar">[docs]</a>    <span class="k">def</span> <span class="nf">write_xdatcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;XDATCAR&quot;</span><span class="p">,</span> <span class="n">groupby_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write Xdatcar file with unit cell and atomic positions to file `filepath`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath: Xdatcar filename. If None, a temporary file is created.</span>
+<span class="sd">            groupby_type: If True, atoms are grouped by type. Note that this option</span>
+<span class="sd">                may change the order of the atoms. This option is needed because</span>
+<span class="sd">                there are post-processing tools (e.g. ovito) that do not work as expected</span>
+<span class="sd">                if the atoms in the structure are not grouped by type.</span>
+<span class="sd">            overwrite: raise RuntimeError, if False and filepath exists.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            path to Xdatcar file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot overwrite pre-existing file `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">tempfile</span>
+            <span class="n">fd</span><span class="p">,</span> <span class="n">filepath</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># int typat[natom], double znucl[npsp]</span>
+        <span class="n">typat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;typat&quot;</span><span class="p">)</span>
+        <span class="n">znucl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;znucl&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">typat</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">znucl</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Alchemical mixing is not supported.&quot;</span><span class="p">)</span>
+        <span class="n">symb2pos</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">symbols_atom</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">iatom</span><span class="p">,</span> <span class="n">itype</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">typat</span><span class="p">):</span>
+            <span class="n">itype</span> <span class="o">=</span> <span class="n">itype</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">symbol</span> <span class="o">=</span> <span class="n">Element</span><span class="o">.</span><span class="n">from_Z</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">znucl</span><span class="p">[</span><span class="n">itype</span><span class="p">]))</span><span class="o">.</span><span class="n">symbol</span>
+            <span class="k">if</span> <span class="n">symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">symb2pos</span><span class="p">:</span> <span class="n">symb2pos</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">symb2pos</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">iatom</span><span class="p">)</span>
+            <span class="n">symbols_atom</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">groupby_type</span><span class="p">:</span>
+            <span class="n">group_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">natom</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">group_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pos_list</span> <span class="ow">in</span> <span class="n">symb2pos</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">group_ids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span>
+            <span class="n">group_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">group_ids</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot; </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="o">.</span><span class="n">formula</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="c1"># comment line  + scaling factor set to 1.0</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;1.0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">vec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.12f</span><span class="s2"> </span><span class="si">%.12f</span><span class="s2"> </span><span class="si">%.12f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">groupby_type</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">symbols_atom</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;1 &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols_atom</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">symb2pos</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">symb2pos</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Write atomic positions in reduced coordinates.</span>
+            <span class="n">xred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;xred&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Direct configuration= </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">xred_list</span><span class="p">[</span><span class="n">step</span><span class="p">,</span> <span class="n">group_ids</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">frac_coords</span><span class="p">:</span>
+                    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.12f</span><span class="s2"> </span><span class="si">%.12f</span><span class="s2"> </span><span class="si">%.12f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">fs</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">filepath</span></div>
+
+<div class="viewcode-block" id="HistFile.plot_ax"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot_ax">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to plot quantity `what` on axis `ax`.</span>
+<span class="sd">        kwargs are passed to matplotlib plot method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;energy&quot;</span><span class="p">:</span>
+            <span class="c1"># Total energy in eV.</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">etotals</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Energy&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Total energy [eV]&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Step&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;abc&quot;</span><span class="p">:</span>
+            <span class="c1"># Lattice parameters.</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Lattice lengths [A]&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;angles&quot;</span><span class="p">:</span>
+            <span class="c1"># Lattice Angles</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">]):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Lattice Angles [degree]&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;volume&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">volume</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Lattice volume [A^3]&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;pressure&quot;</span><span class="p">:</span>
+            <span class="n">stress_cart_tensors</span><span class="p">,</span> <span class="n">pressures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensors</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">pressures</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pressure&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Pressure [GPa]&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;forces&quot;</span><span class="p">:</span>
+            <span class="n">forces_hist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_forces</span><span class="p">()</span>
+            <span class="n">fmin_steps</span><span class="p">,</span> <span class="n">fmax_steps</span><span class="p">,</span> <span class="n">fmean_steps</span><span class="p">,</span> <span class="n">fstd_steps</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
+                <span class="n">forces</span> <span class="o">=</span> <span class="n">forces_hist</span><span class="p">[</span><span class="n">step</span><span class="p">]</span>
+                <span class="n">fmods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span> <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">forces</span><span class="p">])</span>
+                <span class="n">fmean_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+                <span class="n">fstd_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+                <span class="n">fmin_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+                <span class="n">fmax_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fmin_steps</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;min |F|&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fmax_steps</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;max |F|&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fmean_steps</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;mean |F|&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fstd_steps</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;std |F|&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Force stats [eV/A]&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Step&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value for what: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">what</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="HistFile.plot"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistFile.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -253,47 +413,17 @@
         <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_list</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Lattice parameters.</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">]):</span>
-            <span class="n">ax0</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-        <span class="n">ax0</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Lattice lengths [A]&#39;</span><span class="p">)</span>
-        <span class="n">ax0</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax0</span><span class="p">,</span> <span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="c1"># Lattice Angles</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;gamma&quot;</span><span class="p">]):</span>
-            <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Lattice Angles [degree]&#39;</span><span class="p">)</span>
-        <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">volume</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
-        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Lattice volume [A^3]&#39;</span><span class="p">)</span>
-
-        <span class="n">stress_cart_tensors</span><span class="p">,</span> <span class="n">pressures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_stress_tensors</span><span class="p">()</span>
-        <span class="n">ax3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">pressures</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pressure&quot;</span><span class="p">)</span>
-        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Pressure [GPa]&#39;</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
+        <span class="c1"># Lattice volume</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax2</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
+        <span class="c1"># Pressure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax3</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="c1"># Forces</span>
-        <span class="n">forces_hist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_cart_forces</span><span class="p">()</span>
-        <span class="n">fmin_steps</span><span class="p">,</span> <span class="n">fmax_steps</span><span class="p">,</span> <span class="n">fmean_steps</span><span class="p">,</span> <span class="n">fstd_steps</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
-            <span class="n">forces</span> <span class="o">=</span> <span class="n">forces_hist</span><span class="p">[</span><span class="n">step</span><span class="p">]</span>
-            <span class="n">fmods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span> <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">forces</span><span class="p">])</span>
-            <span class="n">fmean_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-            <span class="n">fstd_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
-            <span class="n">fmin_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
-            <span class="n">fmax_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmods</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-
-        <span class="n">ax4</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fmin_steps</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;min |F|&quot;</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fmax_steps</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;max |F|&quot;</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fmean_steps</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;mean |F|&quot;</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="n">fstd_steps</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;std |F|&quot;</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Force stats [eV/A]&#39;</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax4</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Step&#39;</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax4</span><span class="p">,</span> <span class="s2">&quot;forces&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="c1"># Total energy.</span>
-        <span class="n">ax5</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">etotals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Energy&quot;</span><span class="p">)</span>
-        <span class="n">ax5</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Total energy [eV]&#39;</span><span class="p">)</span>
-        <span class="n">ax5</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Step&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax5</span><span class="p">,</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
@@ -405,27 +535,161 @@
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;hist = abilab.abiopen(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;print(hist)&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = hist.plot_energies()&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;fig = hist.plot()&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;hist.plot_energies();&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;hist.plot();&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">HistReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
+<div class="viewcode-block" id="HistRobot"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistRobot">[docs]</a><span class="k">class</span> <span class="nc">HistRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This robot analyzes the results contained in multiple HIST files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;HIST&quot;</span>
+
+<div class="viewcode-block" id="HistRobot.to_string"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistRobot.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String representation with verbosity level `verbose`.&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">HistRobot</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()</span>
+        <span class="n">s_df</span> <span class="o">=</span> <span class="s2">&quot;Table with final structures, pressures in GPa and force stats in eV/Ang:</span><span class="se">\n\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">s_df</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s_df</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistRobot.get_dataframe"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistRobot.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a pandas DataFrame with the most important final results.</span>
+<span class="sd">        and the filenames as index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
+<span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to getcwd().</span>
+<span class="sd">            index: Index of the dataframe, if None, robot labels are used</span>
+<span class="sd">            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number</span>
+
+<span class="sd">        kwargs:</span>
+<span class="sd">            attrs:</span>
+<span class="sd">                List of additional attributes of the :class:`GsrFile` to add to</span>
+<span class="sd">                the pandas :class:`DataFrame`</span>
+<span class="sd">            funcs: Function or list of functions to execute to add more data to the DataFrame.</span>
+<span class="sd">                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)</span>
+<span class="sd">                where key is a string with the name of column and value is the value to be inserted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Add attributes specified by the users</span>
+        <span class="c1"># TODO add more columns</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;num_steps&quot;</span><span class="p">,</span> <span class="s2">&quot;final_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;final_pressure&quot;</span><span class="p">,</span>
+            <span class="c1">#&quot;final_min_force&quot;, &quot;final_max_force&quot;,</span>
+            <span class="c1">#&quot;ecut&quot;, &quot;pawecutdg&quot;, &quot;tsmear&quot;, &quot;nkpt&quot;, &quot;nsppol&quot;, &quot;nspinor&quot;, &quot;nspden&quot;,</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">hist</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">row_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+            <span class="c1">#fstas_dict = self.get_fstats_dict(step=-1)</span>
+
+            <span class="c1"># Add info on structure.</span>
+            <span class="k">if</span> <span class="n">with_geo</span><span class="p">:</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hist</span><span class="o">.</span><span class="n">final_structure</span><span class="o">.</span><span class="n">get_dict4pandas</span><span class="p">(</span><span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">aname</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;final_min_force&quot;</span><span class="p">,</span> <span class="s2">&quot;final_max_force&quot;</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">fstas_dict</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+            <span class="c1"># Execute functions</span>
+            <span class="k">if</span> <span class="n">funcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exec_funcs</span><span class="p">(</span><span class="n">funcs</span><span class="p">,</span> <span class="n">hist</span><span class="p">))</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="n">row_names</span> <span class="o">=</span> <span class="n">row_names</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_relpaths</span><span class="p">(</span><span class="n">row_names</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">row_names</span> <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">index</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">what_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List with all quantities that can be plotted (what argument).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">,</span> <span class="s2">&quot;forces&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="HistRobot.gridplot"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistRobot.gridplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">gridplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot multiple HIST files on a grid.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            what: Quantity to plot. Must be in [&quot;energy&quot;, &quot;abc&quot;, &quot;angles&quot;, &quot;volume&quot;, &quot;pressure&quot;, &quot;forces&quot;]</span>
+<span class="sd">            sharex: True if xaxis should be shared.</span>
+<span class="sd">            sharey: True if yaxis should be shared.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            matplotlib figure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span><span class="o">//</span><span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
+
+        <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                                <span class="n">sharex</span><span class="o">=</span><span class="n">sharex</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">sharey</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_list</span> <span class="o">=</span> <span class="n">ax_list</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">hist</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ax_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">)):</span>
+            <span class="n">hist</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">hist</span><span class="o">.</span><span class="n">relpath</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Step&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Get around a bug in matplotlib.</span>
+        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ax_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">ax_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="HistRobot.write_notebook"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        working directory is created. Return path to the notebook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.HistRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">robot&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;df = robot.get_dataframe()</span><span class="se">\n</span><span class="s2">display(df)&quot;</span><span class="p">),</span>
+        <span class="p">])</span>
+
+        <span class="c1"># Mixins</span>
+        <span class="c1">#nb.cells.extend(self.get_baserobot_code_cells())</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="HistReader"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader">[docs]</a><span class="k">class</span> <span class="nc">HistReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This object reads data from the HIST file.&quot;&quot;&quot;</span>
 
-    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="HistReader.num_steps"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.num_steps">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">num_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Number of iterations present in the HIST file.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span></div>
 
-    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="HistReader.natom"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.natom">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">natom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Number of atoms un the unit cell&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;natom&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_dimvalue</span><span class="p">(</span><span class="s2">&quot;natom&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">read_all_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="HistReader.read_all_structures"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.read_all_structures">[docs]</a>    <span class="k">def</span> <span class="nf">read_all_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the list of structures at the different iteration steps.&quot;&quot;&quot;</span>
         <span class="n">rprimd_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;rprimd&quot;</span><span class="p">)</span>
         <span class="n">xred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;xred&quot;</span><span class="p">)</span>
@@ -454,30 +718,30 @@
             <span class="n">s</span><span class="o">.</span><span class="n">add_site_property</span><span class="p">(</span><span class="s2">&quot;cartesian_forces&quot;</span><span class="p">,</span> <span class="n">cart_forces_step</span><span class="p">[</span><span class="n">step</span><span class="p">])</span>
             <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">structures</span>
+        <span class="k">return</span> <span class="n">structures</span></div>
 
-    <span class="k">def</span> <span class="nf">read_eterms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="HistReader.read_eterms"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.read_eterms">[docs]</a>    <span class="k">def</span> <span class="nf">read_eterms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">AttrDict</span><span class="p">(</span>
             <span class="n">etotals</span><span class="o">=</span><span class="n">units</span><span class="o">.</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;etotal&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
             <span class="n">kinetic_terms</span><span class="o">=</span><span class="n">units</span><span class="o">.</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;ekin&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
             <span class="n">entropies</span><span class="o">=</span><span class="n">units</span><span class="o">.</span><span class="n">EnergyArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;entropy&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">read_cart_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="HistReader.read_cart_forces"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.read_cart_forces">[docs]</a>    <span class="k">def</span> <span class="nf">read_cart_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read and return a numpy array with the cartesian forces in unit `unit`.</span>
 <span class="sd">        Shape (num_steps, natom, 3)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">ArrayWithUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fcart&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha bohr^-1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">ArrayWithUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fcart&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha bohr^-1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">read_reduced_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="HistReader.read_reduced_forces"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.read_reduced_forces">[docs]</a>    <span class="k">def</span> <span class="nf">read_reduced_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read and return a numpy array with the forces in reduced coordinates</span>
 <span class="sd">        Shape (num_steps, natom, 3)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fred&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;fred&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">read_cart_stress_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="HistReader.read_cart_stress_tensors"><a class="viewcode-back" href="../../../api/dynamics_api.html#abipy.dynamics.hist.HistReader.read_cart_stress_tensors">[docs]</a>    <span class="k">def</span> <span class="nf">read_cart_stress_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (Hartree/Bohr^3)</span>
 <span class="sd">        and the list of pressures in GPa unit.</span>
@@ -498,7 +762,7 @@
         <span class="k">for</span> <span class="n">step</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tensors</span><span class="p">):</span>
             <span class="n">pressures</span><span class="p">[</span><span class="n">step</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="n">HaBohr3_GPa</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">tensor</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">tensors</span><span class="p">,</span> <span class="n">pressures</span>
+        <span class="k">return</span> <span class="n">tensors</span><span class="p">,</span> <span class="n">pressures</span></div></div>
 </pre></div>
 
     </div>
@@ -513,7 +777,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

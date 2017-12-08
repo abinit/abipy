@@ -34,7 +34,7 @@ Use the ``-f`` option to specify a different format e.g.::
 
     $ abistruct.py convert FILE -f cif 
 
-will produce a CIF file. Use::
+produces a CIF file. Use::
 
     $ abistruct.py convert FILE --help
 
@@ -100,7 +100,7 @@ suitable for the visualization of the Fermi surface with Xcrysden (xcrysden --bx
 Effective masses
 
 How can I analyze the results of a structural relaxation?
-Use ``abiopen.py`` to open the ``HIST.nc`` file produce by Abinit and then, inside ipython, type
+Use ``abiopen.py`` to open the ``HIST.nc`` file produced by Abinit and then, inside ipython, type
 
 .. code-block:: ipython
 
@@ -193,7 +193,7 @@ mp-554420                  -3.783453      32  411.813392            P2_1/c
 mp-3520                   15    4.8947                  0.0     mp-3520  
 mp-554420                 14    4.7342                  0.0   mp-554420  
 
-The former is the stable one , the latter has an energy above the hull of 0.025 eV/atom. 
+The former is the stable one, the latter has an energy above the hull of 0.025 eV/atom. 
 (In the case of GSO, “abistruct.py mp_search Gd2SiO5” will give only one structure (mp-542831) with P2_1/c symmetry)
 
 You could, for example, download them as cif::
@@ -245,7 +245,7 @@ You'll see that we can identify the Y lying at sites coordinated with 6 oxygens 
  
 Finally, if you want to compare total energies of the two GSO phases::
 
-    $ abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc
+    $ abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc GSO/P2_1c/bulk/gsoo_GSR.nc
 
 -17432.3600217 eV    # File:  GSO/C2c/bulk/gsoo_GSR.nc
 -17431.8874098 eV    # File:  GSO/P2_1c/bulk/gsoo_GSR.nc
@@ -255,4 +255,4 @@ and optionally use ``--plot`` to plot the data.
 So the C2c phase is the most stable for GSO too.
 (In case one does not know which are the "attributes" you can extract from the files with::
 
-    $ abicomp.py attr   GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc —show )
+    $ abicomp.py attr GSO/C2c/bulk/gsoo_GSR.nc GSO/P2_1c/bulk/gsoo_GSR.nc —show

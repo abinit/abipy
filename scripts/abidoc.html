@@ -74,6 +74,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -131,6 +132,10 @@
 </li>
 <li><a class="reference internal" href="#scheduler">scheduler</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abibuild">abibuild</a><ul>
+<li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -191,10 +196,11 @@ For example, the documentation for the <code class="docutils literal"><span clas
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abidoc.py man ecut
 </pre></div>
 </div>
-<p>For the full list of commands supported use:</p>
+<p>For the full list of commands use:</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abidoc.py --help
 usage: abidoc.py [-h] [-V]
-                 {man,browse,apropos,find,withdim,list,manager,scheduler} ...
+                 {man,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+                 ...
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -203,7 +209,7 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {man,browse,apropos,find,withdim,list,manager,scheduler}
+  {man,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
                         sub-command help
     man                 Show documentation for varname.
     browse              Open documentation in browser.
@@ -213,6 +219,7 @@ subcommands:
     list                List all variables.
     manager             Document the TaskManager options.
     scheduler           Document the options available in scheduler.yml.
+    abibuild            Show ABINIT build information and exit.
 
 Usage example:
 
@@ -229,8 +236,10 @@ Use `abidoc.py --help` for help and `abidoc.py COMMAND --help` to get the docume
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
 </div>
+<p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                 <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">}</span> <span class="o">...</span>
+                 <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span>
+                 <span class="o">...</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
@@ -254,7 +263,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: man, browse, apropos, find, withdim, list, manager, scheduler</p>
+<td><p class="first">Possible choices: man, browse, apropos, find, withdim, list, manager, scheduler, abibuild</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -547,6 +556,32 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </table>
 </div>
 </div>
+<div class="section" id="abibuild">
+<h3>abibuild<a class="headerlink" href="#abibuild" title="Permalink to this headline">¶</a></h3>
+<p>Show ABINIT build information and exit.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">abibuild</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments_repeat9">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 
@@ -563,7 +598,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

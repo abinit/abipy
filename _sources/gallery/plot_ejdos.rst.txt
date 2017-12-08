@@ -58,7 +58,7 @@ to the electronic joint density of states of Silicon
     with abiopen(abidata.ref_file("si_nscf_GSR.nc")) as gsr_file:
         gsr_file.ebands.plot_transitions(2.8)
 
-**Total running time of the script:** ( 0 minutes  1.509 seconds)
+**Total running time of the script:** ( 0 minutes  1.489 seconds)
 
 
 

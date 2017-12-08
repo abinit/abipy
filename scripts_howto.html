@@ -72,6 +72,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">AbiPy Flow Gallery</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
@@ -159,7 +160,7 @@ to a different format e.g. Abinit input variables:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert FILE -f cif
 </pre></div>
 </div>
-<p>will produce a CIF file. Use:</p>
+<p>produces a CIF file. Use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert FILE --help
 </pre></div>
 </div>
@@ -213,7 +214,7 @@ Export the full band structure to <code class="docutils literal"><span class="pr
 suitable for the visualization of the Fermi surface with Xcrysden (xcrysden –bxsf FILE).</p>
 <p>Effective masses</p>
 <p>How can I analyze the results of a structural relaxation?
-Use <code class="docutils literal"><span class="pre">abiopen.py</span></code> to open the <code class="docutils literal"><span class="pre">HIST.nc</span></code> file produce by Abinit and then, inside ipython, type</p>
+Use <code class="docutils literal"><span class="pre">abiopen.py</span></code> to open the <code class="docutils literal"><span class="pre">HIST.nc</span></code> file produced by Abinit and then, inside ipython, type</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span>
 <span class="k">print</span><span class="p">(</span><span class="n">abifile</span><span class="p">)</span>
 <span class="n">abifile</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">&quot;fundgap_spin0&quot;</span><span class="p">)</span>
@@ -312,7 +313,7 @@ mp-554420                  -3.783453      32  411.813392            P2_1/c</p>
 <div>spacegroup.number  band_gap  total_magnetization material_id</div></blockquote>
 <p>mp-3520                   15    4.8947                  0.0     mp-3520
 mp-554420                 14    4.7342                  0.0   mp-554420</p>
-<p>The former is the stable one , the latter has an energy above the hull of 0.025 eV/atom.
+<p>The former is the stable one, the latter has an energy above the hull of 0.025 eV/atom.
 (In the case of GSO, “abistruct.py mp_search Gd2SiO5” will give only one structure (mp-542831) with P2_1/c symmetry)</p>
 <p>You could, for example, download them as cif:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py pmgdata mp-554420 -f cif &gt; mp-554420.cif
@@ -368,7 +369,7 @@ We can easily identify the different coordination with:</p>
 <p>Finding neighbors for each atom in the unit cell, out to a distance 2.7 [Angstrom]</p>
 <p>You’ll see that we can identify the Y lying at sites coordinated with 6 oxygens and those at sites with 7 oxygens.</p>
 <p>Finally, if you want to compare total energies of the two GSO phases:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py attr energy GSO/C2c/bulk/gsoo_GSR.nc GSO/P2_1c/bulk/gsoo_GSR.nc
 </pre></div>
 </div>
 <p>-17432.3600217 eV    # File:  GSO/C2c/bulk/gsoo_GSR.nc
@@ -376,7 +377,7 @@ We can easily identify the different coordination with:</p>
 <p>and optionally use <code class="docutils literal"><span class="pre">--plot</span></code> to plot the data.</p>
 <p>So the C2c phase is the most stable for GSO too.
 (In case one does not know which are the “attributes” you can extract from the files with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py attr   GSO/C2c/bulk/gsoo_GSR.nc  GSO/P2_1c/bulk/gsoo_GSR.nc —show )
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py attr GSO/C2c/bulk/gsoo_GSR.nc GSO/P2_1c/bulk/gsoo_GSR.nc —show
 </pre></div>
 </div>
 </div>
@@ -395,7 +396,7 @@ We can easily identify the different coordination with:</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Nov 08, 2017.<br/>
+      Last updated on Dec 08, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>
