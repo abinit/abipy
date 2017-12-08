@@ -910,11 +910,14 @@ class MdfRobot(Robot, RobotWithEbands):
     """
     EXT = "MDF"
 
+    def plot(self, **kwargs):
+        """Wraps plot method of `MultipleMdfPlotter`. kwargs passed to plot."""
+        return self.get_multimdf_plotter().plot(**kwargs)
+
     def get_multimdf_plotter(self, cls=None):
         """
         Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.
         """
-        from abipy.electrons.bse import MultipleMdfPlotter
         plotter = MultipleMdfPlotter() if cls is None else cls()
 
         for label, mdf in self:

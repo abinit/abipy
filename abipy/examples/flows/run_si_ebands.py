@@ -3,7 +3,7 @@ r"""
 Band structure Flow
 ===================
 
-Flow for computing the band structure of silicon.
+Flow to compute the band structure of silicon.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -20,21 +20,19 @@ def make_scf_nscf_inputs(paral_kgb=0, usepaw=0):
 
     # Get structure from cif file.
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
-    multi.set_mnemonics(True)
 
     # Global variables
     ecut = 6
-    global_vars = dict(ecut=ecut,
-                       nband=8,
-                       paral_kgb=paral_kgb,
-                       iomode=3,
-                       timopt=-1,
-                    )
+    multi.set_vars(
+        ecut=ecut,
+        nband=8,
+        paral_kgb=paral_kgb,
+        iomode=3,
+        timopt=-1,
+    )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
-
-    multi.set_vars(global_vars)
+        multi.set_vars(pawecutdg=2 * ecut)
 
     # Dataset 1 (GS run)
     multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
@@ -88,3 +86,38 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_si_ebands.py -s
+#
+# then use:
+#
+#    abirun.py flow_si_ebands ebands --plot
+#
+# to analyze (and plot) the electronic bands produced by the Flow.
+#
+# .. code-block:: bash
+#
+#    KS electronic bands:
+#           nsppol  nspinor  nspden  nkpt  nband  nelect  fermie formula  natom  \
+#    w0_t0       1        1       1    29      8     8.0   5.598     Si2      2
+#    w0_t1       1        1       1    14      8     8.0   5.598     Si2      2
+#
+#           angle0  angle1  angle2      a      b      c  volume abispg_num scheme  \
+#    w0_t0    60.0    60.0    60.0  3.867  3.867  3.867  40.888        227   none
+#    w0_t1    60.0    60.0    60.0  3.867  3.867  3.867  40.888        227   none
+#
+#           occopt  tsmear_ev  bandwidth_spin0  fundgap_spin0  dirgap_spin0  \
+#    w0_t0       1      0.272           11.856          0.562         2.532
+#    w0_t1       1      0.272           11.856          0.524         2.532
+#
+#          task_class                                   ncfile              status
+#    w0_t0    ScfTask  flow_si_ebands/w0/t0/outdata/out_GSR.nc  Completed
+#    w0_t1   NscfTask  flow_si_ebands/w0/t1/outdata/out_GSR.nc  Completed
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_si_ebands.png?raw=true
+#    :alt: Band structure of Si in the IBZ and along a k-path
+#

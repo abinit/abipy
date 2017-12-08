@@ -1670,7 +1670,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             pseudo = table.pseudo_with_symbol(site.species_string)
             nval += pseudo.Z_val
 
-        return nval
+        return int(nval) if int(nval) == nval else nval
 
     def valence_electrons_per_atom(self, pseudos):
         """

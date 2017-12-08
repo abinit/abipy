@@ -179,10 +179,10 @@ class PhonopyWork(Work):
             fh.write("MP = %d %d %d\n" % tuple(ngqpt))
             fh.write("#GAMMA_CENTER = .TRUE.\n")
 
-        with open(self.outdir.path_in("README"), "wt") as fh:
-            fh.write("To plot bands, use: `phonopy -p band.conf`\n")
-            fh.write("To plot dos, use: `phonopy -p dos.conf`\n")
-            fh.write("To plot bands and dos, use: `phonopy -p band-dos.conf`\n")
+        with open(self.outdir.path_in("README.md"), "wt") as fh:
+            fh.write("To plot bands, use:\n\tphonopy -p band.conf\n\n")
+            fh.write("To plot phonon dos, use:\n\tphonopy -p dos.conf\n\n")
+            fh.write("To plot bands and dos, use:\n\tphonopy -p band-dos.conf\n\n")
             fh.write("See also:\n")
             fh.write("\t" + examples_url + "\n")
             fh.write("\t" + doctags_url + "\n")

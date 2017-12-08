@@ -3,7 +3,9 @@ r"""
 Optic Flow
 ==========
 
-Optical spectra with Optic.
+This example shows how to create a flow to compute optical spectra with Optic
+(independent particle approximation, no local field effects) and perform
+a convergence study with respect to the k-point sampling.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -15,116 +17,73 @@ import abipy.flowtk as flowtk
 
 
 def build_flow(options, paral_kgb=0):
+    """
+    Build flow for the calculation of optical properties with optic + band structure
+    along high-symmetry k-path. DDK are computed with 3 k-meshes of increasing density
+    to monitor the convergece of the spectra.
+    """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("GaAs"),
-                                pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
+                                pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=2)
 
-    # Global variables
-    kmesh = dict(ngkpt=[4, 4, 4],
-                 nshiftk=4,
-                 shiftk=[[0.5, 0.5, 0.5],
-                         [0.5, 0.0, 0.0],
-                         [0.0, 0.5, 0.0],
-                         [0.0, 0.0, 0.5]]
-                )
+    # Usa same shifts in all tasks.
+    shiftk= [[0.5, 0.5, 0.5],
+             [0.5, 0.0, 0.0],
+             [0.0, 0.5, 0.0],
+             [0.0, 0.0, 0.5]]
 
-    global_vars = dict(ecut=2, paral_kgb=paral_kgb)
-    global_vars.update(kmesh)
-
-    multi.set_vars(global_vars)
+    # Global variables.
+    multi.set_vars(ecut=2, paral_kgb=paral_kgb)
 
     # Dataset 1 (GS run)
-    multi[0].set_vars(
-        tolvrs=1e-6,
-        nband=4,
-    )
+    multi[0].set_vars(tolvrs=1e-8, nband=4)
+    multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=shiftk)
 
-    # NSCF run with large number of bands, and points in the the full BZ
-    multi[1].set_vars(
-        iscf=-2,
-        nband=20,
-        nstep=25,
-        kptopt=1,
-        tolwfr=1.e-9,
-        #kptopt=3,
-    )
-
-    # Fourth dataset : ddk response function along axis 1
-    # Fifth dataset : ddk response function along axis 2
-    # Sixth dataset : ddk response function along axis 3
-    for idir in range(3):
-        rfdir = 3 * [0]
-        rfdir[idir] = 1
-
-        multi[2+idir].set_vars(
-            iscf=-3,
-            nband=20,
-            nstep=1,
-            nline=0,
-            prtwf=3,
-            kptopt=3,
-            nqpt=1,
-            qpt=[0.0, 0.0, 0.0],
-            rfdir=rfdir,
-            rfelfd=2,
-            tolwfr=1.e-9,
-        )
-
-    scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
+    # NSCF run on k-path with large number of bands
+    multi[1].set_vars(iscf=-2, nband=20, tolwfr=1.e-9)
+    multi[1].set_kpath(ndivsm=10)
 
     # Initialize the flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
+    # GS to get the density + NSCF along the path.
+    scf_inp, nscf_inp = multi.split_datasets()
     bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp)
     flow.register_work(bands_work)
 
-    ddk_work = flowtk.Work()
-    for inp in [ddk1, ddk2, ddk3]:
-        ddk_work.register_ddk_task(inp, deps={bands_work.nscf_task: "WFK"})
-
-    flow.register_work(ddk_work)
-
-    # Optic does not support MPI with ncpus > 1.
+    # Build OpticInput used to compute optical properties.
     optic_input = abilab.OpticInput(
         broadening=0.002,          # Value of the smearing factor, in Hartree
         domega=0.0003,             # Frequency mesh.
         maxomega=0.3,
         scissor=0.000,             # Scissor shift if needed, in Hartree
         tolerance=0.002,           # Tolerance on closeness of singularities (in Hartree)
-        num_lin_comp=1,            # Number of components of linear optic tensor to be computed
-        lin_comp=11,               # Linear coefficients to be computed (x=1, y=2, z=3)
+        num_lin_comp=2,            # Number of components of linear optic tensor to be computed
+        lin_comp=(11, 33),         # Linear coefficients to be computed (x=1, y=2, z=3)
         num_nonlin_comp=2,         # Number of components of nonlinear optic tensor to be computed
         nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
     )
 
-    # TODO
-    # Check is the order of the 1WF files is relevant. Can we use DDK files ordered
-    # in an arbitrary way or do we have to pass (x,y,z)?
-    optic_task = flowtk.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work)
-    flow.register_task(optic_task)
+    # ddk_nband is fixed here, in principle it depends on nelect and the frequency range in chi(w).
+    ddk_nband = 20
 
-    return flow
+    # Perform converge study wrt ngkpt (shiftk is constant).
+    ngkpt_convergence = [[4, 4, 4], [8, 8, 8], [16, 16, 16]]
 
+    for ddk_ngkpt in ngkpt_convergence:
+        # Build work for NSCF from DEN produced by the first GS task + 3 DDKs.
+        # All tasks use more bands and a denser k-mesh defined by ddk_ngkpt.
+        ddks_work = flowtk.NscfDdksWork.from_scf_task(bands_work[0], ddk_ngkpt, shiftk, ddk_nband)
+        flow.register_work(ddks_work)
 
-def optic_flow_from_files():
-    # Optic does not support MPI with ncpus > 1.
-    manager = flowtk.TaskManager.from_user_config()
-    manager.set_mpi_procs(1)
+        # Build optic task to compute chi with this value of ddk_ngkpt.
+        optic_task = flowtk.OpticTask(optic_input, nscf_node=ddks_work.task_with_ks_energies,
+                                      ddk_nodes=ddks_work.ddk_tasks, use_ddknc=False)
+        ddks_work.register_task(optic_task)
 
-    flow = flowtk.Flow(workdir="OPTIC_FROM_FILE", manager=manager)
-
-    ddk_nodes = [
-        "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_0/outdata/out_1WF",
-        "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_1/outdata/out_1WF",
-        "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_1/task_2/outdata/out_1WF",
-    ]
-    nscf_node = "/Users/gmatteo/Coding/abipy/abipy/data/runs/OPTIC/work_0/task_1/outdata/out_WFK"
-
-    optic_task = flowtk.OpticTask(optic_input, nscf_node=nscf_node, ddk_nodes=ddk_nodes)
-    flow.register_task(optic_task)
     return flow
 
 
@@ -149,3 +108,25 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_optic.py -s
+#
+# then use:
+#
+#    abirun.py flow_optic robot optic
+#
+# to create a robot for OPTIC.nc files. Then inside the ipytho shell type:
+#
+# .. code-block:: ipython
+#
+#    In [1]: %matplotlib
+#
+#    In [2]: robot.plot_linopt_convergence()
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_optic.png?raw=true
+#    :alt: Convergence of (linear) optical spectra wrt k-points.
+#

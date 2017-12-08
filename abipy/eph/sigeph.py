@@ -158,7 +158,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].plot([0,1], [0,1], lw=0)
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
         if label is not None:
@@ -336,7 +336,7 @@ class QpTempList(list):
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].plot([0,1], [0,1], lw=0)
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
         #if label is not None:

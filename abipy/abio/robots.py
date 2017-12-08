@@ -14,7 +14,7 @@ from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
 
-# TODO: Robot for Abinit output files.
+# TODO: Robot for Abinit output files (plot timer data and SCF cycles, compare dims...)
 
 class Robot(NotebookWriter):
     """
@@ -55,6 +55,13 @@ class Robot(NotebookWriter):
     #    return cls(*labels_paths)
 
     @classmethod
+    def get_supported_extensions(self):
+        """List of strings with extensions supported by Robot subclasses."""
+        # This is needed to have all subclasses.
+        from abipy.abilab import Robot
+        return sorted([cls.EXT for cls in Robot.__subclasses__()])
+
+    @classmethod
     def class_for_ext(cls, ext):
         """Return the Robot subclass associated to the given extension."""
         for subcls in cls.__subclasses__():
@@ -62,8 +69,7 @@ class Robot(NotebookWriter):
                 return subcls
 
         raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
-                         "The list of supported extensions is:\n%s" %
-                         [cls.EXT for cls in Robot.__subclasses__()])
+                         "The list of supported extensions (case insensitive) is:\n%s" % str(cls.get_supported_extensions()))
 
     @classmethod
     def from_dir(cls, top, walk=True, abspath=False):
@@ -241,12 +247,9 @@ class Robot(NotebookWriter):
                 # current working directory may not be defined!
                 label = filepath
 
-            if task_class is not None:
-                # Filter by task_class (class or string with class name)
-                if inspect.isclass(task_class) and not isinstance(node, task_class):
-                    return None
-                if node.__class__.__name__.lower() != task_class.lower():
-                    return None
+            # Filter by task_class (class or string with class name)
+            if task_class is not None and not node.isinstance(task_class):
+                return None
 
             self.add_file(label, filepath)
 

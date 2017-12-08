@@ -935,7 +935,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.to_string()
 
     def to_string(self, verbose=0):
-        """String representation."""
+        """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -945,8 +945,14 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # TODO:
         # Finalize the implementation: add GW quantities.
-        # Fix header.
+        app("Quasi-particle direct gaps in eV:")
+        for spin in range(self.nsppol):
+            for kgw in self.gwkpoints:
+                qp_dirgap = self.get_qpgap(spin, kgw)
+                #ks_dirgap =
+                app("k=%s, spin=%s, QP_dirgap: %.3f" % (repr(kgw), spin, qp_dirgap))
 
+        # TODO: Fix header.
         #if verbose > 1:
         #    app("")
         #    app(marquee("Abinit Header", mark="="))

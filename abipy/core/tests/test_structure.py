@@ -167,7 +167,8 @@ class TestStructure(AbipyTest):
         self.serialize_with_pickle(mgb2)
 
         pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
-        assert mgb2.num_valence_electrons(pseudos) == 8
+        nv = mgb2.num_valence_electrons(pseudos)
+        assert nv == 8 and isinstance(nv , int)
         assert mgb2.valence_electrons_per_atom(pseudos) == [2, 3, 3]
         self.assert_equal(mgb2.calc_shiftk() , [[0.0, 0.0, 0.5]])
 

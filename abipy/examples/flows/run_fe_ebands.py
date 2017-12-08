@@ -89,3 +89,19 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_fe_ebands -s
+#
+# then use:
+#
+#    abirun.py flow_fe_ebands ebands -p
+#
+# to analyze all the band structures produced by the Flow and plot the data
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_fe_ebands.png?raw=true
+#    :alt: Band structures of Fe with nsppol 1, 2.
+#

@@ -112,6 +112,9 @@ class ElectronBandsTest(AbipyTest):
         self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
         assert len(ni_ebands_kpath.to_json())
 
+        od = ni_ebands_kmesh.get_dict4pandas(with_spglib=False)
+        assert od["nsppol"] == 2 and od["nspinor"] == 1 and od["nspden"] == 2
+
         df = ni_ebands_kpath.get_dataframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
 

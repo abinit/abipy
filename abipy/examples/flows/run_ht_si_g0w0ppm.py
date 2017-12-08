@@ -21,7 +21,7 @@ def build_flow(options):
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
+        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize the flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)
@@ -47,8 +47,8 @@ def build_flow(options):
 
     scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
     work = flowtk.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
-
     flow.register_work(work)
+
     return flow
 
 

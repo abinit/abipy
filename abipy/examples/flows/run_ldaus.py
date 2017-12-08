@@ -3,7 +3,8 @@ r"""
 Flow for LDA+U calculations
 ===========================
 
-LDA+U band structure of NiO for several values of U-J.
+This example shows how to compute the LDA+U band structure of NiO
+with PAW for several values of U-J.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -58,7 +59,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     multi[1].set_kpath(ndivsm=6)
     multi[1].set_vars(tolwfr=1e-10)
 
-    # Dos calculation.
+    # DOS calculation.
     multi[2].set_vars(
         iscf=-3,   # NSCF calculation
         ngkpt=structure.calc_ngkpt(nksmall=8),
@@ -127,3 +128,67 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+############################################################################
+# Run the script with:
+#
+#     run_ldaus.py -s
+#
+# then use:
+#
+#    abirun.py flow_ldaus/ ebands
+#
+# to analyze all GSR files produced by flow.
+#
+# .. code-block:: bash
+#
+#        KS electronic bands:
+#               nsppol  nspinor  nspden  nkpt  nband  nelect  fermie formula  natom  \
+#        w0_t0       1        1       2     3     40    48.0   6.084  Ni2 O2      4
+#        w0_t1       1        1       2   129     40    48.0   6.084  Ni2 O2      4
+#        w0_t2       1        1       2   213     40    48.0   6.169  Ni2 O2      4
+#        w1_t0       1        1       2     3     40    48.0   6.855  Ni2 O2      4
+#        w1_t1       1        1       2   129     40    48.0   6.855  Ni2 O2      4
+#        w1_t2       1        1       2   213     40    48.0   6.432  Ni2 O2      4
+#
+#               angle0  angle1  angle2      a      b      c  volume abispg_num  \
+#        w0_t0    60.0    60.0    60.0  2.964  2.964  5.927  36.809        166
+#        w0_t1    60.0    60.0    60.0  2.964  2.964  5.927  36.809        166
+#        w0_t2    60.0    60.0    60.0  2.964  2.964  5.927  36.809        166
+#        w1_t0    60.0    60.0    60.0  2.964  2.964  5.927  36.809        166
+#        w1_t1    60.0    60.0    60.0  2.964  2.964  5.927  36.809        166
+#        w1_t2    60.0    60.0    60.0  2.964  2.964  5.927  36.809        166
+#
+#                 scheme  occopt  tsmear_ev  bandwidth_spin0  fundgap_spin0  \
+#        w0_t0  gaussian       7      0.408           99.343          3.324
+#        w0_t1  gaussian       7      0.408           99.680          3.049
+#        w0_t2  gaussian       7      0.408           99.838          2.560
+#        w1_t0  gaussian       7      0.408           99.318          4.626
+#        w1_t1  gaussian       7      0.408           99.628          3.352
+#        w1_t2  gaussian       7      0.408           99.826          3.155
+#
+#               dirgap_spin0 task_class                               ncfile  node_id  \
+#        w0_t0         3.351    ScfTask  flow_ldaus/w0/t0/outdata/out_GSR.nc   241313
+#        w0_t1         3.352   NscfTask  flow_ldaus/w0/t1/outdata/out_GSR.nc   241314
+#        w0_t2         3.041   NscfTask  flow_ldaus/w0/t2/outdata/out_GSR.nc   241315
+#        w1_t0         4.626    ScfTask  flow_ldaus/w1/t0/outdata/out_GSR.nc   241317
+#        w1_t1         3.928   NscfTask  flow_ldaus/w1/t1/outdata/out_GSR.nc   241318
+#        w1_t2         3.983   NscfTask  flow_ldaus/w1/t2/outdata/out_GSR.nc   241319
+#
+#                           status
+#        w0_t0  Completed
+#        w0_t1  Completed
+#        w0_t2  Completed
+#        w1_t0  Completed
+#        w1_t1  Completed
+#        w1_t2  Completed
+#
+# The second task in each work (w*_t1) is a NSCF run along the high symmetry path.
+# and we can compare the results of these two task by specifying the node identifiers:
+#
+#   abirun.py flow_ldaus/ ebands -p --nids=241314,241318
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_ldaus.png?raw=true
+#    :alt: Band structure of Si in the IBZ and along a k-path
+#

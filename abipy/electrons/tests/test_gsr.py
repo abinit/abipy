@@ -169,7 +169,14 @@ class GstRobotTest(AbipyTest):
 
         if self.has_matplotlib():
             assert ebands_plotter.gridplot(show=False)
+            assert robot.combiplot_ebands(show=False)
+            assert robot.gridplot_ebands(show=False)
+            assert robot.boxplot_ebands(show=False)
+            assert robot.combiboxplot_ebands(show=False)
+
             assert edos_plotter.gridplot(show=False)
+            assert robot.combiplot_edos(show=False)
+            assert robot.gridplot_edos(show=False)
 
 	# Get pandas dataframe.
         df = robot.get_dataframe()

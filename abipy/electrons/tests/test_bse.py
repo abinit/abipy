@@ -118,6 +118,7 @@ class MdfRobotTest(AbipyTest):
         plotter = robot.get_multimdf_plotter()
         if self.has_matplotlib():
             assert plotter.plot(show=False)
+            assert robot.plot(show=False)
             #robot.plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
 
         if self.has_nbformat():

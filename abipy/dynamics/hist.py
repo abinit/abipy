@@ -11,7 +11,7 @@ from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee # is_string, list_strings
 from pymatgen.core.periodic_table import Element
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
@@ -212,6 +212,62 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
+    def plot_ax(self, ax, what, **kwargs):
+        """
+        Helper function to plot quantity `what` on axis `ax`.
+        kwargs are passed to matplotlib plot method
+        """
+        if what == "energy":
+            # Total energy in eV.
+            ax.plot(self.steps, self.etotals, label="Energy", **kwargs)
+            ax.set_ylabel('Total energy [eV]')
+            ax.set_xlabel('Step')
+
+        elif what == "abc":
+            # Lattice parameters.
+            for i, label in enumerate(["a", "b", "c"]):
+                ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label, **kwargs)
+            ax.set_ylabel('Lattice lengths [A]')
+            ax.legend(loc='best', shadow=True)
+
+        elif what == "angles":
+            # Lattice Angles
+            for i, label in enumerate(["alpha", "beta", "gamma"]):
+                ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label, **kwargs)
+            ax.set_ylabel('Lattice Angles [degree]')
+            ax.legend(loc='best', shadow=True)
+
+        elif what == "volume":
+            ax.plot(self.steps, [s.lattice.volume for s in self.structures], **kwargs)
+            ax.set_ylabel('Lattice volume [A^3]')
+
+        elif what == "pressure":
+            stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
+            ax.plot(self.steps, pressures, label="Pressure", **kwargs)
+            ax.set_ylabel('Pressure [GPa]')
+
+        elif what == "forces":
+            forces_hist = self.reader.read_cart_forces()
+            fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
+            for step in range(self.num_steps):
+                forces = forces_hist[step]
+                fmods = np.sqrt([np.dot(force, force) for force in forces])
+                fmean_steps.append(fmods.mean())
+                fstd_steps.append(fmods.std())
+                fmin_steps.append(fmods.min())
+                fmax_steps.append(fmods.max())
+
+            ax.plot(self.steps, fmin_steps, label="min |F|", **kwargs)
+            ax.plot(self.steps, fmax_steps, label="max |F|", **kwargs)
+            ax.plot(self.steps, fmean_steps, label="mean |F|", **kwargs)
+            ax.plot(self.steps, fstd_steps, label="std |F|", **kwargs)
+            ax.set_ylabel('Force stats [eV/A]')
+            ax.legend(loc='best', shadow=True)
+            ax.set_xlabel('Step')
+
+        else:
+            raise ValueError("Invalid value for what: `%s`" % what)
+
     @add_fig_kwargs
     def plot(self, axlist=None, **kwargs):
         """
@@ -231,47 +287,17 @@ class HistFile(AbinitNcFile, NotebookWriter):
         for ax in ax_list: ax.grid(True)
 
         # Lattice parameters.
-        for i, label in enumerate(["a", "b", "c"]):
-            ax0.plot(self.steps, [s.lattice.abc[i] for s in self.structures], marker="o", label=label)
-        ax0.set_ylabel('Lattice lengths [A]')
-        ax0.legend(loc='best', shadow=True)
-
+        self.plot_ax(ax0, "abc", marker="o")
         # Lattice Angles
-        for i, label in enumerate(["alpha", "beta", "gamma"]):
-            ax1.plot(self.steps, [s.lattice.angles[i] for s in self.structures], marker="o", label=label)
-        ax1.set_ylabel('Lattice Angles [degree]')
-        ax1.legend(loc='best', shadow=True)
-
-        ax2.plot(self.steps, [s.lattice.volume for s in self.structures], marker="o")
-        ax2.set_ylabel('Lattice volume [A^3]')
-
-        stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
-        ax3.plot(self.steps, pressures, marker="o", label="Pressure")
-        ax3.set_ylabel('Pressure [GPa]')
-
+        self.plot_ax(ax1, "angles", marker="o")
+        # Lattice volume
+        self.plot_ax(ax2, "volume", marker="o")
+        # Pressure
+        self.plot_ax(ax3, "pressure", marker="o")
         # Forces
-        forces_hist = self.reader.read_cart_forces()
-        fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
-        for step in range(self.num_steps):
-            forces = forces_hist[step]
-            fmods = np.sqrt([np.dot(force, force) for force in forces])
-            fmean_steps.append(fmods.mean())
-            fstd_steps.append(fmods.std())
-            fmin_steps.append(fmods.min())
-            fmax_steps.append(fmods.max())
-
-        ax4.plot(self.steps, fmin_steps, marker="o", label="min |F|")
-        ax4.plot(self.steps, fmax_steps, marker="o", label="max |F|")
-        ax4.plot(self.steps, fmean_steps, marker="o", label="mean |F|")
-        ax4.plot(self.steps, fstd_steps, marker="o", label="std |F|")
-        ax4.set_ylabel('Force stats [eV/A]')
-        ax4.legend(loc='best', shadow=True)
-        ax4.set_xlabel('Step')
-
+        self.plot_ax(ax4, "forces", marker="o")
         # Total energy.
-        ax5.plot(self.steps, self.etotals, marker="o", label="Energy")
-        ax5.set_ylabel('Total energy [eV]')
-        ax5.set_xlabel('Step')
+        self.plot_ax(ax5, "energy", marker="o")
 
         return fig
 
@@ -397,6 +423,7 @@ class HistRobot(Robot):
     EXT = "HIST"
 
     def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
         s = ""
         if verbose:
             s = super(HistRobot, self).to_string(verbose=0)
@@ -460,6 +487,48 @@ class HistRobot(Robot):
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         index = row_names if index is None else index
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+
+    @property
+    def what_list(self):
+        """List with all quantities that can be plotted (what argument)."""
+        return ["energy", "abc", "angles", "volume", "pressure", "forces"]
+
+    @add_fig_kwargs
+    def gridplot(self, what="abc", sharex=False, sharey=False, **kwargs):
+        """
+        Plot multiple HIST files on a grid.
+
+        Args:
+            what: Quantity to plot. Must be in ["energy", "abc", "angles", "volume", "pressure", "forces"]
+            sharex: True if xaxis should be shared.
+            sharey: True if yaxis should be shared.
+
+        Returns:
+            matplotlib figure.
+        """
+        num_plots, ncols, nrows = len(self), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots//ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=sharex, sharey=sharey, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        for i, (ax, hist) in enumerate(zip(ax_list, self.ncfiles)):
+            hist.plot_ax(ax, what, marker="o")
+            ax.set_title(hist.relpath)
+            ax.grid(True)
+            if i == len(ax_list) - 1:
+                ax.set_xlabel('Step')
+
+        # Get around a bug in matplotlib.
+        if num_plots % ncols != 0:
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
+            ax_list[-1].axis('off')
+
+        fig.tight_layout()
+        return fig
 
     def write_notebook(self, nbpath=None):
         """

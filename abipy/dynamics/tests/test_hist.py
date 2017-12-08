@@ -93,5 +93,9 @@ class HistFileTest(AbipyTest):
             df = robot.get_dataframe()
             assert "angle1" in df
 
+            if self.has_matplotlib():
+                for what in robot.what_list:
+                    assert robot.gridplot(what=what, show=False)
+
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

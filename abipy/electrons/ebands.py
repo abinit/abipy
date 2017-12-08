@@ -33,7 +33,6 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -624,7 +623,8 @@ class ElectronBands(Has_Structure):
             with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
         """
         odict = OrderedDict([
-            ("nsppol", self.nsppol), ("nkpt", self.nkpt), ("nband", self.nband_sk.min()),
+            ("nsppol", self.nsppol), ("nspinor", self.nspinor), ("nspden", self.nspden),
+            ("nkpt", self.nkpt), ("nband", self.nband_sk.min()),
             ("nelect", self.nelect), ("fermie", self.fermie),
 
         ])
@@ -3668,6 +3668,29 @@ class RobotWithEbands(object):
     """
     Mixin class for robots associated to files with `ElectronBands`.
     """
+    def combiplot_ebands(self, **kwargs):
+        """Wraps combiplot method of `ElectronBandsPlotter`. kwargs passed to combiplot."""
+        return self.get_ebands_plotter().combiplot(**kwargs)
+
+    def gridplot_ebands(self, **kwargs):
+        """Wraps gridplot method of `ElectronBandsPlotter`. kwargs passed to gridplot."""
+        return self.get_ebands_plotter().gridplot(**kwargs)
+
+    def boxplot_ebands(self, **kwargs):
+        """Wraps boxplot method of `ElectronBandsPlotter`. kwargs passed to boxplot."""
+        return self.get_ebands_plotter().boxplot(**kwargs)
+
+    def combiboxplot_ebands(self, **kwargs):
+        """Wraps combiboxplot method of `ElectronDosPlotter`. kwargs passed to combiboxplot."""
+        return self.get_ebands_plotter().combiboxplot(**kwargs)
+
+    def combiplot_edos(self, **kwargs):
+        """Wraps combiplot method of `ElectronDosPlotter`. kwargs passed to combiplot."""
+        return self.get_edos_plotter().combiplot(**kwargs)
+
+    def gridplot_edos(self, **kwargs):
+        """Wraps gridplot method of `ElectronDosPlotter`. kwargs passed to gridplot."""
+        return self.get_edos_plotter().gridplot(**kwargs)
 
     def get_ebands_plotter(self, filter_abifile=None, cls=None):
         """
