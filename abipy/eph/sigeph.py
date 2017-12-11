@@ -13,7 +13,6 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-
 from collections import OrderedDict, namedtuple
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property

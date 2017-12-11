@@ -570,7 +570,7 @@ class HistRobot(Robot):
                                                 sharex=sharex, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for i, (ax, hist) in enumerate(zip(ax_list, self.ncfiles)):
+        for i, (ax, hist) in enumerate(zip(ax_list, self.abifiles)):
             hist.plot_ax(ax, what, marker="o")
             ax.set_title(hist.relpath)
             ax.grid(True)
@@ -611,7 +611,7 @@ class HistRobot(Robot):
         cmap = plt.get_cmap(cmap)
 
         for i, (ax, what) in enumerate(zip(ax_list, what_list)):
-            for ih, hist in enumerate(self.ncfiles):
+            for ih, hist in enumerate(self.abifiles):
                 label= None if i != 0 else hist.relpath
                 hist.plot_ax(ax, what, color=cmap(ih / len(self)), label=label)
                 #ax.set_title(what)

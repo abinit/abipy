@@ -4,6 +4,9 @@ TODO list:
 
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice.
 
+* introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
+  and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
+
 * Check PJDOS in abinit@gitlab
 
 * Add mpirun_args see e.g nic4 and mpirun --bind-to None DONE
@@ -11,6 +14,10 @@ TODO list:
 * Re-implement max_njobs in the queque using a counter local to the Launcher. DONE
 
 ## Medium priority
+
+* Fix annoying warnings about k-point sampling.
+
+* Fix problem with get_edos if we don't have enough bands 
 
 * Finalize interface with phononwebsite
 
@@ -29,7 +36,7 @@ TODO list:
 
 ## Low priority
 
-* DDK.nc 
+* Finalize DDK.nc 
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 

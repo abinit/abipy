@@ -3513,7 +3513,7 @@ class RobotWithPhbands(object):
         """
         Build a pandas dataframe with the most important results available in the band structures.
         """
-        return dataframe_from_phbands([nc.phbands for nc in self.ncfiles],
+        return dataframe_from_phbands([nc.phbands for nc in self.abifiles],
                                       index=self.labels, with_spglib=with_spglib)
 
     def get_phbands_code_cells(self, title=None):

@@ -237,6 +237,7 @@ class ElectronBandsTest(AbipyTest):
         si_edos = si_ebands_kmesh.get_edos()
         repr(si_edos); str(si_edos)
         assert ElectronDos.as_edos(si_edos, {}) is si_edos
+        assert si_edos == si_edos and not (si_edos != si_edos)
         edos_samevals = ElectronDos.as_edos(si_ebands_kmesh, {})
         assert ElectronDos.as_edos(si_ebands_kmesh, {}) == si_edos
         assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == si_edos
