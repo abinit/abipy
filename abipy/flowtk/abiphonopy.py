@@ -67,6 +67,7 @@ class PhonopyWork(Work):
 	If not None, the work will copy the output results to the outdir of the flow
 	once all_ok is invoked. Note that cpdata2dst must be an absolute path.
     """
+
     @classmethod
     def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None):
         """

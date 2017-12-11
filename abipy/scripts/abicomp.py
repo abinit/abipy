@@ -505,14 +505,20 @@ def _invoke_robot(options):
         robot.make_and_open_notebook(foreground=options.foreground)
 
     else:
-        print(robot.to_string(verbose=options.verbose))
+
         # Print dataframe if robot provides get_dataframe method.
         if hasattr(robot, "get_dataframe"):
             try:
                 df = robot.get_dataframe()
                 abilab.print_dataframe(df, title="Output of robot.get_dataframe():")
-            except:
-                pass
+            except Exception as exc:
+                cprint("Exception:\n%s\n\nwhile invoking get_dataframe. Falling back to to_string" % str(exc), "red")
+                print(robot.to_string(verbose=options.verbose))
+
+        else:
+            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (
+                    robot.__class__.__name__), "yellow")
+            print(robot.to_string(verbose=options.verbose))
 
         if not options.verbose:
             print("\nUse --verbose for more information")
@@ -700,23 +706,23 @@ def get_parser(with_epilog=False):
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare.")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='Verbose, can be supplied multiple times to increase verbosity.')
+        help='Verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                              help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
     ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
     ipy_parser.add_argument('--foreground', action='store_true', default=False,
-                            help="Run jupyter notebook in the foreground.")
+        help="Run jupyter notebook in the foreground.")
     ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
     nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
     nb_parser.add_argument('--foreground', action='store_true', default=False,
-                            help="Run jupyter notebook in the foreground.")
+        help="Run jupyter notebook in the foreground.")
 
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
@@ -733,17 +739,17 @@ def get_parser(with_epilog=False):
     # Subparser for structure command.
     p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser], help=abicomp_structure.__doc__)
     p_struct.add_argument("-g", "--group", default=False, action="store_true",
-                          help="Compare a set of structures for similarity.")
+        help="Compare a set of structures for similarity.")
     p_struct.add_argument("-a", "--anonymous", default=False, action="store_true",
-                          help="Whether to use anonymous mode in StructureMatcher. Default False")
+        help="Whether to use anonymous mode in StructureMatcher. Default False")
 
     # Subparser for mp_structure command.
     p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser, nb_parser],
-                                       help=abicomp_mp_structure.__doc__)
+        help=abicomp_mp_structure.__doc__)
 
     # Subparser for cod_structure command.
     p_codstruct = subparsers.add_parser('cod_structure', parents=[copts_parser, nb_parser],
-                                        help=abicomp_cod_structure.__doc__)
+        help=abicomp_cod_structure.__doc__)
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")
@@ -757,35 +763,35 @@ def get_parser(with_epilog=False):
     p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
         "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
     p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
-                       help="Whether to annotate the peaks with plane information.")
+        help="Whether to annotate the peaks with plane information.")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
-                          choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
-                          help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+        help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
     p_ebands.add_argument("-e0", default="fermie", choices=["fermie", "None"],
-                          help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
+        help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
 
     # Subparser for edos command.
     p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser], help=abicomp_edos.__doc__)
     p_edos.add_argument("-p", "--plot-mode", default="gridplot",
-                        choices=["gridplot", "combiplot", "None"],
-                        help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
+        choices=["gridplot", "combiplot", "None"],
+        help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
     p_edos.add_argument("-e0", default="fermie", choices=["fermie", "None"],
-                        help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
+        help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
-                           choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
-                           help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
+        help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
 
     # Subparser for phdos command.
     p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser], help=abicomp_phdos.__doc__)
     p_phdos.add_argument("-p", "--plot-mode", default="gridplot",
-                         choices=["gridplot", "combiplot", "None"],
-                         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
+        choices=["gridplot", "combiplot", "None"],
+        help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
 
     # Subparser for phdos command.
     p_attr = subparsers.add_parser('attr', parents=[copts_parser], help=abicomp_attr.__doc__)

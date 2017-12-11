@@ -79,6 +79,38 @@ def data_from_cplx_mode(cplx_mode, arr):
 
 
 @add_fig_kwargs
+def plot_xy_with_hue(data, x, y, hue, ax=None, xlims=None, ylims=None, **kwargs):
+    """
+
+    Args:
+        data: DataFram with columns x, y, and hue.
+        x:
+        y:
+        hue:
+        ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
+                     or scalar e.g. `left`. If left (right) is None, default values are used
+
+    Returns:
+        `matplotlib` figure.
+    """
+    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    for key, grp in data.groupby(hue):
+        xvals, yvals = grp[x], grp[y]
+        label = "{} = {}".format(hue, key)
+        ax.plot(xvals, yvals, 'o-', label=label)
+
+    ax.grid(True)
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    set_axlims(ax, xlims, "x")
+    set_axlims(ax, ylims, "y")
+    ax.legend(loc="best")
+
+    return fig
+
+
+@add_fig_kwargs
 def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
     """
     Use imshow for plotting 2D or 1D arrays.

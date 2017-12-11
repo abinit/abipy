@@ -47,6 +47,31 @@ class TestPlotting(AbipyTest):
             cvec = np.empty(10, dtype=np.complex)
             assert plot_array(cvec, cplx_mode="im", show=False)
 
+    def test_plot_xy_with_hue(self):
+        """Testing plot_xy_with_hue."""
+        # Here is some sample data. The 'x2' data is slightly offset from 'x1'
+        x1 = list(range(0, 100, 10))
+        x2 = list(range(1, 100, 10))
+        x = x1 + x2
+
+        #The y-values I generate here mimic the general shape of my actual data
+        y1 = x1[::-1]
+        y2 = [i+25 for i in x1[::-1]]
+        y = y1 + y2
+
+        # Two levels of labels that will be applied to the data
+        z1 = ["1"] * 10
+        z2 = ["2"] * 10
+        z = z1 + z2
+
+        # A pandas data frame from the above data
+        import pandas as pd
+        df = pd.DataFrame({'x': x, 'y': y, 'z': z})
+
+        from abipy.tools.plotting import plot_xy_with_hue
+        if self.has_matplotlib():
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", ax=None, show=False)
+
     def test_array_plotter(self):
         """Testing array plotter."""
         plotter = ArrayPlotter()

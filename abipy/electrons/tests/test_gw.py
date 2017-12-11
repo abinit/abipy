@@ -81,6 +81,7 @@ class TestSigresFile(AbipyTest):
         """Test SIGRES File."""
         sigres = abilab.abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         assert sigres.nsppol == 1
+        sigres.print_qps(precision=5, ignore_imag=False)
 
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6
@@ -99,8 +100,8 @@ class TestSigresFile(AbipyTest):
 
         qpgaps = [3.53719151871085, 4.35685250045637, 4.11717896881632,
                   8.71122659251508, 3.29693118466282, 3.125545059031]
-
         self.assert_almost_equal(sigres.qpgaps, np.reshape(qpgaps, (1, 6)))
+
         ik = 2
         df = sigres.get_dataframe_sk(spin=0, kpoint=ik)
         same_df = sigres.get_dataframe_sk(spin=0, kpoint=sigres.gwkpoints[ik])
@@ -235,10 +236,6 @@ class SigresRobotTest(AbipyTest):
 
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
             qpdata = robot.get_qpgaps_dataframe(with_geo=True)
-
-            # This cannot be tested because it changes the matplotlib backend
-            if self.has_seaborn():
-                robot.plot_conv_qpgap(x_vars="sigma_nband", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

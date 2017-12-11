@@ -17,6 +17,7 @@ from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
 from abipy.abio.inputs import GEOVARS
 from abipy.abio.timer import AbinitTimerParser
+from abipy.abio.robots import Robot
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
 
 
@@ -140,7 +141,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.final_vars_global, self.final_vars_dataset = None, None
         if self.run_completed:
             if self.dryrun_mode:
-                # footer is not preset. Copy values from header.
+                # footer is not present. Copy values from header.
                 self.final_vars_global, self.final_vars_dataset = self.initial_vars_global, self.initial_vars_dataset
             else:
                 self.final_vars_global, self.final_vars_dataset = self._parse_variables("footer")
@@ -244,7 +245,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         global_kptopt = vars_global.get("kptopt", 1)
 
         structures = []
-        for i in self.datasets.keys():
+        for i in self.datasets:
             # This code breaks down if there are conflicting GEOVARS in globals and dataset.
             d = inigeo.copy()
             d.update({k: vars_dataset[i][k] for k in GEOVARS if k in vars_dataset[i]})
@@ -498,6 +499,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         memory_pre = "P This job should need less than"
         magic_exit = "------------- Echo of variables that govern the present computation"
         filesizes_pre = "_ WF disk file :"
+        #verbose = 1
 
         def parse_spgline(line):
             """Parse the line with space group info, return dict."""
@@ -517,12 +519,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         with open(self.filepath, "rt") as fh:
             for line in fh:
                 line = line.strip()
+                if verbose: print("inblock:", inblock, " at line:", line)
+
                 if line.startswith(magic_exit):
                     break
-                if not line or line.startswith("===") or line.startswith("---") or line.startswith("Rough estimation"):
+                if (not line or line.startswith("===") or line.startswith("---")
+                    or line.startswith("Rough estimation") or line.startswith("PAW method is used")):
                     continue
-
-                if verbose: print("inblock:", inblock, " at line:", line)
 
                 if line.startswith("DATASET") or line.startswith("Symmetries :"):
                     # Get dataset index, parse space group and lattice info, init new dims dict.
@@ -552,6 +555,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                         assert len(mbpos) == 2
                         dims["wfk_size_mb"] = float(tokens[mbpos[0]])
                         dims["denpot_size_mb"] = float(tokens[mbpos[1]])
+                    elif line.startswith("Pmy_natom="):
+                        dims.update(my_natom=int(line.replace("Pmy_natom=", "").strip()))
+                        #print("my_natom", dims["my_natom"])
                     else:
                         if line and line[0] == "-": line = line[1:]
                         tokens = grouper(2, line.replace("=", "").split())
@@ -693,48 +699,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class OutNcFile(AbinitNcFile):
-    """
-    Class representing the _OUT.nc file containing the dataset results
-    produced at the end of the run. The netcdf variables can be accessed
-    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.
-    """
-    def __init__(self, filepath):
-        super(OutNcFile, self).__init__(filepath)
-        self.reader = NetcdfReader(filepath)
-        self._varscache= {k: None for k in self.reader.rootgrp.variables}
-
-    def __dir__(self):
-        """Ipython integration."""
-        return sorted(list(self._varscache.keys()))
-
-    def __getattribute__(self, name):
-        try:
-            return super(OutNcFile, self).__getattribute__(name)
-        except AttributeError:
-            # Look in self._varscache
-            varscache = super(OutNcFile, self).__getattribute__("_varscache")
-            if name not in varscache:
-                raise AttributeError("Cannot find attribute %s" % name)
-            reader = super(OutNcFile, self).__getattribute__("reader")
-            if varscache[name] is None:
-                varscache[name] = reader.read_value(name)
-            return varscache[name]
-
-    def close(self):
-        self.reader.close()
-
-    def get_allvars(self):
-        """
-        Read all netcdf variables present in the file.
-        Return dictionary varname --> value
-        """
-        for k, v in self._varscache.items():
-            if v is not None: continue
-            self._varscache[k] = self.reader.read_value(k)
-        return self._varscache
-
-
 def validate_output_parser(abitests_dir=None, output_files=None):
     """
     Validate/test Abinit output parser.
@@ -810,3 +774,135 @@ def validate_output_parser(abitests_dir=None, output_files=None):
         cprint("All input files successfully parsed!", "green")
 
     return len(errpaths)
+
+
+class AboRobot(Robot):
+    """
+    This robot analyzes the results contained in multiple Abinit output files.
+    Can compare dimensions, SCF cycles, analyze timers.
+    """
+    EXT = "abo"
+
+    def get_dims_dataframe(self, index=None):
+        """
+        Build and return pandas DataFrame with the dimensions of the calculation.
+
+        Args:
+            index: Index of the dataframe. Use relative paths of files if None.
+        """
+        rows, my_index = [], []
+        for i, abo in enumerate(self.ncfiles):
+            try:
+                dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
+            except Exception as exc:
+                cprint("Exception while trying to get dimensions from %s\n%s" % (abo.relpath, str(exc)), "yellow")
+                continue
+
+            for dtindex, dims in dims_dataset.items():
+                dims.update({"dtset": dtindex})
+                rows.append(dims)
+                my_index.append(abo.relpath if index is None else index[i])
+
+        import pandas as pd
+        return pd.DataFrame(rows, index=my_index, columns=list(rows[0].keys()))
+
+    def get_dataframe(self, with_geo=True, with_dims=True, abspath=False, funcs=None):
+        """
+        Return a pandas DataFrame with the most important results.
+        and the filenames as index.
+
+        Args:
+            with_geo: True if structure info should be added to the dataframe
+            with_dims: True if dimensions should be added
+            abspath: True if paths in index should be absolute. Default: Relative to getcwd().
+            funcs: Function or list of functions to execute to add more data to the DataFrame.
+                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
+                where key is a string with the name of column and value is the value to be inserted.
+        """
+        rows, row_names = [], []
+        for label, abo in self:
+            row_names.append(label)
+            d = OrderedDict()
+
+            if with_dims:
+                dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
+                if len(dims_dataset) > 1:
+                    cprint("Multiple datasets are not supported. ARGH!", "yellow")
+                d.update(dims_dataset[1])
+
+            # Add info on structure.
+            if with_geo and abo.run_completed:
+                d.update(abo.final_structure.get_dict4pandas(with_spglib=True))
+
+            # Execute functions
+            if funcs is not None: d.update(self._exec_funcs(funcs, abo))
+            rows.append(d)
+
+        import pandas as pd
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    # TODO
+    #def gridplot_timer(self)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.AboRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("# robot.get_dims_dataframe()"),
+            nbv.new_code_cell("robot.get_dataframe()"),
+        ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class OutNcFile(AbinitNcFile):
+    """
+    Class representing the _OUT.nc file containing the dataset results
+    produced at the end of the run. The netcdf variables can be accessed
+    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.
+    """
+    def __init__(self, filepath):
+        super(OutNcFile, self).__init__(filepath)
+        self.reader = NetcdfReader(filepath)
+        self._varscache= {k: None for k in self.reader.rootgrp.variables}
+
+    def __dir__(self):
+        """Ipython integration."""
+        return sorted(list(self._varscache.keys()))
+
+    def __getattribute__(self, name):
+        try:
+            return super(OutNcFile, self).__getattribute__(name)
+        except AttributeError:
+            # Look in self._varscache
+            varscache = super(OutNcFile, self).__getattribute__("_varscache")
+            if name not in varscache:
+                raise AttributeError("Cannot find attribute %s" % name)
+            reader = super(OutNcFile, self).__getattribute__("reader")
+            if varscache[name] is None:
+                varscache[name] = reader.read_value(name)
+            return varscache[name]
+
+    def close(self):
+        self.reader.close()
+
+    def get_allvars(self):
+        """
+        Read all netcdf variables present in the file.
+        Return dictionary varname --> value
+        """
+        for k, v in self._varscache.items():
+            if v is not None: continue
+            self._varscache[k] = self.reader.read_value(k)
+        return self._varscache

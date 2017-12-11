@@ -9,6 +9,7 @@ import tempfile
 import numpy as np
 import pickle
 import pymatgen
+import pymatgen.core.units as pmg_units
 
 from pprint import pprint, pformat
 from warnings import warn
@@ -18,7 +19,7 @@ from monty.dev import deprecated
 from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
-from pymatgen.core.units import ArrayWithUnit
+
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -350,7 +351,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         cart_coords = np.atleast_2d(cart_coords)
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
-        l = ArrayWithUnit(acell, "bohr").to("ang")
+        l = pmg_units.ArrayWithUnit(acell, "bohr").to("ang")
 
         new = molecule.get_boxed_structure(l[0], l[1], l[2])
         return cls.as_structure(new)
@@ -368,16 +369,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
     @classmethod
-    def bcc(cls, a, species, primitive=True, **kwargs):
+    def bcc(cls, a, species, primitive=True, units="ang", **kwargs):
         """
         Build a primitive or a conventional bcc crystal structure.
 
         Args:
-            a: Lattice parameter in Angstrom.
+            a: Lattice parameter (Angstrom if units is not given)
             species: Chemical species. See __init__ method of :class:`pymatgen.Structue`
             primitive: if True a primitive cell will be produced, otherwise a conventional one
+            units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`
         """
+        a = pmg_units.Length(a, units).to("ang")
         if primitive:
             lattice = 0.5 * float(a) * np.array([
                 -1,  1,  1,
@@ -395,16 +398,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls(lattice, species, coords=coords,  **kwargs)
 
     @classmethod
-    def fcc(cls, a, species, primitive=True, **kwargs):
+    def fcc(cls, a, species, primitive=True, units="ang", **kwargs):
         """
         Build a primitive or a conventional fcc crystal structure.
 
         Args:
-            a: Lattice parameter in Angstrom.
+            a: Lattice parameter (Angstrom if units is not given)
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             primitive: if True a primitive cell will be produced, otherwise a conventional one
+            units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
         """
+        a = pmg_units.Length(a, units).to("ang")
         if primitive:
             lattice = 0.5 * float(a) * np.array([
                 0,  1,  1,
@@ -422,12 +427,38 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls(lattice, species, coords=coords, **kwargs)
 
     @classmethod
-    def rocksalt(cls, a, species, **kwargs):
+    def zincblende(cls, a, species, units="ang", **kwargs):
+        """
+        Build a primitive zincblende crystal structure.
+
+        Args:
+            a: Lattice parameter (Angstrom if units is not given)
+            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            units: Units of input lattice parameters e.g. "bohr", "pm"
+            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
+
+        Example::
+
+            Structure.zincblende(a, ["Zn", "S"])
+
+        """
+        a = pmg_units.Length(a, units).to("ang")
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        frac_coords = np.reshape([0, 0, 0, 0.25, 0.25, 0.25], (2, 3))
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    @classmethod
+    def rocksalt(cls, a, species, units="ang", **kwargs):
         """
         Build a primitive fcc crystal structure.
 
         Args:
-            a: Lattice parameter in Angstrom.
+            a: Lattice parameter (Angstrom if units is not given)
+            units: Units of input lattice parameters e.g. "bohr", "pm"
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
@@ -436,6 +467,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             Structure.rocksalt(a, ["Na", "Cl"])
 
         """
+        a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
             0,  1,  1,
             1,  0,  1,
@@ -445,10 +477,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
-    def ABO3(cls, a, species, **kwargs):
+    def ABO3(cls, a, species, units="ang", **kwargs):
        """
        Peroviskite structures.
+
+       Args:
+            a: Lattice parameter (Angstrom if units is not given)
+            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            units: Units of input lattice parameters e.g. "bohr", "pm"
+            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
        """
+       a = pmg_units.Length(a, units).to("ang")
        lattice = float(a) * np.eye(3)
        frac_coords = np.reshape([
           0,     0,   0,  # A (2a)

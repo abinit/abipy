@@ -14,7 +14,6 @@ from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
 
-# TODO: Robot for Abinit output files (plot timer data and SCF cycles, compare dims...)
 
 class Robot(NotebookWriter):
     """
@@ -69,7 +68,8 @@ class Robot(NotebookWriter):
                 return subcls
 
         raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
-                         "The list of supported extensions (case insensitive) is:\n%s" % str(cls.get_supported_extensions()))
+                         "The list of supported extensions (case insensitive) is:\n%s" %
+                         str(cls.get_supported_extensions()))
 
     @classmethod
     def from_dir(cls, top, walk=True, abspath=False):
@@ -149,21 +149,29 @@ class Robot(NotebookWriter):
     @classmethod
     def class_handles_filename(cls, filename):
         """True if robot class handles filename."""
-        return filename.endswith("_" + cls.EXT + ".nc")
+        return (filename.endswith("_" + cls.EXT + ".nc") or
+                filename.endswith("." + cls.EXT))  # This for .abo
 
     @classmethod
-    def from_files(cls, filenames):
-        """Build a Robot from a list of `filenames`."""
+    def from_files(cls, filenames, labels=None):
+        """
+        Build a Robot from a list of `filenames`.
+        if labels is None, labels are automatically generated from absolute paths.
+        """
         filenames = list_strings(filenames)
         from abipy.abilab import abiopen
         filenames = [f for f in filenames if cls.class_handles_filename(f)]
         items = []
-        for f in filenames:
+        for i, f in enumerate(filenames):
             try:
                 ncfile = abiopen(f)
             except Exception:
                 ncfile = None
-            if ncfile is not None: items.append((ncfile.filepath, ncfile))
+
+            if ncfile is not None:
+                label = ncfile.filepath if labels is None else labels[i]
+                items.append((label, ncfile))
+
         return cls(*items)
 
     @classmethod
@@ -240,6 +248,10 @@ class Robot(NotebookWriter):
         """
         if nids and node.node_id not in nids: return
         filepath = node.outdir.has_abiext(self.EXT)
+        if not filepath:
+            # Look in run.abi directory.
+            filepath = node.wdir.has_abiext(self.EXT)
+
         if filepath:
             try:
                 label = os.path.relpath(filepath)
@@ -413,7 +425,7 @@ class Robot(NotebookWriter):
     def get_label_files_str(self):
         """Return string with [label, filepath]."""
         from tabulate import tabulate
-        return tabulate([(label, ncfile.filepath) for label, ncfile in self], headers=["Label", "Path"])
+        return tabulate([(label, ncfile.relpath) for label, ncfile in self], headers=["Label", "Relpath"]) + "\n"
 
     def show_files(self, stream=sys.stdout):
         """Show label --> file path"""
@@ -589,6 +601,11 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         """Return pandas DataFrame with atomic positions."""
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.coords
+
+    #@staticmethod
+    #def plot_xy_with_hue(**kwargs):
+    #    from abipy.tools.plotting import plot_xy_with_hue
+    #    return plot_xy_with_hue(**kwargs)
 
     def get_baserobot_code_cells(self, title=None):
         """

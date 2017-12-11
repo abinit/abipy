@@ -85,10 +85,8 @@ def selected_nids(flow, options):
     """
     Return the list of node ids selected by the user via the command line interface.
     """
-    print("in selected with", options.nids)
     task_ids = [task.node_id for task in
                 flow.select_tasks(nids=options.nids, wslice=options.wslice, task_class=options.task_class)]
-    print("after selected with", task_ids)
 
     # Have to add the ids of the works containing the tasks.
     if options.nids is not None:
@@ -96,10 +94,47 @@ def selected_nids(flow, options):
     else:
         work_ids = [work.node_id for work in flow]
 
-    print("+", work_ids + task_ids)
-    print("will return set", set(work_ids + task_ids))
     return set(work_ids + task_ids)
 
+
+def cli_abiopen(options, filepath):
+    """Code taken from abiopen.py."""
+    # TODO: One should have a single API but make_and_open_notebook are different so
+    # for the time being we use two different versions.
+    filepath = options.flowdir
+    if filepath is None:
+        raise RuntimeError("filepath must be specified")
+
+    if not os.path.exists(filepath):
+        raise RuntimeError("%s: no such file" % filepath)
+
+    if not options.notebook:
+        # Start ipython shell with namespace
+        abifile = abilab.abiopen(filepath)
+        if options.print:
+            if hasattr(abifile, "to_string"):
+                print(abifile.to_string(verbose=options.verbose))
+            else:
+                print(abifile)
+            return 0
+
+        import IPython
+        # Use embed because I don't know how to show a header with start_ipython.
+        IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
+
+    else:
+        # Call specialized method if the object is a NotebookWriter
+        # else generate simple notebook by calling `make_and_open_notebook`
+        cls = abilab.abifile_subclass_from_filename(filepath)
+        if hasattr(cls, "make_and_open_notebook"):
+            if hasattr(cls, "__exit__"):
+                with abilab.abiopen(filepath) as abifile:
+                    return abifile.make_and_open_notebook(foreground=options.foreground)
+            else:
+                abifile = abilab.abiopen(filepath)
+                return abifile.make_and_open_notebook(foreground=options.foreground)
+        else:
+            return make_and_open_notebook(options)
 
 # TODO: These should become flow methods.
 def flow_write_open_notebook(flow, options):
@@ -237,7 +272,7 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
 
 
 def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
-                        precision=3, printout=False, with_colors=False, plot=False):
+                        precision=3, printout=False, with_colors=False, plot_mode=None):
     """
     Analyze electron bands produced by the tasks. Print pandas DataFrame
 
@@ -248,21 +283,20 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
             This is only a suggestion
         printout: True to print dataframe.
         with_colors: True if task status should be colored.
-        plot=True to plot the bands on a grid.
+        plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
     """
     #flow.check_status()
     ebands_list, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
 
+    # Cannot use robots because ElectronBands can be found in different filetypes
     for task in flow.iflat_tasks(nids=nids, status=flow.S_OK):
-        # Read ebands either from GSR or SIGRES files.
+        # Read ebands from GSR or SIGRES files.
         for ext in ("gsr", "sigres"):
             task_open_ncfile = getattr(task, "open_%s" % ext, None)
             if task_open_ncfile is not None: break
         else:
             continue
 
-        # Structural relaxations produce HIST.nc and we can get
-        # the final structure or the structure of the last relaxation step.
         try:
             with task_open_ncfile() as ncfile:
                 ebands_list.append(ncfile.ebands)
@@ -287,15 +321,18 @@ def flow_compare_ebands(flow, nids=None, with_spglib=False, verbose=0,
     if printout:
         abilab.print_dataframe(df, title="KS electronic bands:", precision=precision)
 
-    if plot:
+    if plot_mode is not None:
         plotter = abilab.ElectronBandsPlotter(key_ebands=zip(ncfiles, ebands_list))
-        plotter.gridplot(tight_layout=True)
+        plotfunc = getattr(plotter, plot_mode, None)
+        if plotfunc is None:
+            raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+        plotfunc(tight_layout=True)
 
     return df
 
 
 def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
-                      precision=3, printout=False, with_colors=False, plot=False):
+                      precision=3, printout=False, with_colors=False, plot_mode=None):
     """
     Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
 
@@ -306,7 +343,7 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
             This is only a suggestion
         printout: True to print dataframe.
         with_colors: True if task status should be colored.
-        plot: Plot results on a grid.
+        plot_mode: Plot results if not None. Allowed value in ["gridplot", "combiplot"]
     """
     #flow.check_status()
     hist_paths, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
@@ -324,8 +361,7 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
         task_nids.append(task.node_id)
 
     if not hist_paths: return
-    robot = abilab.HistRobot(*zip(hist_paths, hist_paths))
-    #robot = abilab.HistRobot.from_labels_paths(zip(hist_paths, hist_paths))
+    robot = abilab.HistRobot.from_files(hist_paths, labels=hist_paths)
     df = robot.get_dataframe(index=index, with_spglib=with_spglib)
 
     # Add columns to the dataframe.
@@ -339,12 +375,18 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
         title = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n"
         abilab.print_dataframe(df, title=title, precision=precision)
 
-    if plot:
+    #print("plot_mode", plot_mode)
+    if plot_mode is not None:
         if len(robot) == 1:
             robot.ncfiles[0].plot()
         else:
-            for what in robot.what_list:
-                robot.gridplot(what=what)
+            if plot_mode == "gridplot":
+                for what in robot.what_list:
+                    robot.gridplot(what=what)
+            elif plot_mode == "combiplot":
+                robot.combiplot()
+            else:
+                raise ValueError("Invalid value of plot_mode: %s" % str(plot_mode))
 
     return df
 
@@ -362,7 +404,7 @@ def flow_get_dims_dataframe(flow, nids=None, printout=False, with_colors=False):
 
     for task in flow.iflat_tasks(nids=nids):
         if task.status not in (flow.S_OK, flow.S_RUN): continue
-        #if not task.is_abinit_task: continue
+        if not task.is_abinit_task: continue
 
         abo_paths.append(task.output_file.path)
         index.append(task.pos_str)
@@ -372,20 +414,10 @@ def flow_get_dims_dataframe(flow, nids=None, printout=False, with_colors=False):
         task_nids.append(task.node_id)
 
     if not abo_paths: return
-    # Get dimensions from output files.
-    rows = []
-    for p in abo_paths:
-        print(p)
-        with abilab.AbinitOutputFile(p) as abo:
-            try:
-                dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
-            except Exception as exc:
-                cprint("Exception while trying to get dimensions from %s\n%s" % (p, str(exc)), "yellow")
-                continue
-            rows.append(dims_dataset[1])
 
-    import pandas as pd
-    df = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
+    # Get dimensions from output files.
+    robot = abilab.AboRobot.from_files(abo_paths)
+    df = robot.get_dims_dataframe(index=index)
 
     # Add columns to the dataframe.
     status = [str(s) for s in status]
@@ -448,6 +480,7 @@ def flow_debug_reset_tasks(flow, nids=None, verbose=0):
         nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
         verbose: Verbosity level.
     """
+    # TODO: Improve implementation.
     ntasks = 0
     nrows, ncols = get_terminal_size()
     for task in flow.select_tasks(nids=nids):
@@ -583,49 +616,51 @@ Usage example:
 # Execution
 ###########
 
-  abirun.py [FLOWDIR] rapid                 => Keep repeating, stop when no task can be executed.
-  abirun.py [FLOWDIR] scheduler             => Execute flow with the scheduler.
-  abirun.py [FLOWDIR] status                => Show status table.
-  abirun.py [FLOWDIR] events                => Print ABINIT events (Warnings/Errors/Comments) found in log files.
-  abirun.py [FLOWDIR] history               => Print Task histories.
-  abirun.py [FLOWDIR] cancel                => Cancel jobs in the queue.
-  abirun.py [FLOWDIR] debug                 => Analyze error files and log files for possible error messages.
-  abirun.py [FLOWDIR] corrections           => Show AbiPy corrections performed at runtime.
-  abirun.py [FLOWDIR] handlers              => Show event handlers installed in the flow.
+  abirun.py FLOWDIR rapid                 => Keep repeating, stop when no task can be executed.
+  abirun.py FLOWDIR scheduler             => Execute flow with the scheduler.
+  abirun.py FLOWDIR status                => Show status table.
+  abirun.py FLOWDIR events                => Print ABINIT events (Warnings/Errors/Comments) found in log files.
+  abirun.py FLOWDIR history               => Print Task histories.
+  abirun.py FLOWDIR cancel                => Cancel jobs in the queue.
+  abirun.py FLOWDIR debug                 => Analyze error files and log files for possible error messages.
+  abirun.py FLOWDIR corrections           => Show AbiPy corrections performed at runtime.
+  abirun.py FLOWDIR handlers              => Show event handlers installed in the flow.
 
 ##########
 # Analysis
 ##########
 
-  abirun.py [FLOWDIR] inputs                => Print input files.
-  abirun.py [FLOWDIR] abivars -vn ecut,nband  => Print table with these input variables.
-  abirun.py [FLOWDIR] structures            => Compare input/output structures of the tasks.
-  abirun.py [FLOWDIR] ebands -t NscfTask    => Print table with electronic properties computed in NscfTask
-  abirun.py [FLOWDIR] hist -p               => Print table with last iteration in hist files and plot results.
-  abirun.py [FLOWDIR] cycles -p             => Print (and plot) SCF cycles extracted from the output of the tasks.
-  abirun.py [FLOWDIR] robot hist            => Build robot for HIST files, start ipython shell to interact with the robot.
-  abirun.py [FLOWDIR] dims                  => Print table with dimensions extracted from the output of the tasks.
-  abirun.py [FLOWDIR] inspect               => Call matplotlib to inspect the tasks.
-  abirun.py [FLOWDIR] tail                  => Use Unix tail to follow the main output files of the flow.
-  abirun.py [FLOWDIR] deps                  => Show task dependencies.
-  abirun.py [FLOWDIR] listext GSR SIGRES    => Show output files with the given extension.
+  abirun.py FLOWDIR inputs                => Print input files.
+  abirun.py FLOWDIR abivars -vn ecut,nband  => Print table with these input variables.
+  abirun.py FLOWDIR structures            => Compare input/output structures of the tasks.
+  abirun.py FLOWDIR ebands -t NscfTask    => Print table with electronic properties computed in NscfTask
+  abirun.py FLOWDIR hist -p               => Print table with last iteration in hist files and plot results.
+  abirun.py FLOWDIR cycles -p             => Print (and plot) SCF cycles extracted from the output of the tasks.
+  abirun.py FLOWDIR robot hist            => Build robot for HIST files, start ipython shell to interact with the robot.
+  abirun.py FLOWDIR dims                  => Print table with dimensions extracted from the output of the tasks.
+  abirun.py FLOWDIR group -g task_class   => Print table with node ids and tasks grouped by class
+  abirun.py FLOWDIR inspect               => Call matplotlib to inspect the tasks.
+  abirun.py FLOWDIR tail                  => Use Unix tail to follow the main output files of the flow.
+  abirun.py FLOWDIR deps                  => Show task dependencies.
+  abirun.py FLOWDIR listext GSR SIGRES    => Show output files with the given extension(s).
+  abirun.py FILE abiopen                  => Open FILE with abiopen. Same interface as abiopen.py
 
 ###############
 # Miscelleanous
 ###############
 
-  abirun.py [FLOWDIR] ipython               => Open flow in ipython terminal.
-  abirun.py [FLOWDIR] notebook              => Generate jupyter notebook.
-  abirun.py [FLOWDIR] networkx              => Plot dependency graph.
+  abirun.py FLOWDIR ipython               => Open flow in ipython terminal.
+  abirun.py FLOWDIR notebook              => Generate jupyter notebook.
+  abirun.py FLOWDIR networkx              => Plot dependency graph.
   abirun.py abibuild                        => Show ABINIT build information and exit.
 
 ###############
 # Documentation
 ###############
 
-  abirun.py [FLOWDIR] doc_manager slurm     => Document the TaskManager options availabe for Slurm.
-  abirun.py . doc_manager script            => Show the job script that will be produced with the current settings.
-  abirun.py . doc_scheduler                 => Document the options available in scheduler.yml.
+  abirun.py FLOWDIR doc_manager slurm     => Document the TaskManager options availabe for Slurm.
+  abirun.py . doc_manager script          => Show the job script that will be produced with the current settings.
+  abirun.py . doc_scheduler               => Document the options available in scheduler.yml.
 """
 
     notes = """\
@@ -649,7 +684,7 @@ Notes:
 
     To start the scheduler with a time interval of 30 seconds, use:
 
-        nohup abirun.py [FLOWDIR] scheduler -s 30 &
+        nohup abirun.py FLOWDIR scheduler -s 30 > sched.log 2> sched.err
 
     Alternatively one can specify the scheduler options via the `scheduler.yml` file.
     Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
@@ -668,7 +703,7 @@ Notes:
     abirun.py prof ABIRUN_ARGS               => to profile abirun.py
     abirun.py tracemalloc ABIRUN_ARGS        => to trace memory blocks allocated by Python"""
 
-    return notes + usage + developers
+    return notes + usage # + developers
 
 
 def get_parser(with_epilog=False):
@@ -709,10 +744,10 @@ def get_parser(with_epilog=False):
               "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2, "
               "--wslice=-1 for the last workflow, --wslice::2 for even indices."))
     group.add_argument("-S", '--task-status', default=None, type=Status.as_status,
-                        help="Select only the tasks with the given status. Default: None i.e. ignored. Possible values: %s." %
-                        Status.all_status_strings())
+        help="Select only the tasks with the given status. Default: None i.e. ignored. Possible values: %s." %
+             Status.all_status_strings())
     group.add_argument("-t", '--task-class', type=str, default=None,
-            help="Select only tasks with the given class e.g. `-t NscfTask`.")
+        help="Select only tasks with the given class e.g. `-t NscfTask`.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -742,7 +777,7 @@ def get_parser(with_epilog=False):
     # Subparser for rapid command.
     p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
     p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
-                         help="Maximum number of launches. default: 10. Use -1 for no limit.")
+        help="Maximum number of launches. default: 10. Use -1 for no limit.")
 
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
@@ -795,6 +830,7 @@ def get_parser(with_epilog=False):
     p_open = subparsers.add_parser('open', parents=[copts_parser, flow_selector_parser],
         help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help).")
     p_open.add_argument('what', nargs="?", default="o",
+        choices=["i", "o", "f", "j", "l", "e", "q", "all"],
         help=r"""\
 Specify the files to open. Possible choices:
     i ==> input_file
@@ -804,12 +840,17 @@ Specify the files to open. Possible choices:
     l ==> log_file
     e ==> stderr_file
     q ==> qout_file
-    all ==> all files.""")
+    all ==> all files.
+Default: o
+""")
 
-    # Subparser for ncopen.
-    p_ncopen = subparsers.add_parser('ncopen', parents=[copts_parser, flow_selector_parser],
-        help="Open netcdf files in ipython. Use --help for more info.")
-    p_ncopen.add_argument('ncext', nargs="?", default="GSR", help="Select the type of file to open.")
+    # Subparser for abiopen.
+    p_abiopen = subparsers.add_parser('abiopen', parents=[copts_parser], #, flow_selector_parser],
+        help="Open FILE with abiopen. Same interface as abiopen.py")
+    p_abiopen.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
+    p_abiopen.add_argument('--foreground', action='store_true', default=False,
+                        help="Run jupyter notebook in the foreground.")
+    p_abiopen.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
 
     # Subparser for abibuild
     p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser, flow_selector_parser],
@@ -834,7 +875,7 @@ Specify the files to open. Possible choices:
     # Subparser for tail.
     p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser],
         help="Use unix tail to follow the main output files of the flow.")
-    p_tail.add_argument('what_tail', nargs="?", type=str, default="o",
+    p_tail.add_argument('what_tail', nargs="?", type=str, default="o", choices=["o", "l", "e"],
         help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
 
     # Subparser for qstat.
@@ -850,14 +891,21 @@ Specify the files to open. Possible choices:
     p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR",
         help=("The file extension of the output file (case insensitive). "
               "Must be in: %s" % str(abilab.Robot.get_supported_extensions())))
-    p_robot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Generate jupyter notebook")
+    p_robot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Generate jupyter notebook.")
     p_robot.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
+    p_robot.add_argument('-p', '--print-dataframe', action='store_true', default=False,
+        help="Invoke robot.get_dataframe() and printa table to terminal.")
 
     # Subparser for cycles.
     p_cycles = subparsers.add_parser('cycles', parents=[copts_parser, flow_selector_parser],
         help="Print self-consistent cycles extracted from the output of the tasks.")
-    p_cycles.add_argument("-p", "--plot", action='store_true', default=False, help="Plot results with matplotlib.")
+    p_cycles.add_argument("-wok", "--exclude-ok-tasks", action='store_true', default=False,
+        help="Exclude Tasks that have reached S_OK.")
+    #p_cycles.add_argument("-p", "--plot", action='store_true', default=False, help="Plot results with matplotlib.")
+    p_cycles.add_argument("-p", "--plot-mode", nargs="?", default=None, const="gridplot",
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate"],
+        help="Plot multiple bands if arg is specified. Use -p for gridplot. Supports multiple formats.")
 
     # Subparser for dims.
     p_dims = subparsers.add_parser('dims', parents=[copts_parser, flow_selector_parser],
@@ -886,12 +934,16 @@ Specify the files to open. Possible choices:
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, flow_selector_parser],
         help="Compare electronic bands produced by the tasks.")
-    p_ebands.add_argument("-p", "--plot", action='store_true', default=False, help="Plot bands on a grid.")
+    p_ebands.add_argument("-p", "--plot-mode", nargs="?", default=None, const="gridplot",
+        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate"],
+        help="Plot multiple bands if arg is specified. Use -p for gridplot. Supports multiple formats.")
 
     # Subparser for hist command.
     p_hist = subparsers.add_parser('hist', parents=[copts_parser, flow_selector_parser],
         help="Compare HIST.nc files produced by the tasks.")
-    p_hist.add_argument("-p", "--plot", action='store_true', default=False, help="Plot HIST results on a grid.")
+    p_hist.add_argument("-p", "--plot-mode", nargs="?", default=None, const="combiplot",
+        choices=["gridplot", "combiplot"],
+        help="Plot multiple HIST files if arg is present. Use -p for combiplot. Supports multiple formats.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('doc_manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -914,7 +966,8 @@ Specify the files to open. Possible choices:
         help="Print full history set, including nodes with an empty history.")
 
     # Subparser for handlers.
-    p_handlers = subparsers.add_parser('handlers', parents=[copts_parser], help="Show event handlers installed in the flow.")
+    p_handlers = subparsers.add_parser('handlers', parents=[copts_parser],
+        help="Show event handlers installed in the flow.")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False,
         help="Show documentation about all the handlers that can be installed.")
 
@@ -962,6 +1015,8 @@ Specify the files to open. Possible choices:
     # Subparser for group.
     p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
         help="Group tasks according to property.")
+    p_group.add_argument("-g", '--groupby', default="status", type=str, choices=["status", "task_class"],
+        help="Select the attribute used to group tasks. Default: status.")
 
     # Subparser for diff.
     p_diff = subparsers.add_parser('diff', parents=[copts_parser, flow_selector_parser],
@@ -982,9 +1037,10 @@ Specify the files to open. Possible choices:
     p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     # Subparser for timer.
-    p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
-        help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0) "
-              "Open Ipython terminal to inspect data."))
+    # TODO
+    #p_timer = subparsers.add_parser('timer', parents=[copts_parser, flow_selector_parser],
+    #    help=("Read the section with timing info from the main ABINIT output file (requires timopt != 0) "
+    #          "Open Ipython terminal to inspect data."))
 
     return parser
 
@@ -1060,6 +1116,10 @@ def main():
         else:
             print(abinit_build.info)
         return 0
+
+    # Abiopen does not need flow
+    if options.command == "abiopen":
+        return cli_abiopen(options, options.flowdir)
 
     # After this point we start to operate on the flow.
     # 0) Print logo
@@ -1220,23 +1280,6 @@ def main():
     elif options.command == "open":
         flow.open_files(what=options.what, status=None, op="==", nids=selected_nids(flow, options))
 
-    elif options.command == "ncopen":
-        # The name of the method associated to this netcdf file.
-        methname = "open_" + options.ncext.lower()
-        # List of netcdf file objects.
-        ncfiles = [getattr(task, methname)() for task in flow.select_tasks(nids=options.nids, wslice=options.wslice)
-                   if hasattr(task, methname)]
-
-        if ncfiles:
-            # Start ipython shell with namespace
-            import IPython
-            if len(ncfiles) == 1:
-                IPython.start_ipython(argv=[], user_ns={"ncfile": ncfiles[0]})
-            else:
-                IPython.start_ipython(argv=[], user_ns={"ncfiles": ncfiles})
-        else:
-            cprint("Cannot find any netcdf file with extension %s" % options.ncext, color="magenta")
-
     elif options.command == "cancel":
         print("Number of jobs cancelled %d" % flow.cancel(nids=selected_nids(flow, options)))
         # Remove directory
@@ -1347,26 +1390,46 @@ def main():
         robot = abilab.Robot.from_flow(flow, outdirs="all", nids=selected_nids(flow, options),
                                        ext=options.robot_ext)
         if len(robot) == 0:
-            cprint("Empty robot. No notebook will be produced", "yellow")
+            cprint("Robot couldn't find files", "yellow")
             return 1
 
-        if options.notebook:
-            robot.show_files()
+        print("\n%s\n" % robot.get_label_files_str())
+
+        if options.print_dataframe:
+            # Print dataframe if robot provides get_dataframe method.
+            if hasattr(robot, "get_dataframe"):
+                try:
+                    df = robot.get_dataframe()
+                    abilab.print_dataframe(df, title="Output of robot.get_dataframe():", precision=4)
+                except Exception as exc:
+                    cprint("Exception:\n%s\n\nwhile invoking get_dataframe. Falling back to to_string" % str(exc), "red")
+                    print(robot.to_string(verbose=options.verbose))
+            else:
+                cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (
+                        robot.__class__.__name__), "yellow")
+                print(robot.to_string(verbose=options.verbose))
+
+        elif options.notebook:
+            # Create notebook.
             return robot.make_and_open_notebook(foreground=options.foreground)
+
         else:
+            # Start ipython to interact with the robot.
             import IPython
             header = robot.get_label_files_str() + "\n\nType `robot` in the terminal and use <TAB> to list its methods."
             IPython.embed(header=header, robot=robot)
 
     elif options.command == "cycles":
         # Print SCF cycles.
-        for task, cycle in flow.get_task_cycles(nids=selected_nids(flow, options)):
+        for task, cycle in flow.get_task_scfcycles(nids=selected_nids(flow, options),
+                                                   exclude_ok_tasks=options.exclude_ok_tasks):
             print()
             cprint(repr(task), **task.status.color_opts)
             print()
             print(cycle)
             print()
-            if options.plot:
+            # TODO: ScfCyclePlotter with gridplot and combiplot
+            if options.plot_mode is not None:
                 cycle.plot(title=repr(task))
 
     elif options.command == "dims":
@@ -1401,11 +1464,12 @@ def main():
     elif options.command == "ebands":
         flow_compare_ebands(flow, nids=selected_nids(flow, options), verbose=options.verbose,
                             with_spglib=False, printout=True, with_colors=not options.no_colors,
-                            plot=options.plot)
+                            plot_mode=options.plot_mode)
 
     elif options.command == "hist":
         flow_compare_hist(flow, nids=selected_nids(flow, options), verbose=options.verbose,
-                          with_spglib=False, printout=True, with_colors=not options.no_colors, plot=options.plot)
+                          with_spglib=False, printout=True, with_colors=not options.no_colors,
+                          plot_mode=options.plot_mode)
 
     elif options.command == "notebook":
         return flow_write_open_notebook(flow, options)
@@ -1481,8 +1545,7 @@ def list_of_dict_with_vars(task):
     #return [
     #    {"ecut": 20, nband: 10},
     #    {"ecut": 30, nband: 20},
-    #]
-"""
+    #]"""
             with open(py_file, "wt") as fh:
                 fh.write(template)
             return 1
@@ -1508,21 +1571,19 @@ def list_of_dict_with_vars(task):
 
     elif options.command == "group":
         d = defaultdict(list)
-        groupby = "status"
-        #groupby = "task_class"
-        print("\nMapping %s ---> List of node identifiers" % groupby)
+        print("\nMapping `%s` ---> List of node identifiers" % options.groupby)
         for task in flow.iflat_tasks(status=options.task_status, nids=selected_nids(flow, options)):
-            if groupby == "status":
+            if options.groupby == "status":
                 k = task.status
-            elif groupby == "task_class":
+            elif options.groupby == "task_class":
                 k = task.__class__.__name__
             else:
-                raise ValueError("Invalid groupby %s" % groupby)
+                raise ValueError("Invalid groupby: `%s`" % options.groupby)
             d[k].append(task)
 
         for k, tasks in d.items():
-            print("   ",k, " ---> ", [task.node_id for task in tasks])
-            #print("   ",k, " ---> ", [colored(task.node_id, **task.status.color_opts) for task in tasks])
+            s = ", ".join([colored(str(task.node_id), **task.status.color_opts) for task in tasks])
+            print("   ",k, " ---> ", s)
 
     elif options.command == "diff":
         if options.nids is None:
@@ -1562,15 +1623,15 @@ def list_of_dict_with_vars(task):
             flow.listext(ext)
             print("")
 
-    elif options.command == "timer":
-        print("Warning this option is still under development")
-        timer = flow.parse_timing()
-        if timer is None:
-            cprint("Cannot parse timer data!", color="magenta", end="", flush=True)
-            return 1
+    #elif options.command == "timer":
+    #    print("Warning this option is still under development")
+    #    timer = flow.parse_timing()
+    #    if timer is None:
+    #        cprint("Cannot parse timer data!", color="magenta", end="", flush=True)
+    #        return 1
 
-        import IPython
-        IPython.start_ipython(argv=[], user_ns={"timer": timer})
+    #    import IPython
+    #    IPython.start_ipython(argv=[], user_ns={"timer": timer})
 
     else:
         raise RuntimeError("Don't know what to do with command %s!" % options.command)

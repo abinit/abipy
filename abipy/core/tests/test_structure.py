@@ -185,6 +185,7 @@ class TestStructure(AbipyTest):
         # Function to compute cubic a0 from primitive v0 (depends on struct_type)
         vol2a = {"fcc": lambda vol: (4 * vol) ** (1/3.),
                  "bcc": lambda vol: (2 * vol) ** (1/3.),
+                 "zincblende": lambda vol: (4 * vol) ** (1/3.),
                  "rocksalt": lambda vol: (4 * vol) ** (1/3.),
                  "ABO3": lambda vol: vol ** (1/3.),
                  "hH": lambda vol: (4 * vol) ** (1/3.),
@@ -203,6 +204,8 @@ class TestStructure(AbipyTest):
         fcc_conv = Structure.fcc(a, ["Si"], primitive=False)
         assert len(fcc_conv) == 4
         self.assert_almost_equal(a**3, fcc_conv.volume)
+        zns = Structure.zincblende(a / bohr_to_ang, ["Zn", "S"], units="bohr")
+        self.assert_almost_equal(a, vol2a["zincblende"](zns.volume))
         rock = Structure.rocksalt(a, ["Na", "Cl"])
         assert len(rock) == 2
         self.assert_almost_equal(a, vol2a["rocksalt"](rock.volume))

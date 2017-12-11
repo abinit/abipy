@@ -9,7 +9,7 @@ import pymatgen.core.units as units
 from collections import OrderedDict
 from monty.functools import lazy_property
 from monty.collections import AttrDict
-from monty.string import marquee # is_string, list_strings
+from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.structure import Structure
@@ -44,6 +44,23 @@ class HistFile(AbinitNcFile, NotebookWriter):
     def __str__(self):
         return self.to_string()
 
+    # TODO
+    #@lazy_property
+    #def nsppol(self):
+    #    """Number of independent spins."""
+    #    return self.reader.read_dimvalue("nsppol")
+
+    #@lazy_property
+    #def nspden(self):
+    #    """Number of independent spin densities."""
+    #    return self.reader.read_dimvalue("nspden")
+
+
+    #@lazy_property
+    #def nspinor(self):
+    #    """Number of spinor components."""
+    #    return self.reader.read_dimvalue("nspinor")
+
     @lazy_property
     def final_energy(self):
         return self.etotals[-1]
@@ -57,17 +74,22 @@ class HistFile(AbinitNcFile, NotebookWriter):
     #@lazy_property
     #def final_max_force(self):
 
-    #def get_fstats_dict(self, step):
-    #    #for step in range(self.num_steps):
-    #    forces_hist = self.reader.read_cart_forces()
-    #    fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
+    def get_fstats_dict(self, step):
+        """
+        Return dictionary with stats on the forces at the given `step`
+        """
+        # [time, natom, 3]
+        var = self.reader.read_variable("fcart")
+        forces = units.ArrayWithUnit(var[step], "Ha bohr^-1").to("eV ang^-1")
+        fmods = np.array([np.linalg.norm(force) for force in forces])
 
-    #    forces = forces_hist[step]
-    #    fmods = np.sqrt([np.dot(force, force) for force in forces])
-    #    fmean_steps.append(fmods.mean())
-    #    fstd_steps.append(fmods.std())
-    #    fmin_steps.append(fmods.min())
-    #    fmax_steps.append(fmods.max())
+        return AttrDict(
+            fmin=fmods.min(),
+            fmax=fmods.max(),
+            fmean=fmods.mean(),
+            fstd=fmods.std(),
+            drift=np.linalg.norm(forces.sum(axis=0)),
+        )
 
     def to_string(self, verbose=0, title=None):
         """Return string representation."""
@@ -219,32 +241,66 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         if what == "energy":
             # Total energy in eV.
-            ax.plot(self.steps, self.etotals, label="Energy", **kwargs)
-            ax.set_ylabel('Total energy [eV]')
+            marker = kwargs.pop("marker", "o")
+            label = kwargs.pop("label", "Energy")
+            ax.plot(self.steps, self.etotals, label=label, marker=marker, **kwargs)
+            ax.set_ylabel('Energy [eV]')
             ax.set_xlabel('Step')
 
         elif what == "abc":
             # Lattice parameters.
+            mark = kwargs.pop("marker", None)
+            markers = ["o", "^", "v"] if mark is None else 3 * [mark]
             for i, label in enumerate(["a", "b", "c"]):
-                ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label, **kwargs)
-            ax.set_ylabel('Lattice lengths [A]')
+                ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
+                        marker=markers[i], **kwargs)
+            ax.set_ylabel("abc [A]")
+            ax.legend(loc="best", shadow=True)
+
+        elif what in ("a", "b", "c"):
+            i =  ("a", "b", "c").index(what)
+            marker = kwargs.pop("marker", None)
+            if marker is None:
+                marker = {"a": "o", "b": "^", "c": "v"}[what]
+            label = kwargs.pop("label", what)
+            ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
+                    marker=marker, **kwargs)
+            ax.set_ylabel('%s [A]' % what)
             ax.legend(loc='best', shadow=True)
 
         elif what == "angles":
             # Lattice Angles
+            mark = kwargs.pop("marker", None)
+            markers = ["o", "^", "v"] if mark is None else 3 * [mark]
             for i, label in enumerate(["alpha", "beta", "gamma"]):
-                ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label, **kwargs)
-            ax.set_ylabel('Lattice Angles [degree]')
+                ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
+                        marker=markers[i], **kwargs)
+            ax.set_ylabel(r"$\alpha\beta\gamma$ [degree]")
+            ax.legend(loc='best', shadow=True)
+
+        elif what in ("alpha", "beta", "gamma"):
+            i =  ("alpha", "beta", "gamma").index(what)
+            marker = kwargs.pop("marker", None)
+            if marker is None:
+                marker = {"alpha": "o", "beta": "^", "gamma": "v"}[what]
+
+            label = kwargs.pop("label", what)
+            ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
+                    marker=marker, **kwargs)
+            ax.set_ylabel(r"$\%s$ [degree]" % what)
             ax.legend(loc='best', shadow=True)
 
         elif what == "volume":
-            ax.plot(self.steps, [s.lattice.volume for s in self.structures], **kwargs)
-            ax.set_ylabel('Lattice volume [A^3]')
+            marker = kwargs.pop("marker", "o")
+            ax.plot(self.steps, [s.lattice.volume for s in self.structures], marker=marker, **kwargs)
+            ax.set_ylabel(r'$V\, [A^3]$')
 
         elif what == "pressure":
             stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
-            ax.plot(self.steps, pressures, label="Pressure", **kwargs)
-            ax.set_ylabel('Pressure [GPa]')
+            marker = kwargs.pop("marker", "o")
+            label = kwargs.pop("label", "P")
+            ax.plot(self.steps, pressures, label=label, marker=marker, **kwargs)
+            ax.set_ylabel('P [GPa]')
 
         elif what == "forces":
             forces_hist = self.reader.read_cart_forces()
@@ -257,16 +313,20 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 fmin_steps.append(fmods.min())
                 fmax_steps.append(fmods.max())
 
-            ax.plot(self.steps, fmin_steps, label="min |F|", **kwargs)
-            ax.plot(self.steps, fmax_steps, label="max |F|", **kwargs)
-            ax.plot(self.steps, fmean_steps, label="mean |F|", **kwargs)
-            ax.plot(self.steps, fstd_steps, label="std |F|", **kwargs)
-            ax.set_ylabel('Force stats [eV/A]')
+            mark = kwargs.pop("marker", None)
+            markers = ["o", "^", "v", "X"] if mark is None else 4 * [mark]
+            ax.plot(self.steps, fmin_steps, label="min |F|", marker=markers[0], **kwargs)
+            ax.plot(self.steps, fmax_steps, label="max |F|", marker=markers[1], **kwargs)
+            ax.plot(self.steps, fmean_steps, label="mean |F|", marker=markers[2], **kwargs)
+            ax.plot(self.steps, fstd_steps, label="std |F|", marker=markers[3], **kwargs)
+            ax.set_ylabel('F stats [eV/A]')
             ax.legend(loc='best', shadow=True)
             ax.set_xlabel('Step')
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % what)
+            raise ValueError("Invalid value for what: `%s`" % str(what))
+
+        ax.grid(True)
 
     @add_fig_kwargs
     def plot(self, axlist=None, **kwargs):
@@ -281,23 +341,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
             `matplotlib` figure
         """
         import matplotlib.pyplot as plt
+        what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
         fig, ax_list = plt.subplots(nrows=3, ncols=2, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
-        ax0, ax1, ax2, ax3, ax4, ax5 = ax_list
-        for ax in ax_list: ax.grid(True)
+        assert len(ax_list) == len(what_list)
 
-        # Lattice parameters.
-        self.plot_ax(ax0, "abc", marker="o")
-        # Lattice Angles
-        self.plot_ax(ax1, "angles", marker="o")
-        # Lattice volume
-        self.plot_ax(ax2, "volume", marker="o")
-        # Pressure
-        self.plot_ax(ax3, "pressure", marker="o")
-        # Forces
-        self.plot_ax(ax4, "forces", marker="o")
-        # Total energy.
-        self.plot_ax(ax5, "energy", marker="o")
+        for what, ax in zip(what_list, ax_list):
+            self.plot_ax(ax, what, marker="o")
 
         return fig
 
@@ -454,11 +504,13 @@ class HistRobot(Robot):
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # Add attributes specified by the users
-        # TODO add more columns
         attrs = [
             "num_steps", "final_energy", "final_pressure",
-            #"final_min_force", "final_max_force",
-            #"ecut", "pawecutdg", "tsmear", "nkpt", "nsppol", "nspinor", "nspden",
+            "final_fmin", "final_fmax", "final_fmean", "final_fstd", "final_drift",
+            "initial_fmin", "initial_fmax", "initial_fmean", "initial_fstd", "initial_drift",
+            # TODO add more columns but must update HIST file
+            #"nsppol", "nspinor", "nspden",
+            #"ecut", "pawecutdg", "tsmear", "nkpt",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
@@ -466,15 +518,18 @@ class HistRobot(Robot):
             row_names.append(label)
             d = OrderedDict()
 
-            #fstas_dict = self.get_fstats_dict(step=-1)
+            initial_fstas_dict = hist.get_fstats_dict(step=0)
+            final_fstas_dict = hist.get_fstats_dict(step=-1)
 
             # Add info on structure.
             if with_geo:
                 d.update(hist.final_structure.get_dict4pandas(with_spglib=with_spglib))
 
             for aname in attrs:
-                if aname in ("final_min_force", "final_max_force"):
-                    value = fstas_dict[aname]
+                if aname in ("final_fmin", "final_fmax", "final_fmean", "final_fstd", "final_drift",):
+                    value = final_fstas_dict[aname.replace("final_", "")]
+                elif aname in ("initial_fmin", "initial_fmax", "initial_fmean", "initial_fstd", "initial_drift"):
+                    value = initial_fstas_dict[aname.replace("initial_", "")]
                 else:
                     value = getattr(hist, aname, None)
                 d[aname] = value
@@ -496,7 +551,7 @@ class HistRobot(Robot):
     @add_fig_kwargs
     def gridplot(self, what="abc", sharex=False, sharey=False, **kwargs):
         """
-        Plot multiple HIST files on a grid.
+        Plot the `what` value extracted from multiple HIST files on a grid.
 
         Args:
             what: Quantity to plot. Must be in ["energy", "abc", "angles", "volume", "pressure", "forces"]
@@ -509,7 +564,7 @@ class HistRobot(Robot):
         num_plots, ncols, nrows = len(self), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=sharex, sharey=sharey, squeeze=False)
@@ -519,6 +574,50 @@ class HistRobot(Robot):
             hist.plot_ax(ax, what, marker="o")
             ax.set_title(hist.relpath)
             ax.grid(True)
+            if i == len(ax_list) - 1:
+                ax.set_xlabel('Step')
+
+        # Get around a bug in matplotlib.
+        if num_plots % ncols != 0:
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
+            ax_list[-1].axis('off')
+
+        return fig
+
+    @add_fig_kwargs
+    def combiplot(self, what_list=None, cmap="viridis", **kwargs):
+        """
+        Plot multiple HIST files on a grid. One plot for each `what` value.
+
+        Args:
+            what_list: List of strings with the quantities to plot.
+                If None, all quanties are plotted.
+            cmap: matplotlib color map.
+
+        Returns:
+            matplotlib figure.
+        """
+        what_list = (list_strings(what_list) if what_list is not None
+            else ["energy", "a", "b", "c", "alpha", "beta", "gamma", "volume", "pressure"])
+
+        num_plots, ncols, nrows = len(what_list), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+        cmap = plt.get_cmap(cmap)
+
+        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+            for ih, hist in enumerate(self.ncfiles):
+                label= None if i != 0 else hist.relpath
+                hist.plot_ax(ax, what, color=cmap(ih / len(self)), label=label)
+                #ax.set_title(what)
+
+            if label is not None:
+                ax.legend(loc="best", shadow=True)
             if i == len(ax_list) - 1:
                 ax.set_xlabel('Step')
 
@@ -540,7 +639,8 @@ class HistRobot(Robot):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.HistRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("df = robot.get_dataframe()\ndisplay(df)"),
+            nbv.new_code_cell("robot.get_dataframe()"),
+            nbv.new_code_cell("for what in robot.what_list: robot.gridplot(what=what, tight_layout=True);"),
         ])
 
         # Mixins

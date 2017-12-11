@@ -673,10 +673,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 break
             header_lines.append(line)
 
-        nskip=10
+        nskip = 10
         fmti = "%5d"
         fmtf = "%22.14e"
-        fmt3 = " "*nskip+fmtf*3+'\n'
+        fmt3 = " " * nskip + fmtf *3 + '\n'
 
         #write all the variables in order
         for variable in variables:
@@ -1283,27 +1283,6 @@ class DdbRobot(Robot):
         import pandas as pd
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    # TODO: Is this really needed?
-    #def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):
-    #    """
-    #    Plot the convergence of the phonon frequencies.
-    #    kwargs are passed to :class:`seaborn.PairGrid`.
-    #    """
-    #    import matplotlib.pyplot as plt
-    #    import seaborn.apionly as sns
-
-    #    # Get the dataframe for this q-point.
-    #    data = self.get_dataframe_at_qpoint(qpoint=qpoint)
-
-    #    y_vars = sorted([k for k in data if k.startswith("mode")])
-    #    #print(y_vars)
-
-    #    # Call seaborn.
-    #    grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)
-    #    grid.map(plt.plot, marker="o")
-    #    grid.add_legend()
-    #    plt.show()
 
     def anaget_phonon_plotters(self, **kwargs):
         r"""

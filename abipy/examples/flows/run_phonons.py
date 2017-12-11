@@ -82,7 +82,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -129,10 +129,7 @@ if __name__ == "__main__":
 # .. code-block:: ipython
 #
 #     In [1]: phbst_file, phdos_file = abifile.anaget_phbst_and_phdos_files()
-#
 #     In [2]: %matplotlib
-#         Using matplotlib backend: TkAgg
-#
 #     In [3]: phbst_file.plot_phbands()
 #
 # .. image:: https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true

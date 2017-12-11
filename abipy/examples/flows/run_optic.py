@@ -93,7 +93,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -124,7 +124,6 @@ if __name__ == "__main__":
 # .. code-block:: ipython
 #
 #    In [1]: %matplotlib
-#
 #    In [2]: robot.plot_linopt_convergence()
 #
 # .. image:: https://github.com/abinit/abipy_assets/blob/master/run_optic.png?raw=true

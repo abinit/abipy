@@ -31,14 +31,15 @@ def build_flow(options):
     # Build input for GS calculation.
     gsinp = abilab.AbinitInput(structure, pseudos)
     gsinp.set_vars(ecut=8, nband=4, toldff=1.e-6)
+
     # This gives ngkpt = 4x4x4 with 4 shifts for the initial unit cell.
     # The k-point sampling will be rescaled when we build the supercell in PhonopyWork.
     gsinp.set_autokmesh(nksmall=4)
-    #gsinp.set_vars(ngkpt=[4, 4, 4])
 
     flow = flowtk.Flow(workdir=options.workdir)
+
     # Use a 2x2x2 supercell to compute phonons with phonopy
-    work = PhonopyGruneisenWork.from_gs_input(gsinp, voldelta=0.01, scdims=[4, 4, 4])
+    work = PhonopyGruneisenWork.from_gs_input(gsinp, voldelta=0.01, scdims=[2, 2, 2])
     flow.register_work(work)
 
     return flow
