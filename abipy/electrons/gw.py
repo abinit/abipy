@@ -239,7 +239,7 @@ class QPList(list):
         """Return an arrays with the :class:`QPState` corrections."""
         return self.get_field("qpeme0")
 
-    @deprecated("to_table is deprecated and will be removed in v0.4")
+    @deprecated(message="to_table is deprecated and will be removed in v0.4")
     def to_table(self):
         """Return a table (list of list of strings)."""
         header = QPState.get_fields(exclude=["spin", "kpoint"])
