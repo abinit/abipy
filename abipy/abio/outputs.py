@@ -791,7 +791,7 @@ class AboRobot(Robot):
             index: Index of the dataframe. Use relative paths of files if None.
         """
         rows, my_index = [], []
-        for i, abo in enumerate(self.ncfiles):
+        for i, abo in enumerate(self.abifiles):
             try:
                 dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
             except Exception as exc:

@@ -1249,11 +1249,11 @@ class DdbRobot(Robot):
         """
         # If qpoint is None, all the DDB must contain have the same q-point .
         if qpoint is None:
-            if not all(len(ddb.qpoints) == 1 for ddb in self.ncfiles):
+            if not all(len(ddb.qpoints) == 1 for ddb in self.abifiles):
                 raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
 
             qpoint = self[0].qpoints[0]
-            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.ncfiles):
+            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.abifiles):
                 raise ValueError("All the q-points in the DDB files must be equal")
 
         rows, row_names = [], []

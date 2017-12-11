@@ -378,7 +378,7 @@ def flow_compare_hist(flow, nids=None, with_spglib=False, verbose=0,
     #print("plot_mode", plot_mode)
     if plot_mode is not None:
         if len(robot) == 1:
-            robot.ncfiles[0].plot()
+            robot.abifiles[0].plot()
         else:
             if plot_mode == "gridplot":
                 for what in robot.what_list:

@@ -756,16 +756,16 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     def __init__(self, *args):
         super(SigEPhRobot, self).__init__(*args)
-        if len(self.ncfiles) in (0, 1): return
+        if len(self.abifiles) in (0, 1): return
 
         # Check dimensions and self-energy states and issue warning.
         warns = []; wapp = warns.append
-        nc0 = self.ncfiles[0]
+        nc0 = self.abifiles[0]
         same_nsppol, same_nkcalc = True, True
-        if any(nc.nsppol != nc0.nsppol for nc in self.ncfiles):
+        if any(nc.nsppol != nc0.nsppol for nc in self.abifiles):
             same_nsppol = False
             wapp("Comparing ncfiles with different values of nsppol.")
-        if any(nc.nkcalc != nc0.nkcalc for nc in self.ncfiles):
+        if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles):
             same_nkcalc = False
             wapp("Comparing ncfiles with different number of k-points in self-energy. Do")
 
@@ -774,9 +774,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
             # Different values of bstart_ks are difficult to handle
             # Because the high-level API assumes an absolute global index
             # Should decided how to treat this case: either raise or interpret band as an absolute band index.
-            if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.ncfiles):
+            if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstart_sk")
-            if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.ncfiles):
+            if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstop_sk")
 
         if wapp:

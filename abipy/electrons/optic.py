@@ -488,7 +488,7 @@ class OpticRobot(Robot, RobotWithEbands):
         available in each file. Use keys from ALL_CHIS.
         """
         od = OrderedDict()
-        for ncfile in self.ncfiles:
+        for ncfile in self.abifiles:
             for chiname in ALL_CHIS:
                 comps = ncfile.reader.computed_components[chiname]
                 if chiname not in od:

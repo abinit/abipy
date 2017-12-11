@@ -958,7 +958,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
             nbv.new_code_cell("robot.plot_a2f_convergence();"),
         ])
 
-        if all(ncf.has_a2ftr for ncf in self.ncfiles):
+        if all(ncf.has_a2ftr for ncf in self.abifiles):
             nb.cells.extend([
                 nbv.new_code_cell("robot.plot_a2ftr_convergence();"),
             ])

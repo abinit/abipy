@@ -20,6 +20,13 @@ TODO list:
 
 * Add integration test for dilatmx error handler
 
+* Add ExpectedAbort to Abinit so that one can call the code to get data without triggering
+  report.errors in task.get_event.report
+
+* Add memory error to Abinit errors
+
+* Refactor PyLauncher logic
+
 ## Low priority
 
 * DDK.nc 
@@ -45,11 +52,6 @@ TODO list:
 
 * ABINIT abort file should not be produced if we the exit is expected otherwise we 
   can have IO race conditions and ABI_CRITICAL events!!!!!!!
-
-* Add memory error to Abinit errors
-
-* Add ExpectedAbort to Abinit so that one can call the code to get data without triggerin
-  report.errors in task.get_event.report
 
 * Add option max_num_launchers in scheduler.yml
 

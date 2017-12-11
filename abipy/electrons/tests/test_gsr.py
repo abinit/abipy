@@ -142,7 +142,7 @@ class GstRobotTest(AbipyTest):
         gsr_path = abidata.ref_file("si_scf_GSR.nc")
         robot = abilab.GsrRobot()
         robot.add_file("gsr0", gsr_path)
-        assert len(robot.ncfiles) == 1
+        assert len(robot.abifiles) == 1
         assert robot.EXT == "GSR"
         repr(robot); str(robot)
 
