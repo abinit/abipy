@@ -190,3 +190,18 @@ class GstRobotTest(AbipyTest):
             robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()
+
+        # Test other class methods
+        filepath = abidata.ref_file("si_scf_GSR.nc")
+        robot = abilab.GsrRobot.from_dirs(os.path.dirname(filepath), abspath=True)
+        assert len(robot) == 2
+        assert robot[filepath].filepath == filepath
+
+        # Test from_dir_glob
+        pattern = "%s/*/si_ebands/" % abidata.dirpath
+        same_robot = abilab.GsrRobot.from_dir_glob(pattern, abspath=True)
+        assert len(same_robot) == 2
+        assert set(robot.labels) == set(same_robot.labels)
+
+        robot.close()
+        same_robot.close()

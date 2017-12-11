@@ -100,7 +100,8 @@ class Robot(NotebookWriter):
         items = []
         for top in list_strings(dirpaths):
             items.extend(cls._open_files_in_dir(top, walk))
-        if not abspath: new.trim_paths(start=os.path.getcwd())
+        new = cls(*items)
+        if not abspath: new.trim_paths(start=os.getcwd())
         return new
 
     @classmethod
@@ -406,7 +407,7 @@ class Robot(NotebookWriter):
 
     def __getitem__(self, key):
         # self[key]
-        return self.ncfiles.__getitem__(key)
+        return self._ncfiles.__getitem__(key)
 
     def __enter__(self):
         return self

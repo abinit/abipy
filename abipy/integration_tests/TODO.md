@@ -1,6 +1,16 @@
-TODO LIST:
+TODO list:
 
-* DDK.nc 
+## High priority
+
+* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice.
+
+* Check PJDOS in abinit@gitlab
+
+* Add mpirun_args see e.g nic4 and mpirun --bind-to None DONE
+
+* Re-implement max_njobs in the queque using a counter local to the Launcher. DONE
+
+## Medium priority
 
 * Finalize interface with phononwebsite
 
@@ -8,13 +18,11 @@ TODO LIST:
 
 * Fix bug with SCGW and SKW interpolation.
 
-* Check PJDOS in abinit@gitlab
-
-* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice.
-
-* Add mpirun_args see e.g nic4 and mpirun --bind-to None
-
 * Add integration test for dilatmx error handler
+
+## Low priority
+
+* DDK.nc 
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 
@@ -26,8 +34,6 @@ TODO LIST:
 
 * Add possibility of specifying the max number of CPUs that can be used  
   for a flow at the level of the scheduler.
-
-* Re-implement max_njobs in the queque using a counter local to the Launcher.
 
 * Fix problem with AbiniEvent format, src_file and scr_line (see src/67_common/scprqt.F90)
   Introduce an integer flag (msg_level) to be passed to msg_hndl
