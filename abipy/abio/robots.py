@@ -10,9 +10,11 @@ import os
 import inspect
 
 from collections import OrderedDict, deque
+from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
+from abipy.tools.plotting import plot_xy_with_hue
 
 
 class Robot(NotebookWriter):
@@ -598,10 +600,14 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.coords
 
-    #@staticmethod
-    #def plot_xy_with_hue(**kwargs):
-    #    from abipy.tools.plotting import plot_xy_with_hue
-    #    return plot_xy_with_hue(**kwargs)
+    ##############################################
+    # Helper functions to plot pandas dataframes #
+    ##############################################
+
+    @staticmethod
+    @wraps(plot_xy_with_hue)
+    def plot_xy_with_hue(*args, **kwargs):
+        return plot_xy_with_hue(*args, **kwargs)
 
     def get_baserobot_code_cells(self, title=None):
         """

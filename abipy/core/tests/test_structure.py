@@ -113,6 +113,9 @@ class TestStructure(AbipyTest):
         assert Specie("Zn", 2) in oxi_znse.composition.elements
         assert Specie("Se", -2) in oxi_znse.composition.elements
 
+        system = si.spget_lattice_type()
+        assert system == "cubic"
+
         e = si.spget_equivalent_atoms(printout=True)
         assert len(e.irred_pos) == 1
         self.assert_equal(e.eqmap[0], [0, 1])
@@ -149,6 +152,7 @@ class TestStructure(AbipyTest):
 
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
         assert mgb2_cod.formula == "Mg1 B2"
+        assert mgb2_cod.spget_lattice_type() == "hexagonal"
 
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():

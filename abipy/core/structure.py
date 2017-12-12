@@ -631,7 +631,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             symprec: Symmetry precision used to refine the structure.
-            angle_tolerance: Tolerance on anglese
+            angle_tolerance: Tolerance on angles.
                 if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell following
                 Setyawan, W., & Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010
@@ -722,28 +722,42 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % str(space))
 
+    def spget_lattice_type(self, symprec=1e-3, angle_tolerance=5):
+        """
+        Call spglib to get the lattice for the structure, e.g., (triclinic,
+        orthorhombic, cubic, etc.).This is the same than the
+        crystal system with the exception of the hexagonal/rhombohedral lattice
+
+        Args:
+            symprec: Symmetry precision for distance
+            angle_tolerance: Tolerance on angles.
+
+        Returns:
+            (str): Lattice type for structure or None if type cannot be detected.
+        """
+        spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
+        return spgan.get_lattice_type()
+
     def spget_equivalent_atoms(self, symprec=1e-3, angle_tolerance=5, printout=False):
         """
         Call spglib to find the inequivalent atoms and build symmetry tables.
 
         Args:
-            symprec: Symmetry precision for distance
-            angle_tolerance: Tolerance on anglese
+            symprec: Symmetry precision for distance.
+            angle_tolerance: Tolerance on angles.
             printout: True to print symmetry tables.
 
-        Returns:
-            namedtuple with the following attributes: irred_pos, eqmap, spgdata
+        Returns: (irred_pos, eqmap, spgdata)
+            `namedtuple` with the following attributes:
+                irred_pos: array giving the position of the i-th irred atom in the structure.
+                    The number of irred atoms is len(irred_pos)
+                eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
+                spgdata: spglib dataset with additional data reported by spglib.
 
-            irred_pos: array giving the position of the i-th irred atom in the structure.
-                The number of irred atoms is len(irred_pos)
-            eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
-            spgdata: spglib dataset with additional data reported by spglib.
-
-         Example::
+         :Example:
 
             for irr_pos in irred_pos:
                 eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.
-
         """
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
@@ -777,7 +791,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             symprec: Symmetry precision for distance
-            angle_tolerance: Tolerance on anglese
+            angle_tolerance: Tolerance on angles
             verbose: Verbosity level.
         """
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
@@ -1069,7 +1083,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             symprec (float): Symmetry precision for structure refinement. If
                 set to 0, no refinement is done. Otherwise, refinement is
                 performed using spglib with provided precision.
-            debye_waller_factors ({element symbol: float}): Allows the
+            debye_waller_factors `({element symbol: float})`: Allows the
                 specification of Debye-Waller factors. Note that these
                 factors are temperature dependent.
             two_theta_range ([float of length 2]): Tuple for range of
@@ -1771,13 +1785,16 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
         cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
             instead of Reduced coordinates.
 
-    Return:
+    Return: (lattice, coords)
+
         namedtuple with two pandas :class:`DataFrame`:
+
             `lattice` contains the lattice parameters,
             `coords` the atomic positions.
+
         The list of structures is available in the `structures` entry.
 
-    Example::
+    :Example:
 
         dfs = dataframes_from_structures(files)
         dfs.lattice

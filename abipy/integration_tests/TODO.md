@@ -15,7 +15,11 @@ TODO list:
 
 ## Medium priority
 
+* Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
+
 * Fix annoying warnings about k-point sampling.
+
+* Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
 * Fix problem with get_edos if we don't have enough bands 
 
@@ -41,6 +45,8 @@ TODO list:
 * Fix issue with DOJO_REPORT and PAW XML files.
 
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
+
+* Use ax.legend(loc="best", fontsize=fontsize, shadow=True) (shadow?)
 
 * Check xsf_write_data
 

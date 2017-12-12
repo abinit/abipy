@@ -79,33 +79,45 @@ def data_from_cplx_mode(cplx_mode, arr):
 
 
 @add_fig_kwargs
-def plot_xy_with_hue(data, x, y, hue, ax=None, xlims=None, ylims=None, **kwargs):
+def plot_xy_with_hue(data, x, y, hue, ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
     """
+    Plot y = f(x) relation for different values of `hue`.
+    Useful for convergence tests done wrt to two parameters.
 
     Args:
-        data: DataFram with columns x, y, and hue.
-        x:
-        y:
-        hue:
+        data: DataFrame containing columns `x`, `y`, and `hue`.
+        x: Name of the column used as x-value
+        y: Name of the column used as y-value
+        hue: Variable that define subsets of the data, which will be drawn on separate lines
         ax: matplotlib :class:`Axes` or None if a new figure should be created.
         xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
                      or scalar e.g. `left`. If left (right) is None, default values are used
+        fontsize: Legend fontsize.
+        kwargs: Keywork arguments are passed to ax.plot method.
 
     Returns:
         `matplotlib` figure.
     """
+    # Check here because pandas messages are a bit criptic.
+    miss = [k for k in (x, y, hue) if k not in data]
+    if miss:
+        raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
+
     ax, fig, plt = get_ax_fig_plt(ax=ax)
     for key, grp in data.groupby(hue):
         xvals, yvals = grp[x], grp[y]
         label = "{} = {}".format(hue, key)
-        ax.plot(xvals, yvals, 'o-', label=label)
+        if not kwargs:
+            ax.plot(xvals, yvals, 'o-', label=label)
+        else:
+            ax.plot(xvals, yvals, label=label, **kwargs)
 
     ax.grid(True)
     ax.set_xlabel(x)
     ax.set_ylabel(y)
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")
-    ax.legend(loc="best")
+    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     return fig
 

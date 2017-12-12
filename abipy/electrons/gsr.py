@@ -9,13 +9,14 @@ import pymatgen.core.units as units
 from collections import OrderedDict, Iterable, defaultdict
 from tabulate import tabulate
 from monty.string import is_string, list_strings, marquee
-from monty.collections import AttrDict
+from monty.termcolor import cprint
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from prettytable import PrettyTable
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
@@ -118,12 +119,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def energy(self):
-        """Total energy"""
+        """Total energy in eV"""
         return units.Energy(self.reader.read_value("etotal"), "Ha").to("eV")
 
     @lazy_property
     def energy_per_atom(self):
-        """Total energy / number_of_atoms"""
+        """Total energy / number_of_atoms (eV units)"""
         return self.energy / len(self.structure)
 
     @lazy_property
@@ -397,6 +398,11 @@ class GsrRobot(Robot, RobotWithEbands):
         for label, gsr in self:
             row_names.append(label)
             d = OrderedDict()
+
+            # Add info on structure.
+            if with_geo:
+                d.update(gsr.structure.get_dict4pandas(with_spglib=True))
+
             for aname in attrs:
                 if aname == "nkpt":
                     value = len(gsr.ebands.kpoints)
@@ -405,10 +411,6 @@ class GsrRobot(Robot, RobotWithEbands):
                     if value is None: value = getattr(gsr.ebands, aname, None)
                 d[aname] = value
 
-            # Add info on structure.
-            if with_geo:
-                d.update(gsr.structure.get_dict4pandas(with_spglib=True))
-
             # Execute functions
             if funcs is not None: d.update(self._exec_funcs(funcs, gsr))
             rows.append(d)
@@ -416,42 +418,92 @@ class GsrRobot(Robot, RobotWithEbands):
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
-    # FIXME: EOS has been changed in pymatgen.
-    def eos_fit(self, eos_name="murnaghan"):
+    def get_eos_fits_dataframe(self, eos_names="murnaghan"):
         """
-        Fit energy as function of volume to get the equation of state, equilibrium volume,
-        bulk modulus and its derivative wrt to pressure.
+        Fit energy as function of volume to get the equation of state,
+        equilibrium volume, bulk modulus and its derivative wrt to pressure.
 
         Args:
-            eos_name:
+            eos_names: String or list of strings with EOS names.
                 For the list of available models, see pymatgen.analysis.eos.
+
+        Return:
+            (fits, dataframe) namedtuple.
+                fits is a list of `EOSFit object`
+                dataframe is a pandas Dataframe with the final results.
         """
         # Read volumes and energies from the GSR files.
         energies, volumes = [], []
         for label, gsr in self:
-            energies.append(gsr.energy)
-            volumes.append(gsr.structure.volume)
+            energies.append(float(gsr.energy))
+            volumes.append(float(gsr.structure.volume))
+
+        # Order data by volumes if needed.
+        if np.any(np.diff(volumes) < 0):
+            ves = sorted(zip(volumes, energies), key=lambda t: t[0])
+            volumes = [t[0] for t in ves]
+            energies = [t[1] for t in ves]
 
         # Note that eos.fit expects lengths in Angstrom, and energies in eV.
         # I'm also monkey-patching the plot method.
-        if eos_name != "all":
-            fit = EOS(eos_name=eos_name).fit(volumes, energies)
-            fit.plot = _my_fit_plot
-            return fit
-        else:
+        from pymatgen.analysis.eos import EOS
+        if eos_names == "all":
             # Use all the available models.
-            fits, rows = [], []
-            models = list(EOS.MODELS.keys())
-            for eos_name in models:
-                fit = EOS(eos_name=eos_name).fit(volumes, energies)
-                fit.plot = _my_fit_plot
-                fits.append(fit)
-                rows.append(OrderedDict([(aname, getattr(fit, aname)) for aname in
-                    ("v0", "e0", "b0_GPa", "b1")]))
+            eos_names = [n for n in EOS.MODELS if n not in ("deltafactor", "numerical_eos")]
+        else:
+            eos_names = list_strings(eos_names)
 
-            frame = pd.DataFrame(rows, index=models, columns=list(rows[0].keys()))
-            return fits, frame
-            #return dict2namedtuple(fits=fits, frame=frame)
+        fits, index, rows = [], [], []
+        for eos_name in eos_names:
+            try:
+                fit = EOS(eos_name=eos_name).fit(volumes, energies)
+            except Exception as exc:
+                cprint("EOS %s raised exception:\n%s" % (eos_name, str(exc)))
+                continue
+
+            # Replace plot with plot_ax method
+            fit.plot = fit.plot_ax
+            fits.append(fit)
+            index.append(eos_name)
+            rows.append(OrderedDict([(aname, getattr(fit, aname)) for aname in
+                ("v0", "e0", "b0_GPa", "b1")]))
+
+        dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
+        return dict2namedtuple(fits=fits, dataframe=dataframe)
+
+    @add_fig_kwargs
+    def gridplot_eos(self, eos_names="all", fontsize=6, **kwargs):
+        """
+        Plot multiple EOS on a grid with captions showing the final results.
+
+        Args:
+            eos_names: String or list of strings with EOS names. See pymatgen.analysis.EOS
+            fontsize: Fontsize used for caption text.
+
+        Returns:
+            matplotlib figure.
+        """
+        r = self.get_eos_fits_dataframe(eos_names=eos_names)
+
+        num_plots, ncols, nrows = len(r.fits), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        for i, (fit, ax) in enumerate(zip(r.fits, ax_list)):
+            fit.plot_ax(ax=ax, fontsize=fontsize, label="", show=False)
+
+        # Get around a bug in matplotlib
+        if num_plots % ncols != 0:
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
+            ax_list[-1].axis('off')
+
+        return fig
 
     #def get_phasediagram_results(self):
     #    from abipy.core.restapi import PhaseDiagramResults
@@ -477,6 +529,7 @@ class GsrRobot(Robot, RobotWithEbands):
             nbv.new_code_cell("#anim = ebands_plotter.animate();"),
             nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
             nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
+            nbv.new_code_cell("#robot.gridplot_eos();"),
         ])
 
         # Mixins
@@ -484,46 +537,3 @@ class GsrRobot(Robot, RobotWithEbands):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
-
-
-@add_fig_kwargs
-def _my_fit_plot(self, ax=None, **kwargs):
-    """
-    Plot the equation of state.
-
-    Args:
-
-    Returns:
-        Matplotlib figure object.
-    """
-    ax, fig, plt = get_ax_fig_plt(ax=ax)
-
-    color = kwargs.get("color", "r")
-    label = kwargs.get("label", "{} fit".format(self.__class__.__name__))
-    lines = ["Equation of State: %s" % self.__class__.__name__,
-             "Minimum energy = %1.2f eV" % self.e0,
-             "Minimum or reference volume = %1.2f Ang^3" % self.v0,
-             "Bulk modulus = %1.2f eV/Ang^3 = %1.2f GPa" %
-             (self.b0, self.b0_GPa),
-             "Derivative of bulk modulus wrt pressure = %1.2f" % self.b1]
-    text = "\n".join(lines)
-    text = kwargs.get("text", text)
-
-    # Plot input data.
-    ax.plot(self.volumes, self.energies, linestyle="None", marker="o", color=color)
-
-    # Plot eos fit.
-    vmin, vmax = min(self.volumes), max(self.volumes)
-    vmin, vmax = (vmin - 0.01 * abs(vmin), vmax + 0.01 * abs(vmax))
-    vfit = np.linspace(vmin, vmax, 100)
-
-    ax.plot(vfit, self.func(vfit), linestyle="dashed", color=color, label=label)
-
-    ax.grid(True)
-    ax.xlabel("Volume $\\AA^3$")
-    ax.ylabel("Energy (eV)")
-    ax.legend(loc="best", shadow=True)
-    # Add text with fit parameters.
-    ax.text(0.4, 0.5, text, transform=ax.transAxes)
-
-    return fig

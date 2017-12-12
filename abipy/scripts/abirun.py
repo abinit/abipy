@@ -197,7 +197,7 @@ from abipy import abilab
         cprint("pid: %s" % str(process.pid), "yellow")
 
 
-def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
+def flow_compare_structures(flow, nids=None, with_spglib=False, what="io", verbose=0,
                             precision=3, printout=False, with_colors=False):
     """
     Analyze structures of the tasks (input and output structures if it's a relaxation
@@ -206,6 +206,7 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
     Args:
         nids: List of node identifiers. By defaults all nodes are shown
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+        what (str): "i" for input structures, "o" for output structures.
         precision: Floating point output precision (number of significant digits).
             This is only a suggestion
         printout: True to print dataframe.
@@ -228,7 +229,11 @@ def flow_compare_structures(flow, nids=None, with_spglib=False, verbose=0,
         task_classes.append(task.__class__.__name__)
 
     for task in flow.iflat_tasks(nids=nids):
-        push_data("_in", task, task.input.structure, cart_forces=None, pressure=None)
+        if "i" in what:
+            push_data("_in", task, task.input.structure, cart_forces=None, pressure=None)
+
+        if "o" not in what:
+            continue
 
         # Add final structure, pressure and max force if relaxation task or GS task
         if task.status in (task.S_RUN, task.S_OK):
@@ -635,7 +640,7 @@ Usage example:
   abirun.py FLOWDIR structures            => Compare input/output structures of the tasks.
   abirun.py FLOWDIR ebands -t NscfTask    => Print table with electronic properties computed in NscfTask
   abirun.py FLOWDIR hist -p               => Print table with last iteration in hist files and plot results.
-  abirun.py FLOWDIR cycles -p             => Print (and plot) SCF cycles extracted from the output of the tasks.
+  abirun.py FLOWDIR cycles -p             => Print (and plot) SCF/relaxation cycles extracted from the output of the tasks.
   abirun.py FLOWDIR robot hist            => Build robot for HIST files, start ipython shell to interact with the robot.
   abirun.py FLOWDIR dims                  => Print table with dimensions extracted from the output of the tasks.
   abirun.py FLOWDIR group -g task_class   => Print table with node ids and tasks grouped by class
@@ -899,13 +904,14 @@ Default: o
 
     # Subparser for cycles.
     p_cycles = subparsers.add_parser('cycles', parents=[copts_parser, flow_selector_parser],
-        help="Print self-consistent cycles extracted from the output of the tasks.")
+        help=("Print self-consistent/relaxation cycles extracted from the output of the tasks."
+              "Use `-t ScfTask` or `FLOWDIR/w0/` or `FLOWDIR/w0/t1/` to select tasks by class, by work or by workdir."))
     p_cycles.add_argument("-wok", "--exclude-ok-tasks", action='store_true', default=False,
         help="Exclude Tasks that have reached S_OK.")
-    #p_cycles.add_argument("-p", "--plot", action='store_true', default=False, help="Plot results with matplotlib.")
-    p_cycles.add_argument("-p", "--plot-mode", nargs="?", default=None, const="gridplot",
-        choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate"],
-        help="Plot multiple bands if arg is specified. Use -p for gridplot. Supports multiple formats.")
+    p_cycles.add_argument("-p", "--plot-mode", nargs="?", default=None, const="combiplot",
+        choices=["combiplot", "gallery"], #"gridplot",
+        help=("Plot multiple cycles on the same figure if arg is specified. Use `-p` for gridplot. "
+              "Use `-p gallery` to iterate."))
 
     # Subparser for dims.
     p_dims = subparsers.add_parser('dims', parents=[copts_parser, flow_selector_parser],
@@ -930,6 +936,8 @@ Default: o
     # Subparser for structures command.
     p_structures = subparsers.add_parser('structures', parents=[copts_parser, flow_selector_parser],
         help="Compare input/output structures of the tasks. Print max force and pressure if available.")
+    p_structures.add_argument("--what", type=str, default="io",
+        help="'i' for input structures, 'o' for output, 'io' for both.")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, flow_selector_parser],
@@ -1420,17 +1428,31 @@ def main():
             IPython.embed(header=header, robot=robot)
 
     elif options.command == "cycles":
-        # Print SCF cycles.
+        # Print cycles.
+        from pymatgen.io.abinit.abiinspect import CyclesPlotter
+        cls2plotter = OrderedDict()
         for task, cycle in flow.get_task_scfcycles(nids=selected_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
             print()
             cprint(repr(task), **task.status.color_opts)
-            print()
-            print(cycle)
-            print()
-            # TODO: ScfCyclePlotter with gridplot and combiplot
-            if options.plot_mode is not None:
-                cycle.plot(title=repr(task))
+            print("\n", cycle, "\n")
+
+            label = repr(task) if options.verbose else "{} {}".format(task.__class__.__name__, task.relworkdir)
+            # Could have different kind of cycles e.g. Scf, Relax, DFPT ...
+            # so we group them by building multiple plotters indexed by task class.
+            # Plots are produced outside of the loop.
+            pkey = task.__class__.__name__
+            if pkey not in cls2plotter: cls2plotter[pkey] = CyclesPlotter()
+            cls2plotter[pkey].add_label_cycle(label, cycle)
+
+        # Here comes the plot.
+        if options.plot_mode is not None and cls2plotter:
+            for pkey, plotter in cls2plotter.items():
+                try:
+                    getattr(plotter, options.plot_mode)(title="Plotter for %s class" % pkey)
+                except Exception as exc:
+                    cprint("Exception while invoking %s method of %s.\n%s" % (
+                           options.plot_mode, plotter.__class__.__name__, str(exc)), "red")
 
     elif options.command == "dims":
         flow_get_dims_dataframe(flow, nids=selected_nids(flow, options),
@@ -1458,8 +1480,9 @@ def main():
                              printout=True, with_colors=not options.no_colors)
 
     elif options.command == "structures":
-        flow_compare_structures(flow, nids=selected_nids(flow, options), verbose=options.verbose,
-                                with_spglib=False, printout=True, with_colors=not options.no_colors)
+        flow_compare_structures(flow, nids=selected_nids(flow, options), what=options.what,
+                                verbose=options.verbose, with_spglib=False, printout=True,
+                                with_colors=not options.no_colors)
 
     elif options.command == "ebands":
         flow_compare_ebands(flow, nids=selected_nids(flow, options), verbose=options.verbose,

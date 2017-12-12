@@ -569,6 +569,7 @@ class Density(_DensityField):
         Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files.
         For points close to the atoms, the value at the grid point would be defined as the average on a finer grid
         in the neghibourhood of the point.
+
         Args:
             valence_density: a Density object representing the valence charge density
             structure: the structure for which the total core density will be calculated
@@ -579,7 +580,7 @@ class Density(_DensityField):
                 with respect to nelec. The total density will also be rescaled to fit exactly the given number.
             tol: tolerance above which the system will raise an exception if the integrated density doesn't sum up
                 to the value specified in nelec. Default 0.01 (1% error).
-            method: different methods to perform the calculation
+            method: different methods to perform the calculation:
                 get_sites_in_sphere: based on Structure.get_sites_in_sphere.
                 mesh3d_dist_gridpoints: based on Mesh3D.dist_gridpoints_in_spheres. Generally faster than
                     get_sites_in_sphere, but tests can be made for specific cases.

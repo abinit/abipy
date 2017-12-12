@@ -1091,6 +1091,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         return self.remove_vars(_IRDVARS, strict=False)
 
+    #def pop_relax_vars(self):
+    #    """
+    #    Remove all the `ird*` variables present in self.
+    #    Return dictionary with the variables that have been removed.
+    #    """
+    #    return scf_input.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
+
     @property
     def scf_tolvar(self):
         """

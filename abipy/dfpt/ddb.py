@@ -1153,9 +1153,9 @@ class DielectricTensorGenerator(Has_Structure):
             num: number of values of the frequencies between w_min and w_max
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among
-                'diag': plots the elements on diagonal
-                'all': plots all the components
-                'diag_av': plots the average of the components on the diagonal
+                'diag' to plot the elements on diagonal
+                'all' to plot all the components
+                'diag_av' to plot the average of the components on the diagonal
             units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
         """
 

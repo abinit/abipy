@@ -174,6 +174,7 @@ class GstRobotTest(AbipyTest):
             assert robot.boxplot_ebands(show=False)
             assert robot.combiboxplot_ebands(show=False)
 
+
             assert edos_plotter.gridplot(show=False)
             assert robot.combiplot_edos(show=False)
             assert robot.gridplot_edos(show=False)
@@ -184,8 +185,17 @@ class GstRobotTest(AbipyTest):
         self.assert_equal(df["ecut"].values, 6.0)
         self.assert_almost_equal(df["energy"].values, -241.2364683)
 
-        # FIXME
-        #eos = robot.eos_fit()
+        if self.has_matplotlib():
+            assert robot.plot_xy_with_hue(df, x="nkpt", y="pressure", hue="a", show=False)
+
+        # Note: This is not a real EOS since we have a single volume.
+        # But testing is better than not testing.
+        r = robot.get_eos_fits_dataframe()
+        assert hasattr(r, "fits") and hasattr(r, "dataframe")
+
+        if self.has_matplotlib():
+            assert robot.gridplot_eos(show=False)
+
         if self.has_nbformat():
             robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
