@@ -15,5 +15,7 @@ class TestDfptWorks(AbipyTest):
 
     def test_nscfddkswork(self):
         """Testing NscfDdksWork."""
-        return
-        work = dfpt_works.NscfDdksWork.from_scf_task(cls, scf_task, ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None)
+        scf_task = self.get_gsinput_si(as_task=True)
+        work = dfpt_works.NscfDdksWork.from_scf_task(scf_task, ddk_ngkpt=[8, 8, 8],
+            ddk_shiftk=[0, 0, 0], ddk_nband=10)
+        assert len(work) == 4

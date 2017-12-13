@@ -42,4 +42,4 @@ To install dependencies::
 
 To deploy to gh-pages::
 
-   ./ghp-import _build/html/ -n -p
+   ./ghp_import.py _build/html/ -n -p

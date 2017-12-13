@@ -2,6 +2,8 @@
 """
 This script visualizes data with external graphical applications.
 It's also possible to generate movies from Abinit output files.
+
+WARNING: This script is still under active development. API will change!
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
 
@@ -190,7 +192,7 @@ def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('paths', nargs="+", help="List of files to analyze.")
+    copts_parser.add_argument('paths', nargs="+", help="File or kist of files to analyze.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",

@@ -234,10 +234,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
-    def plot_ax(self, ax, what, **kwargs):
+    def plot_ax(self, ax, what, fontsize=12, **kwargs):
         """
         Helper function to plot quantity `what` on axis `ax`.
-        kwargs are passed to matplotlib plot method
+
+        Args:
+            fontsize: fontsize for legend
+            kwargs are passed to matplotlib plot method
         """
         if what == "energy":
             # Total energy in eV.
@@ -245,7 +248,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
             label = kwargs.pop("label", "Energy")
             ax.plot(self.steps, self.etotals, label=label, marker=marker, **kwargs)
             ax.set_ylabel('Energy [eV]')
-            ax.set_xlabel('Step')
 
         elif what == "abc":
             # Lattice parameters.
@@ -255,7 +257,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
                         marker=markers[i], **kwargs)
             ax.set_ylabel("abc [A]")
-            ax.legend(loc="best", shadow=True)
 
         elif what in ("a", "b", "c"):
             i =  ("a", "b", "c").index(what)
@@ -266,7 +267,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
                     marker=marker, **kwargs)
             ax.set_ylabel('%s [A]' % what)
-            ax.legend(loc='best', shadow=True)
 
         elif what == "angles":
             # Lattice Angles
@@ -276,7 +276,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
                         marker=markers[i], **kwargs)
             ax.set_ylabel(r"$\alpha\beta\gamma$ [degree]")
-            ax.legend(loc='best', shadow=True)
 
         elif what in ("alpha", "beta", "gamma"):
             i =  ("alpha", "beta", "gamma").index(what)
@@ -288,7 +287,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
                     marker=marker, **kwargs)
             ax.set_ylabel(r"$\%s$ [degree]" % what)
-            ax.legend(loc='best', shadow=True)
 
         elif what == "volume":
             marker = kwargs.pop("marker", "o")
@@ -320,12 +318,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, fmean_steps, label="mean |F|", marker=markers[2], **kwargs)
             ax.plot(self.steps, fstd_steps, label="std |F|", marker=markers[3], **kwargs)
             ax.set_ylabel('F stats [eV/A]')
-            ax.legend(loc='best', shadow=True)
-            ax.set_xlabel('Step')
 
         else:
             raise ValueError("Invalid value for what: `%s`" % str(what))
 
+        ax.set_xlabel('Step')
+        ax.legend(loc='best', fontsize=fontsize, shadow=True)
         ax.grid(True)
 
     @add_fig_kwargs
@@ -549,7 +547,7 @@ class HistRobot(Robot):
         return ["energy", "abc", "angles", "volume", "pressure", "forces"]
 
     @add_fig_kwargs
-    def gridplot(self, what="abc", sharex=False, sharey=False, **kwargs):
+    def gridplot(self, what="abc", sharex=False, sharey=False, fontsize=8, **kwargs):
         """
         Plot the `what` value extracted from multiple HIST files on a grid.
 
@@ -557,6 +555,7 @@ class HistRobot(Robot):
             what: Quantity to plot. Must be in ["energy", "abc", "angles", "volume", "pressure", "forces"]
             sharex: True if xaxis should be shared.
             sharey: True if yaxis should be shared.
+            fontsize: fontsize for legend.
 
         Returns:
             matplotlib figure.
@@ -571,11 +570,13 @@ class HistRobot(Robot):
         ax_list = ax_list.ravel()
 
         for i, (ax, hist) in enumerate(zip(ax_list, self.abifiles)):
-            hist.plot_ax(ax, what, marker="o")
-            ax.set_title(hist.relpath)
+            hist.plot_ax(ax, what, fontsize=fontsize, marker="o")
+            ax.set_title(hist.relpath, fontsize=fontsize)
             ax.grid(True)
             if i == len(ax_list) - 1:
                 ax.set_xlabel('Step')
+            else:
+                ax.set_xlabel('')
 
         # Get around a bug in matplotlib.
         if num_plots % ncols != 0:
@@ -585,7 +586,7 @@ class HistRobot(Robot):
         return fig
 
     @add_fig_kwargs
-    def combiplot(self, what_list=None, cmap="viridis", **kwargs):
+    def combiplot(self, what_list=None, cmap="jet", fontsize=6, **kwargs):
         """
         Plot multiple HIST files on a grid. One plot for each `what` value.
 
@@ -593,6 +594,7 @@ class HistRobot(Robot):
             what_list: List of strings with the quantities to plot.
                 If None, all quanties are plotted.
             cmap: matplotlib color map.
+            fontsize: fontisize for legend.
 
         Returns:
             matplotlib figure.
@@ -613,13 +615,15 @@ class HistRobot(Robot):
         for i, (ax, what) in enumerate(zip(ax_list, what_list)):
             for ih, hist in enumerate(self.abifiles):
                 label= None if i != 0 else hist.relpath
-                hist.plot_ax(ax, what, color=cmap(ih / len(self)), label=label)
-                #ax.set_title(what)
+                hist.plot_ax(ax, what, color=cmap(ih / len(self)), label=label, fontsize=fontsize)
 
             if label is not None:
-                ax.legend(loc="best", shadow=True)
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
             if i == len(ax_list) - 1:
-                ax.set_xlabel('Step')
+                ax.set_xlabel("Step")
+            else:
+                ax.set_xlabel("")
 
         # Get around a bug in matplotlib.
         if num_plots % ncols != 0:

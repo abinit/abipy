@@ -15,7 +15,9 @@ import tempfile
 import shutil
 import unittest
 import numpy.testing.utils as nptu
+import abipy.data as abidata
 
+from functools import wraps
 from monty.os.path import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
@@ -146,7 +148,6 @@ def json_read_abinit_input_from_path(json_path):
     Read a json file from the absolute path `json_path`, return AbinitInput instance.
     """
     from abipy.abio.inputs import AbinitInput
-    import abipy.data as abidata
 
     with open(json_path, "rt") as fh:
         d = json.load(fh)
@@ -167,7 +168,6 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
     we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)
     or almost equal (floats)
     """
-
     def check_int(i, j):
         return i != j
 
@@ -246,6 +246,35 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
         raise AssertionError(msg)
 
 
+def get_gsinput_si(usepaw=0, as_task=False):
+    # Build GS input file.
+    pseudos = abidata.pseudos("14si.pspnc") if usepaw == 0 else data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    #silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
+    silicon = abidata.cif_file("si.cif")
+
+    from abipy.abio.inputs import AbinitInput
+    scf_input = AbinitInput(silicon, pseudos)
+    ecut = 6
+    scf_input.set_vars(
+        ecut=ecut,
+        pawecutdg=40,
+        nband=6,
+        paral_kgb=0,
+        iomode=3,
+        toldfe=1e-9,
+    )
+    if usepaw:
+        scf_input.set_vars(pawecutdg=4 * ecut)
+
+    # K-point sampling (shifted)
+    scf_input.set_autokmesh(nksmall=4)
+    if not as_task:
+        return scf_input
+    else:
+        from abipy.flowtk.tasks import ScfTask
+        return ScfTask(scf_input)
+
+
 class AbipyTest(PymatgenTest):
     """Extends PymatgenTest with Abinit-specific methods """
 
@@ -305,7 +334,6 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def get_abistructure_from_abiref(basename):
         """Return an Abipy structure from the basename of one of the reference files."""
-        import abipy.data as abidata
         from abipy.core.structure import Structure
         return Structure.as_structure(abidata.ref_file(basename))
 
@@ -474,6 +502,7 @@ class AbipyTest(PymatgenTest):
 
         assert not errors
 
+    @staticmethod
     def abivalidate_flow(self, flow):
         """
         Invoke Abinit to test validity of the inputs of a flow
@@ -489,6 +518,11 @@ class AbipyTest(PymatgenTest):
                 print("Last 50 line from logfile:")
                 print("".join(lines[i:]))
             raise RuntimeError("flow.abivalidate_input failed. See messages above.")
+
+    @staticmethod
+    @wraps(get_gsinput_si)
+    def get_gsinput_si(*args, **kwargs):
+        return get_gsinput_si(*args, **kwargs)
 
 
 class AbipyFileTest(AbipyTest):

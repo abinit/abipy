@@ -14,8 +14,13 @@ class TestGsWorks(AbipyTest):
 
     def test_eoswork(self):
         """Testing EosWork."""
-        return
-        work = gs_works.EosWork.from_scf_input(scf_input, npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True)
+        scf_input = self.get_gsinput_si()
+        work = gs_works.EosWork.from_scf_input(scf_input, npoints=4, deltap_vol=0.25, ecutsm=2.0, move_atoms=True)
+        assert len(work) == 9
+        assert all(isinstance(task, flowtk.RelaxTask) for task in work)
+        assert all(task.input["ecutsm"] == 2.0 for task in work)
+        assert all(task.input["ionmov"] == 2 for task in work)
 
-        #mocks.change_task_start(gstask, mocked_status="Error")
-        #assert gstask.start() == 1 and gstask.status == gstask.S_ERROR
+        work = gs_works.EosWork.from_scf_input(scf_input, npoints=3, deltap_vol=0.25, ecutsm=0.5, move_atoms=False)
+        assert len(work) == 7
+        assert all(isinstance(task, flowtk.ScfTask) for task in work)
