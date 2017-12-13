@@ -909,9 +909,9 @@ Default: o
     p_cycles.add_argument("-wok", "--exclude-ok-tasks", action='store_true', default=False,
         help="Exclude Tasks that have reached S_OK.")
     p_cycles.add_argument("-p", "--plot-mode", nargs="?", default=None, const="combiplot",
-        choices=["combiplot", "gallery"], #"gridplot",
+        choices=["combiplot", "slideshow"], #"gridplot",
         help=("Plot multiple cycles on the same figure if arg is specified. Use `-p` for gridplot. "
-              "Use `-p gallery` to iterate."))
+              "Use `-p slideshow` to iterate."))
 
     # Subparser for dims.
     p_dims = subparsers.add_parser('dims', parents=[copts_parser, flow_selector_parser],

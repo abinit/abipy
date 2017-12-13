@@ -4,8 +4,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import abipy.data as abidata
 import abipy.flowtk as flowtk
 
-from abipy.abio.factories import gs_input
 from abipy.core.testing import AbipyTest
+from abipy.abio.factories import gs_input
 from abipy.flowtk import mocks
 
 

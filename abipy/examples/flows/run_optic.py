@@ -73,10 +73,11 @@ def build_flow(options, paral_kgb=0):
     # Perform converge study wrt ngkpt (shiftk is constant).
     ngkpt_convergence = [[4, 4, 4], [8, 8, 8], [16, 16, 16]]
 
+    from abipy.flowtk.dfpt_works import NscfDdksWork
     for ddk_ngkpt in ngkpt_convergence:
         # Build work for NSCF from DEN produced by the first GS task + 3 DDKs.
         # All tasks use more bands and a denser k-mesh defined by ddk_ngkpt.
-        ddks_work = flowtk.NscfDdksWork.from_scf_task(bands_work[0], ddk_ngkpt, shiftk, ddk_nband)
+        ddks_work = NscfDdksWork.from_scf_task(bands_work[0], ddk_ngkpt, shiftk, ddk_nband)
         flow.register_work(ddks_work)
 
         # Build optic task to compute chi with this value of ddk_ngkpt.

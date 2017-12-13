@@ -38,7 +38,7 @@ def build_flow(options):
     # K-point sampling (shifted)
     scf_input.set_autokmesh(nksmall=4)
 
-    from abipy.flowtk.works import EosWork
+    from abipy.flowtk.gs_works import EosWork
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Si is cubic and atomic positions are fixed by symmetry so we

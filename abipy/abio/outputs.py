@@ -631,7 +631,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 other_cycle = other.next_gs_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                fig = other_cycle.plot(ax_list=fig.axes, show=show and last)
                 if last:
                     fig.tight_layout()
                     figures.append(fig)
@@ -670,7 +670,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 other_cycle = other.next_d2de_scf_cycle()
                 if other_cycle is None: break
                 last = (i == len(others) - 1)
-                fig = other_cycle.plot(axlist=fig.axes, show=show and last)
+                fig = other_cycle.plot(ax_list=fig.axes, show=show and last)
                 if last:
                     fig.tight_layout()
                     figures.append(fig)

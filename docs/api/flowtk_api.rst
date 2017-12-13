@@ -33,6 +33,14 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`dfpt_works` Module
+----------------------
+
+.. automodule:: abipy.flowtk.dfpt_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`flows` Module
 -------------------
 
@@ -45,6 +53,14 @@ flowtk Package
 -----------------------
 
 .. automodule:: abipy.flowtk.gruneisen
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`gs_works` Module
+----------------------
+
+.. automodule:: abipy.flowtk.gs_works
    :members:
    :undoc-members:
    :show-inheritance:
