@@ -6,7 +6,7 @@
 Multiple Structural relaxations
 ===============================
 
-This example shows how to analyze the results of multiple 
+This example shows how to analyze the results of multiple
 structure relaxations with the HIST robot.
 
 
@@ -45,22 +45,37 @@ structure relaxations with the HIST robot.
       .. image:: /gallery/images/sphx_glr_plot_multiple_hist_006.png
             :scale: 47
 
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_multiple_hist_007.png
+            :scale: 47
+
 
 .. rst-class:: sphx-glr-script-out
 
  Out::
 
-    formula  natom  angle0  angle1  angle2         a         b         c  \
-    file 0  Si1 C1      2    60.0    60.0    60.0  3.064763  3.064763  3.064763   
-    file 1  Si1 C1      2    60.0    60.0    60.0  3.064763  3.064763  3.064763   
+    formula  natom  angle0  angle1  angle2         a         b  \
+    sic_relaxation  Si1 C1      2    60.0    60.0    60.0  3.064763  3.064763   
+    same_hist       Si1 C1      2    60.0    60.0    60.0  3.064763  3.064763   
 
-               volume abispg_num spglib_symb  spglib_num  num_steps  final_energy  \
-    file 0  20.355222       None       F-43m         216          7   -285.489125   
-    file 1  20.355222       None       F-43m         216          7   -285.489125   
+                           c     volume abispg_num      ...       final_fmin  \
+    sic_relaxation  3.064763  20.355222       None      ...              0.0   
+    same_hist       3.064763  20.355222       None      ...              0.0   
 
-            final_pressure  
-    file 0       -0.001474  
-    file 1       -0.001474
+                    final_fmax  final_fmean  final_fstd  final_drift  \
+    sic_relaxation         0.0          0.0         0.0          0.0   
+    same_hist              0.0          0.0         0.0          0.0   
+
+                    initial_fmin  initial_fmax  initial_fmean  initial_fstd  \
+    sic_relaxation  1.095144e-29  1.095144e-29   1.095144e-29           0.0   
+    same_hist       1.095144e-29  1.095144e-29   1.095144e-29           0.0   
+
+                    initial_drift  
+    sic_relaxation            0.0  
+    same_hist                 0.0  
+
+    [2 rows x 25 columns]
 
 
 
@@ -70,7 +85,7 @@ structure relaxations with the HIST robot.
 
 .. code-block:: python
 
-    from abipy import abilab 
+    from abipy import abilab
     import abipy.data as abidata
 
     files = [
@@ -78,20 +93,20 @@ structure relaxations with the HIST robot.
         abidata.ref_file("sic_relax_HIST.nc"),
     ]
 
-    robot = abilab.HistRobot()
-    for i, f in enumerate(files):
-        robot.add_file("file %s" % i, f)
+    # Build HIST robot from paths, use user-selected labels.
+    robot = abilab.HistRobot.from_files(files, labels=["sic_relaxation", "same_hist"])
 
-    # or alternatively use:
-    #
-    #   robot = HistRobot.from_files(files)
-
+    # Get dataframe with most important results.
     print(robot.get_dataframe())
 
     for what in robot.what_list:
-        robot.gridplot(what=what)
+        robot.gridplot(what=what, tight_layout=True)
 
-**Total running time of the script:** ( 0 minutes  1.392 seconds)
+    # Use combiplot to compare the results
+    # (meaningless in this case as we are using the same HIST file).
+    robot.combiplot(tight_layout=True)
+
+**Total running time of the script:** ( 0 minutes  2.464 seconds)
 
 
 

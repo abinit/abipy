@@ -27,16 +27,18 @@ def build_flow(options):
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     structure = abidata.structure_from_ucell("GaAs")
-    pseudos = abidata.pseudos("Ga-d_r.psp8", "As-d_r.psp8")
+    pseudos = abidata.pseudos("Ga-low_r.psp8", "As_r.psp8")
     num_electrons = structure.num_valence_electrons(pseudos)
-    print("num_electrons:", num_electrons)
+    #print("num_electrons:", num_electrons)
 
     # Usa same shifts in all tasks.
     ngkpt = [4, 4, 4]
-    shiftk= [[0.5, 0.5, 0.5],
-             [0.5, 0.0, 0.0],
-             [0.0, 0.5, 0.0],
-             [0.0, 0.0, 0.5]]
+    shiftk= [
+        [0.5, 0.5, 0.5],
+        [0.5, 0.0, 0.0],
+        [0.0, 0.5, 0.0],
+        [0.0, 0.0, 0.5],
+    ]
 
     # NSCF run on k-path with large number of bands
     kptbounds = [
@@ -54,7 +56,7 @@ def build_flow(options):
 
         # Global variables.
         multi.set_vars(
-            ecut=35,
+            ecut=20,
             nspinor=nspinor,
             nspden=1 if nspinor == 1 else 4,
             so_psp="*0" if nspinor == 1 else "*1",   # Important!
@@ -62,8 +64,7 @@ def build_flow(options):
         )
 
         nband_occ = num_electrons // 2 if nspinor == 1 else num_electrons
-        #nband_occ = int(nband_occ)
-        print(nband_occ)
+        #print(nband_occ)
 
         # Dataset 1 (GS run)
         multi[0].set_vars(tolvrs=1e-8, nband=nband_occ + 4)
@@ -86,7 +87,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -101,3 +102,33 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_gaas_ebands_soc.py -s
+#
+# then use:
+#
+#    abirun.py flow_si_ebands ebands --plot -t NscfTask
+#
+# to analyze (and plot) the electronic bands produced by the NsfTasks of the Flow.
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_gaas_ebands_soc.png?raw=true
+#    :alt: Band structure of GaAs without/with SOC.
+#
+# Alternatively, one can start a GSR robot for the NscfTask with:
+#
+#        abirun.py flow_gaas_ebands_soc/ robot GSR -t NscfTask
+#
+# and then plot the two band structure on the same figure with:
+#
+# .. code-block:: ipython
+#
+#        In [1]: %matplotlib
+#        In [2]: robot.combiplot_ebands()
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_gaas_ebands_soc_combiplot.png?raw=true
+#    :alt: Band structure of GaAs without/with SOC on the same graph

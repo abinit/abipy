@@ -89,7 +89,7 @@ and saved in ``flow_phonons/w1/outdata/``.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(tight_layout=True)
+        build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
 
 
     @flowtk.flow_main
@@ -143,10 +143,7 @@ and invoke anaddb to compute the phonon band structure and the phonon DOS with:
 .. code-block:: ipython
 
     In [1]: phbst_file, phdos_file = abifile.anaget_phbst_and_phdos_files()
-
     In [2]: %matplotlib
-        Using matplotlib backend: TkAgg
-
     In [3]: phbst_file.plot_phbands()
 
 .. image:: https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true
@@ -154,7 +151,7 @@ and invoke anaddb to compute the phonon band structure and the phonon DOS with:
 
 
 
-**Total running time of the script:** ( 0 minutes  1.432 seconds)
+**Total running time of the script:** ( 0 minutes  1.548 seconds)
 
 
 

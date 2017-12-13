@@ -97,8 +97,10 @@
 <li><a class="reference internal" href="#module-abipy.flowtk.abiinspect"><code class="docutils literal"><span class="pre">abiinspect</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.abiobjects"><code class="docutils literal"><span class="pre">abiobjects</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.abiphonopy"><code class="docutils literal"><span class="pre">abiphonopy</span></code> Module</a></li>
+<li><a class="reference internal" href="#dfpt-works-module"><code class="docutils literal"><span class="pre">dfpt_works</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.flows"><code class="docutils literal"><span class="pre">flows</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.gruneisen"><code class="docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.gs_works"><code class="docutils literal"><span class="pre">gs_works</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.mocks"><code class="docutils literal"><span class="pre">mocks</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.netcdf"><code class="docutils literal"><span class="pre">netcdf</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.qha"><code class="docutils literal"><span class="pre">qha</span></code> Module</a></li>
@@ -333,6 +335,42 @@ have reached status S_OK.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="dfpt-works-module">
+<h2><code class="xref py py-mod docutils literal"><span class="pre">dfpt_works</span></code> Module<a class="headerlink" href="#dfpt-works-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-abipy.flowtk.dfpt_works"></span><p>Work subclasses related to DFTP.</p>
+<dl class="class">
+<dt id="abipy.flowtk.dfpt_works.NscfDdksWork">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.dfpt_works.</code><code class="descname">NscfDdksWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#NscfDdksWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.NscfDdksWork" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<p>This work requires a DEN file and computes the KS energies with a non self-consistent task
+with a dense k-mesh and empty states.
+This task is then followed by the computation of the DDK matrix elements with nstep = 1
+(the first order change of the wavefunctions is not converged but we only need the matrix elements)
+Mainly used to prepare optic calculations or other post-processing steps requiring the DDKs.</p>
+<dl class="classmethod">
+<dt id="abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task">
+<em class="property">classmethod </em><code class="descname">from_scf_task</code><span class="sig-paren">(</span><em>scf_task</em>, <em>ddk_ngkpt</em>, <em>ddk_shiftk</em>, <em>ddk_nband</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#NscfDdksWork.from_scf_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>scf_task</strong> – GS task. Must produce the DEN file required for the NSCF run.</li>
+<li><strong>ddk_ngkpt</strong> – k-mesh used for the NSCF run and the non self-consistent DDK tasks.</li>
+<li><strong>ddk_shiftk</strong> – k-mesh shifts</li>
+<li><strong>ddk_nband</strong> – Number of bands (occupied + empty) used in the NSCF task and the DDKs tasks.</li>
+<li><strong>manager</strong> – TaskManager instance. Use default if None.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: NscfDdksWork instance</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-abipy.flowtk.flows">
 <span id="flows-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">flows</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.flows" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -391,6 +429,72 @@ constructed from the new structures, add them to the flow and build new director
 <code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is called once the <cite>Work</cite> is completed i.e. when all the tasks
 have reached status S_OK.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.flowtk.gs_works">
+<span id="gs-works-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gs_works</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.gs_works" title="Permalink to this headline">¶</a></h2>
+<p>Work subclasses related to GS calculations.</p>
+<dl class="class">
+<dt id="abipy.flowtk.gs_works.EosWork">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.gs_works.</code><code class="descname">EosWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<p>Work for the computation of the Equation of State
+The EOS is obtained by computing E(V) for several volumes around the input V0,
+The initial volumes are obtained by rescaling the input lattice vectors so that
+length proportions and angles are preserved.
+This guess is exact for cubic/rhomboedral materials while other Bravais lattices require
+a constant-volume optimization of the cell geometry.</p>
+<p>If lattice_type in (“cubic”, “rhomboedral”) and atomic positions are fixed by symmetry.
+use can use move_atoms=False to perform standard GS-SCF calculations.
+In all the other cases, E(V) is obtained by relaxing the atomic positions at fixed volume.</p>
+<p>The E(V) points are fitted at the end of the work and the results are saved in the
+<cite>eos_data.json</cite> file produced in the <cite>outdata</cite> directory.
+The file contains the energies, the volumes and the values of V0, B0, B1 obtained
+with different EOS models.</p>
+<dl class="classmethod">
+<dt id="abipy.flowtk.gs_works.EosWork.from_scf_input">
+<em class="property">classmethod </em><code class="descname">from_scf_input</code><span class="sig-paren">(</span><em>scf_input</em>, <em>npoints=4</em>, <em>deltap_vol=0.25</em>, <em>ecutsm=0.5</em>, <em>move_atoms=True</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork.from_scf_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork.from_scf_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a EosWork from an AbinitInput representing a SCF-GS calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>scf_input</strong> – AbinitInput for SCF-GS used as template to generate the other inputs.</li>
+<li><strong>npoints</strong> – Number of volumes generated on the right (left) of the equilibrium volume
+The total number of points is therefore 2 * n + 1.</li>
+<li><strong>deltap_vol</strong> – Step of the linear mesh given in relative percentage of the equilibrium volume
+The step is thus: v0 * deltap_vol / 100.</li>
+<li><strong>ecutsm</strong> – Value of ecutsm input variable. If <cite>scf_input</cite> does not provide ecutsm, this
+value will be used else the vale in <cite>scf_input</cite>.</li>
+<li><strong>move_atoms</strong> – If True, a structural relaxation of ions is performed for each volume
+This is needed if the atomic positions are non fixed by symmetry.</li>
+<li><strong>manager</strong> – TaskManager instance. Use default if None.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: EosWork instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.flowtk.gs_works.EosWork.getnwrite_eosdata">
+<code class="descname">getnwrite_eosdata</code><span class="sig-paren">(</span><em>write_json=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork.getnwrite_eosdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork.getnwrite_eosdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when all tasks reach S_OK. It reads the energies
+and the volumes from the GSR file, computes the EOS and produce a
+JSON file <cite>eos_data.json</cite> in outdata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.flowtk.gs_works.EosWork.on_all_ok">
+<code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when all tasks reach S_OK. It reads the energies
+and the volumes from the GSR file, computes the EOS and produce a
+JSON file <cite>eos_data.json</cite> in outdata.</p>
 </dd></dl>
 
 </dd></dl>
@@ -513,37 +617,6 @@ the final DDB file in the outdir of the <cite>Work</cite>.</p>
 </div>
 <div class="section" id="module-abipy.flowtk.works">
 <span id="works-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">works</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.works" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="abipy.flowtk.works.NscfDdksWork">
-<em class="property">class </em><code class="descclassname">abipy.flowtk.works.</code><code class="descname">NscfDdksWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#NscfDdksWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.works.NscfDdksWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
-<p>This work requires a DEN file and computes the KS energies with a non self-consistent task
-with a dense k-mesh and empty states.
-This task is then followed by the computation of the DDK matrix elements with nstep = 1
-(the first order change of the wavefunctions is not converged but we only need the matrix elements)
-Mainly used to prepare optic calculations or other post-processing steps requiring the DDKs.</p>
-<dl class="classmethod">
-<dt id="abipy.flowtk.works.NscfDdksWork.from_scf_task">
-<em class="property">classmethod </em><code class="descname">from_scf_task</code><span class="sig-paren">(</span><em>scf_task</em>, <em>ddk_ngkpt</em>, <em>ddk_shiftk</em>, <em>ddk_nband</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/works.html#NscfDdksWork.from_scf_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.works.NscfDdksWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>scf_task</strong> – GS task. Must produce the DEN file required for the NSCF run.</li>
-<li><strong>ddk_ngkpt</strong> – k-mesh used for the NSCF run and the non self-consistent DDK tasks.</li>
-<li><strong>ddk_shiftk</strong> – k-mesh shifts</li>
-<li><strong>ddk_nband</strong> – Number of bands (occupied + empty) used in the NSCF task and the DDKs tasks.</li>
-<li><strong>manager</strong> – TaskManager instance. Use default if None.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 </div>
 
@@ -560,7 +633,7 @@ Mainly used to prepare optic calculations or other post-processing steps requiri
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

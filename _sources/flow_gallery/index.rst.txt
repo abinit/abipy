@@ -10,9 +10,9 @@ This gallery contains python scripts to generate AbiPy flows from the command li
 Run the scripts to generate the directory with the flow and then 
 use ``abirun.py`` to execute the flow.
 Alternatively, one can use the `-s` option to generate the flow and run it immediately with the scheduler. 
-See `--help` for see available options.
+Use `--help` for available options.
 
-.. warning:
+WARNING:
 
     The following examples show how to use python and the AbiPy API to generate and run 
     Abinit calculations in a semi-automatic way. 
@@ -100,6 +100,26 @@ See `--help` for see available options.
    :hidden:
 
    /flow_gallery/run_sic_relax
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute the equation of state by fitting E(V) at T = 0. ">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_eos_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_eos.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_eos
 
 .. raw:: html
 
@@ -323,6 +343,26 @@ See `--help` for see available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_relax_vs_kpts_tsmear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_relax_vs_kpts_tsmear
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o...">
 
 .. only:: html
@@ -363,7 +403,7 @@ See `--help` for see available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a...">
 
 .. only:: html
 
@@ -400,26 +440,6 @@ See `--help` for see available options.
    :hidden:
 
    /flow_gallery/run_optic
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the SCR file by splitting the calculation of the SCR file ove...">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_qptdmscr_thumb.png
-
-        :ref:`sphx_glr_flow_gallery_run_qptdmscr.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_qptdmscr
 
 .. raw:: html
 

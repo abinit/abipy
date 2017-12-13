@@ -197,6 +197,12 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dynamics.hist.HistFile.get_fstats_dict">
+<code class="descname">get_fstats_dict</code><span class="sig-paren">(</span><em>step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.get_fstats_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.get_fstats_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return dictionary with stats on the forces at the given <cite>step</cite></p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.get_relaxation_analyzer">
 <code class="descname">get_relaxation_analyzer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.get_relaxation_analyzer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.get_relaxation_analyzer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pymatgen <code class="xref py py-class docutils literal"><span class="pre">RelaxationAnalyzer</span></code> object to analyze the relaxation in a calculation.</p>
@@ -449,6 +455,55 @@ Shape (num_steps, natom, 3)</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="abipy.dynamics.hist.HistRobot.combiplot">
+<code class="descname">combiplot</code><span class="sig-paren">(</span><em>what_list=None</em>, <em>cmap='viridis'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.combiplot" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Plot multiple HIST files on a grid. One plot for each <cite>what</cite> value.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>what_list: List of strings with the quantities to plot.</dt>
+<dd>If None, all quanties are plotted.</dd>
+</dl>
+<p class="last">cmap: matplotlib color map.</p>
+</dd>
+<dt>Returns:</dt>
+<dd>matplotlib figure.</dd>
+</dl>
+</div></blockquote>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dynamics.hist.HistRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>index=None</em>, <em>abspath=False</em>, <em>with_spglib=True</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pandas DataFrame with the most important final results.
@@ -485,7 +540,7 @@ where key is a string with the name of column and value is the value to be inser
 <dt id="abipy.dynamics.hist.HistRobot.gridplot">
 <code class="descname">gridplot</code><span class="sig-paren">(</span><em>what='abc'</em>, <em>sharex=False</em>, <em>sharey=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.gridplot" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
-<div><p>Plot multiple HIST files on a grid.</p>
+<div><p>Plot the <cite>what</cite> value extracted from multiple HIST files on a grid.</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd>what: Quantity to plot. Must be in [“energy”, “abc”, “angles”, “volume”, “pressure”, “forces”]
@@ -564,7 +619,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 12, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

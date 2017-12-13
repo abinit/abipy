@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="G0W0 convergence study" href="run_gwconv_ecuteps.html" />
-    <link rel="prev" title="Relaxation Flow" href="run_relax.html" />
+    <link rel="prev" title="Relaxation of GaN with different K-meshes" href="run_relax_vs_kpts_tsmear.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -102,7 +102,7 @@
               
                 
   <li>
-    <a href="run_relax.html" title="Previous Chapter: Relaxation Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation Flow</span>
+    <a href="run_relax_vs_kpts_tsmear.html" title="Previous Chapter: Relaxation of GaN with different K-meshes"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation of...</span>
     </a>
   </li>
   <li>
@@ -251,7 +251,7 @@ with PAW for several values of U-J.</p>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -323,7 +323,7 @@ and we can compare the results of these two task by specifying the node identifi
 <blockquote>
 <div>abirun.py flow_ldaus/ ebands -p –nids=241314,241318</div></blockquote>
 <img alt="Band structure of Si in the IBZ and along a k-path" src="https://github.com/abinit/abipy_assets/blob/master/run_ldaus.png?raw=true" />
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.254 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.280 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_ldaus.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_ldaus.py</span></code></a></div>
@@ -346,7 +346,7 @@ and we can compare the results of these two task by specifying the node identifi
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

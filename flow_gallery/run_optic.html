@@ -27,8 +27,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Screening Flow with q-point parallelism" href="run_qptdmscr.html" />
-    <link rel="prev" title="G0W0 Flow" href="run_si_g0w0.html" />
+    <link rel="next" title="Raman Flow with BSE and frozen phonon" href="run_raman_bse.html" />
+    <link rel="prev" title="G0W0 Flow with convergence study wrt nband" href="run_si_g0w0.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -102,11 +102,11 @@
               
                 
   <li>
-    <a href="run_si_g0w0.html" title="Previous Chapter: G0W0 Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; G0W0 Flow</span>
+    <a href="run_si_g0w0.html" title="Previous Chapter: G0W0 Flow with convergence study wrt nband"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; G0W0 Flow wit...</span>
     </a>
   </li>
   <li>
-    <a href="run_qptdmscr.html" title="Next Chapter: Screening Flow with q-point parallelism"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Screening Flo... &raquo;</span>
+    <a href="run_raman_bse.html" title="Next Chapter: Raman Flow with BSE and frozen phonon"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Raman Flow wi... &raquo;</span>
     </a>
   </li>
               
@@ -211,10 +211,11 @@ a convergence study with respect to the k-point sampling.</p>
     <span class="c1"># Perform converge study wrt ngkpt (shiftk is constant).</span>
     <span class="n">ngkpt_convergence</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">]]</span>
 
+    <span class="kn">from</span> <span class="nn">abipy.flowtk.dfpt_works</span> <span class="kn">import</span> <span class="n">NscfDdksWork</span>
     <span class="k">for</span> <span class="n">ddk_ngkpt</span> <span class="ow">in</span> <span class="n">ngkpt_convergence</span><span class="p">:</span>
         <span class="c1"># Build work for NSCF from DEN produced by the first GS task + 3 DDKs.</span>
         <span class="c1"># All tasks use more bands and a denser k-mesh defined by ddk_ngkpt.</span>
-        <span class="n">ddks_work</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">NscfDdksWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">bands_work</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ddk_ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">ddk_nband</span><span class="p">)</span>
+        <span class="n">ddks_work</span> <span class="o">=</span> <span class="n">NscfDdksWork</span><span class="o">.</span><span class="n">from_scf_task</span><span class="p">(</span><span class="n">bands_work</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ddk_ngkpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="p">,</span> <span class="n">ddk_nband</span><span class="p">)</span>
         <span class="n">flow</span><span class="o">.</span><span class="n">register_work</span><span class="p">(</span><span class="n">ddks_work</span><span class="p">)</span>
 
         <span class="c1"># Build optic task to compute chi with this value of ddk_ngkpt.</span>
@@ -231,7 +232,7 @@ a convergence study with respect to the k-point sampling.</p>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -257,12 +258,11 @@ a convergence study with respect to the k-point sampling.</p>
 <div>abirun.py flow_optic robot optic</div></blockquote>
 <p>to create a robot for OPTIC.nc files. Then inside the ipytho shell type:</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
-
 <span class="gp">In [2]: </span><span class="n">robot</span><span class="o">.</span><span class="n">plot_linopt_convergence</span><span class="p">()</span>
 </pre></div>
 </div>
 <img alt="Convergence of (linear) optical spectra wrt k-points." src="https://github.com/abinit/abipy_assets/blob/master/run_optic.png?raw=true" />
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.196 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.241 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_optic.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_optic.py</span></code></a></div>
@@ -285,7 +285,7 @@ a convergence study with respect to the k-point sampling.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

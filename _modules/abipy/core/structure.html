@@ -135,6 +135,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">pymatgen</span>
+<span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">pmg_units</span>
 
 <span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span><span class="p">,</span> <span class="n">pformat</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
@@ -144,7 +145,7 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">ArrayWithUnit</span>
+
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="k">import</span> <span class="n">PeriodicSite</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
@@ -476,7 +477,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cart_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">)</span>
         <span class="n">molecule</span> <span class="o">=</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Molecule</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">],</span> <span class="n">cart_coords</span><span class="p">)</span>
-        <span class="n">l</span> <span class="o">=</span> <span class="n">ArrayWithUnit</span><span class="p">(</span><span class="n">acell</span><span class="p">,</span> <span class="s2">&quot;bohr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">ArrayWithUnit</span><span class="p">(</span><span class="n">acell</span><span class="p">,</span> <span class="s2">&quot;bohr&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">get_boxed_structure</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
@@ -494,16 +495,18 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">boxed_molecule</span><span class="p">([</span><span class="n">pseudo</span><span class="p">],</span> <span class="n">cart_coords</span><span class="p">,</span> <span class="n">acell</span><span class="o">=</span><span class="n">acell</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.bcc"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.bcc">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">bcc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">bcc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;ang&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a primitive or a conventional bcc crystal structure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            a: Lattice parameter in Angstrom.</span>
+<span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structue`</span>
 <span class="sd">            primitive: if True a primitive cell will be produced, otherwise a conventional one</span>
+<span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
             <span class="n">lattice</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
                 <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
@@ -521,16 +524,18 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>  <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.fcc"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.fcc">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">fcc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">fcc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;ang&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a primitive or a conventional fcc crystal structure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            a: Lattice parameter in Angstrom.</span>
+<span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
 <span class="sd">            primitive: if True a primitive cell will be produced, otherwise a conventional one</span>
+<span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
             <span class="n">lattice</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
                 <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
@@ -547,13 +552,39 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Structure.zincblende"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.zincblende">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">zincblende</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;ang&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a primitive zincblende crystal structure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
+<span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
+<span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
+<span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            Structure.zincblende(a, [&quot;Zn&quot;, &quot;S&quot;])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
+        <span class="n">lattice</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">],</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Structure.rocksalt"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.rocksalt">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">rocksalt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">rocksalt</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;ang&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a primitive fcc crystal structure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            a: Lattice parameter in Angstrom.</span>
+<span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
+<span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
 <span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
 <span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
 
@@ -562,6 +593,7 @@
 <span class="sd">            Structure.rocksalt(a, [&quot;Na&quot;, &quot;Cl&quot;])</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
         <span class="n">lattice</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
             <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
             <span class="mi">1</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>
@@ -571,10 +603,17 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.ABO3"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.ABO3">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">ABO3</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">ABO3</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;ang&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">       Peroviskite structures.</span>
+
+<span class="sd">       Args:</span>
+<span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
+<span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`</span>
+<span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
+<span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`</span>
 <span class="sd">       &quot;&quot;&quot;</span>
+       <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
        <span class="n">lattice</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
        <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span>
           <span class="mi">0</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>  <span class="c1"># A (2a)</span>
@@ -718,7 +757,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            symprec: Symmetry precision used to refine the structure.</span>
-<span class="sd">            angle_tolerance: Tolerance on anglese</span>
+<span class="sd">            angle_tolerance: Tolerance on angles.</span>
 <span class="sd">                if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.</span>
 <span class="sd">            primitive (bool): Whether to convert to a primitive cell following</span>
 <span class="sd">                Setyawan, W., &amp; Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010</span>
@@ -809,28 +848,42 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">matrix</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for space: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">space</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="Structure.spget_lattice_type"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_lattice_type">[docs]</a>    <span class="k">def</span> <span class="nf">spget_lattice_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call spglib to get the lattice for the structure, e.g., (triclinic,</span>
+<span class="sd">        orthorhombic, cubic, etc.).This is the same than the</span>
+<span class="sd">        crystal system with the exception of the hexagonal/rhombohedral lattice</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            symprec: Symmetry precision for distance</span>
+<span class="sd">            angle_tolerance: Tolerance on angles.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (str): Lattice type for structure or None if type cannot be detected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_lattice_type</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="Structure.spget_equivalent_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">spget_equivalent_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call spglib to find the inequivalent atoms and build symmetry tables.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            symprec: Symmetry precision for distance</span>
-<span class="sd">            angle_tolerance: Tolerance on anglese</span>
+<span class="sd">            symprec: Symmetry precision for distance.</span>
+<span class="sd">            angle_tolerance: Tolerance on angles.</span>
 <span class="sd">            printout: True to print symmetry tables.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            namedtuple with the following attributes: irred_pos, eqmap, spgdata</span>
+<span class="sd">        Returns: (irred_pos, eqmap, spgdata)</span>
+<span class="sd">            `namedtuple` with the following attributes:</span>
+<span class="sd">                irred_pos: array giving the position of the i-th irred atom in the structure.</span>
+<span class="sd">                    The number of irred atoms is len(irred_pos)</span>
+<span class="sd">                eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
+<span class="sd">                spgdata: spglib dataset with additional data reported by spglib.</span>
 
-<span class="sd">            irred_pos: array giving the position of the i-th irred atom in the structure.</span>
-<span class="sd">                The number of irred atoms is len(irred_pos)</span>
-<span class="sd">            eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
-<span class="sd">            spgdata: spglib dataset with additional data reported by spglib.</span>
-
-<span class="sd">         Example::</span>
+<span class="sd">         :Example:</span>
 
 <span class="sd">            for irr_pos in irred_pos:</span>
 <span class="sd">                eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
@@ -864,7 +917,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            symprec: Symmetry precision for distance</span>
-<span class="sd">            angle_tolerance: Tolerance on anglese</span>
+<span class="sd">            angle_tolerance: Tolerance on angles</span>
 <span class="sd">            verbose: Verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
@@ -1156,7 +1209,7 @@
 <span class="sd">            symprec (float): Symmetry precision for structure refinement. If</span>
 <span class="sd">                set to 0, no refinement is done. Otherwise, refinement is</span>
 <span class="sd">                performed using spglib with provided precision.</span>
-<span class="sd">            debye_waller_factors ({element symbol: float}): Allows the</span>
+<span class="sd">            debye_waller_factors `({element symbol: float})`: Allows the</span>
 <span class="sd">                specification of Debye-Waller factors. Note that these</span>
 <span class="sd">                factors are temperature dependent.</span>
 <span class="sd">            two_theta_range ([float of length 2]): Tuple for range of</span>
@@ -1858,13 +1911,16 @@
 <span class="sd">        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates</span>
 <span class="sd">            instead of Reduced coordinates.</span>
 
-<span class="sd">    Return:</span>
+<span class="sd">    Return: (lattice, coords)</span>
+
 <span class="sd">        namedtuple with two pandas :class:`DataFrame`:</span>
+
 <span class="sd">            `lattice` contains the lattice parameters,</span>
 <span class="sd">            `coords` the atomic positions.</span>
+
 <span class="sd">        The list of structures is available in the `structures` entry.</span>
 
-<span class="sd">    Example::</span>
+<span class="sd">    :Example:</span>
 
 <span class="sd">        dfs = dataframes_from_structures(files)</span>
 <span class="sd">        dfs.lattice</span>
@@ -2058,7 +2114,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

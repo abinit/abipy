@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.flowtk.dfpt_works &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.flowtk.dfpt_works</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Work subclasses related to DFTP.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.works</span> <span class="k">import</span> <span class="n">Work</span>
+
+
+<div class="viewcode-block" id="NscfDdksWork"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.dfpt_works.NscfDdksWork">[docs]</a><span class="k">class</span> <span class="nc">NscfDdksWork</span><span class="p">(</span><span class="n">Work</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This work requires a DEN file and computes the KS energies with a non self-consistent task</span>
+<span class="sd">    with a dense k-mesh and empty states.</span>
+<span class="sd">    This task is then followed by the computation of the DDK matrix elements with nstep = 1</span>
+<span class="sd">    (the first order change of the wavefunctions is not converged but we only need the matrix elements)</span>
+<span class="sd">    Mainly used to prepare optic calculations or other post-processing steps requiring the DDKs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="NscfDdksWork.from_scf_task"><a class="viewcode-back" href="../../../api/flowtk_api.html#abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_scf_task</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scf_task</span><span class="p">,</span> <span class="n">ddk_ngkpt</span><span class="p">,</span> <span class="n">ddk_shiftk</span><span class="p">,</span> <span class="n">ddk_nband</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            scf_task: GS task. Must produce the DEN file required for the NSCF run.</span>
+<span class="sd">            ddk_ngkpt: k-mesh used for the NSCF run and the non self-consistent DDK tasks.</span>
+<span class="sd">            ddk_shiftk: k-mesh shifts</span>
+<span class="sd">            ddk_nband: Number of bands (occupied + empty) used in the NSCF task and the DDKs tasks.</span>
+<span class="sd">            manager: TaskManager instance. Use default if None.</span>
+
+<span class="sd">        Return: NscfDdksWork instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
+
+        <span class="c1"># NSCF task with nband states and points in the IBZ (note kptopt = 1)</span>
+        <span class="n">nscf_inp0</span> <span class="o">=</span> <span class="n">scf_task</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+        <span class="n">nscf_inp0</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nband</span><span class="o">=</span><span class="n">ddk_nband</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">nscf_inp0</span><span class="o">.</span><span class="n">set_kmesh</span><span class="p">(</span><span class="n">ddk_ngkpt</span><span class="p">,</span> <span class="n">ddk_shiftk</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">nscf_task0</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_nscf_task</span><span class="p">(</span><span class="n">nscf_inp0</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">scf_task</span><span class="p">:</span> <span class="s2">&quot;DEN&quot;</span><span class="p">})</span>
+
+        <span class="c1"># NSCF run with nband states and points in the IBZ defined by time-reversal only (as required by DDK)</span>
+        <span class="c1"># This is gonna be quick because Abinit will symmetrize states from the previous WFK file.</span>
+        <span class="c1"># Time-reversal symmetry can be used in optic.</span>
+        <span class="c1">#nscf_inp1 = nscf_inp0.deepcopy()</span>
+        <span class="c1">#nscf_inp0.set_kmesh(ddk_ngkpt, ddk_shiftk, kptopt=2)</span>
+        <span class="c1">#nscf_task1 = new.register_nscf_task(nscf_inp1)</span>
+
+        <span class="c1"># This is the task producing the KS energies for optic</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">task_with_ks_energies</span> <span class="o">=</span> <span class="n">nscf_task0</span>
+
+        <span class="c1"># Build task for one-shot DDKs (note kptopt 2)</span>
+        <span class="n">ddk_inputs</span> <span class="o">=</span> <span class="n">nscf_inp0</span><span class="o">.</span><span class="n">make_ddk_inputs</span><span class="p">(</span><span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">ddk_tasks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ddk_inp</span> <span class="ow">in</span> <span class="n">ddk_inputs</span><span class="p">:</span>
+            <span class="c1"># FIXME: prtwfk should be set to 0 but need to replace DDK.nc</span>
+            <span class="n">ddk_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">prtwf</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1">#new.register_ddk_task(ddk_inp, deps={nscf_task0: &quot;WFK&quot;})</span>
+            <span class="c1"># FIXME: Here I have a conflict with DDK.nc and DDK</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">register_task</span><span class="p">(</span><span class="n">ddk_inp</span><span class="p">,</span> <span class="n">deps</span><span class="o">=</span><span class="p">{</span><span class="n">nscf_task0</span><span class="p">:</span> <span class="s2">&quot;WFK&quot;</span><span class="p">})</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">ddk_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 13, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>G0W0 Flow &#8212; abipy 0.2.0 documentation</title>
+    <title>G0W0 Flow with convergence study wrt nband &#8212; abipy 0.2.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -92,7 +92,7 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">G0W0 Flow</a></li>
+<li><a class="reference internal" href="#">G0W0 Flow with convergence study wrt nband</a></li>
 </ul>
 </ul>
 </li>
@@ -140,10 +140,12 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="g0w0-flow">
-<span id="sphx-glr-flow-gallery-run-si-g0w0-py"></span><h1>G0W0 Flow<a class="headerlink" href="#g0w0-flow" title="Permalink to this headline">¶</a></h1>
-<p>This script shows how to compute the G0W0 corrections in silicon.</p>
-<img alt="../_images/sphx_glr_run_si_g0w0_001.png" class="align-center" src="../_images/sphx_glr_run_si_g0w0_001.png" />
+  <div class="section" id="g0w0-flow-with-convergence-study-wrt-nband">
+<span id="sphx-glr-flow-gallery-run-si-g0w0-py"></span><h1>G0W0 Flow with convergence study wrt nband<a class="headerlink" href="#g0w0-flow-with-convergence-study-wrt-nband" title="Permalink to this headline">¶</a></h1>
+<p>This script shows how to compute the G0W0 corrections in silicon.
+More specifically, we build a flow to analyze the convergence of the QP corrections
+wrt to the number of bands in the self-energy. More complicated convergence studies
+can be implemented on the basis of this example.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
@@ -203,11 +205,12 @@
 
     <span class="c1"># Dataset 2 (NSCF run)</span>
     <span class="c1"># Here we select the second dataset directly with the syntax multi[1]</span>
-    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span>
-                    <span class="n">nband</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span>
-                    <span class="n">nbdbuf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                   <span class="p">)</span>
+    <span class="n">multi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">iscf</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span>
+        <span class="n">nbdbuf</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># Dataset3: Calculation of the screening.</span>
     <span class="n">multi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
@@ -230,8 +233,9 @@
           <span class="mf">0.00000000E+00</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>  <span class="mf">0.00000000E+00</span><span class="p">,</span>
       <span class="p">]</span>
 
-    <span class="n">bdgw</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">]</span>
+    <span class="n">bdgw</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
 
+    <span class="c1"># Convergence study wrt nband in sigma.</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">nband</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]):</span>
         <span class="n">multi</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
             <span class="n">optdriver</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
@@ -265,7 +269,7 @@
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -277,7 +281,61 @@
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.141 seconds)</p>
+<img alt="../_images/sphx_glr_run_si_g0w0_001.png" class="align-center" src="../_images/sphx_glr_run_si_g0w0_001.png" />
+<p>Run the script with:</p>
+<blockquote>
+<div>run_si_g0w0.py -s</div></blockquote>
+<p>The last three tasks (<code class="docutils literal"><span class="pre">w0_t3</span></code>, <code class="docutils literal"><span class="pre">w0_t4</span></code>, <code class="docutils literal"><span class="pre">w0_t5</span></code>) are the SigmaTask who have produced
+a netcdf file with the GW results with different number of bands.
+We can check this with the command:</p>
+<blockquote>
+<div>abirun.py flow_si_g0w0/ listext SIGRES</div></blockquote>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Found <span class="m">3</span> files with extension <span class="sb">`</span>SIGRES<span class="sb">`</span> produced by the flow
+File                                        Size <span class="o">[</span>Mb<span class="o">]</span>    Node_ID  Node Class
+----------------------------------------  -----------  ---------  ------------
+flow_si_g0w0/w0/t3/outdata/out_SIGRES.nc         <span class="m">0</span>.05     <span class="m">241325</span>  SigmaTask
+flow_si_g0w0/w0/t4/outdata/out_SIGRES.nc         <span class="m">0</span>.08     <span class="m">241326</span>  SigmaTask
+flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc         <span class="m">0</span>.13     <span class="m">241327</span>  SigmaTask
+</pre></div>
+</div>
+<p>Let’s use the SIGRES robot to collect and analyze the results:</p>
+<blockquote>
+<div>abirun.py flow_si_g0w0/ robot SIGRES</div></blockquote>
+<p>and then, inside the ipython terminal, type:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">robot</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()</span>
+<span class="gp">In [2]: </span><span class="n">df</span>
+<span class="gh">Out[2]:</span>
+<span class="go">                                          nsppol     qpgap            ecutwfn  \</span>
+<span class="go">flow_si_g0w0/w0/t3/outdata/out_SIGRES.nc       1  3.627960  5.914381651684836</span>
+<span class="go">flow_si_g0w0/w0/t4/outdata/out_SIGRES.nc       1  3.531781  5.914381651684836</span>
+<span class="go">flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc       1  3.512285  5.914381651684836</span>
+
+<span class="go">                                                     ecuteps  \</span>
+<span class="go">flow_si_g0w0/w0/t3/outdata/out_SIGRES.nc  3.6964885323070074</span>
+<span class="go">flow_si_g0w0/w0/t4/outdata/out_SIGRES.nc  3.6964885323070074</span>
+<span class="go">flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc  3.6964885323070074</span>
+
+<span class="go">                                                   ecutsigx scr_nband  \</span>
+<span class="go">flow_si_g0w0/w0/t3/outdata/out_SIGRES.nc  5.914381651684846        25</span>
+<span class="go">flow_si_g0w0/w0/t4/outdata/out_SIGRES.nc  5.914381651684846        25</span>
+<span class="go">flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc  5.914381651684846        25</span>
+
+<span class="go">                                         sigma_nband gwcalctyp scissor_ene  \</span>
+<span class="go">flow_si_g0w0/w0/t3/outdata/out_SIGRES.nc          10         0         0.0</span>
+<span class="go">flow_si_g0w0/w0/t4/outdata/out_SIGRES.nc          20         0         0.0</span>
+<span class="go">flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc          30         0         0.0</span>
+
+<span class="go">                                          nkibz</span>
+<span class="go">flow_si_g0w0/w0/t3/outdata/out_SIGRES.nc      6</span>
+<span class="go">flow_si_g0w0/w0/t4/outdata/out_SIGRES.nc      6</span>
+<span class="go">flow_si_g0w0/w0/t5/outdata/out_SIGRES.nc      6</span>
+
+<span class="gp">In [3]: </span><span class="o">%</span><span class="k">matplotlib</span>
+<span class="gp">In [4]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;sigma_nband&quot;</span><span class="p">,</span> <span class="s2">&quot;qpgap&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="QP results in Si plotted vs the KS energy e0." src="https://github.com/abinit/abipy_assets/blob/master/run_si_g0w0.png?raw=true" />
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.147 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_si_g0w0.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_si_g0w0.py</span></code></a></div>
@@ -300,7 +358,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

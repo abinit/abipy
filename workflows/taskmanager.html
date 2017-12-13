@@ -189,7 +189,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal"><span class="pre">quadapters</span></code>.
-At the time of writing (Dec 08, 2017), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (Dec 12, 2017), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
@@ -291,7 +291,7 @@ Abinit Build Information:
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 7044
+PyFlowScheduler, Pid: 54247
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 10}
 
 Installed packages:
@@ -305,7 +305,7 @@ netCDF4         1.2.7
 apscheduler     2.1.0
 pydispatch      2.0.5
 yaml            3.12
-pymatgen        2017.12.6
+pymatgen        2017.12.8
 
 
 Abipy requirements are properly configured
@@ -597,57 +597,59 @@ hardware:
 
 # Dictionary with the options used to prepare the enviroment before submitting the job
 job:
-    setup:            # List of commands (strings) executed before running (DEFAULT: empty)
-    omp_env:          # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
-    modules:          # List of modules to be imported before running the code (DEFAULT: empty).
-                      # NB: Error messages produced by module load are redirected to mods.err
-    shell_env:        # Dictionary with shell environment variables.
-    mpi_runner:       # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
-                      # DEFAULT: None i.e. no mpirunner is used.
-    shell_runner:     # Used for running small sequential jobs on the front-end. Set it to None
-                      # if mpirun or mpiexec are not available on the fron-end. If not
-                      # given, small sequential jobs are executed with `mpi_runner`.
-    pre_run:          # List of commands (strings) executed before the run (DEFAULT: empty)
-    post_run:         # List of commands (strings) executed after the run (DEFAULT: empty)
+    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
+                          # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:            # Dictionary with shell environment variables.
+    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
+                          # DEFAULT: None i.e. no mpirunner is used.
+    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
+    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
+                          # if mpirun or mpiexec are not available on the fron-end. If not
+                          # given, small sequential jobs are executed with `mpi_runner`.
+    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
 
 # dictionary with the name of the queue and optional parameters
 # used to build/customize the header of the submission script.
 queue:
-    qtype:            # String defining the qapapter type e.g. slurm, shell ...
-    qname:            # Name of the submission queue (string, MANDATORY)
-    qparams:          # Dictionary with values used to generate the header of the job script
-                      # We use the *normalized* version of the options i.e dashes in the official name
-                      # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
-                      # See pymatgen.io.abinit.qadapters.py for the list of supported values.
-                      # Use ``qverbatim`` to pass additional options that are not included in the template.
+    qtype:                # String defining the qapapter type e.g. slurm, shell ...
+    qname:                # Name of the submission queue (string, MANDATORY)
+    qparams:              # Dictionary with values used to generate the header of the job script
+                          # We use the *normalized* version of the options i.e dashes in the official name
+                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
+                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+                          # Use ``qverbatim`` to pass additional options that are not included in the template.
 
 # dictionary with the constraints that must be fulfilled in order to run on this queue.
 limits:
-    min_cores:         # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:         # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                       # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:        # The limit used in the initial setup of jobs.
-                       # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:  # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                       # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:  # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                       # (DEFAULT: hardware.mem_per_node)
-    timelimit:         # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                       # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
-                       # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
-    timelimit_hard:    # The hard time-limit for this queue. Same format as timelimit.
-                       # Error handlers could try to submit jobs with increased timelimit
-                       # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:         # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:        # String defining the policy used to select the optimal number of CPUs.
-                       # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
-                       # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
-                       # This is a soft limit, in the sense that the qadapter may use a configuration
-                       # that does not fulfill this requirement. In case of failure, it will try to use the
-                       # smallest number of nodes compatible with the optimal configuration.
-                       # Use `force_nodes` to enfore entire nodes allocation.
-                       # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:            # The limit used in the initial setup of jobs.
+                           # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                           # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                           # (DEFAULT: hardware.mem_per_node)
+    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
+                           # Error handlers could try to submit jobs with increased timelimit
+                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:            # String defining the policy used to select the optimal number of CPUs.
+                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                           # This is a soft limit, in the sense that the qadapter may use a configuration
+                           # that does not fulfill this requirement. In case of failure, it will try to use the
+                           # smallest number of nodes compatible with the optimal configuration.
+                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 
 
 qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
@@ -900,57 +902,59 @@ hardware:
 
 # Dictionary with the options used to prepare the enviroment before submitting the job
 job:
-    setup:            # List of commands (strings) executed before running (DEFAULT: empty)
-    omp_env:          # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
-    modules:          # List of modules to be imported before running the code (DEFAULT: empty).
-                      # NB: Error messages produced by module load are redirected to mods.err
-    shell_env:        # Dictionary with shell environment variables.
-    mpi_runner:       # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
-                      # DEFAULT: None i.e. no mpirunner is used.
-    shell_runner:     # Used for running small sequential jobs on the front-end. Set it to None
-                      # if mpirun or mpiexec are not available on the fron-end. If not
-                      # given, small sequential jobs are executed with `mpi_runner`.
-    pre_run:          # List of commands (strings) executed before the run (DEFAULT: empty)
-    post_run:         # List of commands (strings) executed after the run (DEFAULT: empty)
+    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
+                          # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:            # Dictionary with shell environment variables.
+    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
+                          # DEFAULT: None i.e. no mpirunner is used.
+    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
+    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
+                          # if mpirun or mpiexec are not available on the fron-end. If not
+                          # given, small sequential jobs are executed with `mpi_runner`.
+    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
 
 # dictionary with the name of the queue and optional parameters
 # used to build/customize the header of the submission script.
 queue:
-    qtype:            # String defining the qapapter type e.g. slurm, shell ...
-    qname:            # Name of the submission queue (string, MANDATORY)
-    qparams:          # Dictionary with values used to generate the header of the job script
-                      # We use the *normalized* version of the options i.e dashes in the official name
-                      # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
-                      # See pymatgen.io.abinit.qadapters.py for the list of supported values.
-                      # Use ``qverbatim`` to pass additional options that are not included in the template.
+    qtype:                # String defining the qapapter type e.g. slurm, shell ...
+    qname:                # Name of the submission queue (string, MANDATORY)
+    qparams:              # Dictionary with values used to generate the header of the job script
+                          # We use the *normalized* version of the options i.e dashes in the official name
+                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
+                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+                          # Use ``qverbatim`` to pass additional options that are not included in the template.
 
 # dictionary with the constraints that must be fulfilled in order to run on this queue.
 limits:
-    min_cores:         # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:         # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                       # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:        # The limit used in the initial setup of jobs.
-                       # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:  # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                       # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:  # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                       # (DEFAULT: hardware.mem_per_node)
-    timelimit:         # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                       # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
-                       # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
-    timelimit_hard:    # The hard time-limit for this queue. Same format as timelimit.
-                       # Error handlers could try to submit jobs with increased timelimit
-                       # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:         # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:        # String defining the policy used to select the optimal number of CPUs.
-                       # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
-                       # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
-                       # This is a soft limit, in the sense that the qadapter may use a configuration
-                       # that does not fulfill this requirement. In case of failure, it will try to use the
-                       # smallest number of nodes compatible with the optimal configuration.
-                       # Use `force_nodes` to enfore entire nodes allocation.
-                       # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:            # The limit used in the initial setup of jobs.
+                           # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                           # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                           # (DEFAULT: hardware.mem_per_node)
+    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
+                           # Error handlers could try to submit jobs with increased timelimit
+                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:            # String defining the policy used to select the optimal number of CPUs.
+                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                           # This is a soft limit, in the sense that the qadapter may use a configuration
+                           # that does not fulfill this requirement. In case of failure, it will try to use the
+                           # smallest number of nodes compatible with the optimal configuration.
+                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 
 
 qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
@@ -1220,7 +1224,7 @@ optional arguments:
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 12, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

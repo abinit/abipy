@@ -220,7 +220,7 @@ and saved in <code class="docutils literal"><span class="pre">flow_phonons/w1/ou
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -258,15 +258,12 @@ Note how the <code class="docutils literal"><span class="pre">PhononWork</span><
 <div>abiopen.py flow_phonons/w1/outdata/out_DDB</div></blockquote>
 <p>and invoke anaddb to compute the phonon band structure and the phonon DOS with:</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">phbst_file</span><span class="p">,</span> <span class="n">phdos_file</span> <span class="o">=</span> <span class="n">abifile</span><span class="o">.</span><span class="n">anaget_phbst_and_phdos_files</span><span class="p">()</span>
-
 <span class="gp">In [2]: </span><span class="o">%</span><span class="k">matplotlib</span>
-<span class="go">    Using matplotlib backend: TkAgg</span>
-
 <span class="gp">In [3]: </span><span class="n">phbst_file</span><span class="o">.</span><span class="n">plot_phbands</span><span class="p">()</span>
 </pre></div>
 </div>
 <img alt="Phonon band structure of AlAs." src="https://github.com/abinit/abipy_assets/blob/master/run_phonons.png?raw=true" />
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.432 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  1.548 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_phonons.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_phonons.py</span></code></a></div>
@@ -289,7 +286,7 @@ Note how the <code class="docutils literal"><span class="pre">PhononWork</span><
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -149,16 +149,6 @@ nspinor = 2 gives us the non-collinear case with spinor wavefunctions required f
 Some of the variables in the input files must be changed depending on the value of nspinor.</p>
 <p>We use relativistic NC pseudos made of two terms: scalar pseudo + SOC term.
 The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
-<img alt="../_images/sphx_glr_run_gaas_ebands_soc_001.png" class="align-center" src="../_images/sphx_glr_run_gaas_ebands_soc_001.png" />
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">num_electrons</span><span class="p">:</span> <span class="mi">28</span>
-<span class="mi">14</span>
-<span class="mi">28</span>
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -174,16 +164,18 @@ The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
         <span class="n">options</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;run_&quot;</span><span class="p">,</span> <span class="s2">&quot;flow_&quot;</span><span class="p">)</span>
 
     <span class="n">structure</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">structure_from_ucell</span><span class="p">(</span><span class="s2">&quot;GaAs&quot;</span><span class="p">)</span>
-    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Ga-d_r.psp8&quot;</span><span class="p">,</span> <span class="s2">&quot;As-d_r.psp8&quot;</span><span class="p">)</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Ga-low_r.psp8&quot;</span><span class="p">,</span> <span class="s2">&quot;As_r.psp8&quot;</span><span class="p">)</span>
     <span class="n">num_electrons</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">num_valence_electrons</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;num_electrons:&quot;</span><span class="p">,</span> <span class="n">num_electrons</span><span class="p">)</span>
+    <span class="c1">#print(&quot;num_electrons:&quot;, num_electrons)</span>
 
     <span class="c1"># Usa same shifts in all tasks.</span>
     <span class="n">ngkpt</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-    <span class="n">shiftk</span><span class="o">=</span> <span class="p">[[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
-             <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-             <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-             <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]]</span>
+    <span class="n">shiftk</span><span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+    <span class="p">]</span>
 
     <span class="c1"># NSCF run on k-path with large number of bands</span>
     <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span>
@@ -201,7 +193,7 @@ The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
 
         <span class="c1"># Global variables.</span>
         <span class="n">multi</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
-            <span class="n">ecut</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span>
+            <span class="n">ecut</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
             <span class="n">nspinor</span><span class="o">=</span><span class="n">nspinor</span><span class="p">,</span>
             <span class="n">nspden</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">4</span><span class="p">,</span>
             <span class="n">so_psp</span><span class="o">=</span><span class="s2">&quot;*0&quot;</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;*1&quot;</span><span class="p">,</span>   <span class="c1"># Important!</span>
@@ -209,8 +201,7 @@ The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
         <span class="p">)</span>
 
         <span class="n">nband_occ</span> <span class="o">=</span> <span class="n">num_electrons</span> <span class="o">//</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">nspinor</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">num_electrons</span>
-        <span class="c1">#nband_occ = int(nband_occ)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">nband_occ</span><span class="p">)</span>
+        <span class="c1">#print(nband_occ)</span>
 
         <span class="c1"># Dataset 1 (GS run)</span>
         <span class="n">multi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">tolvrs</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="n">nband_occ</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
@@ -233,7 +224,7 @@ The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -250,7 +241,25 @@ The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.127 seconds)</p>
+<img alt="../_images/sphx_glr_run_gaas_ebands_soc_001.png" class="align-center" src="../_images/sphx_glr_run_gaas_ebands_soc_001.png" />
+<p>Run the script with:</p>
+<blockquote>
+<div>run_gaas_ebands_soc.py -s</div></blockquote>
+<p>then use:</p>
+<blockquote>
+<div>abirun.py flow_si_ebands ebands –plot -t NscfTask</div></blockquote>
+<p>to analyze (and plot) the electronic bands produced by the NsfTasks of the Flow.</p>
+<img alt="Band structure of GaAs without/with SOC." src="https://github.com/abinit/abipy_assets/blob/master/run_gaas_ebands_soc.png?raw=true" />
+<p>Alternatively, one can start a GSR robot for the NscfTask with:</p>
+<blockquote>
+<div>abirun.py flow_gaas_ebands_soc/ robot GSR -t NscfTask</div></blockquote>
+<p>and then plot the two band structure on the same figure with:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
+<span class="gp">In [2]: </span><span class="n">robot</span><span class="o">.</span><span class="n">combiplot_ebands</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="Band structure of GaAs without/with SOC on the same graph" src="https://github.com/abinit/abipy_assets/blob/master/run_gaas_ebands_soc_combiplot.png?raw=true" />
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.126 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_gaas_ebands_soc.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_gaas_ebands_soc.py</span></code></a></div>
@@ -273,7 +282,7 @@ The SOC term can be deactivated with the input variable <cite>so_psp</cite>.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

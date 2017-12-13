@@ -144,8 +144,7 @@
 <li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ncopen">ncopen</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
+<li><a class="reference internal" href="#abiopen">abiopen</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
 </ul>
 </li>
@@ -158,12 +157,12 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#new_manager">new_manager</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#tail">tail</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
 </ul>
 </li>
@@ -172,7 +171,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#robot">robot</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat18">Named Arguments</a></li>
 </ul>
 </li>
@@ -209,7 +208,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#doc_manager">doc_manager</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat27">Named Arguments</a></li>
 </ul>
 </li>
@@ -262,7 +261,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#diff">diff</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat40">Named Arguments</a></li>
 </ul>
 </li>
@@ -271,12 +270,8 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#listext">listext</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat42">Named Arguments</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#timer">timer</a><ul>
-<li><a class="reference internal" href="#Named Arguments_repeat43">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -337,7 +332,7 @@
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py --help
 usage: abirun.py [-h] [-V]
                  [flowdir]
-                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,ncopen,abibuild,doc_scheduler,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,clone_task,group,diff,networkx,listext,timer}
+                 {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,clone_task,group,diff,networkx,listext}
                  ...
 
 positional arguments:
@@ -352,7 +347,7 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,ncopen,abibuild,doc_scheduler,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,clone_task,group,diff,networkx,listext,timer}
+  {single,rapid,scheduler,batch,status,set_status,cancel,restart,reset,move,open,abiopen,abibuild,doc_scheduler,new_manager,tail,deps,robot,cycles,dims,inspect,inputs,abivars,structures,ebands,hist,doc_manager,events,corrections,history,handlers,notebook,ipython,tar,tricky,debug,debug_reset,clone_task,group,diff,networkx,listext}
                         sub-command help
     single              Run single task and exit.
     rapid               Run all tasks in rapidfire mode.
@@ -373,8 +368,7 @@ subcommands:
                         absolute paths.
     open                Open files in $EDITOR, type `abirun.py FLOWDIR open
                         --help` for help).
-    ncopen              Open netcdf files in ipython. Use --help for more
-                        info.
+    abiopen             Open FILE with abiopen. Same interface as abiopen.py
     abibuild            Show ABINIT build information and exit.
     doc_scheduler       Document the options available in scheduler.yml.
     new_manager         Change the TaskManager.
@@ -383,8 +377,10 @@ subcommands:
     deps                Show dependencies.
     robot               Use a robot to analyze the results of multiple tasks
                         (requires ipython).
-    cycles              Print self-consistent cycles extracted from the output
-                        of the tasks.
+    cycles              Print self-consistent/relaxation cycles extracted from
+                        the output of the tasks.Use `-t ScfTask` or
+                        `FLOWDIR/w0/` or `FLOWDIR/w0/t1/` to select tasks by
+                        class, by work or by workdir.
     dims                Print table with dimensions extracted from the output
                         of the tasks.
     inspect             Call matplotlib to inspect the tasks (execute
@@ -420,9 +416,6 @@ subcommands:
     networkx            Draw flow and node dependencies with networkx package.
     listext             List all the output files with the given extension
                         that have been produced by the nodes.
-    timer               Read the section with timing info from the main ABINIT
-                        output file (requires timopt != 0) Open Ipython
-                        terminal to inspect data.
 
 Notes:
 
@@ -443,7 +436,7 @@ Notes:
 
     To start the scheduler with a time interval of 30 seconds, use:
 
-        nohup abirun.py [FLOWDIR] scheduler -s 30 &amp;
+        nohup abirun.py FLOWDIR scheduler -s 30 &gt; sched.log 2&gt; sched.err
 
     Alternatively one can specify the scheduler options via the `scheduler.yml` file.
     Remember that AbiPy will first look for `scheduler.yml` and `manager.yml` files
@@ -458,56 +451,51 @@ Usage example:
 # Execution
 ###########
 
-  abirun.py [FLOWDIR] rapid                 =&gt; Keep repeating, stop when no task can be executed.
-  abirun.py [FLOWDIR] scheduler             =&gt; Execute flow with the scheduler.
-  abirun.py [FLOWDIR] status                =&gt; Show status table.
-  abirun.py [FLOWDIR] events                =&gt; Print ABINIT events (Warnings/Errors/Comments) found in log files.
-  abirun.py [FLOWDIR] history               =&gt; Print Task histories.
-  abirun.py [FLOWDIR] cancel                =&gt; Cancel jobs in the queue.
-  abirun.py [FLOWDIR] debug                 =&gt; Analyze error files and log files for possible error messages.
-  abirun.py [FLOWDIR] corrections           =&gt; Show AbiPy corrections performed at runtime.
-  abirun.py [FLOWDIR] handlers              =&gt; Show event handlers installed in the flow.
+  abirun.py FLOWDIR rapid                 =&gt; Keep repeating, stop when no task can be executed.
+  abirun.py FLOWDIR scheduler             =&gt; Execute flow with the scheduler.
+  abirun.py FLOWDIR status                =&gt; Show status table.
+  abirun.py FLOWDIR events                =&gt; Print ABINIT events (Warnings/Errors/Comments) found in log files.
+  abirun.py FLOWDIR history               =&gt; Print Task histories.
+  abirun.py FLOWDIR cancel                =&gt; Cancel jobs in the queue.
+  abirun.py FLOWDIR debug                 =&gt; Analyze error files and log files for possible error messages.
+  abirun.py FLOWDIR corrections           =&gt; Show AbiPy corrections performed at runtime.
+  abirun.py FLOWDIR handlers              =&gt; Show event handlers installed in the flow.
 
 ##########
 # Analysis
 ##########
 
-  abirun.py [FLOWDIR] inputs                =&gt; Print input files.
-  abirun.py [FLOWDIR] abivars -vn ecut,nband  =&gt; Print table with these input variables.
-  abirun.py [FLOWDIR] structures            =&gt; Compare input/output structures of the tasks.
-  abirun.py [FLOWDIR] ebands -t NscfTask    =&gt; Print table with electronic properties computed in NscfTask
-  abirun.py [FLOWDIR] hist -p               =&gt; Print table with last iteration in hist files and plot results.
-  abirun.py [FLOWDIR] cycles -p             =&gt; Print (and plot) SCF cycles extracted from the output of the tasks.
-  abirun.py [FLOWDIR] robot hist            =&gt; Build robot for HIST files, start ipython shell to interact with the robot.
-  abirun.py [FLOWDIR] dims                  =&gt; Print table with dimensions extracted from the output of the tasks.
-  abirun.py [FLOWDIR] inspect               =&gt; Call matplotlib to inspect the tasks.
-  abirun.py [FLOWDIR] tail                  =&gt; Use Unix tail to follow the main output files of the flow.
-  abirun.py [FLOWDIR] deps                  =&gt; Show task dependencies.
-  abirun.py [FLOWDIR] listext GSR SIGRES    =&gt; Show output files with the given extension.
+  abirun.py FLOWDIR inputs                =&gt; Print input files.
+  abirun.py FLOWDIR abivars -vn ecut,nband  =&gt; Print table with these input variables.
+  abirun.py FLOWDIR structures            =&gt; Compare input/output structures of the tasks.
+  abirun.py FLOWDIR ebands -t NscfTask    =&gt; Print table with electronic properties computed in NscfTask
+  abirun.py FLOWDIR hist -p               =&gt; Print table with last iteration in hist files and plot results.
+  abirun.py FLOWDIR cycles -p             =&gt; Print (and plot) SCF/relaxation cycles extracted from the output of the tasks.
+  abirun.py FLOWDIR robot hist            =&gt; Build robot for HIST files, start ipython shell to interact with the robot.
+  abirun.py FLOWDIR dims                  =&gt; Print table with dimensions extracted from the output of the tasks.
+  abirun.py FLOWDIR group -g task_class   =&gt; Print table with node ids and tasks grouped by class
+  abirun.py FLOWDIR inspect               =&gt; Call matplotlib to inspect the tasks.
+  abirun.py FLOWDIR tail                  =&gt; Use Unix tail to follow the main output files of the flow.
+  abirun.py FLOWDIR deps                  =&gt; Show task dependencies.
+  abirun.py FLOWDIR listext GSR SIGRES    =&gt; Show output files with the given extension(s).
+  abirun.py FILE abiopen                  =&gt; Open FILE with abiopen. Same interface as abiopen.py
 
 ###############
 # Miscelleanous
 ###############
 
-  abirun.py [FLOWDIR] ipython               =&gt; Open flow in ipython terminal.
-  abirun.py [FLOWDIR] notebook              =&gt; Generate jupyter notebook.
-  abirun.py [FLOWDIR] networkx              =&gt; Plot dependency graph.
+  abirun.py FLOWDIR ipython               =&gt; Open flow in ipython terminal.
+  abirun.py FLOWDIR notebook              =&gt; Generate jupyter notebook.
+  abirun.py FLOWDIR networkx              =&gt; Plot dependency graph.
   abirun.py abibuild                        =&gt; Show ABINIT build information and exit.
 
 ###############
 # Documentation
 ###############
 
-  abirun.py [FLOWDIR] doc_manager slurm     =&gt; Document the TaskManager options availabe for Slurm.
-  abirun.py . doc_manager script            =&gt; Show the job script that will be produced with the current settings.
-  abirun.py . doc_scheduler                 =&gt; Document the options available in scheduler.yml.
-
-############
-# Developers
-############
-
-    abirun.py prof ABIRUN_ARGS               =&gt; to profile abirun.py
-    abirun.py tracemalloc ABIRUN_ARGS        =&gt; to trace memory blocks allocated by Python
+  abirun.py FLOWDIR doc_manager slurm     =&gt; Document the TaskManager options availabe for Slurm.
+  abirun.py . doc_manager script          =&gt; Show the job script that will be produced with the current settings.
+  abirun.py . doc_scheduler               =&gt; Document the options available in scheduler.yml.
 </pre></div>
 </div>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py doc_scheduler
@@ -587,64 +575,66 @@ hardware:
 
 # Dictionary with the options used to prepare the enviroment before submitting the job
 job:
-    setup:            # List of commands (strings) executed before running (DEFAULT: empty)
-    omp_env:          # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
-    modules:          # List of modules to be imported before running the code (DEFAULT: empty).
-                      # NB: Error messages produced by module load are redirected to mods.err
-    shell_env:        # Dictionary with shell environment variables.
-    mpi_runner:       # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
-                      # DEFAULT: None i.e. no mpirunner is used.
-    shell_runner:     # Used for running small sequential jobs on the front-end. Set it to None
-                      # if mpirun or mpiexec are not available on the fron-end. If not
-                      # given, small sequential jobs are executed with `mpi_runner`.
-    pre_run:          # List of commands (strings) executed before the run (DEFAULT: empty)
-    post_run:         # List of commands (strings) executed after the run (DEFAULT: empty)
+    setup:                # List of commands (strings) executed before running (DEFAULT: empty)
+    omp_env:              # Dictionary with OpenMP environment variables (DEFAULT: empty i.e. no OpenMP)
+    modules:              # List of modules to be imported before running the code (DEFAULT: empty).
+                          # NB: Error messages produced by module load are redirected to mods.err
+    shell_env:            # Dictionary with shell environment variables.
+    mpi_runner:           # MPI runner. Possible values in [&quot;mpirun&quot;, &quot;mpiexec&quot;, &quot;srun&quot;, None]
+                          # DEFAULT: None i.e. no mpirunner is used.
+    mpi_runner_options    # String with optional options passed to the `mpi_runner` e.g. &quot;--bind-to None&quot;
+    shell_runner:         # Used for running small sequential jobs on the front-end. Set it to None
+                          # if mpirun or mpiexec are not available on the fron-end. If not
+                          # given, small sequential jobs are executed with `mpi_runner`.
+    shell_runner_options  # Similar to mpi_runner_options but for the runner used on the front-end.
+    pre_run:              # List of commands (strings) executed before the run (DEFAULT: empty)
+    post_run:             # List of commands (strings) executed after the run (DEFAULT: empty)
 
 # dictionary with the name of the queue and optional parameters
 # used to build/customize the header of the submission script.
 queue:
-    qtype:            # String defining the qapapter type e.g. slurm, shell ...
-    qname:            # Name of the submission queue (string, MANDATORY)
-    qparams:          # Dictionary with values used to generate the header of the job script
-                      # We use the *normalized* version of the options i.e dashes in the official name
-                      # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
-                      # See pymatgen.io.abinit.qadapters.py for the list of supported values.
-                      # Use ``qverbatim`` to pass additional options that are not included in the template.
+    qtype:                # String defining the qapapter type e.g. slurm, shell ...
+    qname:                # Name of the submission queue (string, MANDATORY)
+    qparams:              # Dictionary with values used to generate the header of the job script
+                          # We use the *normalized* version of the options i.e dashes in the official name
+                          # are replaced by underscores e.g. ``--mail-type`` becomes ``mail_type``
+                          # See pymatgen.io.abinit.qadapters.py for the list of supported values.
+                          # Use ``qverbatim`` to pass additional options that are not included in the template.
 
 # dictionary with the constraints that must be fulfilled in order to run on this queue.
 limits:
-    min_cores:         # Minimum number of cores (integer, DEFAULT: 1)
-    max_cores:         # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
-                       # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
-    hint_cores:        # The limit used in the initial setup of jobs.
-                       # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:  # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
-                       # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:  # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
-                       # (DEFAULT: hardware.mem_per_node)
-    timelimit:         # Initial time-limit. Accepts time according to slurm-syntax i.e:
-                       # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
-                       # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
-    timelimit_hard:    # The hard time-limit for this queue. Same format as timelimit.
-                       # Error handlers could try to submit jobs with increased timelimit
-                       # up to timelimit_hard. If not specified, timelimit_hard == timelimit
-    condition:         # MongoDB-like condition (DEFAULT: empty, i.e. not used)
-    allocation:        # String defining the policy used to select the optimal number of CPUs.
-                       # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
-                       # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
-                       # This is a soft limit, in the sense that the qadapter may use a configuration
-                       # that does not fulfill this requirement. In case of failure, it will try to use the
-                       # smallest number of nodes compatible with the optimal configuration.
-                       # Use `force_nodes` to enfore entire nodes allocation.
-                       # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:  # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    min_cores:             # Minimum number of cores (integer, DEFAULT: 1)
+    max_cores:             # Maximum number of cores (integer, MANDATORY). Hard limit to hint_cores:
+                           # it&#39;s the limit beyond which the scheduler will not accept the job (MANDATORY).
+    hint_cores:            # The limit used in the initial setup of jobs.
+                           # Fix_Critical method may increase this number until max_cores is reached
+    min_mem_per_proc:      # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+                           # (DEFAULT: hardware.mem_per_core)
+    max_mem_per_proc:      # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+                           # (DEFAULT: hardware.mem_per_node)
+    timelimit:             # Initial time-limit. Accepts time according to slurm-syntax i.e:
+                           # &quot;days-hours&quot; or &quot;days-hours:minutes&quot; or &quot;days-hours:minutes:seconds&quot; or
+                           # &quot;minutes&quot; or &quot;minutes:seconds&quot; or &quot;hours:minutes:seconds&quot;,
+    timelimit_hard:        # The hard time-limit for this queue. Same format as timelimit.
+                           # Error handlers could try to submit jobs with increased timelimit
+                           # up to timelimit_hard. If not specified, timelimit_hard == timelimit
+    condition:             # MongoDB-like condition (DEFAULT: empty, i.e. not used)
+    allocation:            # String defining the policy used to select the optimal number of CPUs.
+                           # possible values are in [&quot;nodes&quot;, &quot;force_nodes&quot;, &quot;shared&quot;]
+                           # &quot;nodes&quot; means that we should try to allocate entire nodes if possible.
+                           # This is a soft limit, in the sense that the qadapter may use a configuration
+                           # that does not fulfill this requirement. In case of failure, it will try to use the
+                           # smallest number of nodes compatible with the optimal configuration.
+                           # Use `force_nodes` to enfore entire nodes allocation.
+                           # `shared` mode does not enforce any constraint (DEFAULT: shared).
+    max_num_launches:      # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
 
 
 qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge&#39;, &#39;shell&#39;, &#39;slurm&#39;, &#39;torque&#39;]
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Dec 08, 2017), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Dec 12, 2017), AbiPy supports the following resource managers:</p>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
@@ -663,7 +653,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
                  <span class="p">[</span><span class="n">flowdir</span><span class="p">]</span>
-                 <span class="p">{</span><span class="n">single</span><span class="p">,</span><span class="n">rapid</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">status</span><span class="p">,</span><span class="n">set_status</span><span class="p">,</span><span class="n">cancel</span><span class="p">,</span><span class="n">restart</span><span class="p">,</span><span class="n">reset</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="nb">open</span><span class="p">,</span><span class="n">ncopen</span><span class="p">,</span><span class="n">abibuild</span><span class="p">,</span><span class="n">doc_scheduler</span><span class="p">,</span><span class="n">new_manager</span><span class="p">,</span><span class="n">tail</span><span class="p">,</span><span class="n">deps</span><span class="p">,</span><span class="n">robot</span><span class="p">,</span><span class="n">cycles</span><span class="p">,</span><span class="n">dims</span><span class="p">,</span><span class="n">inspect</span><span class="p">,</span><span class="n">inputs</span><span class="p">,</span><span class="n">abivars</span><span class="p">,</span><span class="n">structures</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">doc_manager</span><span class="p">,</span><span class="n">events</span><span class="p">,</span><span class="n">corrections</span><span class="p">,</span><span class="n">history</span><span class="p">,</span><span class="n">handlers</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">tar</span><span class="p">,</span><span class="n">tricky</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">debug_reset</span><span class="p">,</span><span class="n">clone_task</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">diff</span><span class="p">,</span><span class="n">networkx</span><span class="p">,</span><span class="n">listext</span><span class="p">,</span><span class="n">timer</span><span class="p">}</span>
+                 <span class="p">{</span><span class="n">single</span><span class="p">,</span><span class="n">rapid</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">status</span><span class="p">,</span><span class="n">set_status</span><span class="p">,</span><span class="n">cancel</span><span class="p">,</span><span class="n">restart</span><span class="p">,</span><span class="n">reset</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="nb">open</span><span class="p">,</span><span class="n">abiopen</span><span class="p">,</span><span class="n">abibuild</span><span class="p">,</span><span class="n">doc_scheduler</span><span class="p">,</span><span class="n">new_manager</span><span class="p">,</span><span class="n">tail</span><span class="p">,</span><span class="n">deps</span><span class="p">,</span><span class="n">robot</span><span class="p">,</span><span class="n">cycles</span><span class="p">,</span><span class="n">dims</span><span class="p">,</span><span class="n">inspect</span><span class="p">,</span><span class="n">inputs</span><span class="p">,</span><span class="n">abivars</span><span class="p">,</span><span class="n">structures</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">doc_manager</span><span class="p">,</span><span class="n">events</span><span class="p">,</span><span class="n">corrections</span><span class="p">,</span><span class="n">history</span><span class="p">,</span><span class="n">handlers</span><span class="p">,</span><span class="n">notebook</span><span class="p">,</span><span class="n">ipython</span><span class="p">,</span><span class="n">tar</span><span class="p">,</span><span class="n">tricky</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">debug_reset</span><span class="p">,</span><span class="n">clone_task</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">diff</span><span class="p">,</span><span class="n">networkx</span><span class="p">,</span><span class="n">listext</span><span class="p">}</span>
                  <span class="o">...</span>
 </pre></div>
 </div>
@@ -700,7 +690,7 @@ Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: single, rapid, scheduler, batch, status, set_status, cancel, restart, reset, move, open, ncopen, abibuild, doc_scheduler, new_manager, tail, deps, robot, cycles, dims, inspect, inputs, abivars, structures, ebands, hist, doc_manager, events, corrections, history, handlers, notebook, ipython, tar, tricky, debug, debug_reset, clone_task, group, diff, networkx, listext, timer</p>
+<td><p class="first">Possible choices: single, rapid, scheduler, batch, status, set_status, cancel, restart, reset, move, open, abiopen, abibuild, doc_scheduler, new_manager, tail, deps, robot, cycles, dims, inspect, inputs, abivars, structures, ebands, hist, doc_manager, events, corrections, history, handlers, notebook, ipython, tar, tricky, debug, debug_reset, clone_task, group, diff, networkx, listext</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -1297,7 +1287,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="nb">open</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
-               <span class="p">[</span><span class="n">what</span><span class="p">]</span>
+               <span class="p">[{</span><span class="n">i</span><span class="p">,</span><span class="n">o</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="n">q</span><span class="p">,</span><span class="nb">all</span><span class="p">}]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat3">
@@ -1308,7 +1298,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>what</kbd></td>
-<td><p class="first">Specify the files to open. Possible choices:</p>
+<td><p class="first">Possible choices: i, o, f, j, l, e, q, all</p>
+<p>Specify the files to open. Possible choices:</p>
 <blockquote>
 <div>i ==&gt; input_file
 o ==&gt; output_file
@@ -1318,6 +1309,7 @@ l ==&gt; log_file
 e ==&gt; stderr_file
 q ==&gt; qout_file
 all ==&gt; all files.</div></blockquote>
+<p>Default: o</p>
 <p class="last">Default: “o”</p>
 </td></tr>
 </tbody>
@@ -1374,28 +1366,12 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </table>
 </div>
 </div>
-<div class="section" id="ncopen">
-<h3>ncopen<a class="headerlink" href="#ncopen" title="Permalink to this headline">¶</a></h3>
-<p>Open netcdf files in ipython. Use –help for more info.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">ncopen</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
-                 <span class="p">[</span><span class="n">ncext</span><span class="p">]</span>
+<div class="section" id="abiopen">
+<h3>abiopen<a class="headerlink" href="#abiopen" title="Permalink to this headline">¶</a></h3>
+<p>Open FILE with abiopen. Same interface as abiopen.py</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">abiopen</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
 </pre></div>
-</div>
-<div class="section" id="Positional Arguments_repeat4">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>ncext</kbd></td>
-<td><p class="first">Select the type of file to open.</p>
-<p class="last">Default: “GSR”</p>
-</td></tr>
-</tbody>
-</table>
 </div>
 <div class="section" id="Named Arguments_repeat12">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
@@ -1428,22 +1404,22 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <td><p class="first">Remove the lock on the pickle file used to save the status of the flow.</p>
 <p class="last">Default: False</p>
 </td></tr>
-<tr><td class="option-group">
-<kbd>-n, --nids</kbd></td>
-<td>Node identifier(s) used to select the task. Accept single integer, comma-separated list of integers or python slice.
-Use <cite>status</cite> command to get the node ids.
-Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice syntax), –nids=2:5:2 to select 2,4.</td></tr>
-<tr><td class="option-group">
-<kbd>-w, --wslice</kbd></td>
-<td>Select the list of works to analyze (python syntax for slices): Examples: –wslice=1 to select the second workflow, –wslice=:3 for 0,1,2, –wslice=-1 for the last workflow, –wslice::2 for even indices.</td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd>-S, --task-status</kbd></td>
+<kbd>-nb, --notebook</kbd></td>
 </tr>
-<tr><td>&#160;</td><td>Select only the tasks with the given status. Default: None i.e. ignored. Possible values: [‘Initialized’, ‘Locked’, ‘Ready’, ‘Submitted’, ‘Running’, ‘Done’, ‘AbiCritical’, ‘QCritical’, ‘Unconverged’, ‘Error’, ‘Completed’].</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd>-t, --task-class</kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
+<tr><td>&#160;</td><td><p class="first">Open file in jupyter notebook</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--foreground</kbd></td>
+<td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-p, --print</kbd></td>
+<td><p class="first">Print python object and return.</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
@@ -1558,8 +1534,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                       <span class="n">manager_file</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat5">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat4">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -1629,18 +1605,19 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">tail</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
-               <span class="p">[</span><span class="n">what_tail</span><span class="p">]</span>
+               <span class="p">[{</span><span class="n">o</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">e</span><span class="p">}]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat6">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>what_tail</kbd></td>
-<td><p class="first">What to follow: <cite>o</cite> for output (default), <cite>l</cite> for logfile, <cite>e</cite> for stderr.</p>
+<td><p class="first">Possible choices: o, l, e</p>
+<p>What to follow: <cite>o</cite> for output (default), <cite>l</cite> for logfile, <cite>e</cite> for stderr.</p>
 <p class="last">Default: “o”</p>
 </td></tr>
 </tbody>
@@ -1745,19 +1722,19 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">robot</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
                 <span class="p">[</span><span class="n">robot_ext</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat7">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>robot_ext</kbd></td>
-<td><p class="first">The file extension of the output file (case insensitive). Must be in: [‘DDB’, ‘EPH’, ‘GSR’, ‘HIST’, ‘MDF’, ‘OPTIC’, ‘SIGEPH’, ‘SIGRES’]</p>
+<td><p class="first">The file extension of the output file (case insensitive). Must be in: [‘DDB’, ‘EPH’, ‘GSR’, ‘HIST’, ‘MDF’, ‘OPTIC’, ‘SIGEPH’, ‘SIGRES’, ‘abo’]</p>
 <p class="last">Default: “GSR”</p>
 </td></tr>
 </tbody>
@@ -1813,12 +1790,18 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <tr><td class="option-group" colspan="2">
 <kbd>-nb, --notebook</kbd></td>
 </tr>
-<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook</p>
+<tr><td>&#160;</td><td><p class="first">Generate jupyter notebook.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>--foreground</kbd></td>
 <td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --print-dataframe</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Invoke robot.get_dataframe() and printa table to terminal.</p>
 <p class="last">Default: False</p>
 </td></tr>
 </tbody>
@@ -1827,10 +1810,11 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </div>
 <div class="section" id="cycles">
 <h3>cycles<a class="headerlink" href="#cycles" title="Permalink to this headline">¶</a></h3>
-<p>Print self-consistent cycles extracted from the output of the tasks.</p>
+<p>Print self-consistent/relaxation cycles extracted from the output of the tasks.Use <cite>-t ScfTask</cite> or <cite>FLOWDIR/w0/</cite> or <cite>FLOWDIR/w0/t1/</cite> to select tasks by class, by work or by workdir.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">cycles</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">wok</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">combiplot</span><span class="p">,</span><span class="n">gallery</span><span class="p">}]]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat19">
@@ -1880,10 +1864,17 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <kbd>-t, --task-class</kbd></td>
 </tr>
 <tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
-<tr><td class="option-group">
-<kbd>-p, --plot</kbd></td>
-<td><p class="first">Plot results with matplotlib.</p>
+<tr><td class="option-group" colspan="2">
+<kbd>-wok, --exclude-ok-tasks</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Exclude Tasks that have reached S_OK.</p>
 <p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: combiplot, gallery</p>
+<p class="last">Plot multiple cycles on the same figure if arg is specified. Use <cite>-p</cite> for gridplot. Use <cite>-p gallery</cite> to iterate.</p>
 </td></tr>
 </tbody>
 </table>
@@ -2141,6 +2132,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">structures</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                      <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
                      <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">what</span> <span class="n">WHAT</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat24">
@@ -2190,6 +2182,11 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <kbd>-t, --task-class</kbd></td>
 </tr>
 <tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
+<tr><td class="option-group">
+<kbd>--what</kbd></td>
+<td><p class="first">‘i’ for input structures, ‘o’ for output, ‘io’ for both.</p>
+<p class="last">Default: “io”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
@@ -2199,7 +2196,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <p>Compare electronic bands produced by the tasks.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">,</span><span class="n">boxplot</span><span class="p">,</span><span class="n">combiboxplot</span><span class="p">,</span><span class="n">animate</span><span class="p">}]]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat25">
@@ -2249,10 +2247,11 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <kbd>-t, --task-class</kbd></td>
 </tr>
 <tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
-<tr><td class="option-group">
-<kbd>-p, --plot</kbd></td>
-<td><p class="first">Plot bands on a grid.</p>
-<p class="last">Default: False</p>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: gridplot, combiplot, boxplot, combiboxplot, animate</p>
+<p class="last">Plot multiple bands if arg is specified. Use -p for gridplot. Supports multiple formats.</p>
 </td></tr>
 </tbody>
 </table>
@@ -2263,7 +2262,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <p>Compare HIST.nc files produced by the tasks.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">gridplot</span><span class="p">,</span><span class="n">combiplot</span><span class="p">}]]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat26">
@@ -2313,10 +2313,11 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <kbd>-t, --task-class</kbd></td>
 </tr>
 <tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
-<tr><td class="option-group">
-<kbd>-p, --plot</kbd></td>
-<td><p class="first">Plot HIST results on a grid.</p>
-<p class="last">Default: False</p>
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --plot-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: gridplot, combiplot</p>
+<p class="last">Plot multiple HIST files if arg is present. Use -p for combiplot. Supports multiple formats.</p>
 </td></tr>
 </tbody>
 </table>
@@ -2330,8 +2331,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                       <span class="p">[</span><span class="n">qtype</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat8">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat7">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -2992,6 +2993,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">group</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="p">{</span><span class="n">status</span><span class="p">,</span><span class="n">task_class</span><span class="p">}]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat39">
@@ -3041,6 +3043,12 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <kbd>-t, --task-class</kbd></td>
 </tr>
 <tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
+<tr><td class="option-group">
+<kbd>-g, --groupby</kbd></td>
+<td><p class="first">Possible choices: status, task_class</p>
+<p>Select the attribute used to group tasks. Default: status.</p>
+<p class="last">Default: “status”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
@@ -3054,8 +3062,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                <span class="p">[</span><span class="n">what_diff</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat9">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat8">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -3179,8 +3187,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
                   <span class="p">[</span><span class="n">listexts</span> <span class="p">[</span><span class="n">listexts</span> <span class="o">...</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments_repeat10">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Positional Arguments_repeat9">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -3228,65 +3236,6 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </table>
 </div>
 </div>
-<div class="section" id="timer">
-<h3>timer<a class="headerlink" href="#timer" title="Permalink to this headline">¶</a></h3>
-<p>Read the section with timing info from the main ABINIT output file (requires timopt != 0) Open Ipython terminal to inspect data.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">timer</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="Named Arguments_repeat43">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat43" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>-v, --verbose</kbd></td>
-<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
-<p class="last">Default: 0</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--no-colors</kbd></td>
-<td><p class="first">Disable ASCII colors.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--no-logo</kbd></td>
-<td><p class="first">Disable AbiPy logo.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--loglevel</kbd></td>
-<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.</p>
-<p class="last">Default: “ERROR”</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--remove-lock</kbd></td>
-<td><p class="first">Remove the lock on the pickle file used to save the status of the flow.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>-n, --nids</kbd></td>
-<td>Node identifier(s) used to select the task. Accept single integer, comma-separated list of integers or python slice.
-Use <cite>status</cite> command to get the node ids.
-Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice syntax), –nids=2:5:2 to select 2,4.</td></tr>
-<tr><td class="option-group">
-<kbd>-w, --wslice</kbd></td>
-<td>Select the list of works to analyze (python syntax for slices): Examples: –wslice=1 to select the second workflow, –wslice=:3 for 0,1,2, –wslice=-1 for the last workflow, –wslice::2 for even indices.</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd>-S, --task-status</kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Select only the tasks with the given status. Default: None i.e. ignored. Possible values: [‘Initialized’, ‘Locked’, ‘Ready’, ‘Submitted’, ‘Running’, ‘Done’, ‘AbiCritical’, ‘QCritical’, ‘Unconverged’, ‘Error’, ‘Completed’].</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd>-t, --task-class</kbd></td>
-</tr>
-<tr><td>&#160;</td><td>Select only tasks with the given class e.g. <cite>-t NscfTask</cite>.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
 </div>
 </div>
 
@@ -3303,7 +3252,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 12, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

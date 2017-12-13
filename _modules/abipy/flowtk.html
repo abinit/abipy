@@ -196,10 +196,10 @@
             <span class="n">flow</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">plot</span><span class="p">:</span>
-                <span class="n">flow</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">flow</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_edge_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">abivalidate</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validating input files of the flow...&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validating flow input files...&quot;</span><span class="p">)</span>
                 <span class="n">isok</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">abivalidate_inputs</span><span class="p">()</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">isok</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
@@ -285,7 +285,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

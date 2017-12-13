@@ -186,23 +186,22 @@ it is important to preserve consistency with the results produced by abinit.</p>
 <em class="property">classmethod </em><code class="descname">ae_core_density_on_mesh</code><span class="sig-paren">(</span><em>valence_density</em>, <em>structure</em>, <em>rhoc</em>, <em>maxr=2.0</em>, <em>nelec=None</em>, <em>tol=0.01</em>, <em>method='get_sites_in_sphere'</em>, <em>small_dist_mesh=(8</em>, <em>8</em>, <em>8)</em>, <em>small_dist_factor=1.5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/fields.html#Density.ae_core_density_on_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.fields.Density.ae_core_density_on_mesh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the all electron core density of the structure from the pseudopotentials <em>rhoc</em> files.
 For points close to the atoms, the value at the grid point would be defined as the average on a finer grid
-in the neghibourhood of the point.
-:param valence_density: a Density object representing the valence charge density
-:param structure: the structure for which the total core density will be calculated
-:param rhoc: <em>rhoc</em> files for the elements in structure. Can be a list with len=len(structure) or a</p>
-<blockquote>
-<div>dictionary {element: rhoc}. Distances should be in Angstrom and densities in e/A^3.</div></blockquote>
+in the neghibourhood of the point.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>valence_density</strong> – a Density object representing the valence charge density</li>
+<li><strong>structure</strong> – the structure for which the total core density will be calculated</li>
+<li><strong>rhoc</strong> – <em>rhoc</em> files for the elements in structure. Can be a list with len=len(structure) or a
+dictionary {element: rhoc}. Distances should be in Angstrom and densities in e/A^3.</li>
 <li><strong>maxr</strong> – maximum radius for the distance between grid points and atoms.</li>
 <li><strong>nelec</strong> – if given a check will be perfomed to verify that the integrated density will be within 1% error
 with respect to nelec. The total density will also be rescaled to fit exactly the given number.</li>
 <li><strong>tol</strong> – tolerance above which the system will raise an exception if the integrated density doesn’t sum up
 to the value specified in nelec. Default 0.01 (1% error).</li>
-<li><strong>method</strong> – <p>different methods to perform the calculation
+<li><strong>method</strong> – <p>different methods to perform the calculation:
 get_sites_in_sphere: based on Structure.get_sites_in_sphere.
 mesh3d_dist_gridpoints: based on Mesh3D.dist_gridpoints_in_spheres. Generally faster than</p>
 <blockquote>
@@ -2248,7 +2247,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dd><dl class="first docutils">
 <dt>kmeshes: List of kmeshes. Each item is given by three integers with the number of</dt>
 <dd>divisions along the reciprocal primitive axes.</dd>
-<dt>is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along</dt>
+<dt>is_shift: three integers (spglib API). If None, the kmesh is shifted along</dt>
 <dd>the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.</dd>
 </dl>
 <p class="last">method: String defining the method for the computation of the DOS.
@@ -2774,8 +2773,22 @@ and List of dictionaries with COD data (same order as structures).</p>
 <p>Extends <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code> with Abinit-specific methods.</p>
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.ABO3">
-<em class="property">classmethod </em><code class="descname">ABO3</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.ABO3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.ABO3" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">ABO3</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>units='ang'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.ABO3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.ABO3" title="Permalink to this definition">¶</a></dt>
 <dd><p>Peroviskite structures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>a</strong> – Lattice parameter (Angstrom if units is not given)</li>
+<li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+<li><strong>units</strong> – Units of input lattice parameters e.g. “bohr”, “pm”</li>
+<li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2800,7 +2813,7 @@ and List of dictionaries with COD data (same order as structures).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>symprec</strong> – Symmetry precision used to refine the structure.</li>
-<li><strong>angle_tolerance</strong> – Tolerance on anglese
+<li><strong>angle_tolerance</strong> – Tolerance on angles.
 if <cite>symprec</cite> is None and <cite>angle_tolerance</cite> is None, no structure refinement is peformed.</li>
 <li><strong>primitive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Whether to convert to a primitive cell following
 Setyawan, W., &amp; Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010</li>
@@ -2842,16 +2855,17 @@ from a CIF file.</p>
 
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.bcc">
-<em class="property">classmethod </em><code class="descname">bcc</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>primitive=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.bcc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.bcc" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">bcc</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>primitive=True</em>, <em>units='ang'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.bcc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.bcc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a primitive or a conventional bcc crystal structure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> – Lattice parameter in Angstrom.</li>
+<li><strong>a</strong> – Lattice parameter (Angstrom if units is not given)</li>
 <li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structue</span></code></li>
 <li><strong>primitive</strong> – if True a primitive cell will be produced, otherwise a conventional one</li>
+<li><strong>units</strong> – Units of input lattice parameters e.g. “bohr”, “pm”</li>
 <li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structue</span></code></li>
 </ul>
 </td>
@@ -3061,16 +3075,17 @@ instance of visu is returned. See <code class="xref py py-class docutils literal
 
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.fcc">
-<em class="property">classmethod </em><code class="descname">fcc</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>primitive=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.fcc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.fcc" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">fcc</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>primitive=True</em>, <em>units='ang'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.fcc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.fcc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a primitive or a conventional fcc crystal structure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> – Lattice parameter in Angstrom.</li>
+<li><strong>a</strong> – Lattice parameter (Angstrom if units is not given)</li>
 <li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
 <li><strong>primitive</strong> – if True a primitive cell will be produced, otherwise a conventional one</li>
+<li><strong>units</strong> – Units of input lattice parameters e.g. “bohr”, “pm”</li>
 <li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
 </ul>
 </td>
@@ -3497,7 +3512,7 @@ angstroms. Defaults to “CuKa”, i.e, Cu K_alpha radiation.</dd>
 <dt>symprec (float): Symmetry precision for structure refinement. If</dt>
 <dd>set to 0, no refinement is done. Otherwise, refinement is
 performed using spglib with provided precision.</dd>
-<dt>debye_waller_factors ({element symbol: float}): Allows the</dt>
+<dt>debye_waller_factors <cite>({element symbol: float})</cite>: Allows the</dt>
 <dd>specification of Debye-Waller factors. Note that these
 factors are temperature dependent.</dd>
 <dt>two_theta_range ([float of length 2]): Tuple for range of</dt>
@@ -3556,14 +3571,15 @@ Print results.</p>
 
 <dl class="classmethod">
 <dt id="abipy.core.structure.Structure.rocksalt">
-<em class="property">classmethod </em><code class="descname">rocksalt</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.rocksalt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.rocksalt" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">rocksalt</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>units='ang'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.rocksalt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.rocksalt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a primitive fcc crystal structure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>a</strong> – Lattice parameter in Angstrom.</li>
+<li><strong>a</strong> – Lattice parameter (Angstrom if units is not given)</li>
+<li><strong>units</strong> – Units of input lattice parameters e.g. “bohr”, “pm”</li>
 <li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
 <li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
 </ul>
@@ -3596,31 +3612,66 @@ Print results.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>symprec</strong> – Symmetry precision for distance</li>
-<li><strong>angle_tolerance</strong> – Tolerance on anglese</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>symprec</strong> – Symmetry precision for distance.</li>
+<li><strong>angle_tolerance</strong> – Tolerance on angles.</li>
 <li><strong>printout</strong> – True to print symmetry tables.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>irred_pos, eqmap, spgdata</p>
+</tbody>
+</table>
 <dl class="docutils">
+<dt>Returns: (irred_pos, eqmap, spgdata)</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt><cite>namedtuple</cite> with the following attributes:</dt>
+<dd><dl class="first docutils">
 <dt>irred_pos: array giving the position of the i-th irred atom in the structure.</dt>
-<dd><p class="first last">The number of irred atoms is len(irred_pos)</p>
+<dd>The number of irred atoms is len(irred_pos)</dd>
+</dl>
+<p class="last">eqmap: Mapping irred atom position –&gt; list with positions of symmetrical atoms
+spgdata: spglib dataset with additional data reported by spglib.</p>
 </dd>
 </dl>
-<p>eqmap: Mapping irred atom position –&gt; list with positions of symmetrical atoms
-spgdata: spglib dataset with additional data reported by spglib.</p>
-</p>
+</div></blockquote>
+<table class="last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"><dl class="first last docutils">
+<dt>for irr_pos in irred_pos:</dt>
+<dd><p class="first last">eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><p>namedtuple with the following attributes</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">irr_pos</span> <span class="ow">in</span> <span class="n">irred_pos</span><span class="p">:</span>
-    <span class="n">eqmap</span><span class="p">[</span><span class="n">irr_pos</span><span class="p">]</span>   <span class="c1"># List of symmetrical positions associated to the irr_pos atom.</span>
-</pre></div>
-</div>
-</p>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.core.structure.Structure.spget_lattice_type">
+<code class="descname">spget_lattice_type</code><span class="sig-paren">(</span><em>symprec=0.001</em>, <em>angle_tolerance=5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.spget_lattice_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.spget_lattice_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call spglib to get the lattice for the structure, e.g., (triclinic,
+orthorhombic, cubic, etc.).This is the same than the
+crystal system with the exception of the hexagonal/rhombohedral lattice</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>symprec</strong> – Symmetry precision for distance</li>
+<li><strong>angle_tolerance</strong> – Tolerance on angles.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Lattice type for structure or None if type cannot be detected.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a>)</p>
 </td>
 </tr>
 </tbody>
@@ -3638,7 +3689,7 @@ space group, point group, wyckoff positions, equivalent sites.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>symprec</strong> – Symmetry precision for distance</li>
-<li><strong>angle_tolerance</strong> – Tolerance on anglese</li>
+<li><strong>angle_tolerance</strong> – Tolerance on angles</li>
 <li><strong>verbose</strong> – Verbosity level.</li>
 </ul>
 </td>
@@ -3778,6 +3829,30 @@ working directory is created. Return path to the notebook.</p>
 </table>
 </dd></dl>
 
+<dl class="classmethod">
+<dt id="abipy.core.structure.Structure.zincblende">
+<em class="property">classmethod </em><code class="descname">zincblende</code><span class="sig-paren">(</span><em>a</em>, <em>species</em>, <em>units='ang'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/core/structure.html#Structure.zincblende"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.structure.Structure.zincblende" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a primitive zincblende crystal structure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>a</strong> – Lattice parameter (Angstrom if units is not given)</li>
+<li><strong>species</strong> – Chemical species. See __init__ method of <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+<li><strong>units</strong> – Units of input lattice parameters e.g. “bohr”, “pm”</li>
+<li><strong>kwargs</strong> – All keyword arguments accepted by <code class="xref py py-class docutils literal"><span class="pre">pymatgen.Structure</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Structure</span><span class="o">.</span><span class="n">zincblende</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Zn&quot;</span><span class="p">,</span> <span class="s2">&quot;S&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -3789,7 +3864,7 @@ a list of structures or a list of objects that can be converted into structures.
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>struct_objects</strong> – List of objects that can be converted to structure.
 Support filenames, structure objects, Abinit input files, dicts and many more types.
 See <cite>Structure.as_structure</cite> for the complete list.</li>
@@ -3800,28 +3875,31 @@ instead of Reduced coordinates.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
-<dt><cite>lattice</cite> contains the lattice parameters,</dt>
-<dd><p class="first last"><cite>coords</cite> the atomic positions.</p>
-</dd>
-</dl>
+</tbody>
+</table>
+<p>Return: (lattice, coords)</p>
+<blockquote>
+<div><p>namedtuple with two pandas <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code>:</p>
+<blockquote>
+<div><cite>lattice</cite> contains the lattice parameters,
+<cite>coords</cite> the atomic positions.</div></blockquote>
 <p>The list of structures is available in the <cite>structures</cite> entry.</p>
-</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">namedtuple with two pandas <code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></p>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"><p class="first">dfs = dataframes_from_structures(files)
+dfs.lattice
+dfs.coords
+for structure in dfs.structures:</p>
+<blockquote class="last">
+<div><p>print(structure)</p>
+</div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dfs</span> <span class="o">=</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
-<span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span>
-<span class="n">dfs</span><span class="o">.</span><span class="n">coords</span>
-<span class="k">for</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">dfs</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
-</pre></div>
-</div>
 </dd></dl>
 
 </div>
@@ -4416,7 +4494,7 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 12, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

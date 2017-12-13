@@ -42,7 +42,7 @@ including the LO-TO splitting. See tutorial/lesson_rf2.html
     # are found automatically by searching in an internal database.
     phbands.plot(title="ZnSe with LO-TO splitting")
 
-**Total running time of the script:** ( 0 minutes  0.731 seconds)
+**Total running time of the script:** ( 0 minutes  0.755 seconds)
 
 
 

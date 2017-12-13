@@ -1217,6 +1217,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_vars</span><span class="p">(</span><span class="n">_IRDVARS</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
+    <span class="c1">#def pop_relax_vars(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Remove all the `ird*` variables present in self.</span>
+    <span class="c1">#    Return dictionary with the variables that have been removed.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    return scf_input.pop_vars([&quot;ionmov&quot;, &quot;optcell&quot;, &quot;ntime&quot;, &quot;dilatmx&quot;])</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">scf_tolvar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -3264,7 +3271,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

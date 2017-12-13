@@ -73,10 +73,11 @@ def build_flow(options, paral_kgb=0):
     # Perform converge study wrt ngkpt (shiftk is constant).
     ngkpt_convergence = [[4, 4, 4], [8, 8, 8], [16, 16, 16]]
 
+    from abipy.flowtk.dfpt_works import NscfDdksWork
     for ddk_ngkpt in ngkpt_convergence:
         # Build work for NSCF from DEN produced by the first GS task + 3 DDKs.
         # All tasks use more bands and a denser k-mesh defined by ddk_ngkpt.
-        ddks_work = flowtk.NscfDdksWork.from_scf_task(bands_work[0], ddk_ngkpt, shiftk, ddk_nband)
+        ddks_work = NscfDdksWork.from_scf_task(bands_work[0], ddk_ngkpt, shiftk, ddk_nband)
         flow.register_work(ddks_work)
 
         # Build optic task to compute chi with this value of ddk_ngkpt.
@@ -93,7 +94,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -124,7 +125,6 @@ if __name__ == "__main__":
 # .. code-block:: ipython
 #
 #    In [1]: %matplotlib
-#
 #    In [2]: robot.plot_linopt_convergence()
 #
 # .. image:: https://github.com/abinit/abipy_assets/blob/master/run_optic.png?raw=true

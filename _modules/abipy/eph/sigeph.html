@@ -139,7 +139,6 @@
 <span class="kn">import</span> <span class="nn">pymatgen.core.units</span> <span class="k">as</span> <span class="nn">units</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 
-
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
@@ -255,7 +254,7 @@
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">num_plots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span><span class="o">//</span><span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
 
         <span class="c1"># Build grid of plots.</span>
         <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_list</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
@@ -430,7 +429,7 @@
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">num_plots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span><span class="o">//</span><span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
 
         <span class="c1"># Build grid of plots.</span>
         <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_list</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -882,16 +881,16 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SigEPhRobot</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="k">return</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="k">return</span>
 
         <span class="c1"># Check dimensions and self-energy states and issue warning.</span>
         <span class="n">warns</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">wapp</span> <span class="o">=</span> <span class="n">warns</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">nc0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nc0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">same_nsppol</span><span class="p">,</span> <span class="n">same_nkcalc</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">nsppol</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">nsppol</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
             <span class="n">same_nsppol</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">wapp</span><span class="p">(</span><span class="s2">&quot;Comparing ncfiles with different values of nsppol.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">nkcalc</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">nkcalc</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">nkcalc</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">nkcalc</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
             <span class="n">same_nkcalc</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">wapp</span><span class="p">(</span><span class="s2">&quot;Comparing ncfiles with different number of k-points in self-energy. Do&quot;</span><span class="p">)</span>
 
@@ -900,9 +899,9 @@
             <span class="c1"># Different values of bstart_ks are difficult to handle</span>
             <span class="c1"># Because the high-level API assumes an absolute global index</span>
             <span class="c1"># Should decided how to treat this case: either raise or interpret band as an absolute band index.</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">bstart_sk</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">bstart_sk</span><span class="p">)</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">bstart_sk</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">bstart_sk</span><span class="p">)</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
                 <span class="n">wapp</span><span class="p">(</span><span class="s2">&quot;Comparing ncfiles with different values of bstart_sk&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">bstop_sk</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">bstop_sk</span><span class="p">)</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nc</span><span class="o">.</span><span class="n">bstop_sk</span> <span class="o">!=</span> <span class="n">nc0</span><span class="o">.</span><span class="n">bstop_sk</span><span class="p">)</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
                 <span class="n">wapp</span><span class="p">(</span><span class="s2">&quot;Comparing ncfiles with different values of bstop_sk&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">wapp</span><span class="p">:</span>
@@ -1211,7 +1210,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

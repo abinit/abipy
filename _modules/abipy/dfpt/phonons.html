@@ -1080,7 +1080,8 @@
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
 <span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
 <span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``</span>
-<span class="sd">            branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).</span>
+<span class="sd">            branch_range: Tuple specifying the minimum and maximum branch_i index to plot</span>
+<span class="sd">                (default: all branches are plotted).</span>
 <span class="sd">            colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a</span>
 <span class="sd">                sequential order to avoid difficulties in distinguishing the lines.</span>
 <span class="sd">                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</span>
@@ -3639,7 +3640,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a pandas dataframe with the most important results available in the band structures.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">dataframe_from_phbands</span><span class="p">([</span><span class="n">nc</span><span class="o">.</span><span class="n">phbands</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">],</span>
+        <span class="k">return</span> <span class="n">dataframe_from_phbands</span><span class="p">([</span><span class="n">nc</span><span class="o">.</span><span class="n">phbands</span> <span class="k">for</span> <span class="n">nc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">],</span>
                                       <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="n">with_spglib</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_phbands_code_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -3665,7 +3666,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

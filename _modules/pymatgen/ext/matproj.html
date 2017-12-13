@@ -1089,6 +1089,35 @@
         <span class="n">millers</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">miller_energy_map</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">WulffShape</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">millers</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">get_interface_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactant1</span><span class="p">,</span> <span class="n">reactant2</span><span class="p">,</span>
+                                <span class="n">open_el</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative_mu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets critical reactions between two reactants.</span>
+
+<span class="sd">        Get critical reactions (&quot;kinks&quot; in the mixing ratio where</span>
+<span class="sd">        reaction products change) between two reactants. See the</span>
+<span class="sd">        `pymatgen.analysis.interface_reactions` module for more info.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reactant1 (str): Chemical formula for reactant</span>
+<span class="sd">            reactant2 (str): Chemical formula for reactant</span>
+<span class="sd">            open_el (str): Element in reservoir available to system</span>
+<span class="sd">            relative_mu (float): Relative chemical potential of element in</span>
+<span class="sd">                reservoir with respect to pure substance. Must be non-positive.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: list of dicts of form {ratio,energy,rxn} where `ratio` is the</span>
+<span class="sd">                reactant mixing ratio, `energy` is the reaction energy</span>
+<span class="sd">                in eV/atom, and `rxn` is a</span>
+<span class="sd">                `pymatgen.analysis.reaction_calculator.Reaction`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;reactants&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">reactant1</span><span class="p">,</span> <span class="n">reactant2</span><span class="p">]),</span>
+                   <span class="s2">&quot;open_el&quot;</span><span class="p">:</span> <span class="n">open_el</span><span class="p">,</span>
+                   <span class="s2">&quot;relative_mu&quot;</span><span class="p">:</span> <span class="n">relative_mu</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_request</span><span class="p">(</span><span class="s2">&quot;/interface_reactions&quot;</span><span class="p">,</span>
+                                  <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;POST&quot;</span><span class="p">)</span>
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">parse_criteria</span><span class="p">(</span><span class="n">criteria_string</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1186,7 +1215,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

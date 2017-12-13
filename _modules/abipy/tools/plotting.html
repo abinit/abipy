@@ -154,7 +154,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="set_axlims"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.set_axlims">[docs]</a><span class="k">def</span> <span class="nf">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lims</span><span class="p">,</span> <span class="n">axname</span><span class="p">):</span>
+<div class="viewcode-block" id="set_axlims"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.set_axlims">[docs]</a><span class="k">def</span> <span class="nf">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lims</span><span class="p">,</span> <span class="n">axname</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set the data limits for the axis ax.</span>
 
@@ -186,7 +186,7 @@
     <span class="k">return</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span></div>
 
 
-<div class="viewcode-block" id="data_from_cplx_mode"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.data_from_cplx_mode">[docs]</a><span class="k">def</span> <span class="nf">data_from_cplx_mode</span><span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
+<div class="viewcode-block" id="data_from_cplx_mode"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.data_from_cplx_mode">[docs]</a><span class="k">def</span> <span class="nf">data_from_cplx_mode</span><span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract the data from the numpy array `arr` depending on the values of `cplx_mode`.</span>
 
@@ -204,7 +204,51 @@
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported mode `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">cplx_mode</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="plot_array"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.plot_array">[docs]</a><span class="nd">@add_fig_kwargs</span>
+<span class="nd">@add_fig_kwargs</span>
+<span class="k">def</span> <span class="nf">plot_xy_with_hue</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot y = f(x) relation for different values of `hue`.</span>
+<span class="sd">    Useful for convergence tests done wrt to two parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: DataFrame containing columns `x`, `y`, and `hue`.</span>
+<span class="sd">        x: Name of the column used as x-value</span>
+<span class="sd">        y: Name of the column used as y-value</span>
+<span class="sd">        hue: Variable that define subsets of the data, which will be drawn on separate lines</span>
+<span class="sd">        ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">        xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`</span>
+<span class="sd">                     or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">        fontsize: Legend fontsize.</span>
+<span class="sd">        kwargs: Keywork arguments are passed to ax.plot method.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `matplotlib` figure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check here because pandas messages are a bit criptic.</span>
+    <span class="n">miss</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">miss</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find `</span><span class="si">%s</span><span class="s2">` in dataframe.</span><span class="se">\n</span><span class="s2">Available keys are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">miss</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+    <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">hue</span><span class="p">):</span>
+        <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span> <span class="o">=</span> <span class="n">grp</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">grp</span><span class="p">[</span><span class="n">y</span><span class="p">]</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hue</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
+
+
+<div class="viewcode-block" id="plot_array"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.plot_array">[docs]</a><span class="nd">@add_fig_kwargs</span>
 <span class="k">def</span> <span class="nf">plot_array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">color_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use imshow for plotting 2D or 1D arrays.</span>
@@ -250,7 +294,7 @@
     <span class="k">return</span> <span class="n">fig</span></div>
 
 
-<div class="viewcode-block" id="ArrayPlotter"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.ArrayPlotter">[docs]</a><span class="k">class</span> <span class="nc">ArrayPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ArrayPlotter"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter">[docs]</a><span class="k">class</span> <span class="nc">ArrayPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">labels_and_arrays</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -268,20 +312,20 @@
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
 
-<div class="viewcode-block" id="ArrayPlotter.keys"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.ArrayPlotter.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ArrayPlotter.keys"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ArrayPlotter.items"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.ArrayPlotter.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ArrayPlotter.items"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ArrayPlotter.add_array"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.ArrayPlotter.add_array">[docs]</a>    <span class="k">def</span> <span class="nf">add_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+<div class="viewcode-block" id="ArrayPlotter.add_array"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter.add_array">[docs]</a>    <span class="k">def</span> <span class="nf">add_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add array with the given name.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is already in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span></div>
 
-<div class="viewcode-block" id="ArrayPlotter.add_arrays"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.ArrayPlotter.add_arrays">[docs]</a>    <span class="k">def</span> <span class="nf">add_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">arr_list</span><span class="p">):</span>
+<div class="viewcode-block" id="ArrayPlotter.add_arrays"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter.add_arrays">[docs]</a>    <span class="k">def</span> <span class="nf">add_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">arr_list</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a list of arrays</span>
 
@@ -293,7 +337,7 @@
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">arr_list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ArrayPlotter.plot"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.ArrayPlotter.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+<div class="viewcode-block" id="ArrayPlotter.plot"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="n">color_map</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -345,7 +389,7 @@
         <span class="k">return</span> <span class="n">fig</span></div></div>
 
 
-<div class="viewcode-block" id="Marker"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.Marker">[docs]</a><span class="k">class</span> <span class="nc">Marker</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;Marker&quot;</span><span class="p">,</span> <span class="s2">&quot;x y s&quot;</span><span class="p">)):</span>
+<div class="viewcode-block" id="Marker"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.Marker">[docs]</a><span class="k">class</span> <span class="nc">Marker</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;Marker&quot;</span><span class="p">,</span> <span class="s2">&quot;x y s&quot;</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stores the position and the size of the marker.</span>
 <span class="sd">    A marker is a list of tuple(x, y, s) where x, and y are the position</span>
@@ -384,7 +428,7 @@
 
     <span class="n">__nonzero__</span> <span class="o">=</span> <span class="fm">__bool__</span>
 
-<div class="viewcode-block" id="Marker.extend"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.Marker.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xys</span><span class="p">):</span>
+<div class="viewcode-block" id="Marker.extend"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.Marker.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xys</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extend the marker values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -399,7 +443,7 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">lens</span> <span class="o">!=</span> <span class="n">lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;x, y, s vectors should have same lengths but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">lens</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Marker.posneg_marker"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.plotting.Marker.posneg_marker">[docs]</a>    <span class="k">def</span> <span class="nf">posneg_marker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Marker.posneg_marker"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.Marker.posneg_marker">[docs]</a>    <span class="k">def</span> <span class="nf">posneg_marker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Split data into two sets: the first one contains all the points with positive size.</span>
 <span class="sd">        the first set contains all the points with negative size.</span>
@@ -554,7 +598,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

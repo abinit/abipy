@@ -4205,13 +4205,13 @@ working directory is created. Return path to the notebook.</p>
 <dl class="attribute">
 <dt id="abipy.electrons.gsr.GsrFile.energy">
 <code class="descname">energy</code><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total energy</p>
+<dd><p>Total energy in eV</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.gsr.GsrFile.energy_per_atom">
 <code class="descname">energy_per_atom</code><a class="reference internal" href="../_modules/abipy/electrons/gsr.html#GsrFile.energy_per_atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gsr.GsrFile.energy_per_atom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total energy / number_of_atoms</p>
+<dd><p>Total energy / number_of_atoms (eV units)</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -4427,13 +4427,17 @@ The string are extracted from the class doc string.</p>
 
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.get_dataframe_sk">
-<code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>index=None</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>index=None</em>, <em>ignore_imag=False</em>, <em>with_params=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns pandas DataFrame with QP results for the given (spin, k-point).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore_imag</strong> – Only real part is returned if <cite>ignore_imag</cite>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ignore_imag</strong> – Only real part is returned if <cite>ignore_imag</cite>.</li>
+<li><strong>with_params</strong> – True to include convergence paramenters.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -4737,8 +4741,22 @@ example: size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.electrons.gw.SigresFile.print_qps">
-<code class="descname">print_qps</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.gw.SigresFile.print_qps" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">print_qps</code><span class="sig-paren">(</span><em>precision=3</em>, <em>ignore_imag=True</em>, <em>file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresFile.print_qps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresFile.print_qps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print QP results to stream <cite>file</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>precision</strong> – Number of significant digits.</li>
+<li><strong>ignore_imag</strong> – True if imaginary part should be ignored.</li>
+<li><strong>file</strong> – Output stream.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.electrons.gw.SigresFile.qpgaps">
@@ -5024,6 +5042,76 @@ the values in the sigres.params dictionaries.</p>
 <dt id="abipy.electrons.gw.SigresPlotter.xvalues">
 <code class="descname">xvalues</code><a class="headerlink" href="#abipy.electrons.gw.SigresPlotter.xvalues" title="Permalink to this definition">¶</a></dt>
 <dd><p>The values used for the X-axis.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.electrons.gw.SigresRobot">
+<em class="property">class </em><code class="descclassname">abipy.electrons.gw.</code><code class="descname">SigresRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.RobotWithEbands</span></code></p>
+<p>This robot analyzes the results contained in multiple SIGRES files.</p>
+<dl class="attribute">
+<dt id="abipy.electrons.gw.SigresRobot.EXT">
+<code class="descname">EXT</code><em class="property"> = 'SIGRES'</em><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.EXT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.gw.SigresRobot.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pandas DataFrame with the QP gaps for all files in the robot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> – Spin index.</li>
+<li><strong>kpoint</strong> – </li>
+<li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
+Each function receives a <a class="reference internal" href="#abipy.electrons.gw.SigresFile" title="abipy.electrons.gw.SigresFile"><code class="xref py py-class docutils literal"><span class="pre">SigresFile</span></code></a> object and returns a tuple (key, value)
+where key is a string with the name of column and value is the value to be inserted.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.gw.SigresRobot.get_qpgaps_dataframe">
+<code class="descname">get_qpgaps_dataframe</code><span class="sig-paren">(</span><em>spin=None</em>, <em>kpoint=None</em>, <em>with_geo=False</em>, <em>abspath=False</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot.get_qpgaps_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.get_qpgaps_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pandas DataFrame with the QP gaps for all files in the robot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> – Spin index.</li>
+<li><strong>kpoint</strong> – </li>
+<li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
+Each function receives a <a class="reference internal" href="#abipy.electrons.gw.SigresFile" title="abipy.electrons.gw.SigresFile"><code class="xref py py-class docutils literal"><span class="pre">SigresFile</span></code></a> object and returns a tuple (key, value)
+where key is a string with the name of column and value is the value to be inserted.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.gw.SigresRobot.merge_dataframes_sk">
+<code class="descname">merge_dataframes_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot.merge_dataframes_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.merge_dataframes_sk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.electrons.gw.SigresRobot.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/electrons/gw.html#SigresRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.electrons.gw.SigresRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 </dd></dl>
@@ -6608,7 +6696,7 @@ with the dot notation i.e. d.key.</td>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 12, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

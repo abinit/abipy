@@ -716,9 +716,9 @@ num: number of values of the frequencies between w_min and w_max
 component: determine which components of the tensor will be displayed. Can be a list/tuple of two</p>
 <blockquote>
 <div>elements, indicating the indices [i, j] of the desired component or a string among
-‘diag’: plots the elements on diagonal
-‘all’: plots all the components
-‘diag_av’: plots the average of the components on the diagonal</div></blockquote>
+‘diag’ to plot the elements on diagonal
+‘all’ to plot all the components
+‘diag_av’ to plot the average of the components on the diagonal</div></blockquote>
 <p class="last">units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</p>
 </dd>
 </dl>
@@ -1463,12 +1463,12 @@ units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”
 qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</p>
 <blockquote>
 <div>The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code></div></blockquote>
-<p>branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
-colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a</p>
-<blockquote>
-<div>sequential order to avoid difficulties in distinguishing the lines.
-<a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></div></blockquote>
 <dl class="last docutils">
+<dt>branch_range: Tuple specifying the minimum and maximum branch_i index to plot</dt>
+<dd>(default: all branches are plotted).</dd>
+<dt>colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a</dt>
+<dd>sequential order to avoid difficulties in distinguishing the lines.
+<a class="reference external" href="http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html">http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html</a></dd>
 <dt>max_colors: maximum number of colors to be used. If max_colors &lt; num_braches the colors will be reapeated.</dt>
 <dd>It useful to better distinguish close bands when the number of branch is large.</dd>
 </dl>
@@ -2998,7 +2998,7 @@ This requires to run anaddb with tnlflag &gt; 0</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 12, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

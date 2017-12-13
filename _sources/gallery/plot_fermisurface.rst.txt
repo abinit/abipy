@@ -40,7 +40,7 @@ This example shows how to plot the Fermi surface with matplotlib
     # If you have mayavi installed, try:
     #eb3d.mvplot_isosurfaces()
 
-**Total running time of the script:** ( 0 minutes  1.288 seconds)
+**Total running time of the script:** ( 0 minutes  1.044 seconds)
 
 
 

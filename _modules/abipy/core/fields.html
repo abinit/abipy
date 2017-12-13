@@ -695,6 +695,7 @@
 <span class="sd">        Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files.</span>
 <span class="sd">        For points close to the atoms, the value at the grid point would be defined as the average on a finer grid</span>
 <span class="sd">        in the neghibourhood of the point.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            valence_density: a Density object representing the valence charge density</span>
 <span class="sd">            structure: the structure for which the total core density will be calculated</span>
@@ -705,7 +706,7 @@
 <span class="sd">                with respect to nelec. The total density will also be rescaled to fit exactly the given number.</span>
 <span class="sd">            tol: tolerance above which the system will raise an exception if the integrated density doesn&#39;t sum up</span>
 <span class="sd">                to the value specified in nelec. Default 0.01 (1% error).</span>
-<span class="sd">            method: different methods to perform the calculation</span>
+<span class="sd">            method: different methods to perform the calculation:</span>
 <span class="sd">                get_sites_in_sphere: based on Structure.get_sites_in_sphere.</span>
 <span class="sd">                mesh3d_dist_gridpoints: based on Mesh3D.dist_gridpoints_in_spheres. Generally faster than</span>
 <span class="sd">                    get_sites_in_sphere, but tests can be made for specific cases.</span>
@@ -1274,7 +1275,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -756,7 +756,7 @@ If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array()
 
 <dl class="function">
 <dt id="abipy.abio.factories.g0w0_with_ppmodel_inputs">
-<code class="descclassname">abipy.abio.factories.</code><code class="descname">g0w0_with_ppmodel_inputs</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>kppa</em>, <em>nscf_nband</em>, <em>ecuteps</em>, <em>ecutsigx</em>, <em>ecut=None</em>, <em>pawecutdg=None</em>, <em>accuracy='normal'</em>, <em>spin_mode='polarized'</em>, <em>smearing='fermi_dirac:0.1 eV'</em>, <em>ppmodel='godby'</em>, <em>charge=0.0</em>, <em>scf_algorithm=None</em>, <em>inclvkb=2</em>, <em>scr_nband=None</em>, <em>sigma_nband=None</em>, <em>gw_qprange=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#g0w0_with_ppmodel_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.g0w0_with_ppmodel_inputs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.abio.factories.</code><code class="descname">g0w0_with_ppmodel_inputs</code><span class="sig-paren">(</span><em>structure</em>, <em>pseudos</em>, <em>kppa</em>, <em>nscf_nband</em>, <em>ecuteps</em>, <em>ecutsigx</em>, <em>ecut=None</em>, <em>pawecutdg=None</em>, <em>shifts=(0.5</em>, <em>0.5</em>, <em>0.5)</em>, <em>accuracy='normal'</em>, <em>spin_mode='polarized'</em>, <em>smearing='fermi_dirac:0.1 eV'</em>, <em>ppmodel='godby'</em>, <em>charge=0.0</em>, <em>scf_algorithm=None</em>, <em>inclvkb=2</em>, <em>scr_nband=None</em>, <em>sigma_nband=None</em>, <em>gw_qprange=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/factories.html#g0w0_with_ppmodel_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.factories.g0w0_with_ppmodel_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a <code class="xref py py-class docutils literal"><span class="pre">MultiDataset</span></code> object that performs G0W0 calculations with the plasmon pole approximation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3014,6 +3014,63 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="abipy.abio.outputs.AboRobot">
+<em class="property">class </em><code class="descclassname">abipy.abio.outputs.</code><code class="descname">AboRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a></p>
+<p>This robot analyzes the results contained in multiple Abinit output files.
+Can compare dimensions, SCF cycles, analyze timers.</p>
+<dl class="attribute">
+<dt id="abipy.abio.outputs.AboRobot.EXT">
+<code class="descname">EXT</code><em class="property"> = 'abo'</em><a class="headerlink" href="#abipy.abio.outputs.AboRobot.EXT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.outputs.AboRobot.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>with_dims=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a pandas DataFrame with the most important results.
+and the filenames as index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
+<li><strong>with_dims</strong> – True if dimensions should be added</li>
+<li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
+<li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
+Each function receives a <code class="xref py py-class docutils literal"><span class="pre">GsrFile</span></code> object and returns a tuple (key, value)
+where key is a string with the name of column and value is the value to be inserted.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.outputs.AboRobot.get_dims_dataframe">
+<code class="descname">get_dims_dataframe</code><span class="sig-paren">(</span><em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_dims_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_dims_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build and return pandas DataFrame with the dimensions of the calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> – Index of the dataframe. Use relative paths of files if None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.abio.outputs.AboRobot.write_notebook">
+<code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="abipy.abio.outputs.OutNcFile">
 <em class="property">class </em><code class="descclassname">abipy.abio.outputs.</code><code class="descname">OutNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#OutNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.OutNcFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a></p>
@@ -3071,8 +3128,18 @@ A Robot supports the <cite>with</cite> context manager:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">__iter__  returns (label, ncfile)</p>
+<p>__iter__  returns (label, abifile) so:</p>
+<dl class="last docutils">
+<dt>for label, abifile in self:</dt>
+<dd>print(label)</dd>
+</dl>
 </div>
+<dl class="attribute">
+<dt id="abipy.abio.robots.Robot.abifiles">
+<code class="descname">abifiles</code><a class="headerlink" href="#abipy.abio.robots.Robot.abifiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of netcdf files.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.add_extfile_of_node">
 <code class="descname">add_extfile_of_node</code><span class="sig-paren">(</span><em>node</em>, <em>nids=None</em>, <em>task_class=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_extfile_of_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_extfile_of_node" title="Permalink to this definition">¶</a></dt>
@@ -3095,7 +3162,7 @@ None implies no filtering.</li>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.add_file">
-<code class="descname">add_file</code><span class="sig-paren">(</span><em>label</em>, <em>ncfile</em>, <em>filter_abifile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_file" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_file</code><span class="sig-paren">(</span><em>label</em>, <em>abifile</em>, <em>filter_abifile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.add_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.add_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a file to the robot with the given label.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3104,7 +3171,7 @@ None implies no filtering.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>label</strong> – String used to identify the file (must be unique, ax exceptions is
 raised if label is already present.</li>
-<li><strong>ncfile</strong> – Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.</li>
+<li><strong>abifile</strong> – Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.</li>
 <li><strong>filter_abifile</strong> – Function that receives an <cite>abifile</cite> object and returns
 True if the file should be added to the plotter.</li>
 </ul>
@@ -3209,8 +3276,9 @@ This method should be invoked with a concrete robot class, for example:</p>
 
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.from_files">
-<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>filenames</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a Robot from a list of <cite>filenames</cite>.</p>
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>filenames</em>, <em>labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a Robot from a list of <cite>filenames</cite>.
+if labels is None, labels are automatically generated from absolute paths.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -3239,7 +3307,7 @@ None implies no filtering.</li>
 </tbody>
 </table>
 <p>Usage example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">GsrRobot</span><span class="o">.</span><span class="n">from_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">GsrRobot</span><span class="o">.</span><span class="n">from_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span> <span class="k">as</span> <span class="n">robot</span><span class="p">:</span>
     <span class="k">print</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
 
 <span class="c1"># That is equivalent to:</span>
@@ -3323,12 +3391,6 @@ If raise_exc is True, AttributeError with an explicit message is raised.</p>
 <code class="descname">labels</code><a class="headerlink" href="#abipy.abio.robots.Robot.labels" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="abipy.abio.robots.Robot.ncfiles">
-<code class="descname">ncfiles</code><a class="headerlink" href="#abipy.abio.robots.Robot.ncfiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of netcdf files.</p>
-</dd></dl>
-
 <dl class="classmethod">
 <dt id="abipy.abio.robots.Robot.open">
 <em class="property">classmethod </em><code class="descname">open</code><span class="sig-paren">(</span><em>obj</em>, <em>nids=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.open" title="Permalink to this definition">¶</a></dt>
@@ -3340,6 +3402,65 @@ If raise_exc is True, AttributeError with an explicit message is raised.</p>
 <dt id="abipy.abio.robots.Robot.ordered_intersection">
 <em class="property">static </em><code class="descname">ordered_intersection</code><span class="sig-paren">(</span><em>list_1</em>, <em>list_2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.ordered_intersection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.ordered_intersection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return ordered intersection of two lists. Items must be hashable.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abipy.abio.robots.Robot.plot_xy_with_hue">
+<em class="property">static </em><code class="descname">plot_xy_with_hue</code><span class="sig-paren">(</span><em>data</em>, <em>x</em>, <em>y</em>, <em>hue</em>, <em>ax=None</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.abio.robots.Robot.plot_xy_with_hue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot y = f(x) relation for different values of <cite>hue</cite>.
+Useful for convergence tests done wrt to two parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – DataFrame containing columns <cite>x</cite>, <cite>y</cite>, and <cite>hue</cite>.</li>
+<li><strong>x</strong> – Name of the column used as x-value</li>
+<li><strong>y</strong> – Name of the column used as y-value</li>
+<li><strong>hue</strong> – Variable that define subsets of the data, which will be drawn on separate lines</li>
+<li><strong>ax</strong> – matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</li>
+<li><strong>ylims</strong> (<em>xlims</em>) – Set the data limits for the x(y)-axis. Accept tuple e.g. <cite>(left, right)</cite>
+or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</li>
+<li><strong>fontsize</strong> – Legend fontsize.</li>
+<li><strong>kwargs</strong> – Keywork arguments are passed to ax.plot method.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><cite>matplotlib</cite> figure.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+example: size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -3379,15 +3500,15 @@ If raise_exc is True, AttributeError with an explicit message is raised.</p>
 <dt id="abipy.abio.robots.Robot.sortby">
 <code class="descname">sortby</code><span class="sig-paren">(</span><em>func_or_string</em>, <em>reverse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.sortby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.sortby" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sort files in the robot by <cite>func_or_string</cite>
-Return list of (label, ncfile, param) tuples where param is obtained via <cite>func_or_string</cite>.</p>
+Return list of (label, abifile, param) tuples where param is obtained via <cite>func_or_string</cite>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>func_or_string</strong> – Either None, string, callable defining the quantity to be used for sorting.
-If string, it’s assumed that the ncfile has an attribute with the same name and getattr is invoked.
-If callable, the output of callable(ncfile) is used.
+If string, it’s assumed that the abifile has an attribute with the same name and getattr is invoked.
+If callable, the output of callable(abifile) is used.
 If None, no sorting is performed.</li>
 <li><strong>reverse</strong> – If set to True, then the list elements are sorted as if each comparison were reversed.</li>
 </ul>
@@ -3457,7 +3578,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

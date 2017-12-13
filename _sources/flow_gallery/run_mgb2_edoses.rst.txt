@@ -86,7 +86,7 @@ band structure and the electron DOS of MgB2 with different k-point samplings.
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(tight_layout=True)
+        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
     @flowtk.flow_main
@@ -171,7 +171,6 @@ then, inside the ipython shell, one can use:
 .. code-block:: ipython
 
    In [1]: %matplotlib
-
    In [2]: robot.combiplot_edos()
 
 to plot the electronic DOS obtained with different number of k-points in the IBZ.
@@ -181,7 +180,7 @@ to plot the electronic DOS obtained with different number of k-points in the IBZ
 
 
 
-**Total running time of the script:** ( 0 minutes  0.135 seconds)
+**Total running time of the script:** ( 0 minutes  0.174 seconds)
 
 
 

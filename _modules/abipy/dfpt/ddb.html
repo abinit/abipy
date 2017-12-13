@@ -799,10 +799,10 @@
                 <span class="k">break</span>
             <span class="n">header_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
-        <span class="n">nskip</span><span class="o">=</span><span class="mi">10</span>
+        <span class="n">nskip</span> <span class="o">=</span> <span class="mi">10</span>
         <span class="n">fmti</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%5d</span><span class="s2">&quot;</span>
         <span class="n">fmtf</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%22.14e</span><span class="s2">&quot;</span>
-        <span class="n">fmt3</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">nskip</span><span class="o">+</span><span class="n">fmtf</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">fmt3</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">nskip</span> <span class="o">+</span> <span class="n">fmtf</span> <span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
 
         <span class="c1">#write all the variables in order</span>
         <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
@@ -1279,9 +1279,9 @@
 <span class="sd">            num: number of values of the frequencies between w_min and w_max</span>
 <span class="sd">            component: determine which components of the tensor will be displayed. Can be a list/tuple of two</span>
 <span class="sd">                elements, indicating the indices [i, j] of the desired component or a string among</span>
-<span class="sd">                &#39;diag&#39;: plots the elements on diagonal</span>
-<span class="sd">                &#39;all&#39;: plots all the components</span>
-<span class="sd">                &#39;diag_av&#39;: plots the average of the components on the diagonal</span>
+<span class="sd">                &#39;diag&#39; to plot the elements on diagonal</span>
+<span class="sd">                &#39;all&#39; to plot all the components</span>
+<span class="sd">                &#39;diag_av&#39; to plot the average of the components on the diagonal</span>
 <span class="sd">            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1375,11 +1375,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># If qpoint is None, all the DDB must contain have the same q-point .</span>
         <span class="k">if</span> <span class="n">qpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found more than one q-point in the DDB file. qpoint must be specified&quot;</span><span class="p">)</span>
 
             <span class="n">qpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncfiles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ddb</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">ddb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All the q-points in the DDB files must be equal&quot;</span><span class="p">)</span>
 
         <span class="n">rows</span><span class="p">,</span> <span class="n">row_names</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -1409,27 +1409,6 @@
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
         <span class="n">row_names</span> <span class="o">=</span> <span class="n">row_names</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">abspath</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_relpaths</span><span class="p">(</span><span class="n">row_names</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
-
-    <span class="c1"># TODO: Is this really needed?</span>
-    <span class="c1">#def plot_conv_phfreqs_qpoint(self, x_vars, qpoint=None, **kwargs):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Plot the convergence of the phonon frequencies.</span>
-    <span class="c1">#    kwargs are passed to :class:`seaborn.PairGrid`.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    import matplotlib.pyplot as plt</span>
-    <span class="c1">#    import seaborn.apionly as sns</span>
-
-    <span class="c1">#    # Get the dataframe for this q-point.</span>
-    <span class="c1">#    data = self.get_dataframe_at_qpoint(qpoint=qpoint)</span>
-
-    <span class="c1">#    y_vars = sorted([k for k in data if k.startswith(&quot;mode&quot;)])</span>
-    <span class="c1">#    #print(y_vars)</span>
-
-    <span class="c1">#    # Call seaborn.</span>
-    <span class="c1">#    grid = sns.PairGrid(data, x_vars=x_vars, y_vars=y_vars, **kwargs)</span>
-    <span class="c1">#    grid.map(plt.plot, marker=&quot;o&quot;)</span>
-    <span class="c1">#    grid.add_legend()</span>
-    <span class="c1">#    plt.show()</span>
 
 <div class="viewcode-block" id="DdbRobot.anaget_phonon_plotters"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.anaget_phonon_plotters">[docs]</a>    <span class="k">def</span> <span class="nf">anaget_phonon_plotters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1504,7 +1483,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

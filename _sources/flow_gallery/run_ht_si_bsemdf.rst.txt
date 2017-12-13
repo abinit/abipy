@@ -66,7 +66,7 @@ Calculation of the BSE spectrum with the High-throuhput interface (factory funct
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(tight_layout=True)
+        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
     @flowtk.flow_main
@@ -136,7 +136,6 @@ and then inside the ipython terminal, issue:
 .. code-block:: ipython
 
    In [1]: %matplotlib
-
    In [2]: abifile.plot_mdfs()
 
 to produce:
@@ -146,7 +145,7 @@ to produce:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.121 seconds)
+**Total running time of the script:** ( 0 minutes  0.143 seconds)
 
 
 

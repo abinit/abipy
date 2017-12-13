@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Flow for Non-linear optic with DFPT" href="run_nonlinear.html" />
-    <link rel="prev" title="Relaxation Flow" href="run_sic_relax.html" />
+    <link rel="prev" title="Flow for Equation of State" href="run_eos.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -102,7 +102,7 @@
               
                 
   <li>
-    <a href="run_sic_relax.html" title="Previous Chapter: Relaxation Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation Flow</span>
+    <a href="run_eos.html" title="Previous Chapter: Flow for Equation of State"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Flow for Equa...</span>
     </a>
   </li>
   <li>
@@ -143,7 +143,6 @@
   <div class="section" id="g0w0-flow-with-factory-functions">
 <span id="sphx-glr-flow-gallery-run-ht-si-g0w0ppm-py"></span><h1>G0W0 Flow with factory functions<a class="headerlink" href="#g0w0-flow-with-factory-functions" title="Permalink to this headline">¶</a></h1>
 <p>G0W0 corrections with the HT interface.</p>
-<img alt="../_images/sphx_glr_run_ht_si_g0w0ppm_001.png" class="align-center" src="../_images/sphx_glr_run_ht_si_g0w0ppm_001.png" />
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -165,22 +164,18 @@
     <span class="c1"># Initialize the flow.</span>
     <span class="n">flow</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">Flow</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 
-    <span class="n">scf_kppa</span> <span class="o">=</span> <span class="mi">10</span>
-    <span class="n">nscf_nband</span> <span class="o">=</span> <span class="mi">10</span>
-    <span class="c1">#nscf_ngkpt = [4,4,4]</span>
-    <span class="c1">#nscf_shiftk = [0.0, 0.0, 0.0]</span>
-    <span class="n">ecut</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="n">ecutsigx</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+    <span class="n">scf_kppa</span> <span class="o">=</span> <span class="mi">120</span>
+    <span class="n">nscf_nband</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="n">ecut</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="n">ecutsigx</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span>
     <span class="c1">#scr_nband = 50</span>
     <span class="c1">#sigma_nband = 50</span>
 
     <span class="n">multi</span> <span class="o">=</span> <span class="n">abilab</span><span class="o">.</span><span class="n">g0w0_with_ppmodel_inputs</span><span class="p">(</span>
-        <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
-        <span class="n">scf_kppa</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="n">ecutsigx</span><span class="p">,</span>
-        <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">scf_kppa</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="n">ecutsigx</span><span class="p">,</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="c1"># By default the k-mesh is shifted! TODO: Change default?</span>
         <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;unpolarized&quot;</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
         <span class="c1">#ppmodel=&quot;godby&quot;, charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,</span>
         <span class="c1">#sigma_nband=None, gw_qprange=1):</span>
-
     <span class="p">)</span>
     <span class="c1">#multi.set_vars(paral_kgb=1)</span>
 
@@ -197,7 +192,7 @@
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -214,7 +209,137 @@
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.113 seconds)</p>
+<img alt="../_images/sphx_glr_run_ht_si_g0w0ppm_001.png" class="align-center" src="../_images/sphx_glr_run_ht_si_g0w0ppm_001.png" />
+<p>Run the script with:</p>
+<blockquote>
+<div>run_ht_si_g0w0ppm.py -s</div></blockquote>
+<p>The last task <code class="docutils literal"><span class="pre">w0_t3</span></code> is the SigmaTask who has produced a netcdf file with the GW results
+as you can we with the command:</p>
+<blockquote>
+<div>abirun.py flow_ht_si_g0w0ppm/ listext SIGRES</div></blockquote>
+<p>Let’s print the QP results with:</p>
+<blockquote>
+<div>abiopen.py flow_ht_si_g0w0ppm/w0/t3/outdata/out_SIGRES.nc  -p</div></blockquote>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="o">=================================</span> File <span class="nv">Info</span> <span class="o">=================================</span>
+Name: out_SIGRES.nc
+Directory: /Users/gmatteo/git_repos/abipy/abipy/examples/flows/flow_ht_si_g0w0ppm/w0/t3/outdata
+Size: <span class="m">254</span>.07 kb
+Access Time: Sat Dec  <span class="m">9</span> <span class="m">19</span>:16:05 <span class="m">2017</span>
+Modification Time: Sat Dec  <span class="m">9</span> <span class="m">15</span>:16:15 <span class="m">2017</span>
+Change Time: Sat Dec  <span class="m">9</span> <span class="m">15</span>:16:15 <span class="nv">2017</span>
+
+<span class="o">=================================</span> <span class="nv">Structure</span> <span class="o">=================================</span>
+Full Formula <span class="o">(</span>Si2<span class="o">)</span>
+Reduced Formula: Si
+abc   :   <span class="m">3</span>.866975   <span class="m">3</span>.866975   <span class="m">3</span>.866975
+angles:  <span class="m">60</span>.000000  <span class="m">60</span>.000000  <span class="m">60</span>.000000
+Sites <span class="o">(</span><span class="m">2</span><span class="o">)</span>
+  <span class="c1">#  SP       a     b     c</span>
+---  ----  ----  ----  ----
+  <span class="m">0</span>  Si    <span class="m">0</span>     <span class="m">0</span>     <span class="m">0</span>
+  <span class="m">1</span>  Si    <span class="m">0</span>.25  <span class="m">0</span>.25  <span class="m">0</span>.25
+
+Abinit Spacegroup: spgid: <span class="m">0</span>, num_spatial_symmetries: <span class="m">48</span>, has_timerev: True, symmorphic: <span class="nv">True</span>
+
+<span class="o">==============================</span> Kohn-Sham <span class="nv">bands</span> <span class="o">==============================</span>
+Number of electrons: <span class="m">8</span>.0, Fermi level: <span class="m">5</span>.963 <span class="o">[</span>eV<span class="o">]</span>
+nsppol: <span class="m">1</span>, nkpt: <span class="m">8</span>, mband: <span class="m">40</span>, nspinor: <span class="m">1</span>, nspden: <span class="m">1</span>
+smearing scheme: none, tsmear_eV: <span class="m">0</span>.272, occopt: <span class="m">1</span>
+Direct gap:
+    Energy: <span class="m">2</span>.512 <span class="o">[</span>eV<span class="o">]</span>
+    Initial state: <span class="nv">spin</span><span class="o">=</span><span class="m">0</span>, <span class="nv">kpt</span><span class="o">=[</span>+0.000, +0.000, +0.000<span class="o">]</span>, weight: <span class="m">0</span>.016, <span class="nv">band</span><span class="o">=</span><span class="m">3</span>, <span class="nv">eig</span><span class="o">=</span><span class="m">5</span>.640, <span class="nv">occ</span><span class="o">=</span><span class="m">2</span>.000
+    Final state:   <span class="nv">spin</span><span class="o">=</span><span class="m">0</span>, <span class="nv">kpt</span><span class="o">=[</span>+0.000, +0.000, +0.000<span class="o">]</span>, weight: <span class="m">0</span>.016, <span class="nv">band</span><span class="o">=</span><span class="m">4</span>, <span class="nv">eig</span><span class="o">=</span><span class="m">8</span>.152, <span class="nv">occ</span><span class="o">=</span><span class="m">0</span>.000
+Fundamental gap:
+    Energy: <span class="m">0</span>.646 <span class="o">[</span>eV<span class="o">]</span>
+    Initial state: <span class="nv">spin</span><span class="o">=</span><span class="m">0</span>, <span class="nv">kpt</span><span class="o">=[</span>+0.000, +0.000, +0.000<span class="o">]</span>, weight: <span class="m">0</span>.016, <span class="nv">band</span><span class="o">=</span><span class="m">3</span>, <span class="nv">eig</span><span class="o">=</span><span class="m">5</span>.640, <span class="nv">occ</span><span class="o">=</span><span class="m">2</span>.000
+    Final state:   <span class="nv">spin</span><span class="o">=</span><span class="m">0</span>, <span class="nv">kpt</span><span class="o">=[</span>+0.500, +0.500, +0.000<span class="o">]</span>, weight: <span class="m">0</span>.047, <span class="nv">band</span><span class="o">=</span><span class="m">4</span>, <span class="nv">eig</span><span class="o">=</span><span class="m">6</span>.286, <span class="nv">occ</span><span class="o">=</span><span class="m">0</span>.000
+Bandwidth: <span class="m">11</span>.867 <span class="o">[</span>eV<span class="o">]</span>
+Valence minimum located at:
+    <span class="nv">spin</span><span class="o">=</span><span class="m">0</span>, <span class="nv">kpt</span><span class="o">=[</span>+0.000, +0.000, +0.000<span class="o">]</span>, weight: <span class="m">0</span>.016, <span class="nv">band</span><span class="o">=</span><span class="m">0</span>, <span class="nv">eig</span><span class="o">=</span>-6.227, <span class="nv">occ</span><span class="o">=</span><span class="m">2</span>.000
+Valence maximum located at:
+    <span class="nv">spin</span><span class="o">=</span><span class="m">0</span>, <span class="nv">kpt</span><span class="o">=[</span>+0.000, +0.000, +0.000<span class="o">]</span>, weight: <span class="m">0</span>.016, <span class="nv">band</span><span class="o">=</span><span class="m">3</span>, <span class="nv">eig</span><span class="o">=</span><span class="m">5</span>.640, <span class="nv">occ</span><span class="o">=</span><span class="m">2</span>.000
+
+<span class="o">============================</span> QP direct gaps in <span class="nv">eV</span> <span class="o">============================</span>
+QP_dirgap: <span class="m">3</span>.000 <span class="k">for</span> K-point: <span class="o">[</span>+0.000, +0.000, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">3</span>.087 <span class="k">for</span> K-point: <span class="o">[</span>+0.250, +0.000, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">3</span>.068 <span class="k">for</span> K-point: <span class="o">[</span>+0.500, +0.000, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">3</span>.421 <span class="k">for</span> K-point: <span class="o">[</span>+0.250, +0.250, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">4</span>.165 <span class="k">for</span> K-point: <span class="o">[</span>+0.500, +0.250, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">4</span>.206 <span class="k">for</span> K-point: <span class="o">[</span>-0.250, +0.250, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">4</span>.003 <span class="k">for</span> K-point: <span class="o">[</span>+0.500, +0.500, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+QP_dirgap: <span class="m">8</span>.683 <span class="k">for</span> K-point: <span class="o">[</span>-0.250, +0.500, +0.250<span class="o">]</span>, spin: <span class="nv">0</span>
+
+<span class="o">==============</span> QP results <span class="k">for</span> each k-point and spin <span class="o">(</span>All in eV<span class="o">)</span> <span class="o">==============</span>
+K-point: <span class="o">[</span>+0.000, +0.000, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band     e0    qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">1</span>     <span class="m">1</span>  <span class="m">5</span>.640  <span class="m">5</span>.547      <span class="m">5</span>.520 -11.156 -12.870     <span class="m">1</span>.594   <span class="m">0</span>.0  <span class="m">0</span>.776
+<span class="m">2</span>     <span class="m">2</span>  <span class="m">5</span>.640  <span class="m">5</span>.547      <span class="m">5</span>.521 -11.156 -12.870     <span class="m">1</span>.594   <span class="m">0</span>.0  <span class="m">0</span>.776
+<span class="m">3</span>     <span class="m">3</span>  <span class="m">5</span>.640  <span class="m">5</span>.547      <span class="m">5</span>.521 -11.156 -12.870     <span class="m">1</span>.594   <span class="m">0</span>.0  <span class="m">0</span>.776
+<span class="m">4</span>     <span class="m">4</span>  <span class="m">8</span>.152  <span class="m">8</span>.547      <span class="m">8</span>.662  -9.969  -5.622    -3.837   <span class="m">0</span>.0  <span class="m">0</span>.774
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">8</span>.152  <span class="m">8</span>.547      <span class="m">8</span>.662  -9.969  -5.622    -3.837   <span class="m">0</span>.0  <span class="m">0</span>.774
+<span class="m">6</span>     <span class="m">6</span>  <span class="m">8</span>.152  <span class="m">8</span>.547      <span class="m">8</span>.662  -9.969  -5.622    -3.837   <span class="m">0</span>.0  <span class="m">0</span>.774
+
+K-point: <span class="o">[</span>+0.250, +0.000, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band     e0    qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>  <span class="m">4</span>.870  <span class="m">4</span>.751      <span class="m">4</span>.716 -10.936 -12.831     <span class="m">1</span>.741   <span class="m">0</span>.0  <span class="m">0</span>.772
+<span class="m">3</span>     <span class="m">3</span>  <span class="m">4</span>.870  <span class="m">4</span>.751      <span class="m">4</span>.716 -10.936 -12.831     <span class="m">1</span>.741   <span class="m">0</span>.0  <span class="m">0</span>.772
+<span class="m">4</span>     <span class="m">4</span>  <span class="m">7</span>.449  <span class="m">7</span>.838      <span class="m">7</span>.949 -10.031  -5.725    -3.806   <span class="m">0</span>.0  <span class="m">0</span>.778
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">9</span>.108  <span class="m">9</span>.534      <span class="m">9</span>.660 -10.013  -5.381    -4.079   <span class="m">0</span>.0  <span class="m">0</span>.771
+<span class="m">6</span>     <span class="m">6</span>  <span class="m">9</span>.108  <span class="m">9</span>.534      <span class="m">9</span>.660 -10.013  -5.381    -4.079   <span class="m">0</span>.0  <span class="m">0</span>.771
+
+K-point: <span class="o">[</span>+0.500, +0.000, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band     e0    qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>  <span class="m">4</span>.431  <span class="m">4</span>.282      <span class="m">4</span>.238 -10.908 -13.077     <span class="m">1</span>.976   <span class="m">0</span>.0  <span class="m">0</span>.769
+<span class="m">3</span>     <span class="m">3</span>  <span class="m">4</span>.431  <span class="m">4</span>.282      <span class="m">4</span>.238 -10.908 -13.077     <span class="m">1</span>.976   <span class="m">0</span>.0  <span class="m">0</span>.769
+<span class="m">4</span>     <span class="m">4</span>  <span class="m">6</span>.972  <span class="m">7</span>.350      <span class="m">7</span>.456 -10.016  -5.844    -3.687   <span class="m">0</span>.0  <span class="m">0</span>.781
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">8</span>.982  <span class="m">9</span>.410      <span class="m">9</span>.534  -9.621  -4.942    -4.127   <span class="m">0</span>.0  <span class="m">0</span>.775
+<span class="m">6</span>     <span class="m">6</span>  <span class="m">8</span>.982  <span class="m">9</span>.410      <span class="m">9</span>.534  -9.621  -4.942    -4.127   <span class="m">0</span>.0  <span class="m">0</span>.775
+
+K-point: <span class="o">[</span>+0.250, +0.250, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band     e0    qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>  <span class="m">3</span>.743  <span class="m">3</span>.571      <span class="m">3</span>.518 -10.603 -12.883     <span class="m">2</span>.056   <span class="m">0</span>.0  <span class="m">0</span>.764
+<span class="m">3</span>     <span class="m">3</span>  <span class="m">3</span>.743  <span class="m">3</span>.571      <span class="m">3</span>.518 -10.603 -12.883     <span class="m">2</span>.056   <span class="m">0</span>.0  <span class="m">0</span>.764
+<span class="m">4</span>     <span class="m">4</span>  <span class="m">6</span>.692  <span class="m">6</span>.993      <span class="m">7</span>.076  -9.352  -5.373    -3.595   <span class="m">0</span>.0  <span class="m">0</span>.783
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">8</span>.669  <span class="m">9</span>.035      <span class="m">9</span>.139  -9.203  -4.548    -4.184   <span class="m">0</span>.0  <span class="m">0</span>.779
+
+K-point: <span class="o">[</span>+0.500, +0.250, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band      e0     qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>   <span class="m">2</span>.099   <span class="m">1</span>.893      <span class="m">1</span>.825 -10.130 -12.839     <span class="m">2</span>.435   <span class="m">0</span>.0  <span class="m">0</span>.752
+<span class="m">3</span>     <span class="m">3</span>   <span class="m">3</span>.427   <span class="m">3</span>.242      <span class="m">3</span>.184 -10.596 -13.077     <span class="m">2</span>.238   <span class="m">0</span>.0  <span class="m">0</span>.761
+<span class="m">4</span>     <span class="m">4</span>   <span class="m">7</span>.086   <span class="m">7</span>.408      <span class="m">7</span>.496  -9.224  -5.065    -3.748   <span class="m">0</span>.0  <span class="m">0</span>.784
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">10</span>.015  <span class="m">10</span>.397     <span class="m">10</span>.510  -9.594  -4.730    -4.369   <span class="m">0</span>.0  <span class="m">0</span>.771
+
+K-point: <span class="o">[</span>-0.250, +0.250, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band      e0     qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>   <span class="m">1</span>.887   <span class="m">1</span>.667      <span class="m">1</span>.594  -9.982 -12.769     <span class="m">2</span>.493   <span class="m">0</span>.0  <span class="m">0</span>.751
+<span class="m">3</span>     <span class="m">3</span>   <span class="m">4</span>.302   <span class="m">4</span>.157      <span class="m">4</span>.113 -10.820 -12.927     <span class="m">1</span>.917   <span class="m">0</span>.0  <span class="m">0</span>.769
+<span class="m">4</span>     <span class="m">4</span>   <span class="m">7</span>.983   <span class="m">8</span>.363      <span class="m">8</span>.470  -9.567  -5.113    -3.966   <span class="m">0</span>.0  <span class="m">0</span>.779
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">10</span>.350  <span class="m">10</span>.800     <span class="m">10</span>.942 -10.046  -4.859    -4.595   <span class="m">0</span>.0  <span class="m">0</span>.760
+
+K-point: <span class="o">[</span>+0.500, +0.500, +0.000<span class="o">]</span>, spin: <span class="m">0</span>
+   band     e0    qpe  qpe_diago   vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>  <span class="m">2</span>.784  <span class="m">2</span>.567      <span class="m">2</span>.497 -10.480 -13.270     <span class="m">2</span>.503   <span class="m">0</span>.0  <span class="m">0</span>.755
+<span class="m">3</span>     <span class="m">3</span>  <span class="m">2</span>.784  <span class="m">2</span>.567      <span class="m">2</span>.497 -10.480 -13.270     <span class="m">2</span>.503   <span class="m">0</span>.0  <span class="m">0</span>.755
+<span class="m">4</span>     <span class="m">4</span>  <span class="m">6</span>.286  <span class="m">6</span>.571      <span class="m">6</span>.647  -9.003  -5.038    -3.603   <span class="m">0</span>.0  <span class="m">0</span>.787
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">6</span>.286  <span class="m">6</span>.571      <span class="m">6</span>.647  -9.003  -5.038    -3.603   <span class="m">0</span>.0  <span class="m">0</span>.787
+
+K-point: <span class="o">[</span>-0.250, +0.500, +0.250<span class="o">]</span>, spin: <span class="m">0</span>
+   band     e0     qpe  qpe_diago  vxcme  sigxme  sigcmee0  vUme    ze0
+<span class="m">2</span>     <span class="m">2</span>  <span class="m">1</span>.787   <span class="m">1</span>.557      <span class="m">1</span>.481 -9.917 -12.751     <span class="m">2</span>.527   <span class="m">0</span>.0  <span class="m">0</span>.749
+<span class="m">3</span>     <span class="m">3</span>  <span class="m">1</span>.787   <span class="m">1</span>.557      <span class="m">1</span>.481 -9.917 -12.751     <span class="m">2</span>.527   <span class="m">0</span>.0  <span class="m">0</span>.749
+<span class="m">4</span>     <span class="m">4</span>  <span class="m">9</span>.875  <span class="m">10</span>.241     <span class="m">10</span>.347 -9.523  -4.876    -4.176   <span class="m">0</span>.0  <span class="m">0</span>.775
+<span class="m">5</span>     <span class="m">5</span>  <span class="m">9</span>.875  <span class="m">10</span>.241     <span class="m">10</span>.347 -9.523  -4.876    -4.176   <span class="m">0</span>.0  <span class="m">0</span>.775
+</pre></div>
+</div>
+<p>we can also plot the QP data as function of the initial KS energy with ipython:</p>
+<blockquote>
+<div>abiopen.py flow_ht_si_g0w0ppm/w0/t3/outdata/out_SIGRES.nc</div></blockquote>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
+<span class="gp">In [2]: </span><span class="n">abifile</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="QP results in Si plotted vs the KS energy e0." src="https://github.com/abinit/abipy_assets/blob/master/run_ht_si_g0w0_ppm.png?raw=true" />
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.133 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_ht_si_g0w0ppm.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_ht_si_g0w0ppm.py</span></code></a></div>
@@ -237,7 +362,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -21,7 +21,7 @@ WARNING: The API could change!
 
  Out::
 
-    <ScfTask, node_id=242988, workdir=../../../../../../../var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmphqmmbstw/w1/t0>: setting prtwf to -1
+    <ScfTask, node_id=245107, workdir=../../../../../../../var/folders/89/47k8wfdj11x035svqf8qnl4m0000gn/T/tmpa1j6dl8w/w1/t0>: setting prtwf to -1
 
 
 
@@ -183,7 +183,7 @@ WARNING: The API could change!
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-        build_flow(options).plot_networkx(tight_layout=True)
+        build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
     @flowtk.flow_main
@@ -199,7 +199,7 @@ WARNING: The API could change!
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.123 seconds)
+**Total running time of the script:** ( 0 minutes  0.136 seconds)
 
 
 

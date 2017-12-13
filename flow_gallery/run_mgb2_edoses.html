@@ -217,7 +217,7 @@ band structure and the electron DOS of MgB2 with different k-point samplings.</p
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
 <span class="nd">@flowtk.flow_main</span>
@@ -286,13 +286,12 @@ build a GSR robot for these tasks with:</p>
 <div>abirun.py flow_mgb2_edoses/ ebands -nids=241034,241035,241036</div></blockquote>
 <p>then, inside the ipython shell, one can use:</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
-
 <span class="gp">In [2]: </span><span class="n">robot</span><span class="o">.</span><span class="n">combiplot_edos</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>to plot the electronic DOS obtained with different number of k-points in the IBZ.</p>
 <img alt="Convergence of electronic DOS in MgB2 wrt k-points." src="https://github.com/abinit/abipy_assets/blob/master/run_mgb2_edoses.png?raw=true" />
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.135 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.174 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_mgb2_edoses.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_mgb2_edoses.py</span></code></a></div>
@@ -315,7 +314,7 @@ build a GSR robot for these tasks with:</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 08, 2017.<br/>
+      Last updated on Dec 13, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -157,26 +157,6 @@ Remember that one can also generate a jupyter notebook directly from the command
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple  structure relaxations with the HIST ...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_multiple_hist.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_multiple_hist
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results  stored in the SIGRES produced by the GW cod...">
 
 .. only:: html
@@ -334,6 +314,26 @@ Remember that one can also generate a jupyter notebook directly from the command
    :hidden:
 
    /gallery/plot_phonon_fatbands
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple structure relaxations with the HIST r...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_multiple_hist.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_multiple_hist
 
 .. raw:: html
 
