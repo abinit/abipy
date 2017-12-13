@@ -84,7 +84,7 @@ class PhaseDiagramResults(object):
         self.mpids = [e.entry_id for e in entries]
 
         # Create phase diagram.
-        from pymatgen.phasediagram.maker import PhaseDiagram
+        from pymatgen.analysis.phase_diagram import PhaseDiagram
         self.phasediagram = PhaseDiagram(self.entries)
 
     def plot(self, show_unstable=True, show=True):
@@ -100,10 +100,7 @@ class PhaseDiagramResults(object):
         Return:
             plotter object.
         """
-        try:
-            from pymatgen.analysis.phase_diagram import PDPlotter
-        except ImportError:
-            from pymatgen.phasediagram.plotter import PDPlotter
+        from pymatgen.analysis.phase_diagram import PDPlotter
         plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
         if show:
             plotter.show()
@@ -112,13 +109,10 @@ class PhaseDiagramResults(object):
     @lazy_property
     def table(self):
         """Pandas dataframe with the most important results."""
-        # TODO: Use PhaseDiagram but enforce new pymatgen first.
-        from pymatgen.phasediagram.analyzer import PDAnalyzer
-        pda = PDAnalyzer(self.phasediagram)
         rows = []
         for e in self.entries:
             d = e.structure.get_dict4pandas(with_spglib=True)
-            decomp, ehull = pda.get_decomp_and_e_above_hull(e)
+            decomp, ehull = self.phasediagram.get_decomp_and_e_above_hull(e)
 
             rows.append(OrderedDict([
                 ("Materials ID", e.entry_id),
