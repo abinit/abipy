@@ -437,10 +437,16 @@ class PhononBands(object):
         Write xmgrace file with phonon band structure energies and labels for high-symmetry q-points.
 
         Args:
-            filepath: Filename
+            filepath: String with filename or stream.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
-        f = open(filepath, "wt")
+        is_stream = hasattr(filepath, "write")
+
+        if is_stream:
+            f = filepath
+        else:
+            f = open(filepath, "wt")
+
         def w(s):
             f.write(s)
             f.write("\n")
@@ -498,7 +504,8 @@ class PhononBands(object):
                 w('%d %.8E' % (iq, wqnu_units[iq, nu]))
             w('&')
 
-        f.close()
+        if not is_stream:
+            f.close()
 
     #def to_bxsf(self, filepath):
     #    """
@@ -1187,7 +1194,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
                       alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
-                      qlabels=None, ylims=None,
+                      qlabels=None, ylims=None, fontsize=12,
                       **kwargs):
                       #cart_dir=None
         r"""
@@ -1207,6 +1214,7 @@ class PhononBands(object):
                    or scalar e.g. `left`. If left (right) is None, default values are used
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure.
@@ -1288,7 +1296,7 @@ class PhononBands(object):
                 ax.fill_between(qq, yy_qq + d2_type, yy_qq - d2_type, facecolor=color, alpha=alpha, linewidth=0)
 
             set_axlims(ax, ylims, "y")
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         # Type projected DOSes.
         if phdos_file is not None:
@@ -1924,7 +1932,7 @@ class PhononDos(Function1D):
             ax.grid(True)
             ax.set_xlabel("Temperature [K]")
             ax.set_ylabel(_THERMO_YLABELS[qname][units])
-            #ax.legend(loc="best")
+            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         fig.tight_layout()
         return fig
@@ -2066,7 +2074,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                        ax=None, xlims=None, ylims=None, **kwargs):
+                        ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS.
 
@@ -2081,6 +2089,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
+            fontsize: legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -2114,13 +2123,13 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Total PHDOS
         x, y = self.phdos.mesh * factor, self.phdos.values / factor
         ax.plot(x, y, lw=lw, label="Total PHDOS", color='black')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               xlims=None, ylims=None, axlist=None, **kwargs):
+                               xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS decomposed along the three reduced directions.
         Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
@@ -2136,6 +2145,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
             axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and label fontsize.
 
         Returns:
             matplotlib figure.
@@ -2183,13 +2193,13 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             # Add Total PHDOS
             ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_pjdos_redirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               xlims=None, ylims=None, axlist=None, **kwargs):
+                               xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
@@ -2204,6 +2214,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -2265,7 +2276,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             # Add Total PHDOS
             ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -2880,7 +2891,7 @@ class PhononDosPlotter(NotebookWriter):
         self._phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
     @add_fig_kwargs
-    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, **kwargs):
+    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
 
@@ -2890,6 +2901,7 @@ class PhononDosPlotter(NotebookWriter):
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
+            fontsize: Legend and title fontsize.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -2906,7 +2918,7 @@ class PhononDosPlotter(NotebookWriter):
             legends.append("DOS: %s" % label)
 
         # Set legends.
-        ax.legend(lines, legends, loc='best', shadow=True)
+        ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -2960,7 +2972,7 @@ class PhononDosPlotter(NotebookWriter):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                             quantities="all", **kwargs):
+                             quantities="all", fontsize=12, **kwargs):
         """
         Plot thermodinamic properties from the phonon DOS within the harmonic approximation.
 
@@ -2974,6 +2986,7 @@ class PhononDosPlotter(NotebookWriter):
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodinamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
+            fontsize: Legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -3003,11 +3016,11 @@ class PhononDosPlotter(NotebookWriter):
                 if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
                 ax.plot(f1d.mesh, ys, label=label)
 
-            ax.set_title(qname)
+            ax.set_title(qname, fontsize=fontsize)
             ax.grid(True)
             ax.set_xlabel("Temperature [K]")
             ax.set_ylabel(_THERMO_YLABELS[qname][units])
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         fig.tight_layout()
         return fig

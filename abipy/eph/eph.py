@@ -183,7 +183,7 @@ class A2f(object):
 
     @add_fig_kwargs
     def plot(self, units="eV", with_lambda=True, exchange_xy=False, ax=None,
-             xlims=None, ylims=None, label=None, **kwargs):
+             xlims=None, ylims=None, label=None, fontsize=12, **kwargs):
         """
         Plot a2F(w), it's primitive lambda(w) and optionally the individual
         contributions due to the phonon branches.
@@ -198,6 +198,7 @@ class A2f(object):
                     or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
+            fontsize: Legend and title fontsize
 
         Returns:
             `matplotlib` figure
@@ -243,7 +244,7 @@ class A2f(object):
         ax.grid(True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
-        if label: ax.legend(loc="best")
+        if label: ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
@@ -561,7 +562,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self.reader.close()
 
     @add_fig_kwargs
-    def plot_eph_strength(self, what="lambda", ylims=None, ax=None, label=None, **kwargs):
+    def plot_eph_strength(self, what="lambda", ylims=None, ax=None, label=None, fontsize=12, **kwargs):
         """
         Plot phonon bands with eph coupling strength lambda(q, nu)
 
@@ -571,6 +572,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             label: String used to label the plot in the legend.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -607,7 +609,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         ax.set_ylabel(ylabel)
         set_axlims(ax, ylims, "y")
-        if label: ax.legend(loc="best")
+        if label: ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 

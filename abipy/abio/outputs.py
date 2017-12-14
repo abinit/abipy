@@ -11,6 +11,7 @@ from monty.string import is_string
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
+#from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.kpoints import has_timrev_from_kptopt
@@ -47,6 +48,13 @@ class AbinitTextFile(TextFile):
 
 class AbinitLogFile(AbinitTextFile, NotebookWriter):
     """Class representing the Abinit log file."""
+
+    def to_string(self, verbose=0):
+        return str(self.events)
+
+    def plot(self, **kwargs):
+        """Empty placeholder."""
+        return None
 
     def write_notebook(self, nbpath=None):
         """

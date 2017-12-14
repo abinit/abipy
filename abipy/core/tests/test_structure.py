@@ -47,6 +47,7 @@ class TestStructure(AbipyTest):
         si = Structure.as_structure(abidata.cif_file("si.cif"))
         assert si.formula == "Si2"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
+        assert "ntypat" in si.to(fmt="abivars")
 
         spgroup = si.spgset_abi_spacegroup(has_timerev=True)
         assert spgroup is not None

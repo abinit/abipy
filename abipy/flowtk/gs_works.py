@@ -14,10 +14,10 @@ class EosWork(Work):
     The EOS is obtained by computing E(V) for several volumes around the input V0,
     The initial volumes are obtained by rescaling the input lattice vectors so that
     length proportions and angles are preserved.
-    This guess is exact for cubic/rhomboedral materials while other Bravais lattices require
+    This guess is exact for cubic materials while other Bravais lattices require
     a constant-volume optimization of the cell geometry.
 
-    If lattice_type in ("cubic", "rhomboedral") and atomic positions are fixed by symmetry.
+    If lattice_type=="cubic" and atomic positions are fixed by symmetry.
     use can use move_atoms=False to perform standard GS-SCF calculations.
     In all the other cases, E(V) is obtained by relaxing the atomic positions at fixed volume.
 
@@ -70,12 +70,14 @@ class EosWork(Work):
             # Add ecutsm if not already present.
             new_input.set_vars_ifnotin(ecutsm=ecutsm)
 
-            if lattice_type in ("cubic", "rhomboedral") and not move_atoms:
+            if lattice_type == "cubic" and not move_atoms:
                 # Perform GS calculations without moving atoms, cells do not need to be relaxed.
                 new_input.pop_vars(["ionmov", "optcell", "ntime"])
                 new_work.register_scf_task(new_input)
             else:
                 # Constant-volume optimization of cell geometry + atoms.
+                # (modify acell and rprim under constraint - normalize the vectors of rprim to generate the acell)
+                # In principle one could take into account the symmetry of the lattice...
                 new_input.set_vars_ifnotin(ionmov=2, ntime=50, optcell=3, dilatmx=1.05)
                 new_work.register_relax_task(new_input)
 

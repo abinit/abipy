@@ -186,17 +186,25 @@ class HistFile(AbinitNcFile, NotebookWriter):
             raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
         if filepath is None:
             import tempfile
-            fd, filepath = tempfile.mkstemp(text=True)
+            fd, filepath = tempfile.mkstemp(text=True, suffix="_XDATCAR")
 
         # int typat[natom], double znucl[npsp]
-        typat = self.reader.read_value("typat")
+        # NB: typat is double in the HIST.nc file
+        typat = self.reader.read_value("typat").astype(int)
         znucl = self.reader.read_value("znucl")
-        if len(typat) != len(znucl):
-            raise RuntimeError("Alchemical mixing is not supported.")
+        ntypat = self.reader.read_dimvalue("ntypat")
+        num_pseudos = self.reader.read_dimvalue("npsp")
+        if num_pseudos != ntypat:
+            raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
+        print("znucl:", znucl)
+        print("typat:", typat)
+
         symb2pos = OrderedDict()
         symbols_atom = []
         for iatom, itype in enumerate(typat):
             itype = itype - 1
+            print("itype", itype)
+            print("int", int(znucl[itype]))
             symbol = Element.from_Z(int(znucl[itype])).symbol
             if symbol not in symb2pos: symb2pos[symbol] = []
             symb2pos[symbol].append(iatom)
@@ -233,6 +241,30 @@ class HistFile(AbinitNcFile, NotebookWriter):
                     fh.write("%.12f %.12f %.12f\n" % (fs[0], fs[1], fs[2]))
 
         return filepath
+
+    def visualize(self, visu_name="ovito"):
+        """
+        Visualize the crystalline structure with visualizer.
+        See :class:`Visualizer` for the list of applications and formats supported.
+        """
+        if visu_name == "mayavi": return self.mayaview()
+
+        # Get the Visualizer subclass from the string.
+        from abipy.iotools import Visualizer
+        visu = Visualizer.from_name(visu_name)
+        if visu.name != "ovito":
+            raise NotImplementedError("visualizer: %s" % visu.name)
+
+        #import tempfile
+        #_, tmp_filepath = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
+        #_, tmp_filepath = tempfile.mkstemp(suffix="XDATCAR", dir=os.getcwd(), text=True)
+        filepath = self.write_xdatcar(filepath=None, groupby_type=True)
+
+        return visu(filepath)()
+        #if options.trajectories:
+        #    hist.mvplot_trajectories()
+        #else:
+        #    hist.mvanimate()
 
     def plot_ax(self, ax, what, fontsize=12, **kwargs):
         """
@@ -350,12 +382,13 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_energies(self, ax=None, **kwargs):
+    def plot_energies(self, ax=None, fontsize=12, **kwargs):
         """
         Plot the total energies as function of the iteration step.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -371,7 +404,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ax.set_xlabel('Step')
         ax.set_ylabel('Energies [eV]')
         ax.grid(True)
-        ax.legend(loc='best', shadow=True)
+        ax.legend(loc='best', fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -677,7 +710,7 @@ class HistReader(ETSF_Reader):
         if num_pseudos != ntypat:
             raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
 
-        znucl, typat = self.read_value("znucl"), self.read_value("typat")
+        znucl, typat = self.read_value("znucl"), self.read_value("typat").astype(int)
         #print(znucl.dtype, typat)
         cart_forces_step = self.read_cart_forces(unit="eV ang^-1")
 

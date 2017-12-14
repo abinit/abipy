@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script to analyze/compare results stored in multiple netcdf files.
+Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
@@ -15,6 +15,42 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
+
+
+# Not used but could be useful to analyze densities.
+def sort_paths(options):
+    """
+    Sort input files whose name is in the form `out_TIM2_DEN`
+    Files are sorted by TIM index.
+    """
+    if options.no_sort: return
+    names = [os.path.basename(p) for p in options.filepath]
+    import re
+    # out_TIM2_DEN
+    tim = re.compile(r".+_TIM(\d+)_.+")
+    l = []
+    for p, n in zip(options.filepath, names):
+        m = tim.match(n)
+        if m:
+            l.append((int(m.group(1)), p))
+    if not l: return
+    if len(l) != len(options.filepath):
+        print("Cannot sort input path!")
+        return
+
+    options.paths = [t[1] for t in sorted(l, key=lambda t: t[0])]
+    print("Input files have been automatically sorted")
+    for i, p in enumerate(options.paths):
+        print("%d: %s" % (i, p))
+    print("Use --no-sort to disable automatic sorting.")
+
+
+def abiview_fields(options):
+    """Animate fields with Mayavi. Accept any file with density or potential ..."""
+    from abipy.display.mvtk import MayaviFieldAnimator
+    a = MayaviFieldAnimator(options.filepath)
+    a.volume_animate()
+    return 0
 
 
 def abicomp_structure(options):
@@ -619,46 +655,47 @@ Usage example:
 # Structures
 ############
 
-  abicomp.py structure */*/outdata/out_GSR.nc     => Compare structures in multiple files.
-                                                     Use `--group` to compare for similarity
-  abicomp.py hist FILE(s)                         => Compare final structures read from HIST.nc files.
-  abicomp.py mp_structure FILE(s)                 => Compare structure(s) read from FILE(s) with the one(s)
-                                                     given in the materials project database.
-  abicomp.py cod_structure FILE(s)                => Compare structure(s) read from FILE(s) with the one(s)
-                                                     given in the COD database (http://www.crystallography.net/cod).
-  abicomp.py xrd *.cif *.GSR.nc                   => Compare X-ray diffraction plots (requires FILES with structure).
+  abicomp.py structure */*/outdata/out_GSR.nc   => Compare structures in multiple files.
+                                                   Use `--group` to compare for similarity
+  abicomp.py hist FILE(s)                       => Compare final structures read from HIST.nc files.
+  abicomp.py mp_structure FILE(s)               => Compare structure(s) read from FILE(s) with the one(s)
+                                                   given in the materials project database.
+  abicomp.py cod_structure FILE(s)              => Compare structure(s) read from FILE(s) with the one(s)
+                                                   given in the COD database (http://www.crystallography.net/cod).
+  abicomp.py xrd *.cif *.GSR.nc                 => Compare X-ray diffraction plots (requires FILES with structure).
 
 ###########
 # Electrons
 ###########
 
-  abicomp.py ebands out1_GSR.nc out2_WFK.nc       => Plot electron bands on a grid (Use `-p` to change plot mode)
-  abicomp.py ebands *_GSR.nc -ipy                 => Build plotter object and start ipython console.
-  abicomp.py ebands *_GSR.nc -nb                  => Interact with the plotter in the jupyter notebook.
-  abicomp.py edos *_WFK.nc -nb                    => Compare electron DOS in the jupyter notebook.
-  abicomp.py optic DIR                            => Compare optic results in the jupyter notebook.
+  abicomp.py ebands out1_GSR.nc out2_WFK.nc     => Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy               => Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                => Interact with the plotter in the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
+  abicomp.py optic DIR                          => Compare optic results in the jupyter notebook.
 
 #########
 # Phonons
 #########
 
-  abicomp.py phbands *_PHBST.nc -nb               => Compare phonon bands in the jupyter notebook.
-  abicomp.py phdos *_PHDOS.nc -nb                 => Compare phonon DOSes in the jupyter notebook.
-  abicomp.py ddb outdir1 outdir2 out_DDB -nb      => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+  abicomp.py phbands *_PHBST.nc -nb             => Compare phonon bands in the jupyter notebook.
+  abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
 
 #########
 # E-PH
 #########
 
-  abicomp.py eph *_EPH.nc -nb                  => Compare EPH results in the jupyter notebook.
-  abicomp.py sigeph *_SIGEPH.nc -nb            => Compare Fan-Migdal self-energy in the jupyter notebook.
+  abicomp.py eph *_EPH.nc -nb                   => Compare EPH results in the jupyter notebook.
+  abicomp.py sigeph *_SIGEPH.nc -nb             => Compare Fan-Migdal self-energy in the jupyter notebook.
 
 ########
 # GW/BSE
 ########
 
-  abicomp.py sigres *_SIGRES.nc                   => Compare multiple SIGRES files.
-  abicomp.py mdf *_MDF.nc --seaborn               => Compare macroscopic dielectric functions. Use seaborn settings.
+  abicomp.py sigres *_SIGRES.nc                 => Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc --seaborn             => Compare macroscopic dielectric functions.
+                                                   Use seaborn settings.
 
 ###############
 # Miscelleanous
@@ -672,12 +709,12 @@ Usage example:
 # Text files
 ############
 
-  abicomp.py text run1.abo run2.abo               => Compare 2+ output files in the browser.
   abicomp.py gs_scf run1.abo run2.abo             => Compare the SCF cycles in two output files.
   abicomp.py dfpt2_scf run1.abo run2.abo          => Compare the DFPT SCF cycles in two output files.
   abicomp.py.py time [OUT_FILES]                  => Parse timing data in files and plot results
   abicomp.py.py time . --ext=abo                  => Scan directory tree from `.`, look for files with extension `abo`
                                                      parse timing data and plot results.
+  abicomp.py text run1.abo run2.abo               => Produce diff of 2+ text files in the browser.
 
 TIP: Use Unix find to select all files with the a given extension and pass them to abicomp.py:
 For instance:

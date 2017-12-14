@@ -560,7 +560,8 @@ class ElectronInterpolator(object):
         self._cached_edos[(kmesh, is_shift)] = edos # .copy()
 
     @add_fig_kwargs
-    def plot_dos_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2, ax=None, **kwargs):
+    def plot_dos_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2,
+                            fontsize=12, ax=None, **kwargs):
         """
         Plot (interpolated) DOSes computed with different meshes.
 
@@ -573,6 +574,7 @@ class ElectronInterpolator(object):
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
             ax: matplotlib `Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -589,12 +591,13 @@ class ElectronInterpolator(object):
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
         ax.set_ylabel('DOS [states/eV]')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
-    def plot_jdosq0_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2, ax=None, **kwargs):
+    def plot_jdosq0_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2,
+                               ax=None, fontsize=12, **kwargs):
         """
         Plot (interpolated) Joint DOSes at q=0 computed with different meshes.
 
@@ -607,6 +610,7 @@ class ElectronInterpolator(object):
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
             ax: matplotlib `Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -622,13 +626,13 @@ class ElectronInterpolator(object):
         ax.grid(True)
         ax.set_xlabel("Energy [eV]")
         ax.set_ylabel('JDOS [states/eV]')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_nesting_vs_widths(self, widths, kmesh, e0=None, qvertices_names=None,
-                               line_density=20, is_shift=None, ax=None, **kwargs):
+                               line_density=20, is_shift=None, ax=None, fontsize=12, **kwargs):
         """
         Plot (interpolated) nesting factor computed with different broadening.
 
@@ -642,6 +646,7 @@ class ElectronInterpolator(object):
             is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -658,13 +663,13 @@ class ElectronInterpolator(object):
 
         ax.grid(True)
         ax.set_ylabel('Nesting factor')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_nesting_vs_kmeshes(self, width, kmeshes, e0=None, qvertices_names=None, line_density=20,
-                                is_shift=None, ax=None, **kwargs):
+                                is_shift=None, ax=None, fontsize=12, **kwargs):
         """
         Plot (interpolated) nesting factor computed with different k-meshes.
 
@@ -678,6 +683,7 @@ class ElectronInterpolator(object):
             is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -695,7 +701,7 @@ class ElectronInterpolator(object):
 
         ax.grid(True)
         ax.set_ylabel('Nesting factor')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

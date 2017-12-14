@@ -17,6 +17,7 @@ class AbinitLogFileTest(AbipyTest):
         log_path = abidata.ref_file("refs/abinit.log")
         with AbinitLogFile(log_path) as abilog:
             repr(abilog); str(abilog)
+            assert abilog.to_string(verbose=2)
             assert len(abilog.events) == 2
             if self.has_nbformat():
                 abilog.write_notebook(nbpath=self.get_tmpname(text=True))

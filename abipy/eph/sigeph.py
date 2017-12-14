@@ -447,7 +447,7 @@ class EphSelfEnergy(object):
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", cmap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), xlims=None, **kwargs):
+                  what_list=("re", "im", "spfunc"), xlims=None, fontsize=12, **kwargs):
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a color map.
@@ -460,6 +460,7 @@ class EphSelfEnergy(object):
             what_list:
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                 or scalar e.g. `left`. If left (right) is None, default values are used.
+            fontsize: legend and label fontsize.
 
         Returns:
             `matplotlib` figure
@@ -479,7 +480,7 @@ class EphSelfEnergy(object):
                         color=cmap(itemp / self.ntemp),
                         label=tlabels[itemp] if i == 0 else None,
                 )
-            if i == 0: ax.legend(loc="best")
+            if i == 0: ax.legend(loc="best", shadow=True, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
 
         return fig
@@ -664,12 +665,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #def get_dirgaps_dataframe(self):
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, ax=None, **kwargs):
+    def plot_qpgaps_t(self, ax=None, fontsize=12, **kwargs):
         """
         Plot the KS and the QP(T) direct gaps for all the k-points available on file.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -694,7 +696,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ax.grid(True)
         ax.set_xlabel("Temperature [K]")
         ax.set_ylabel("Direct gap [eV]")
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

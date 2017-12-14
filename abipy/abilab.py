@@ -217,6 +217,46 @@ def abiopen(filepath):
     return cls.from_file(filepath)
 
 
+__IN_NOTEBOOK = False
+
+def in_notebook():
+    """True if we are running inside a jupyter notebook (and enable_notebook has been called)."""
+    return __IN_NOTEBOOK
+
+def disable_notebook():
+    """Set `in_notebook` flag to False."""
+    global __IN_NOTEBOOK
+    __IN_NOTEBOOK = False
+
+
+def enable_notebook(with_seaborn=True):
+    """
+    Set `in_notebook` flag to True and activate seaborn settings for notebooks if `with_seaborn`.
+    """
+    global __IN_NOTEBOOK
+    __IN_NOTEBOOK = True
+
+    # Use seaborn settings for plots (optional)
+    if with_seaborn:
+        import seaborn as sns
+        sns.set(context='notebook', style='darkgrid', palette='deep',
+                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+
+def get_abipy_nbworkdir():
+    """
+    Return the absolute path of the scratch directory used to produce
+    and save temporary files when we are runnning inside a jupyter notebook.
+
+    .. note:
+
+        Due to web-browser security policy, files used in the notebook must be within the cwd.
+    """
+    wdir = os.path.join(os.getcwd(), ".abipy_nbworkdir")
+    if not os.path.exists(wdir): os.mkdir(wdir)
+    return wdir
+
+
 def display_structure(obj, **kwargs):
     """
     Use Jsmol to display a structure in the jupyter notebook.

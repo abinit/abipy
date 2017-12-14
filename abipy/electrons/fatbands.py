@@ -938,7 +938,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
-                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, **kwargs):
+                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
@@ -961,6 +961,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Same meaning as `xlims` but for the y-axis
+            fontsize: Legend and label fontsize
 
         Returns:
             `matplotlib` figure
@@ -1067,7 +1068,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     else:
                         title = "%s, %s" % (self.l2tex[l], self.spin2tex[spin]) if self.nsppol == 2 else \
                                  self.l2tex[l]
-                    ax.set_title(title)
+                    ax.set_title(title, fontsize=fontsize)
                 ax.grid(True)
 
                 # Display yticklabels on the first plot and last plot only.
@@ -1075,7 +1076,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 ax.set_xlabel("Energy [eV]")
                 if l == 0:
                     if with_info:
-                        ax.legend(loc="best")
+                        ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
                             ax.set_xlabel('DOS [states/eV]')
                         else:
@@ -1096,7 +1097,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                             stacked=True, combined_spins=True, axmat=None, exchange_xy=False,
-                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, **kwargs):
+                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
@@ -1119,6 +1120,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Same meaning as `xlims` but for the y-axis
+            fontsize: Legend and label fontsize.
 
         Returns:
             `matplotlib` figure
@@ -1224,7 +1226,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                         title = "Type: %s" % symbol
                     else:
                         title = "%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2 else symbol
-                    ax.set_title(title)
+                    ax.set_title(title, fontsize=fontsize)
                 ax.grid(True)
 
                 # Display yticklabels on the first plot and last plot only.
@@ -1232,7 +1234,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 ax.set_xlabel("Energy [eV]")
                 if itype == 0:
                     if with_info:
-                        ax.legend(loc="best")
+                        ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
                             ax.set_xlabel('DOS [states/eV]')
                         else:
@@ -1529,7 +1531,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    ax.grid(True)
     #    ax.set_xlabel("Energy [eV]")
     #    set_axlims(ax, xlims, "x")
-    #    ax.legend(loc="best")
+    #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     #    return fig
 

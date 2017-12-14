@@ -117,6 +117,7 @@ class ElectronBandsTest(AbipyTest):
 
         df = ni_ebands_kpath.get_dataframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
+        ni_ebands_kpath.to_xmgrace(sys.stdout)
 
         # BXSF cannot be produced because.
         #ngkpt    6 6 6

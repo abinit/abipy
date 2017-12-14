@@ -2,7 +2,8 @@ TODO list:
 
 ## High priority
 
-* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice.
+* Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
+  (tricky because input settings should be preserved)
 
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
@@ -13,11 +14,13 @@ TODO list:
 
 * Re-implement max_njobs in the queque using a counter local to the Launcher. DONE
 
-## Medium priority
+* Fix annoying warnings about k-point sampling.
 
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
 
-* Fix annoying warnings about k-point sampling.
+## Medium priority
+
+* Solve problem with visualize in jupyter notebooks (files should be produced in workdir)  DONE
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
@@ -36,9 +39,13 @@ TODO list:
 
 * Add memory error to Abinit errors
 
-* Refactor PyLauncher logic
-
 ## Low priority
+
+* Use parser subclass to avoid boiler plate code.
+
+* Add support for PSML format
+
+* Refactor PyLauncher logic
 
 * Finalize DDK.nc 
 
@@ -46,7 +53,7 @@ TODO list:
 
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
 
-* Use ax.legend(loc="best", fontsize=fontsize, shadow=True) (shadow?)
+* Use ax.legend(loc="best", fontsize=fontsize, shadow=True)  DONE
 
 * Check xsf_write_data
 

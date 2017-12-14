@@ -440,8 +440,8 @@ class Sigmaw(object):
         self.xc = Function1D(self.wmesh, sigmaxc_values)
         self.spfunc = Function1D(self.wmesh, spfunc_values)
 
-    def plot_ax(self, ax, w="a", **kwargs):
-        """Helper function to plot data on the axis ax."""
+    def plot_ax(self, ax, w="a", fontsize=12, **kwargs):
+        """Helper function to plot data on the axis ax with fontsize"""
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
 
         lines = []
@@ -452,7 +452,7 @@ class Sigmaw(object):
             label = kwargs.get("label", r"$\Sigma(\omega)$")
             extend(f.plot_ax(ax, cplx_mode="re", label="Re " + label))
             extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
             #ax.set_ylabel('Energy [eV]')
 
         elif w == "a":
@@ -463,7 +463,7 @@ class Sigmaw(object):
             #ax2 = ax.twinx()
             #extend(f.cumintegral().plot_ax(ax2, label="$I(\omega) = \int_{-\infty}^{\omega} A(\omega')d\omega'$"))
             #ax.set_ylabel('Energy [eV]')
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         else:
             raise ValueError("Don't know how to handle what option %s" % w)
@@ -687,12 +687,12 @@ class SigresPlotter(Iterable):
         assert len(xvalues) == len(self)
         self._xvalues = xvalues
 
-    def decorate_ax(self, ax, **kwargs):
+    def decorate_ax(self, ax, fontsize=12, **kwargs):
         ax.grid(True)
         if self.param_name is not None:
             ax.set_xlabel(self.param_name)
         ax.set_ylabel('Energy [eV]')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)

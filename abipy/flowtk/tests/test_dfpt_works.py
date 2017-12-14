@@ -6,8 +6,6 @@ import abipy.flowtk as flowtk
 #import abipy.flowtk
 
 from abipy.core.testing import AbipyTest
-#from abipy.abio.factories import gs_input
-#from abipy.flowtk import mocks
 from abipy.flowtk import dfpt_works
 
 

@@ -1455,7 +1455,7 @@ class ElectronBands(Has_Structure):
 
     @add_fig_kwargs
     def plot_ejdosvc(self, vrange, crange, method="gaussian", step=0.1, width=0.2, colormap="jet",
-                     cumulative=True, ax=None, alpha=0.7, **kwargs):
+                     cumulative=True, ax=None, alpha=0.7, fontsize=12, **kwargs):
         """
         Plot the decomposition of the joint-density of States (JDOS).
 
@@ -1473,6 +1473,7 @@ class ElectronBands(Has_Structure):
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             cumulative: True for cumulative plots (default).
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
 
         Returns:
             `matplotlib` figure
@@ -1520,7 +1521,7 @@ class ElectronBands(Has_Structure):
 
             tot_jdos.plot_ax(ax, color="k", lw=lw, label=r"Total JDOS, $\sigma=%s$" % s)
 
-        ax.legend(loc="best")
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
         return fig
 
     def apply_scissors(self, scissors):
@@ -1820,8 +1821,16 @@ class ElectronBands(Has_Structure):
     def to_xmgrace(self, filepath):
         """
         Write xmgrace file with band structure energies and labels for high-symmetry k-points.
+
+        Args:
+            filepath: String with filename or stream.
         """
-        f = open(filepath, "wt")
+        is_stream = hasattr(filepath, "write")
+        if is_stream:
+            f = filepath
+        else:
+            f = open(filepath, "wt")
+
         def w(s):
             f.write(s)
             f.write("\n")
@@ -1885,7 +1894,8 @@ class ElectronBands(Has_Structure):
                     w('%d %.8E' % (ik, emef[spin, ik, band]))
                 w('&')
 
-        f.close()
+        if not is_stream:
+            f.close()
 
     def to_bxsf(self, filepath):
         """
@@ -2268,7 +2278,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return "\n\n".join(text)
 
     @add_fig_kwargs
-    def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), **kwargs):
+    def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8, **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
         Use `gridplot` to plot band structures on different figures.
@@ -2289,6 +2299,7 @@ class ElectronBandsPlotter(NotebookWriter):
                    or scalar e.g. `left`. If left (right) is None, default values are used
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
+            fontsize: fontsize for titles and legend.
 
         Returns:
             matplotlib figure.
@@ -2341,7 +2352,7 @@ class ElectronBandsPlotter(NotebookWriter):
             if i == 0:
                 ebands.decorate_ax(ax1)
 
-        ax1.legend(lines, legends, loc='upper right', shadow=True)
+        ax1.legend(lines, legends, loc='upper right', fontsize=fontsize, shadow=True)
 
         # Add DOSes
         if self.edoses_dict:
@@ -2360,7 +2371,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, e0="fermie", with_dos=True, ylims=None, **kwargs):
+    def gridplot(self, e0="fermie", with_dos=True, ylims=None, fontsize=8, **kwargs):
         """
         Plot multiple electron bandstructures and optionally DOSes on a grid.
 
@@ -2386,6 +2397,7 @@ class ElectronBandsPlotter(NotebookWriter):
             with_dos: True if DOS should be printed.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
+            fontsize: fontsize for titles and legend
 
         Returns:
             matplotlib figure.
@@ -2410,7 +2422,7 @@ class ElectronBandsPlotter(NotebookWriter):
             for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
                 ebands.plot(ax=ax, e0=e0, show=False)
                 set_axlims(ax, ylims, "y")
-                if titles is not None: ax.set_title(titles[i])
+                if titles is not None: ax.set_title(titles[i], fontsize=fontsize)
                 if i % ncols != 0:
                     ax.set_ylabel("")
 
@@ -2432,7 +2444,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
                 ebands.plot_with_edos(edos, e0=mye0, axlist=(ax1, ax2), show=False)
 
-                if titles is not None: ax1.set_title(titles[i])
+                if titles is not None: ax1.set_title(titles[i], fontsize=fontsize)
                 if i % ncols != 0:
                     for ax in (ax1, ax2):
                         ax.set_ylabel("")
@@ -2440,7 +2452,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def boxplot(self, e0="fermie", brange=None, swarm=False, **kwargs):
+    def boxplot(self, e0="fermie", brange=None, swarm=False, fontsize=8, **kwargs):
         """
         Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
@@ -2452,6 +2464,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
             brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
+            fontsize: Fontsize for title.
             kwargs: Keyword arguments passed to seaborn boxplot.
         """
         # Build grid of plots.
@@ -2468,7 +2481,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         for (label, ebands), ax in zip(self.ebands_dict.items(), ax_list):
             ebands.boxplot(ax=ax, brange=brange, show=False)
-            ax.set_title(label)
+            ax.set_title(label, fontsize=fontsize)
 
         return fig
 
@@ -3102,7 +3115,7 @@ class ElectronDosPlotter(NotebookWriter):
         self.edoses_dict[label] = ElectronDos.as_edos(edos, edos_kwargs)
 
     @add_fig_kwargs
-    def combiplot(self, ax=None, e0="fermie", xlims=None, **kwargs):
+    def combiplot(self, ax=None, e0="fermie", xlims=None, fontsize=8, **kwargs):
         """
         Plot the the DOSes on the same figure.
         Use `gridplot` to plot DOSes on different figures.
@@ -3115,6 +3128,7 @@ class ElectronDosPlotter(NotebookWriter):
                 -  None: Don't shift energies, equivalent to e0=0
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
+            fontsize: fontsize for titles and legend
 
         Returns:
             `matplotlib` figure.
@@ -3134,7 +3148,7 @@ class ElectronDosPlotter(NotebookWriter):
         ax.set_xlabel("Energy [eV]")
         ax.set_ylabel('DOS [states/eV]')
         set_axlims(ax, xlims, "x")
-        ax.legend(loc="best")
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
@@ -3435,13 +3449,18 @@ class Bands3D(object):
         Require k-points in IBZ and gamma-centered k-mesh.
 
         Args:
-            filepath: BXSF filename.
+            filepath: BXSF filename or stream.
             unit: Input energies are in unit `unit`.
         """
         from abipy.iotools import bxsf_write
-        with open(filepath, "wt") as fh:
-            bxsf_write(fh, self.structure, self.nsppol, self.nband, self.kdivs, self.ucdata_sbk, self.fermie, unit=unit)
-            return filepath
+        if hasattr(filepath, "write"):
+            return bxsf_write(filepath, self.structure, self.nsppol, self.nband, self.kdivs,
+                              self.ucdata_sbk, self.fermie, unit=unit)
+        else:
+            with open(filepath, "wt") as fh:
+                bxsf_write(fh, self.structure, self.nsppol, self.nband, self.kdivs,
+                           self.ucdata_sbk, self.fermie, unit=unit)
+                return filepath
 
     def get_e0(self, e0):
         """
@@ -3567,7 +3586,7 @@ class Bands3D(object):
         return figure
 
     @add_fig_kwargs
-    def plot_contour(self, band, spin=0, plane="xy", elevation=0, ax=None, **kwargs):
+    def plot_contour(self, band, spin=0, plane="xy", elevation=0, ax=None, fontsize=10, **kwargs):
         """
         Contour plot with matplotlib.
 
@@ -3577,6 +3596,7 @@ class Bands3D(object):
             plane:
             elevation:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Label and title fontsize.
 
         Return:
             `matplotlib` figure
@@ -3590,9 +3610,9 @@ class Bands3D(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         x, y = np.meshgrid(x, y)
         c = ax.contour(x, y, fxy, **kwargs)
-        ax.clabel(c, inline=1, fontsize=10)
+        ax.clabel(c, inline=1, fontsize=fontsize)
         kvert = dict(xy="z", xz="y", yz="x")[plane]
-        ax.set_title("Band %s in %s plane at $K_%s=%d$" % (band, plane, kvert, elevation))
+        ax.set_title("Band %s in %s plane at $K_%s=%d$" % (band, plane, kvert, elevation), fontsize=fontsize)
         ax.grid(True)
         ax.set_xlabel("$K_%s$" % plane[0])
         ax.set_ylabel("$K_%s$" % plane[1])

@@ -1098,9 +1098,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
         return fig
 
-    def export(self, filename, visu=None):
+    def export(self, filename, visu=None, verbose=1):
         """
-        Export the crystalline structure on file filename.
+        Export the crystalline structure to file `filename`.
 
         Args:
             filename: String specifying the file path and the file format.
@@ -1109,6 +1109,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             visu: `Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.
+            verbose: Verbosity level
 
         Returns: Instance of :class:`Visualizer`
         """
@@ -1117,16 +1118,24 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
+        print("tokens", tokens, "ext", ext)
+        #if ext == "POSCAR":
 
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
-            # dir=os.getcwd() is needed when we invoke the method from a notebook.
-            _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
+            # nbworkdir in cwd is needed when we invoke the method from a notebook.
+            from abipy import abilab
+            if abilab.in_notebook():
+                _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
+            else:
+                _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
 
-        if ext == "xsf":
-            # xcrysden
-            print("Writing data to:", filename)
-            s = self.to(fmt="xsf", filename=filename)
+        if ext.lower() in ("xsf", "poscar", "cif"):
+            if verbose:
+                print("Writing data to:", filename, "with fmt:", ext.lower())
+            s = self.to(fmt=ext)
+            with open(filename, "wt") as fh:
+                fh.write(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -1179,7 +1188,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
             ext = "." + ext
             try:
                 return self.export(ext, visu=visu)()
-            except visu.Error:
+            except visu.Error as exc:
+                print(exc)
                 pass
         else:
             raise visu.Error("Don't know how to export data for %s" % visu_name)

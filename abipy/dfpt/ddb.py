@@ -1143,7 +1143,7 @@ class DielectricTensorGenerator(Has_Structure):
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot_vs_w(self, w_min, w_max, num, component='diago', units='eV', ax=None, **kwargs):
+    def plot_vs_w(self, w_min, w_max, num, component='diago', units='eV', ax=None, fontsize=12, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of the frequency
 
@@ -1157,6 +1157,7 @@ class DielectricTensorGenerator(Has_Structure):
                 'all' to plot all the components
                 'diag_av' to plot the average of the components on the diagonal
             units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
+            fontsize: Legend and label fontsize.
         """
 
         w_range = np.linspace(w_min, w_max, num, endpoint=True)
@@ -1194,7 +1195,7 @@ class DielectricTensorGenerator(Has_Structure):
         else:
             ValueError('Unkwnown component {}'.format(component))
 
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

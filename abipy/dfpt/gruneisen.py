@@ -180,7 +180,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             if i == len(dos_names) - 1:
                 ax.set_xlabel(r"$\omega$ [eV]")
-            #ax.legend(loc="best")
+            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

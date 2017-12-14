@@ -2,6 +2,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import unittest
+import sys
 import os
 import pickle
 import numpy as np
@@ -78,6 +79,7 @@ class PhononBandsTest(AbipyTest):
         phbands.create_phononwebsite_json(filename=self.get_tmpname(text=True), name='test')
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
+        phbands.to_xmgrace(sys.stdout)
 
         df = phbands.get_dataframe()
         assert "freq" in df and "mode" in df
