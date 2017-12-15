@@ -1,5 +1,5 @@
 """
-This module gathers the most important classes and helper functions used for scripting.
+Global variables used to initialize AbiPy environment in notebooks.
 """
 from __future__ import print_function, division, unicode_literals
 

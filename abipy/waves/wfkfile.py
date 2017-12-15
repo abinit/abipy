@@ -34,10 +34,10 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         wfk.ebands.plot_ebands()
 
         # Visualize crystalline structure with vesta.
-        visu = wfk.visualize_structure_with("vesta")()
+        wfk.visualize_structure_with("vesta")
 
         # Visualize u(r)**2 with vesta.
-        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, appname="vesta")()
+        wfk.visualize_ur2(spin=0, kpoint=0, band=0, appname="vesta")
 
         # Get a wavefunction.
         wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)
@@ -175,7 +175,8 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export_ur2(ext, spin, kpoint, band, visu=visu)
+                v = self.export_ur2(ext, spin, kpoint, band, visu=visu)
+                return v()
             except visu.Error:
                 pass
         else:
@@ -256,7 +257,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         def wfk_visualize(spin, kpoint, band, appname):
             kpoint = int(kpoint.split()[0])
-            self.visualize_ur2(spin, kpoint, band, appname=appname)()
+            self.visualize_ur2(spin, kpoint, band, appname=appname)
 
         import ipywidgets as ipw
         return ipw.interact_manual(
