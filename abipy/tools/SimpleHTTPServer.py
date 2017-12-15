@@ -13,19 +13,26 @@ __all__ = ["SimpleHTTPRequestHandler"]
 
 import os
 import posixpath
-import BaseHTTPServer
+try:
+    # py2k
+    from BaseHTTPServer import BaseHTTPRequestHandler
+except ImportError:
+    from http.server import SimpleHTTPRequestHandler as BaseHTTPRequestHandler
 import urllib
 import cgi
 import sys
 import shutil
 import mimetypes
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+
+#try:
+#    from cStringIO import StringIO
+#except ImportError:
+#    from StringIO import StringIO
+# py2-py3
+from six.moves import cStringIO as StringIO
 
 
-class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
     """Simple HTTP request handler with GET and HEAD commands.
 
