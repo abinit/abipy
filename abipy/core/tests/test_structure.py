@@ -35,7 +35,7 @@ class TestStructure(AbipyTest):
 
             # Export data in Xcrysden format.
             #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
-            #visu = structure.visualize(visu_name="vesta")
+            #visu = structure.visualize(appname="vesta")
             #assert callable(visu)
 
             if self.has_ase():

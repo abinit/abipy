@@ -233,14 +233,14 @@ class Has_Structure(object):
         """
         return self.structure.export(filepath)
 
-    def visualize_structure_with(self, visu_name):
+    def visualize_structure_with(self, appname):
         """
         Visualize the crystalline structure with the specified visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
         from abipy.iotools.visualizer import Visualizer
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         for ext in visu.supported_extensions():
             ext = "." + ext
@@ -249,7 +249,7 @@ class Has_Structure(object):
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for visu_name %s" % visu_name)
+            raise visu.Error("Don't know how to export data for appname %s" % appname)
 
 
 @six.add_metaclass(abc.ABCMeta)

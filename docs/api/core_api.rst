@@ -33,6 +33,14 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`globals` Module
+---------------------
+
+.. automodule:: abipy.core.globals
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gsphere` Module
 ---------------------
 

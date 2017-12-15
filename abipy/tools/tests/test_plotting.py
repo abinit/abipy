@@ -73,6 +73,8 @@ class TestPlotting(AbipyTest):
             assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", ax=None, show=False)
             assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", ax=None, show=False,
                                     color="red", marker="v")
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", decimals=0, ax=None, show=False,
+                                    color="red", marker="v")
             with self.assertRaises(ValueError):
                 plot_xy_with_hue(data=df, x="foo", y="y", hue="bar", ax=None, show=False)
 

@@ -79,7 +79,8 @@ def data_from_cplx_mode(cplx_mode, arr):
 
 
 @add_fig_kwargs
-def plot_xy_with_hue(data, x, y, hue, ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
+def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
+                     xlims=None, ylims=None, fontsize=12, **kwargs):
     """
     Plot y = f(x) relation for different values of `hue`.
     Useful for convergence tests done wrt to two parameters.
@@ -89,6 +90,7 @@ def plot_xy_with_hue(data, x, y, hue, ax=None, xlims=None, ylims=None, fontsize=
         x: Name of the column used as x-value
         y: Name of the column used as y-value
         hue: Variable that define subsets of the data, which will be drawn on separate lines
+        decimals: Number of decimal places to round `hue` columns. Ignore if None
         ax: matplotlib :class:`Axes` or None if a new figure should be created.
         xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
                      or scalar e.g. `left`. If left (right) is None, default values are used
@@ -102,6 +104,10 @@ def plot_xy_with_hue(data, x, y, hue, ax=None, xlims=None, ylims=None, fontsize=
     miss = [k for k in (x, y, hue) if k not in data]
     if miss:
         raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
+
+    # Truncate values in hue column so that we can group.
+    if decimals is not None:
+        data = data.round({hue: decimals})
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
     for key, grp in data.groupby(hue):

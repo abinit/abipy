@@ -3,6 +3,7 @@ abinit_vars.pickle
 Profile.prof
 abipy/data/runs/flow_*
 _debug
+__abinb_workdir__
 abinb_*.ipynb
 *.pickle
 

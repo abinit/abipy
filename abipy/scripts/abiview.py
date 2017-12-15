@@ -23,8 +23,8 @@ def abiview_structure(options):
     """
     structure = abilab.Structure.from_file(options.filepath)
     print(structure)
-    print("Visualizing structure with:", options.visualizer)
-    structure.visualize(visu_name=options.visualizer)
+    print("Visualizing structure with:", options.appname)
+    structure.visualize(appname=options.appname)
 
 
 def abiview_hist(options):
@@ -34,8 +34,12 @@ def abiview_hist(options):
     """
     with abilab.abiopen(options.filepath) as hist:
         print(hist.to_string(verbose=options.verbose))
-        #hist.plot()
-        return hist.visualize()
+        if options.appname is not None:
+            hist.visualize(appname=options.appname)
+        else:
+            hist.plot()
+
+        return 0
 
 
 def abiview_abo(options):
@@ -67,17 +71,15 @@ def abiview_ebands(options):
     with abilab.abiopen(options.filepath) as abifile:
         if options.xmgrace:
             abifile.ebands.to_xmgrace(sys.stdout)
-            return 0
         elif options.bxsf:
             abifile.ebands.to_bxsf(sys.stdout)
-            return 0
-
-        print(abifile.to_string(verbose=options.verbose))
-        if abifile.ebands.kpoints.is_path:
-            abifile.ebands.plot()
         else:
-            abifile.ebands.get_edos().plot()
-    return 0
+            print(abifile.to_string(verbose=options.verbose))
+            if abifile.ebands.kpoints.is_path:
+                abifile.ebands.plot()
+            else:
+                abifile.ebands.get_edos().plot()
+        return 0
 
 
 def abiview_fatbands(options):
@@ -122,7 +124,19 @@ def abiview_ddb(options):
             lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None,
             verbose=options.verbose, mpi_procs=1)
 
-        phbst.phbands.plot_with_phdos(phdos)
+        phbands = phbst.phbands
+
+        if options.xmgrace:
+            phbands.to_xmgrace(sys.stdout)
+            return 0
+        #elif options.bxsf:
+        #    phbands.to_bxsf(sys.stdout)
+        #    return 0
+        elif options.phononwebsite:
+            return phbands.view_phononwebsite(browser=options.browser)
+        else:
+            phbands.plot_with_phdos(phdos)
+
         phbst.close()
         phdos.close()
 
@@ -134,15 +148,16 @@ def abiview_phbands(options):
     with abilab.abiopen(options.filepath) as abifile:
         if options.xmgrace:
             abifile.phbands.to_xmgrace(sys.stdout)
-            return 0
         #elif options.bxsf:
         #    abifile.phbands.to_bxsf(sys.stdout)
         #    return 0
+        elif options.phononwebsite:
+            return abifile.phbands.view_phononwebsite(browser=options.browser)
+        else:
+            print(abifile.to_string(verbose=options.verbose))
+            abifile.phbands.plot()
 
-        print(abifile.to_string(verbose=options.verbose))
-        abifile.phbands.plot()
-    return 0
-
+        return 0
 
 def abiview_phdos(options):
     """Plot phonon DOS. Require PHDOS.nc file."""
@@ -150,14 +165,6 @@ def abiview_phdos(options):
         print(abifile.to_string(verbose=options.verbose))
         abifile.phdos.plot()
     return 0
-
-
-def abiview_phweb(options):
-    """
-    """
-    with abilab.abiopen(options.filepath) as abifile:
-        print(abifile.to_string(verbose=options.verbose))
-        return abifile.phbands.view_phononwebsite(open_browser=not options.no_browser)
 
 
 def abiview_mdf(options):
@@ -177,7 +184,7 @@ def abiview_denpot(options):
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
-        abifile.field.visualize(visu_name="vesta")
+        abifile.field.visualize(appname="vesta")
     return 0
 
 
@@ -205,34 +212,6 @@ def abiview_sigeph(options):
     return 0
 
 
-#def view_seekpath(structure, verbose=1):
-#    #import tempfile
-#    #prefix = self.structure.formula.replace(" ", "")
-#    #_, filename = tempfile.mkstemp(text=True, prefix=prefix, suffix=".json")
-#    #if verbose: print("Writing json file", filename)
-#
-#    url = "http://www.materialscloud.org/tools/seekpath/input_structure/"
-#    url = "http://www.materialscloud.org/tools/seekpath/process_structure/"
-#    filename = "POSCAR"
-#    import requests
-#    with open(filename, 'rt') as f:
-#        files = {'structurefile': f}
-#        data = {"fileformat": "vasp"}
-#        r = requests.post(url, data=data, files=files)
-#        if verbose:
-#            #print(r)
-#            #print(r.headers)
-#            #print(r.json())
-#            #print(r.text)
-#            #print(r.text.replace("../static", "https://github.com/giovannipizzi/seekpath/tree/develop/webservice/static"))
-#
-#    #print("Phonon band structure available at:", phbst_url)
-#    #if open_browser:
-#    #   import webbrowser
-#    #   return int(webbrowser.open(phbst_url))
-#    return 0
-
-
 def get_epilog():
     return """\
 Usage example:
@@ -241,31 +220,32 @@ Usage example:
 # Structure
 ###########
 
-    abiview.py hist out_HIST.nc      ==> Visualize structural relaxation/molecular dynamics
-                                         run from data stored in the HIST.nc file.
+    abiview.py structure FILE                ==> Visualize structure with
+    abiview.py hist out_HIST.nc              ==> Plot relaxation/molecular dynamics results with matplotlib.
+    abiview.py hist out_HIST.nc  -a ovito    ==> Visualize relaxation/molecular dynamics results with ovito.
 
 ############
 # Text files
 ############
 
-    abiview.py abo run.abo          ==> Plot SCF iterations extracted from output file.
-    abiview.py log run.log          ==> Print warnings/comments/errors found in log file.
+    abiview.py abo run.abo          ==> Plot SCF iterations extracted from Abinit output file.
+    abiview.py log run.log          ==> Print warnings/comments/errors found in Abinit log file.
 
 ###########
 # Electrons
 ###########
 
-    abiview.py ebands out_GSR.nc      ==>   Plot electron bands or electron DOS
-    abiview.py fatbands out_FATBANDS.nc  ==>   Plot electron fatbands or PJDOS depending on k-sampling.
-    abiview.py denpot out_DEN.nc      ==>   Animate densities on FFT mesh.
+    abiview.py ebands out_GSR.nc --xmgrace    ==>   Generate xmgrace file.
+    abiview.py fatbands out_FATBANDS.nc       ==>   Plot electron fatbands or PJDOS depending on k-sampling.
+    abiview.py denpot out_DEN.nc              ==>   Animate densities on FFT mesh.
 
 #########
 # Phonons
 #########
 
-    abiview.py ddb out_DDB            ==>   Compute ph-bands and DOS from DDB, plot results.
-    abiview.py phbands out_PHBST.nc   ==>   Plot phonon bands.
-    abiview.py phdos out_PHDOS.nc     ==>   Plot phonon DOS.
+    abiview.py ddb out_DDB                ==>  Compute ph-bands and DOS from DDB, plot results.
+    abiview.py phbands out_PHBST.nc -web  ==>  Visualize phonon bands and displacements with phononwebsite.
+    abiview.py phdos out_PHDOS.nc         ==>  Plot phonon DOS.
 
 #########
 # E-PH
@@ -307,21 +287,38 @@ def get_parser(with_epilog=False):
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
+    def add_args(p, *args):
+        """Add arguments to subparser `p`."""
+        for arg in args:
+            if arg == "xmgrace":
+                p.add_argument('--xmgrace', default=False, action="store_true",
+                    help="Print bands in xmgrace format to stdout and exit.")
+            elif arg == "bxsf":
+                p.add_argument('--bxsf', default=False, action="store_true",
+                    help=("Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden"
+                          "(xcrysden --bxsf FILE).\n Requires k-points in IBZ. Print to stdout and exit."))
+            elif arg == "phononweb":
+                p.add_argument("-web", "--phononwebsite", default=False, action="store_true",
+                    help=("Visualize phonon band structure on the phononwebsite. "
+                          "http://henriquemiranda.github.io/phononwebsite/"))
+            elif arg == "browser":
+                p.add_argument("-b", "--browser", default=None,
+                    help="Define browser used by python webbrowser. "
+                         "See https://docs.python.org/2/library/webbrowser.html#webbrowser.register")
+            else:
+                raise ValueError("Invalid arg: %s" % arg)
+
     # Subparser for structure command.
     p_structure = subparsers.add_parser('structure', parents=[copts_parser], help=abiview_structure.__doc__)
-    p_structure.add_argument('visualizer', nargs="?", default="vesta", type=str,
-        help=("Visualizer name. Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
     p_structure.add_argument("-a", "--appname", nargs="?", type=str, default="vesta",
-        #choices=["combiplot", "slideshow"], #"gridplot",
-        help=("Visualizer name. Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+        help=("Application name. Default: vesta. "
+              "Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
 
     # Subparser for hist command.
     p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)
-    #p_hist.add_argument("-a", "--appname", default=False, action="store_true", help="Plot trajectories.")
-    p_hist.add_argument("-a", "--appname", nargs="?", type=str, default="ovito",
-        #choices=["combiplot", "slideshow"], #"gridplot",
-        help=("Visualizer name. Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
-    #p_hist.add_argument("-t", "--trajectories", default=False, action="store_true", help="Plot trajectories.")
+    p_hist.add_argument("-a", "--appname", nargs="?", default=None, const="ovito",
+            help=("Application name. Default: ovito. "
+                  "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
 
     # Subparser for abo command.
     p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
@@ -331,32 +328,24 @@ def get_parser(with_epilog=False):
 
     # Subparser for ebands commands.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abiview_ebands.__doc__)
-    p_ebands.add_argument('--xmgrace', default=False, action="store_true",
-        help="Print electron bands in xmgrace format to stdout and exit.")
-    p_ebands.add_argument('--bxsf', default=False, action="store_true",
-        help=("Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden (xcrysden --bxsf FILE).\n"
-              "Requires k-points in IBZ. Print to stdout and exit."))
+    add_args(p_ebands, "xmgrace", "bxsf")
 
     # Subparser for fatbands commands.
     p_fatbands = subparsers.add_parser('fatbands', parents=[copts_parser], help=abiview_fatbands.__doc__)
 
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser('ddb', parents=[copts_parser], help=abiview_ddb.__doc__)
+    add_args(p_ddb, "xmgrace", "phononweb", "browser")
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abiview_phbands.__doc__)
-    p_phbands.add_argument('--xmgrace', default=False, action="store_true",
-        help="Print phonon bands in xmgrace format to stdout and exit.")
+    add_args(p_phbands, "xmgrace", "phononweb", "browser")
 
     # Subparser for phdos command.
     p_phdos = subparsers.add_parser('phdos', parents=[copts_parser], help=abiview_phdos.__doc__)
 
     # Subparser for gruns command.
     p_gruns = subparsers.add_parser('gruns', parents=[copts_parser], help=abiview_gruns.__doc__)
-
-    # Subparser for phweb command.
-    #p_phweb = subparsers.add_parser('phweb', parents=[copts_parser], help=abiview_phweb.__doc__)
-    #p_phweb.add_argument("--no-browser", default=False, action="store_true", help="Do not open web browser")
 
     # Subparser for mdf command.
     p_mdf = subparsers.add_parser('mdf', parents=[copts_parser], help=abiview_mdf.__doc__)

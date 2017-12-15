@@ -289,12 +289,8 @@ class _Field(Has_Structure):
             # filename == ".ext" ==> Create temporary file.
             # dir = os.getcwd() is needed when we invoke the method from a notebook.
             # nbworkdir in cwd is needed when we invoke the method from a notebook.
-            from abipy import abilab
-            import tempfile
-            if abilab.in_notebook():
-                _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
-            else:
-                _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
+            from abipy.core.globals import abinb_mkstemp
+            _, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
         with open(filename, mode="wt") as fh:
             if ext == "xsf":
@@ -310,13 +306,13 @@ class _Field(Has_Structure):
         else:
             return visu(filename)
 
-    def visualize(self, visu_name):
+    def visualize(self, appname):
         """
         Visualize data with visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
@@ -327,7 +323,7 @@ class _Field(Has_Structure):
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
+            raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_interpolator(self):
         """

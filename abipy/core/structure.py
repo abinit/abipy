@@ -1118,17 +1118,19 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
-        print("tokens", tokens, "ext", ext)
+        #print("tokens", tokens, "ext", ext)
         #if ext == "POSCAR":
 
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
             # nbworkdir in cwd is needed when we invoke the method from a notebook.
-            from abipy import abilab
-            if abilab.in_notebook():
-                _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
-            else:
-                _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
+            from abipy.core.globals import abinb_mkstemp
+            _, rpath = abinb_mkstemp(force_abinb_workdir=False, use_relpath=False,
+                                     suffix="." + ext, text=True)
+            #if abilab.in_notebook():
+            #    _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
+            #else:
+            #    _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
 
         if ext.lower() in ("xsf", "poscar", "cif"):
             if verbose:
@@ -1171,16 +1173,16 @@ class Structure(pymatgen.Structure, NotebookWriter):
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
-    def visualize(self, visu_name="vesta"):
+    def visualize(self, appname="vesta"):
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        if visu_name == "vtk": return self.vtkview()
-        if visu_name == "mayavi": return self.mayaview()
+        if appname == "vtk": return self.vtkview()
+        if appname == "mayavi": return self.mayaview()
 
         # Get the Visualizer subclass from the string.
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
@@ -1192,7 +1194,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 print(exc)
                 pass
         else:
-            raise visu.Error("Don't know how to export data for %s" % visu_name)
+            raise visu.Error("Don't know how to export data for %s" % appname)
 
     def convert(self, fmt="cif", **kwargs):
         """

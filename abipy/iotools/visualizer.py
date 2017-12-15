@@ -175,13 +175,13 @@ class Visualizer(object):
         return [e for (e, args) in cls.EXTS]
 
     @classmethod
-    def from_name(cls, visu_name):
+    def from_name(cls, appname):
         """Return the visualizer class from the name of the application."""
         for visu in cls.__subclasses__():
-            if visu.name == visu_name:
+            if visu.name == appname:
                 return visu
 
-        raise cls.Error("visu_name is not among the list of supported visualizers %s " % visu_name)
+        raise cls.Error("appname is not among the list of supported visualizers %s " % appname)
 
     @classmethod
     def all_visunames(cls):

@@ -203,8 +203,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
         symbols_atom = []
         for iatom, itype in enumerate(typat):
             itype = itype - 1
-            print("itype", itype)
-            print("int", int(znucl[itype]))
             symbol = Element.from_Z(int(znucl[itype])).symbol
             if symbol not in symb2pos: symb2pos[symbol] = []
             symb2pos[symbol].append(iatom)
@@ -242,22 +240,19 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
-    def visualize(self, visu_name="ovito"):
+    def visualize(self, appname="ovito"):
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        if visu_name == "mayavi": return self.mayaview()
+        if appname == "mayavi": return self.mayaview()
 
         # Get the Visualizer subclass from the string.
         from abipy.iotools import Visualizer
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
         if visu.name != "ovito":
             raise NotImplementedError("visualizer: %s" % visu.name)
 
-        #import tempfile
-        #_, tmp_filepath = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
-        #_, tmp_filepath = tempfile.mkstemp(suffix="XDATCAR", dir=os.getcwd(), text=True)
         filepath = self.write_xdatcar(filepath=None, groupby_type=True)
 
         return visu(filepath)()

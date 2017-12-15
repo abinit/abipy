@@ -211,6 +211,7 @@ class DatabaseStructures(NotebookWriter):
         """
         Print pandas dataframe, structures using format `fmt`, and data to file `file`.
         `fmt` is automaticall set to `cif` if structure is disordered.
+        Set fmt to None or empty string to disable structure output.
         """
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                 % (len(self.structures), self.dbname), file=file)
@@ -218,15 +219,23 @@ class DatabaseStructures(NotebookWriter):
         if self.table is not None: print_dataframe(self.table, file=file)
         if verbose and self.data is not None: pprint(self.data, stream=file)
 
-        for i, structure in enumerate(self.structures):
-            print(" ", file=file)
-            print(marquee("%s input for %s" % (fmt, self.ids[i]), mark="#"), file=file)
-            print("# " + structure.spget_summary(verbose=verbose).replace("\n", "\n# ") + "\n", file=file)
-            if not structure.is_ordered:
-                print(structure.convert(fmt="cif"), file=file)
-            else:
-                print(structure.convert(fmt=fmt), file=file)
-            print(2 * "\n", file=file)
+        # Print structures
+        print_structures = not (fmt is None or str(fmt) == "None")
+        if print_structures:
+            for i, structure in enumerate(self.structures):
+                print(" ", file=file)
+                print(marquee("%s input for %s" % (fmt, self.ids[i]), mark="#"), file=file)
+                print("# " + structure.spget_summary(verbose=verbose).replace("\n", "\n# ") + "\n", file=file)
+                if not structure.is_ordered:
+                    print(structure.convert(fmt="cif"), file=file)
+                else:
+                    print(structure.convert(fmt=fmt), file=file)
+                print(2 * "\n", file=file)
+
+        if len(self.structures) > 10:
+            # Print info again
+            print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
+                    % (len(self.structures), self.dbname), file=file)
 
     def write_notebook(self, nbpath=None, title=None):
         """

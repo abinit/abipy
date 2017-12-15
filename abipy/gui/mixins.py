@@ -23,7 +23,7 @@ from abipy.iotools import ETSF_Reader
 @six.add_metaclass(abc.ABCMeta)
 class Has_Structure(object):
     """
-    Mixin class that provides a menu and callbacks 
+    Mixin class that provides a menu and callbacks
     for analyzing the crystalline structure.
     """
     @abc.abstractproperty
@@ -50,12 +50,12 @@ class Has_Structure(object):
 
         available_visus = [visu.name for visu in Visualizer.get_available()]
 
-        for visu_name in available_visus:
+        for appname in available_visus:
             _id = wx.NewId()
-            visu_menu.Append(_id, visu_name)
-            self._id2visuname[_id] = visu_name
+            visu_menu.Append(_id, appname)
+            self._id2visuname[_id] = appname
             self.Bind(wx.EVT_MENU, self.OnStructureVisualize, id=_id)
-                                                                                                                     
+
         menu.AppendMenu(-1, 'Visualize', visu_menu)
         return menu
 
@@ -65,11 +65,10 @@ class Has_Structure(object):
 
     def OnStructureVisualize(self, event):
         """"Call the visualizer to visualize the crystalline structure."""
-        visu_name = self._id2visuname[event.GetId()]
+        appname = self._id2visuname[event.GetId()]
 
         try:
-            visu = self.structure.visualize(visu_name)
-                                                                                            
+            visu = self.structure.visualize(appname=appname)
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
 
@@ -126,17 +125,17 @@ class Has_Ebands(object):
     def OnEbandsGetInfo(self, event):
         """Shows info on the bandstructure."""
         s = self.ebands.info
-        caption = "Ebands info" 
+        caption = "Ebands info"
         wxdg.ScrolledMessageDialog(self, s, caption=caption, style=wx.MAXIMIZE_BOX).Show()
 
     def OnEbandsPlot(self, event):
         """Plot band energies with matplotlib."""
         self.ebands.plot()
-                                                                  
+
     def OnEbandsDos(self, event):
         """Open Frame for the computation of the DOS."""
         ewx.ElectronDosFrame(self, bands=self.ebands).Show()
-                                                                  
+
     def OnEbandsJdos(self, event):
         """Open Frame for the computation of the JDOS."""
         ewx.ElectronJdosFrame(self, bands=self.ebands).Show()
@@ -145,10 +144,10 @@ class Has_Ebands(object):
         """Visualize the Fermi surface with Xcrysden."""
         try:
             visu = self.ebands.export_bxsf(".bxsf")
-                                                                                            
+
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
-                                                                                            
+
         except Exception:
             awx.showErrorMessage(self)
 
@@ -165,7 +164,7 @@ class Has_Ebands(object):
 @six.add_metaclass(abc.ABCMeta)
 class Has_MultipleEbands(Has_Ebands):
     """
-    Mixin class that provides a menu and callbacks 
+    Mixin class that provides a menu and callbacks
     for analyzing and comparing multiple electron bands.
     """
     def CreateEbandsMenu(self):
@@ -178,7 +177,7 @@ class Has_MultipleEbands(Has_Ebands):
         self.ID_MULTI_EBANDS_DOS = wx.NewId()
         #self.ID_MULTI_EBANDS_JDOS = wx.NewId()
         self.ID_MULTI_EBANDS_BANDSWITHDOS = wx.NewId()
-                                                                                               
+
         menu.Append(self.ID_MULTI_EBANDS_PLOT, "Compare ebands", "Plot multiple electron bands")
         self.Bind(wx.EVT_MENU, self.OnCompareEbands, id=self.ID_MULTI_EBANDS_PLOT)
         menu.Append(self.ID_MULTI_EBANDS_DOS, "Compare DOSes", "Compare multiple electron DOSes")
@@ -198,7 +197,7 @@ class Has_MultipleEbands(Has_Ebands):
     @abc.abstractproperty
     def ebands_filepaths(self):
         """
-        Return a list with the absolute paths of the files 
+        Return a list with the absolute paths of the files
         from which the `ElectronBands` have been read.
         """
 
@@ -219,7 +218,7 @@ class Has_MultipleEbands(Has_Ebands):
         """Plot multiple electron DOSes"""
         # Open dialog to get DOS parameters.
         dialog = ewx.ElectronDosDialog(self)
-        if dialog.ShowModal() == wx.ID_CANCEL: return 
+        if dialog.ShowModal() == wx.ID_CANCEL: return
         dos_params = dialog.GetParams()
 
         plotter = ElectronDosPlotter()
@@ -243,14 +242,14 @@ class Has_MultipleEbands(Has_Ebands):
         #for ebands in self.ebands_list:
         #    jos = ebands.get_jdos(**jdos_params)
         #    plotter.add_edos(label, edos)
-        #                                      
+        #
         #plotter.plot()
 
     def onPlotEbandsWithDos(self, event):
         """Plot electron bands with DOS. Requires the specification of two files."""
         # Open dialog to get files and DOS parameters.
         dialog = ewx.EbandsDosDialog(self, self.ebands_filepaths)
-        if dialog.ShowModal() == wx.ID_CANCEL: return 
+        if dialog.ShowModal() == wx.ID_CANCEL: return
 
         try:
             dos_params = dialog.getEdosParams()
@@ -274,11 +273,11 @@ class Has_MultipleEbands(Has_Ebands):
 #        """Create the tools menu."""
 #        # Tools Menu ID's
 #        self.ID_GSRESULTS_EOSFIT = wx.NewId()
-#                                                                                            
+#
 #        menu = wx.Menu()
 #        menu.Append(self.ID_GSRESULTS_EOSFIT, "Fit E(V)", "Equation of State")
 #        self.Bind(wx.EVT_MENU, self.onEosFit, id=self.ID_GSRESULTS_EOSFIT)
-#                                                                                            
+#
 #        return menu
 #
 #    def onEosFit(self, event):
@@ -315,7 +314,7 @@ class Has_Tools(object):
 @six.add_metaclass(abc.ABCMeta)
 class Has_NetcdfFiles(object):
     """
-    Mixin class that provides a menu and callbacks 
+    Mixin class that provides a menu and callbacks
     for analyzing and comparing netcdf files.
     """
     @abc.abstractproperty

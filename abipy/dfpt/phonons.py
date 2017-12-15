@@ -718,43 +718,29 @@ class PhononBands(object):
         with open(filename, 'wt') as f:
             f.write("\n".join(lines))
 
-    def view_phononwebsite(self, open_browser=True, verbose=1, **kwargs):
+    def view_phononwebsite(self, browser=None, verbose=1, **kwargs):
         """
-        Produce json file that can be parsed from the phononwebsite. Contact the server, get
-        the url of the webpage and open it in the browser if `open_browser`.
+        Produce json file that can be parsed from the phononwebsite and open it in `browser`.
 
         Return:
             Exit status
         """
-        filename = kwargs.pop("filename", None)
-        if filename is None:
-            import tempfile
-            prefix = self.structure.formula.replace(" ", "")
-            _, filename = tempfile.mkstemp(text=True, prefix=prefix, suffix=".json")
+        # Create json in abipy_nbworkdir with relative path so that we can read it inside the browser.
+        from abipy.core.globals import abinb_mkstemp
+        prefix = self.structure.formula.replace(" ", "")
+        _, rpath = abinb_mkstemp(force_abinb_workdir=True, use_relpath=True,
+                                 prefix=prefix, suffix=".json", text=True)
 
-        if verbose: print("Writing json file", filename)
-        self.create_phononwebsite_json(filename, indent=None, **kwargs)
-        url = "http://henriquemiranda.github.io/phononwebsite/phonon.html"
-        import requests
-        with open(filename, 'rt') as f:
-            files = {'file-input': (filename, f)}
-            r = requests.post(url, files=files)
-            # @Henrique: the response should contain the url of the bandstructure plot
-            # so that I can open it in the browser.
-            if verbose:
-                print(r)
-                print(r.text)
+        if verbose: print("Writing json file:", rpath)
+        self.create_phononwebsite_json(rpath, indent=None, **kwargs)
 
-        print("Phonon band structure available at:", phbst_url)
-        if open_browser:
-           import webbrowser
-           return int(webbrowser.open(phbst_url))
-        return 0
+        return open_file_phononwebsite(rpath, browser=browser)
 
-    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
-                                  highsym_qpts_mode="split", indent=2):
+    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None,
+                                  match_bands=True, highsym_qpts_mode="split", indent=2):
         """
-        Writes a json file that can be parsed from the phononwebsite. See <https://github.com/henriquemiranda/phononwebsite>
+        Writes a json file that can be parsed from the phononwebsite.
+        See <https://github.com/henriquemiranda/phononwebsite>
 
         Args:
             filename: name of the json file that will be created
@@ -3539,3 +3525,85 @@ class RobotWithPhbands(object):
             nbv.new_markdown_cell(title),
             nbv.new_code_cell("robot.get_phbands_plotter().ipw_select_plot();"),
         ]
+
+
+def open_file_phononwebsite(filename, port=8000,
+                            website="http://henriquemiranda.github.io/phononwebsite",
+                            host="localhost", browser=None):
+    """
+    Take a file, detect the type and open it on the phonon website
+    Based on a similar function in https://github.com/henriquemiranda/phononwebsite/phononweb.py
+
+    Args:
+
+    Return
+    """
+    if filename.endswith(".json"):
+        filetype = "json"
+    elif filename.endswith(".yaml"):
+        filetype = "yaml"
+    else:
+        filetype = "rest"
+
+    try:
+        from http.server import HTTPServer, SimpleHTTPRequestHandler
+    except ImportError:
+        from BaseHTTPServer import HTTPServer
+        # python 2 requires internal implementation
+        from abipy.tools.SimpleHTTPServer import SimpleHTTPRequestHandler
+
+    # Add CORS header to the website
+    class CORSRequestHandler (SimpleHTTPRequestHandler):
+        def end_headers (self):
+            #self.send_header('Access-Control-Allow-Origin', website)
+            self.send_header('Access-Control-Allow-Origin', "http://henriquemiranda.github.io")
+            SimpleHTTPRequestHandler.end_headers(self)
+        def log_message(self, format, *args):
+            return
+
+    # Initialize http server thread
+    print('Starting HTTP server at port %d ...' % port, end=" ")
+    trial, max_ntrial = 0, 50
+    while trial < max_ntrial:
+        try:
+            server = HTTPServer(('', port), CORSRequestHandler)
+            #print("got port:", port)
+            break
+        except OSError:
+            trial += 1
+            port += 1
+            print(port, end=", ")
+    else:
+        raise RuntimeError("Cannot find available port after %s attempts" % max_ntrial)
+
+    # Create threads python
+    server.url = 'http://{}:{}'.format(host, server.server_port)
+    from threading import Thread
+    t = Thread(target=server.serve_forever)
+    t.daemon = True
+    t.start()
+
+    # Open website with the file
+    try:
+        from urllib.parse import quote
+    except ImportError:
+        from urllib import quote
+    url_filename = 'http://{}:{}/{}'.format(host, server.server_port, quote(filename))
+    #url_filename = 'http://{}:{}/{}'.format(host, server.server_port, filename)
+    url = '%s/phonon.html?%s=%s' % (website, filetype, url_filename)
+    print("\nOpening URL:", url)
+    print("Using default browser, if the webpage is not displayed correctly",
+          "\ntry to change browser either via command line options or directly in the shell with e.g:\n\n"
+          "     export BROWSER=firefox\n")
+    print('Press Ctrl+C to terminate HTTP server')
+    import webbrowser
+    webbrowser.get(browser).open_new(url)
+    #webbrowser.open_new(url)
+
+    # Quit application when SIGINT is received
+    import sys
+    def signal_handler(signal, frame):
+        sys.exit(0)
+    import signal
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.pause()

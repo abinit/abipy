@@ -37,7 +37,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         visu = wfk.visualize_structure_with("vesta")()
 
         # Visualize u(r)**2 with vesta.
-        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, visu_name="vesta")()
+        visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, appname="vesta")()
 
         # Get a wavefunction.
         wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)
@@ -165,12 +165,12 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         else:
             return wave.export_ur2(filepath, visu=visu)
 
-    def visualize_ur2(self, spin, kpoint, band, visu_name="vesta"):
+    def visualize_ur2(self, spin, kpoint, band, appname="vesta"):
         """
         Visualize :math:`|u(r)|^2`  with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         for ext in visu.supported_extensions():
             ext = "." + ext
@@ -179,7 +179,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
+            raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     #def classify_states(self, spin, kpoint, band_range=None, energy_range=None, atol=1e-3):
     #    """
@@ -254,9 +254,9 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             It seems there's a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
             as the tab in vesta is not updated!
         """
-        def wfk_visualize(spin, kpoint, band, visu_name):
+        def wfk_visualize(spin, kpoint, band, appname):
             kpoint = int(kpoint.split()[0])
-            self.visualize_ur2(spin, kpoint, band, visu_name=visu_name)()
+            self.visualize_ur2(spin, kpoint, band, appname=appname)()
 
         import ipywidgets as ipw
         return ipw.interact_manual(
@@ -264,7 +264,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 spin=list(range(self.nsppol)),
                 kpoint=["%d %s" % (i, repr(kpt)) for i, kpt in enumerate(self.kpoints)],
                 band=list(range(self.nband)),
-                visu_name=[v.name for v in Visualizer.get_available()],
+                appname=[v.name for v in Visualizer.get_available()],
             )
 
     def write_notebook(self, nbpath=None):

@@ -22,11 +22,13 @@ TODO list:
 
 * Solve problem with visualize in jupyter notebooks (files should be produced in workdir)  DONE
 
+* Change shifts default value in g0w0_with_ppmodel_inputs
+
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
 * Fix problem with get_edos if we don't have enough bands 
 
-* Finalize interface with phononwebsite
+* Finalize interface with phononwebsite (ALMOST DONE)
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 

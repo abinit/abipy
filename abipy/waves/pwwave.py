@@ -510,11 +510,8 @@ class PWWaveFunction(WaveFunction):
         if not tokens[0]:
             # fname == ".ext" ==> Create temporary file.
             # dir = os.getcwd() is needed when we invoke the method from a notebook.
-            from abipy import abilab
-            if abilab.in_notebook():
-                _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
-            else:
-                _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
+            from abipy.core.globals import abinb_mkstemp
+            _, filename = abinb_mkstemp(suffix="." + ext, text=True)
             print("Creating temporary file: %s" % filename)
 
         # Compute |u(r)|2 and write data according to ext.
@@ -533,14 +530,14 @@ class PWWaveFunction(WaveFunction):
         else:
             return visu(filename)
 
-    def visualize_ur2(self, visu_name="vesta"):
+    def visualize_ur2(self, appname="vesta"):
         """
         Visualize u(r)**2 visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
         # Get the Visualizer subclass from the string.
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
@@ -551,7 +548,7 @@ class PWWaveFunction(WaveFunction):
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for %s" % visu_name)
+            raise visu.Error("Don't know how to export data for %s" % str(appname))
 
     #def mvplot_cutplanes(self, show=True):
     #    data = self.ur2
