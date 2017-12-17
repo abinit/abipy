@@ -32,9 +32,10 @@ def abiview_structure(options):
     or optional python modules (mayavi, vtk)
     """
     structure = abilab.Structure.from_file(options.filepath)
-    print(structure.to_string(verbose=options.verbose)
+    print(structure.to_string(verbose=options.verbose))
     print("Visualizing structure with:", options.appname)
     structure.visualize(appname=options.appname)
+    return 0
 
 
 def abiview_hist(options):

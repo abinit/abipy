@@ -429,19 +429,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         True if the DDB file contains info on the electric-field perturbation.
 
         Args:
-            select: Possible values in ["at_least_one", "all"] or tuple e.g. (idir1, ipert1, idir2, ipert2)
+            select: Possible values in ["at_least_one", "all"]
             If select == "at_least_one", we check if there's at least one entry associated to the electric field.
             and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
             If select == "all", all tensor components must be present in the DDB file.
-            If select is a tuple, the method returns False if this component is not present in the DDB.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
         if gamma not in self.computed_dynmat:
             return False
 
         index_set = set(self.computed_dynmat[gamma].index)
-        if isinstance(select, (tuple, list)):
-            return select in index_set
 
         natom = len(self.structure)
         ep_list = list(itertools.product(range(1, 4), [natom + 2]))
@@ -460,12 +457,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def has_bec_terms(self, select="at_least_one"):
         """
         True if the DDB file contains info on the Born effective charges.
-        By default, we check if there's at least one entry associated to atomic displacement
-        and electric field.
-        We assume that anaddb will be able to reconstruct the full tensor by symmetry
 
         Args:
-            select: "at_least_one", "all", (1, 2)
+            select: Possible values in ["at_least_one", "all"]
+            By default, we check if there's at least one entry associated to atomic displacement
+            and electric field and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+            If select == "all", all bec components must be present in the DDB file.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
         if gamma not in self.computed_dynmat:

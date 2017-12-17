@@ -16,8 +16,6 @@ del sys
 #-----------------------------------------------------------------------------
 
 from abipy.core import release
-#from abipy.profile import abipy_env
-#from abipy.htc import Launcher, MassLauncher, AbinitInput
 
 # Release data
 __author__ = ''
@@ -27,4 +25,3 @@ del author, email
 
 __license__  = release.license
 __version__  = release.version
-
