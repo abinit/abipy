@@ -936,7 +936,6 @@ class Density(_DensityField):
         if self.nspinor == 1:
             if self.nsppol == 1:
                 data_dict = {"total": myrhor[0]}
-
             if self.nsppol == 2:
                 data_dict = {"total": myrhor[0] + myrhor[1], "diff": myrhor[0] - myrhor[1]}
 

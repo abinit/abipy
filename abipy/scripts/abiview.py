@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 """
-This script visualizes data with external graphical applications.
-It's also possible to generate movies from Abinit output files.
-
-WARNING: This script is still under active development. API will change!
+This script visualizes results with external graphical applications.
+or convert data from Abinit files (usually netcdf) to other formats.
 """
 from __future__ import unicode_literals, division, print_function, absolute_import
 
@@ -13,13 +11,25 @@ import argparse
 import numpy as np
 
 from monty.functools import prof_main
+from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
 
 
+def handle_overwrite(path, options):
+    """Exit 1 if file `path` exists and not options.force else return path."""
+    name_parts = os.path.splitext(path)
+    print("Writing %s file:" % name_parts[-1].replace("." , "").upper())
+    if os.path.existst(path) and not options.force:
+        cprint("Cannot overwrite pre-existent file. Use `-f` options.", "red")
+        sys.exit(1)
+    return path
+
+
 def abiview_structure(options):
     """
-    Visualize the structure with the specified visualizer. Requires external app or optional python modules."
+    Visualize the structure with the specified visualizer. Requires external app
+    or optional python modules (mayavi, vtk)
     """
     structure = abilab.Structure.from_file(options.filepath)
     print(structure)
@@ -36,6 +46,10 @@ def abiview_hist(options):
         print(hist.to_string(verbose=options.verbose))
         if options.appname is not None:
             hist.visualize(appname=options.appname)
+        elif options.xdatcar:
+            xpath = options.filepath + ".XDATCAR"
+            handle_overwrite(xpath, options)
+            hist.write_xdatcar(filepath=xpath, groupby_type=True, overwrite=True)
         else:
             hist.plot()
 
@@ -70,9 +84,11 @@ def abiview_ebands(options):
     """
     with abilab.abiopen(options.filepath) as abifile:
         if options.xmgrace:
-            abifile.ebands.to_xmgrace(sys.stdout)
+            outpath = options.filepath + ".agr"
+            abifile.ebands.to_xmgrace(handle_overwrite(outpath, options))
         elif options.bxsf:
-            abifile.ebands.to_bxsf(sys.stdout)
+            outpath = options.filepath + ".bxsf"
+            abifile.ebands.to_bxsf(handle_overwrite(outpath, options))
         else:
             print(abifile.to_string(verbose=options.verbose))
             if abifile.ebands.kpoints.is_path:
@@ -118,19 +134,30 @@ def abiview_ddb(options):
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
 
-        # TODO: Autodetect presence of lo_to_splitting data in DDB.
+        nqsmall = 10; ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method="tetra"
+        print("""
+Computing phonon bands and DOS from DDB file with
+nqsmall = {nqsmall}; ndivsm = {ndivsm}; asr = {asr}; chneut = {chneut}; dipdip = {dipdip}; dos_method = {dos_method}
+""".format(**locals()))
+
+        # Autodetect presence of data for lo_to_splitting data in DDB.
+        lo_to_splitting = ddb.has_lo_to_data()
+        if lo_to_splitting:
+            print("DDB file contains Zeff and Becs, activating LO-TO computation.")
+
         phbst, phdos = ddb.anaget_phbst_and_phdos_files(
-            nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-            lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None,
-            verbose=options.verbose, mpi_procs=1)
+            nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
+            lo_to_splitting=lo_to_splitting, verbose=options.verbose, mpi_procs=1)
 
         phbands = phbst.phbands
 
         if options.xmgrace:
-            phbands.to_xmgrace(sys.stdout)
+            outpath = options.filepath + ".agr"
+            phbands.to_xmgrace(handle_overwrite(outpath, options))
             return 0
         #elif options.bxsf:
-        #    phbands.to_bxsf(sys.stdout)
+        #    outpath = options.filepath + ".bxsf"
+        #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
             return phbands.view_phononwebsite(browser=options.browser)
@@ -147,9 +174,11 @@ def abiview_phbands(options):
     """Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ..."""
     with abilab.abiopen(options.filepath) as abifile:
         if options.xmgrace:
-            abifile.phbands.to_xmgrace(sys.stdout)
+            outpath = options.filepath + ".agr"
+            abifile.phbands.to_xmgrace(handle_overwrite(outpath, options))
         #elif options.bxsf:
-        #    abifile.phbands.to_bxsf(sys.stdout)
+        #    outpath = options.filepath + ".bxsf"
+        #    abifile.phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
             return abifile.phbands.view_phononwebsite(browser=options.browser)
@@ -158,6 +187,7 @@ def abiview_phbands(options):
             abifile.phbands.plot()
 
         return 0
+
 
 def abiview_phdos(options):
     """Plot phonon DOS. Require PHDOS.nc file."""
@@ -184,7 +214,17 @@ def abiview_denpot(options):
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
-        abifile.field.visualize(appname="vesta")
+        field = abifile.field
+        if options.chgcar:
+            if not field.is_density_like:
+                cprint("Warning: expecting DENSITY file but received %s" % field.__class__.__name__, "yellow")
+            chg_path = options.filepath + ".CHGCAR"
+            field.to_chgcar(filename=handle_overwrite(chg_path, options))
+        #elif options.cube:
+        #    outpath = options.filepath + ".cube"
+        #    field.export_to_cube(filename=handle_overwrite(outpath, options), spin="total")
+        else:
+            abifile.field.visualize(appname=options.appname)
     return 0
 
 
@@ -220,9 +260,11 @@ Usage example:
 # Structure
 ###########
 
-    abiview.py structure FILE                ==> Visualize structure with
+    abiview.py structure FILE                ==> Visualize structure with Vesta (default)
+    abiview.py structure FILE -a xcrysden    ==> Visualize structure with Xcrysden (default)
     abiview.py hist out_HIST.nc              ==> Plot relaxation/molecular dynamics results with matplotlib.
-    abiview.py hist out_HIST.nc  -a ovito    ==> Visualize relaxation/molecular dynamics results with ovito.
+    abiview.py hist out_HIST.nc -a ovito     ==> Visualize relaxation/molecular dynamics results with ovito.
+    abiview.py hist out_HIST.nc --xdatcar    ==> Convert HIST.nc into XDATCAR format (caveat: assume fixed unit cell!)
 
 ############
 # Text files
@@ -235,9 +277,11 @@ Usage example:
 # Electrons
 ###########
 
-    abiview.py ebands out_GSR.nc --xmgrace    ==>   Generate xmgrace file.
-    abiview.py fatbands out_FATBANDS.nc       ==>   Plot electron fatbands or PJDOS depending on k-sampling.
-    abiview.py denpot out_DEN.nc              ==>   Animate densities on FFT mesh.
+    abiview.py ebands out_WFK.nc              ==>  Plot electrons bands (or DOS) with matplotlib.
+    abiview.py ebands out_GSR.nc --xmgrace    ==>  Generate xmgrace file with electron bands.
+    abiview.py fatbands out_FATBANDS.nc       ==>  Plot electron fatbands or PJDOS depending on k-sampling.
+    abiview.py denpot out_DEN.nc              ==>  Visualize density with Vesta.
+    abiview.py denpot out_DEN.nc --chgcar     ==>  Convert DEN file into CHGCAR fileformat.
 
 #########
 # Phonons
@@ -251,16 +295,16 @@ Usage example:
 # E-PH
 #########
 
-  abiview.py eph out_EPH.nc                   => Plot EPH results.
-  abiview.py sigeph out_SIGEPH.nc             => Plot Fan-Migdal self-energy.
+  abiview.py eph out_EPH.nc              ==> Plot EPH results.
+  abiview.py sigeph out_SIGEPH.nc        ==> Plot Fan-Migdal self-energy.
 
 ########
 # GW/BSE
 ########
 
-  abicomp.py sigres out_SIGRES.nc                 => Compare multiple SIGRES files.
-  abicomp.py mdf out_MDF.nc --seaborn             => Compare macroscopic dielectric functions.
-                                                     Use seaborn settings.
+  abiview.py sigres out_SIGRES.nc        ==> Plot QP results stored in SIGRES.
+  abiview.py mdf out_MDF.nc --seaborn    ==> Plot macroscopic dielectric functions with excitonic effects.
+                                             Use seaborn settings.
 
 
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
@@ -305,6 +349,9 @@ def get_parser(with_epilog=False):
                 p.add_argument("-b", "--browser", default=None,
                     help="Define browser used by python webbrowser. "
                          "See https://docs.python.org/2/library/webbrowser.html#webbrowser.register")
+            elif arg == "force":
+                p.add_argument("-f", '--force', default=False, action="store_true",
+                    help="Overwrite pre-existent files without prompting for confirmation.")
             else:
                 raise ValueError("Invalid arg: %s" % arg)
 
@@ -319,6 +366,7 @@ def get_parser(with_epilog=False):
     p_hist.add_argument("-a", "--appname", nargs="?", default=None, const="ovito",
             help=("Application name. Default: ovito. "
                   "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+    p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
 
     # Subparser for abo command.
     p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
@@ -328,18 +376,18 @@ def get_parser(with_epilog=False):
 
     # Subparser for ebands commands.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abiview_ebands.__doc__)
-    add_args(p_ebands, "xmgrace", "bxsf")
+    add_args(p_ebands, "xmgrace", "bxsf", "force")
 
     # Subparser for fatbands commands.
     p_fatbands = subparsers.add_parser('fatbands', parents=[copts_parser], help=abiview_fatbands.__doc__)
 
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser('ddb', parents=[copts_parser], help=abiview_ddb.__doc__)
-    add_args(p_ddb, "xmgrace", "phononweb", "browser")
+    add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser('phbands', parents=[copts_parser], help=abiview_phbands.__doc__)
-    add_args(p_phbands, "xmgrace", "phononweb", "browser")
+    add_args(p_phbands, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for phdos command.
     p_phdos = subparsers.add_parser('phdos', parents=[copts_parser], help=abiview_phdos.__doc__)
@@ -350,8 +398,22 @@ def get_parser(with_epilog=False):
     # Subparser for mdf command.
     p_mdf = subparsers.add_parser('mdf', parents=[copts_parser], help=abiview_mdf.__doc__)
 
+    # Subparser for mdf command.
+    #p_optic = subparsers.add_parser('optic', parents=[copts_parser], help=abiview_optic.__doc__)
+
+    # Subparser for eph command.
+    #p_eph = subparsers.add_parser('eph', parents=[copts_parser], help=abiview_eph.__doc__)
+
+    # Subparser for sigeph command.
+    #p_sigeph = subparsers.add_parser('sigeph', parents=[copts_parser], help=abiview_sigeph.__doc__)
+
     # Subparser for denpot command.
-    p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)
+    #p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)
+    #p_denpot.add_argument("-a", "--appname", nargs="?", default=None, const="vesta",
+    #        help=("Application name. Default: vesta. "
+    #              "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+    #p_denpot.add_argument("--chgcar", default=False, action="store_true", "Convert Density to CHGCAR format.")
+    #p_denpot.add_argument("--cube", default=False, action="store_true", "Convert Density/Potential to CUBE format.")
 
     return parser
 
@@ -372,6 +434,9 @@ def main():
     try:
         options = parser.parse_args()
     except Exception:
+        show_examples_and_exit(error_code=1)
+
+    if not options.command:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.

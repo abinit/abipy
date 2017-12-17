@@ -3598,7 +3598,6 @@ def open_file_phononwebsite(filename, port=8000,
     print('Press Ctrl+C to terminate HTTP server')
     import webbrowser
     webbrowser.get(browser).open_new(url)
-    #webbrowser.open_new(url)
 
     # Quit application when SIGINT is received
     import sys

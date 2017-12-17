@@ -344,7 +344,8 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Subparser for visualize command.
     p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
-        help="Visualize the structure with the specified application. Requires external app or optional python modules.")
+        help=("Visualize the structure with the specified application. "
+              "Requires external app or optional python modules (mayavi, vtk)."))
     p_visualize.add_argument("-a", "--appname", type=str, default="vesta",
         help=("Application name. Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
 

@@ -5,9 +5,11 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import tempfile
+import itertools
 import numpy as np
-from collections import OrderedDict
+import pandas as pd
 
+from collections import OrderedDict
 from six.moves import map, zip, StringIO
 from monty.string import marquee
 from monty.collections import AttrDict, dict2namedtuple, tree
@@ -18,7 +20,7 @@ from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure
-from abipy.core.kpoints import KpointList
+from abipy.core.kpoints import KpointList, Kpoint
 from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
@@ -65,6 +67,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the DDB file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
+
+    About the indices (idir, ipert) used by Abinit (Fortran notation)
+
+    * idir in [1, 2, 3] gives the direction (usually reduced direction)
+    * ipert in [1, 2, ..., mpert] where mpert = natom + 6
+
+        * ipert in [1, ..., natom] corresponds to atomic perturbations
+        * ipert = natom + 1 gives d/dk
+        * ipert = natom + 2 gives the electric field
+        * ipert = natom + 3 gives the uniaxial stress
+        * ipert = natom + 4 gives the shear stree.
     """
     Error = DdbError
     AnaddbError = AnaddbError
@@ -102,9 +115,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(self.qpoints.to_string(verbose=verbose, title="Q-points"))
+        app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
         app("")
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
+
+        if verbose > 1:
+            from pprint import pformat
+            app(marquee("DDB Header", mark="="))
+            app(pformat(self.header))
 
         return "\n".join(lines)
 
@@ -160,14 +178,18 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 tokens = line.split()
                 key = None
                 try:
-                    float(tokens[0])
-                    parse = float if "." in tokens[0] else int
-                    keyvals[-1][1].extend(list(map(parse, tokens)))
-                except ValueError:
-                    # We have a new key
-                    key = tokens.pop(0)
-                    parse = float if "." in tokens[0] else int
-                    keyvals.append((key, list(map(parse, tokens))))
+                    try:
+                        float(tokens[0])
+                        parse = float if "." in tokens[0] else int
+                        keyvals[-1][1].extend(list(map(parse, tokens)))
+                    except ValueError:
+                        # We have a new key
+                        key = tokens.pop(0)
+                        parse = float if "." in tokens[0] else int
+                        keyvals.append((key, list(map(parse, tokens))))
+                except Exception as exc:
+                    raise RuntimeError("Exception:\n%s\nwhile parsing ddb header line:\n%s" %
+                                        (str(exc), line))
 
         # add the potential information
         for line in self:
@@ -184,17 +206,30 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # to avoid problems with pymatgen routines that expect integral Z
         # This of course will break any code for alchemical mixing.
         arrays = {
+            "acell": dict(shape=(3, ), dtype=np.double),
+            "amu": dict(shape=(h.ntypat, ), dtype=np.double),
             "kpt": dict(shape=(h.nkpt, 3), dtype=np.double),
+            "ngfft": dict(shape=(3, ), dtype=np.int),
+            #"occ": dict(shape=(h.nsppol, h.nkpt, h.nband), dtype=np.double),
             "rprim": dict(shape=(3, 3), dtype=np.double),
+            "spinat": dict(shape=(h.natom, 3), dtype=np.double),
             "symrel": dict(shape=(h.nsym, 3, 3), dtype=np.int),
             "tnons": dict(shape=(h.nsym, 3), dtype=np.double),
             "xred":  dict(shape=(h.natom, 3), dtype=np.double),
-            "znucl": dict(shape=(-1,), dtype=np.int),
-            "symafm": dict(shape=(-1,), dtype=np.int),
+            # In principle these two quantities are double but here we convert to int
+            # Alchemical mixing is therefore ignored.
+            "znucl": dict(shape=(h.ntypat,), dtype=np.int),
+            "zion": dict(shape=(h.ntypat,), dtype=np.int),
+            "symafm": dict(shape=(h.nsym,), dtype=np.int),
+            "wtk": dict(shape=(h.nkpt,), dtype=np.double),
         }
 
         for k, ainfo in arrays.items():
-            h[k] = np.reshape(np.array(h[k], dtype=ainfo["dtype"]), ainfo["shape"])
+            try:
+                h[k] = np.reshape(np.array(h[k], dtype=ainfo["dtype"]), ainfo["shape"])
+            except Exception as exc:
+                print("While Trying to reshape", k)
+                raise exc
 
         # Transpose symrel because Abinit write matrices by colums.
         h.symrel = np.array([s.T for s in h.symrel])
@@ -226,32 +261,63 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return np.reshape(qpoints, (-1,3))
 
     @lazy_property
+    def computed_dynmat(self):
+        # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
+        df_columns = "idir1 ipert1 idir2 ipert2 cvalue".split()
+
+        dynmat = OrderedDict()
+        for block in self.blocks:
+            qpt = Kpoint(frac_coords=block["qpt"], lattice=self.structure.reciprocal_lattice, weight=None, name=None)
+            #print("qtp", qpt)
+            #print("data", data)
+
+            df_rows, df_index = [], []
+            for line in block["data"]:
+                line = line.strip()
+                if line.startswith("2nd derivatives") or line.startswith("qpt"):
+                    continue
+                #print(line)
+                toks = line.split()
+                idir1, ipert1 = p1 = (int(toks[0]), int(toks[1]))
+                idir2, ipert2 = p2 = (int(toks[2]), int(toks[3]))
+                toks[4] = toks[4].replace("D", "E")
+                toks[5] = toks[5].replace("D", "E")
+                cvalue = float(toks[4]) + 1j*float(toks[5])
+                df_index.append(p1 + p2)
+                df_rows.append(dict(idir1=idir1, ipert1=ipert1, idir2=idir2, ipert2=ipert2, cvalue=cvalue))
+
+            # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
+            df = pd.DataFrame(df_rows, index=df_index, columns=df_columns)
+            dynmat[qpt] = df
+
+        return dynmat
+
+    @lazy_property
     def blocks(self):
         """
-        DDB blocks. List of dictionaries, Each dictionary contains "qpt"
-        with the reduced coordinates of the q-point and "data" that is a list of strings
-        with the entries of the dynamical matrix for this q-point.
+        DDB blocks. List of dictionaries, Each dictionary contains the following keys.
+        "qpt" with the reduced coordinates of the q-point.
+        "data" that is a list of strings with the entries of the dynamical matrix for this q-point.
         """
         return self._read_blocks()
 
     def _read_blocks(self):
-        self.seek(0)
-
         # skip until the beginning of the db
+        self.seek(0)
         while "Number of data blocks" not in self._file.readline():
             pass
 
         blocks = []
-
         block_lines = []
         qpt = None
+
         for line in self:
             # skip empty lines
             if line.isspace():
                 continue
 
             if "List of bloks and their characteristics" in line:
-                #add last block
+                # add last block when we reach the last part of the file.
                 blocks.append({"data": block_lines, "qpt": qpt})
                 break
 
@@ -267,14 +333,21 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if "qpt" in line:
                 qpt = list(map(float, line.split()[1:4]))
 
-        # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
-
         return blocks
 
     @property
     def qpoints(self):
         """:class:`KpointList` object with the list of q-points in reduced coordinates."""
         return self._qpoints
+
+    def has_qpoint(self, qpoint):
+        """True if the DDB file contains this q-point."""
+        #qpoint = Kpoint.as_kpoint(qpoint, self.structure.reciprocal_lattice)
+        try:
+            self.qpoints.index(qpoint)
+            return True
+        except ValueError:
+            return False
 
     def qindex(self, qpoint):
         """
@@ -331,37 +404,72 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """Dictionary with the parameters that are usually tested for convergence."""
         return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
 
-    # TODO
-    # API to understand if the DDB contains the info we are looking for.
-    # NB: This requires the parsing of the dynamical matrix
-    #def has_phonon_terms(self, qpoint)
-    #    """True if the DDB file contains info on the phonon perturbation."""
+    def has_lo_to_data(self, select="at_least_one"):
+        """
+        True if the DDB file contains data requires to compute LO-TO splitting.
+        """
+        return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
 
-    #def has_emacro_terms(self, ij="at_least_one"):
-    #    """
-    #    True if the DDB file contains info on the electric-field perturbation.
+    def has_emacro_terms(self, select="at_least_one"):
+        """
+        True if the DDB file contains info on the electric-field perturbation.
 
-    #        Args:
-    #            ij: Possible values in ["at_least_one", "all"] or tuple e.g. (0, 1)
-    #            If ij == "at_least_one", we check if there's at least one entry associated to the electric field.
-    #            and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
-    #            If ij == "all", all tensor components must be present in the DDB file.
-    #            If ij == (0, 1), the method returns False if the (0, 1) component of the tensor is not present in the DDB.
-    #    """
+        Args:
+            select: Possible values in ["at_least_one", "all"] or tuple e.g. (0, 1)
+            If select == "at_least_one", we check if there's at least one entry associated to the electric field.
+            and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+            If select == "all", all tensor components must be present in the DDB file.
+            If select == (0, 1), the method returns False if the (0, 1) component of the tensor is not present in the DDB.
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
 
-    #def has_bec_terms(self, ij="at_least_one"):
-    #    """
-    #    True if the DDB file contains info on the Born effective charges.
-    #    By default, we check if there's at least one entry associated to electric field.
-    #    and we assume that anaddb will be able to reconstruct the full tensor by symmetry
+        index_set = set(self.computed_dynmat[gamma].index)
 
-    #    Args:
-    #            ij: "at_least_one", "all", (1,2)
-    #    """
+        natom = len(self.structure)
+        ep_list = list(itertools.product(range(1, 4), [natom + 2]))
+        for p1 in ep_list:
+            for p2 in ep_list:
+                p12 = p1 + p2
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set: return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
 
-    #def has_lo_to_data(self)
-    #    """True if the DDB file contains data requires to compute LO-TO splitting."""
-    #    return self.has_bec_terms() and self.has_emacro_terms()
+        return False
+
+    def has_bec_terms(self, select="at_least_one"):
+        """
+        True if the DDB file contains info on the Born effective charges.
+        By default, we check if there's at least one entry associated to atomic displacement
+        and electric field.
+        We assume that anaddb will be able to reconstruct the full tensor by symmetry
+
+        Args:
+            select: "at_least_one", "all", (1, 2)
+        """
+        gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
+        if gamma not in self.computed_dynmat:
+            return False
+        index_set = set(self.computed_dynmat[gamma].index)
+        natom = len(self.structure)
+        ep_list = list(itertools.product(range(1, 4), [natom + 2]))
+        ap_list = list(itertools.product(range(1, 4), range(1, natom + 1)))
+
+        for ap1 in ap_list:
+            for ep2 in ep_list:
+                p12 = ap1 + ep2
+                if select == "at_least_one":
+                    if p12 in index_set: return True
+                elif select == "all":
+                    if p12 not in index_set: return False
+                else:
+                    raise ValueError("Wrong select %s" % str(select))
+
+        return False
 
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
@@ -397,7 +505,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
                 qpoint, self.filepath, self.qpoints))
 
-        #if lo_to_splitting and not self.has_lo_to_data:
+        #if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
         #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
@@ -421,12 +529,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
             return ncfile.phbands
-
-    #def anaget_phbst_file(self, ngqpt=None, ndivsm=20, asr=2, chneut=1, dipdip=1,
-    #                      workdir=None, manager=None, verbose=0, **kwargs):
-
-    #def anaget_phdos_file(self, ngqpt=None, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra"
-    #                      workdir=None, manager=None, verbose=0, **kwargs):
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                                      lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
@@ -457,8 +559,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
-        #if lo_to_splitting and not self.has_lo_to_data:
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
+        if lo_to_splitting and not self.has_lo_to_data():
+            cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
@@ -511,7 +613,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if num_cpus <= 0: num_cpus = 1
         num_cpus = min(num_cpus, len(nqsmalls))
 
-        # TODO: anaget_phdos
         def do_work(nqsmall):
             _, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
@@ -580,6 +681,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Return:
             emacro, becs
         """
+        if not self.has_lo_to_data():
+            cprint("Dielectric tensor and Becs are not available in DDB: %s" % self.filepath, "yellow")
+
         inp = AnaddbInput(self.structure, anaddb_kwargs={"chneut": chneut})
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, mpi_procs=mpi_procs, workdir=workdir, manager=manager)
 
@@ -598,6 +702,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         with ETSF_Reader(os.path.join(task.workdir, "anaddb.nc")) as r:
             structure = r.read_structure()
 
+            # TODO Replace with pymatgen tensors
             emacro = Tensor.from_cartesian_tensor(r.read_value("emacro_cart"), structure.lattice, space="r"),
             becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
 
@@ -1281,7 +1386,7 @@ class DdbRobot(Robot):
             if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
             rows.append(d)
 
-        import pandas as pd
+
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 

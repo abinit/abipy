@@ -10,17 +10,24 @@ TODO list:
 
 * Check PJDOS in abinit@gitlab
 
-* Add mpirun_args see e.g nic4 and mpirun --bind-to None DONE
+* DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
 
-* Re-implement max_njobs in the queque using a counter local to the Launcher. DONE
+* DONE Re-implement max_njobs in the queque using a counter local to the Launcher.
 
 * Fix annoying warnings about k-point sampling.
 
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
+  qadapter package ...
 
 ## Medium priority
 
-* Solve problem with visualize in jupyter notebooks (files should be produced in workdir)  DONE
+* DONE: Autodetect presence of data for lo_to_splitting in DDB.
+
+* Read LO-TO data from phbbands instead of anaddb.nc
+
+* Fix travis and sphinx warnings.
+
+* DONE Solve problem with visualize in jupyter notebooks (files should be produced in workdir)
 
 * Change shifts default value in g0w0_with_ppmodel_inputs
 
@@ -28,7 +35,9 @@ TODO list:
 
 * Fix problem with get_edos if we don't have enough bands 
 
-* Finalize interface with phononwebsite (ALMOST DONE)
+* DONE Finalize interface with phononwebsite.
+
+* Replace core.tensor with pymatgen tensor
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
@@ -40,6 +49,10 @@ TODO list:
   report.errors in task.get_event.report
 
 * Add memory error to Abinit errors
+
+* Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
+
+* Remove Old workflow model. Try to reintegrate AbiPy with new abivars
 
 ## Low priority
 
@@ -55,9 +68,11 @@ TODO list:
 
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
 
-* Use ax.legend(loc="best", fontsize=fontsize, shadow=True)  DONE
+* DONE Use ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-* Check xsf_write_data
+* Check xsf_write_data and visualization of potentials.
+
+* Add phbands.to_bxsf
 
 * Add treatment of out-of-boundary conditions in scissors operator.
 

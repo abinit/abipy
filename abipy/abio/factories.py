@@ -601,7 +601,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
             scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
             nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
     else:
-        # this is the original behaviour before the devellopment of the gwwrapper
+        # this is the original behaviour before the development of the gwwrapper
         scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
         nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
@@ -611,7 +611,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                     charge=charge, nband=max(nscf_nband), fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
-    #print(len(scf_diffs))
 
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
@@ -658,8 +657,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                         freqremin=None)
     scr_inputs = []
     sigma_inputs = []
-
-    print("ecuteps", ecuteps, "nscf_nband", nscf_nband)
+    #print("ecuteps", ecuteps, "nscf_nband", nscf_nband)
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:
@@ -810,7 +808,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
+    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0), kptopt=1).points
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
