@@ -422,8 +422,8 @@ class TestAbiView(ScriptTest):
         logpath = abidata.ref_file("refs/abinit.log")
         r = env.run(self.script, "log", logpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-        #ncpath = abidata.ref_file("refs/sic_relax_HIST.nc")
-        #r = env.run(self.script, "hist", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        ncpath = abidata.ref_file("refs/sic_relax_HIST.nc")
+        r = env.run(self.script, "hist", ncpath, "--xdatcar", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         ncpath = abidata.ref_file("si_nscf_GSR.nc")
         r = env.run(self.script, "ebands", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
@@ -454,4 +454,5 @@ class TestAbiView(ScriptTest):
         r = env.run(self.script, "mdf", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         #ncpath = abidata.ref_file("si_nscf_GSR.nc")
-        #r = env.run(self.script, "denpot", ncpath, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #r = env.run(self.script, "denpot", ncpath, "chgcar", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #r = env.run(self.script, "denpot", ncpath, "cube", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)

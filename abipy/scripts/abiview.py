@@ -20,7 +20,7 @@ def handle_overwrite(path, options):
     """Exit 1 if file `path` exists and not options.force else return path."""
     name_parts = os.path.splitext(path)
     print("Writing %s file:" % name_parts[-1].replace("." , "").upper())
-    if os.path.existst(path) and not options.force:
+    if os.path.exists(path) and not options.force:
         cprint("Cannot overwrite pre-existent file. Use `-f` options.", "red")
         sys.exit(1)
     return path
@@ -32,7 +32,7 @@ def abiview_structure(options):
     or optional python modules (mayavi, vtk)
     """
     structure = abilab.Structure.from_file(options.filepath)
-    print(structure)
+    print(structure.to_string(verbose=options.verbose)
     print("Visualizing structure with:", options.appname)
     structure.visualize(appname=options.appname)
 

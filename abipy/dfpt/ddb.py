@@ -210,6 +210,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             "amu": dict(shape=(h.ntypat, ), dtype=np.double),
             "kpt": dict(shape=(h.nkpt, 3), dtype=np.double),
             "ngfft": dict(shape=(3, ), dtype=np.int),
+            # This is problematic because not all occupation factors are written
             #"occ": dict(shape=(h.nsppol, h.nkpt, h.nband), dtype=np.double),
             "rprim": dict(shape=(3, 3), dtype=np.double),
             "spinat": dict(shape=(h.natom, 3), dtype=np.double),
@@ -262,33 +263,46 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def computed_dynmat(self):
+        """
+        OrderedDict mapping q-point object to --> pandas Dataframe.
+        The dataframe contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
+        and (idir1, ipert1, idir2, ipert2) as index.
+
+        .. note:
+
+            The indices follow the Abinit (Fortran) notation so they start at 1.
+        """
         # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
         df_columns = "idir1 ipert1 idir2 ipert2 cvalue".split()
 
         dynmat = OrderedDict()
         for block in self.blocks:
+            # Build q-point object.
             qpt = Kpoint(frac_coords=block["qpt"], lattice=self.structure.reciprocal_lattice, weight=None, name=None)
-            #print("qtp", qpt)
-            #print("data", data)
 
+            # Build pandas dataframe with df_columns and (idir1, ipert1, idir2, ipert2) as index.
+            # Each line in data represents an element of the dynamical matric
+            # idir1 ipert1 idir2 ipert2 re_D im_D
             df_rows, df_index = [], []
             for line in block["data"]:
                 line = line.strip()
                 if line.startswith("2nd derivatives") or line.startswith("qpt"):
                     continue
-                #print(line)
-                toks = line.split()
-                idir1, ipert1 = p1 = (int(toks[0]), int(toks[1]))
-                idir2, ipert2 = p2 = (int(toks[2]), int(toks[3]))
-                toks[4] = toks[4].replace("D", "E")
-                toks[5] = toks[5].replace("D", "E")
-                cvalue = float(toks[4]) + 1j*float(toks[5])
+                try:
+                    toks = line.split()
+                    idir1, ipert1 = p1 = (int(toks[0]), int(toks[1]))
+                    idir2, ipert2 = p2 = (int(toks[2]), int(toks[3]))
+                    toks[4] = toks[4].replace("D", "E")
+                    toks[5] = toks[5].replace("D", "E")
+                    cvalue = float(toks[4]) + 1j*float(toks[5])
+                except Exception as exc:
+                    print("exception while parsing line:", line)
+                    raise exc
+
                 df_index.append(p1 + p2)
                 df_rows.append(dict(idir1=idir1, ipert1=ipert1, idir2=idir2, ipert2=ipert2, cvalue=cvalue))
 
-            # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
-            df = pd.DataFrame(df_rows, index=df_index, columns=df_columns)
-            dynmat[qpt] = df
+            dynmat[qpt] = pd.DataFrame(df_rows, index=df_index, columns=df_columns)
 
         return dynmat
 
@@ -415,17 +429,19 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         True if the DDB file contains info on the electric-field perturbation.
 
         Args:
-            select: Possible values in ["at_least_one", "all"] or tuple e.g. (0, 1)
+            select: Possible values in ["at_least_one", "all"] or tuple e.g. (idir1, ipert1, idir2, ipert2)
             If select == "at_least_one", we check if there's at least one entry associated to the electric field.
             and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
             If select == "all", all tensor components must be present in the DDB file.
-            If select == (0, 1), the method returns False if the (0, 1) component of the tensor is not present in the DDB.
+            If select is a tuple, the method returns False if this component is not present in the DDB.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
         if gamma not in self.computed_dynmat:
             return False
 
         index_set = set(self.computed_dynmat[gamma].index)
+        if isinstance(select, (tuple, list)):
+            return select in index_set
 
         natom = len(self.structure)
         ep_list = list(itertools.product(range(1, 4), [natom + 2]))

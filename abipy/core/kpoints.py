@@ -678,7 +678,6 @@ class Kpoint(SlotPickleMixin):
         cls = self.__class__
         if self.norm > 1e-12:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
-        #except ZeroDivisionError:
         else:
             return cls.gamma(self.lattice, weight=self.weight)
 
