@@ -83,11 +83,9 @@ def build_flow(options, paral_kgb=0):
     return flow
 
 
-@abilab.flow_main
+@flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    return build_flow(options)
 
 
 if __name__ == "__main__":

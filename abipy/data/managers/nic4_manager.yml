@@ -6,8 +6,8 @@ hardware: &hardware
    mem_per_node: 64Gb
 
 job: &job
-    #mpi_runner: "mpirun --bind-to none "
     mpi_runner: "mpirun"
+    mpi_runner_options: "--bind-to none"
     shell_env:
         PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
     pre_run:

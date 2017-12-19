@@ -571,7 +571,7 @@ class MdfPlotter(object):
         self._mdfs[label] = mdf
 
     @add_fig_kwargs
-    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, **kwargs):
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Get a matplotlib plot showing the MDFs.
 
@@ -584,6 +584,7 @@ class MdfPlotter(object):
             xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                   or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Same meaning as `ylims` but for the y-axis
+            fontsize: Legend and label fontsize.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
@@ -603,7 +604,7 @@ class MdfPlotter(object):
                 legends.append(r"%s: %s, %s $\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
-        ax.legend(lines, legends, loc='best', shadow=False)
+        ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
 
@@ -802,8 +803,8 @@ class MultipleMdfPlotter(object):
     #    return fig
 
     @add_fig_kwargs
-    def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None,
-                          xlims=None, ylims=None, with_legend=True, with_xlabel=True, with_ylabel=True, **kwargs):
+    def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None, xlims=None, ylims=None,
+                          with_legend=True, with_xlabel=True, with_ylabel=True, fontsize=12, **kwargs):
         """
         Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.
 
@@ -819,6 +820,7 @@ class MultipleMdfPlotter(object):
             with_legend: True if legend should be added
             with_xlabel:
             with_ylabel:
+            fontsize: Legend and label fontsize.
 
         Return: matplotlib figure
         """
@@ -850,7 +852,7 @@ class MultipleMdfPlotter(object):
 
         # Set legends.
         if with_legend:
-            ax.legend(lines, legends, loc='best', shadow=False)
+            ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -910,11 +912,14 @@ class MdfRobot(Robot, RobotWithEbands):
     """
     EXT = "MDF"
 
+    def plot(self, **kwargs):
+        """Wraps plot method of `MultipleMdfPlotter`. kwargs passed to plot."""
+        return self.get_multimdf_plotter().plot(**kwargs)
+
     def get_multimdf_plotter(self, cls=None):
         """
         Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.
         """
-        from abipy.electrons.bse import MultipleMdfPlotter
         plotter = MultipleMdfPlotter() if cls is None else cls()
 
         for label, mdf in self:

@@ -7,7 +7,7 @@ import abipy.data as abidata
 
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-from abipy.abio.outputs import AbinitOutputFile, AbinitLogFile
+from abipy.abio.outputs import AbinitOutputFile, AbinitLogFile, AboRobot
 
 
 class AbinitLogFileTest(AbipyTest):
@@ -17,6 +17,7 @@ class AbinitLogFileTest(AbipyTest):
         log_path = abidata.ref_file("refs/abinit.log")
         with AbinitLogFile(log_path) as abilog:
             repr(abilog); str(abilog)
+            assert abilog.to_string(verbose=2)
             assert len(abilog.events) == 2
             if self.has_nbformat():
                 abilog.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -155,3 +156,16 @@ class AbinitOutputTest(AbipyTest):
         assert os.path.exists(abitests_dir)
         retcode = validate_output_parser(abitests_dir=abitests_dir)
         assert retcode == 0
+
+    def test_aborobot(self):
+        """Testing AboRobot."""
+        abo_paths = abidata.ref_files("refs/si_ebands/run.abo", "refs/gs_dfpt.abo")
+        with AboRobot.from_files(abo_paths) as robot:
+            repr(robot); str(robot)
+            assert robot.to_string(verbose=2)
+            assert robot._repr_html_()
+            dims = robot.get_dims_dataframe()
+            df = robot.get_dataframe(with_geo=True)
+
+            if self.has_nbformat():
+                robot.write_notebook(nbpath=self.get_tmpname(text=True))

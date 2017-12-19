@@ -494,7 +494,7 @@ def as_kpoints(obj, lattice, weights=None, names=None):
 
 class Kpoint(SlotPickleMixin):
     """
-    Class defining one k-point.
+    Class defining one k-point. This object is immutable and can be used as key in dictionaries
     """
 
     __slots__ = [
@@ -570,7 +570,7 @@ class Kpoint(SlotPickleMixin):
         """Set the weight of the k-point."""
         self._weight = weight
 
-    @property
+    @lazy_property
     def cart_coords(self):
         """Cartesian coordinates of the k-point."""
         return self.lattice.get_cartesian_coords(self.frac_coords)
@@ -586,7 +586,7 @@ class Kpoint(SlotPickleMixin):
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
-    @property
+    @lazy_property
     def on_border(self):
         """
         True if the k-point is on the border of the BZ  (lattice translations are taken into account).
@@ -599,6 +599,10 @@ class Kpoint(SlotPickleMixin):
         return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
 
     def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation."""
         s =  "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
         if self.name is not None: s += ", name: %s" % self.name
         if self._weight is not None: s += ", weight: %.3f" % self.weight
@@ -651,7 +655,20 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(self.frac_coords.copy(), self.lattice.copy(),
                               weight=self.weight, name=self.name)
 
-    @property
+    def is_gamma(self, allow_umklapp=False, atol=None):
+        """
+        Return True if this the gamma point.
+
+        Args:
+            allow_umklapp: True if umklapp G-vectors are allowed.
+            atol: Absolute tolerance for k-point comparison (used only if umklapp).
+        """
+        if not allow_umklapp:
+            return np.all(self.frac_coords == 0.0)
+        else:
+            return issamek(self.frac_coords, [0, 0, 0], atol=atol)
+
+    @lazy_property
     def norm(self):
         """Norm of the kpoint."""
         return np.sqrt(np.dot(self.cart_coords, self.cart_coords))
@@ -661,7 +678,6 @@ class Kpoint(SlotPickleMixin):
         cls = self.__class__
         if self.norm > 1e-12:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
-        #except ZeroDivisionError:
         else:
             return cls.gamma(self.lattice, weight=self.weight)
 
@@ -787,7 +803,11 @@ class KpointList(collections.Sequence):
 
     def to_string(self, func=str, title=None, verbose=0):
         """String representation."""
-        return "\n".join("%d) %s" % (i, func(kpoint)) for i, kpoint in enumerate(self))
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
+        lines.extend(["%d) %s" % (i, func(kpoint)) for i, kpoint in enumerate(self)])
+
+        return "\n".join(lines)
 
     # Sequence protocol.
     def __len__(self):

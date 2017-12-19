@@ -28,6 +28,7 @@ from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, Task
 #    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)
 
 from abipy.core.release import __version__, min_abinit_version
+from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
   mp_match_structure, mp_search, cod_search)
@@ -37,7 +38,7 @@ from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
 from abipy.abio.robots import Robot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
-from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile #, CubeFile
+from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot #, CubeFile
 #from abipy.tools.plotting import DirTreePlotter
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source

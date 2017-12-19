@@ -70,10 +70,10 @@ def flow_main(main):
             flow = main(options)
 
             if options.plot:
-                flow.plot_networkx(tight_layout=True)
+                flow.plot_networkx(tight_layout=True, with_edge_labels=True)
 
             if options.abivalidate:
-                print("Validating input files of the flow...")
+                print("Validating flow input files...")
                 isok, errors = flow.abivalidate_inputs()
                 if not isok:
                     for e in errors:

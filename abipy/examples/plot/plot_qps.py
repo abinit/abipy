@@ -14,9 +14,9 @@ sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 # Printout of the QPState results
 sigres.print_qps()
 
-sigres.plot_qps_vs_e0()
+sigres.plot_qps_vs_e0(tight_layout=True)
 
-qp = sigres.get_qpcorr(spin=0, kpoint=(0,0,0), band=0)
+qp = sigres.get_qpcorr(spin=0, kpoint=(0, 0, 0), band=0)
 print(qp)
 
 #qplist_spin = sigres.qplist_spin

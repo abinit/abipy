@@ -69,25 +69,26 @@ def raman_work(structure, pseudos, shiftk, paral_kgb=1):
     # GS run
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
     scf_inp.set_vars(global_vars)
-    scf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
+    scf_inp.set_kmesh(ngkpt=[2, 2, 2], shiftk=shiftk)
     scf_inp["tolvrs"] = 1e-6
 
     # NSCF run
     nscf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
     nscf_inp.set_vars(global_vars)
-    nscf_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
+    nscf_inp.set_kmesh(ngkpt=[2, 2, 2], shiftk=shiftk)
 
-    nscf_inp.set_vars(tolwfr=1e-8,
-                      nband=12,
-                      nbdbuf=4,
-                      iscf=-2,
-                      )
+    nscf_inp.set_vars(
+        tolwfr=1e-8,
+        nband=12,
+        nbdbuf=4,
+        iscf=-2,
+    )
 
     # BSE run with Model dielectric function and Haydock (only resonant + W + v)
     # Note that SCR file is not needed here
     bse_inp = abilab.AbinitInput(structure, pseudos=pseudos)
     bse_inp.set_vars(global_vars)
-    bse_inp.set_kmesh(ngkpt=[2,2,2], shiftk=shiftk)
+    bse_inp.set_kmesh(ngkpt=[2, 2, 2], shiftk=shiftk)
 
     bse_inp.set_vars(
         optdriver=99,
@@ -118,7 +119,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -133,3 +134,28 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_raman_bse.py -s
+#
+# then use:
+#
+#    abirun.py flow_raman_bse robot MDF
+#
+# to analyze all the macroscopic dielectric functions produced by the Flow with the robot.
+# Inside the ipython terminal type:
+#
+# .. code-block:: ipython
+#
+#   [1] %matplotlib
+#   [2] robot.plot()
+#
+# to compare the real and imaginary part of the macroscopic dielectric function for the different displacements.
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_raman_bse.png?raw=true
+#    :alt: Band structure of Si in the IBZ and along a k-path
+#

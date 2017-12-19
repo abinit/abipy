@@ -89,15 +89,15 @@ def get_parser(with_epilog=False):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity')
+        help='verbose, can be supplied multiple times to increase verbosity')
 
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
     parser.add_argument('--foreground', action='store_true', default=False,
-                        help="Run jupyter notebook in the foreground.")
+        help="Run jupyter notebook in the foreground.")
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 

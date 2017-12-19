@@ -175,13 +175,12 @@ class WfkFileTab(awx.Panel):
         #print("in new" ,event.skb)
         spin, kpoint, band = event.skb
 
-        visu_name = self.GetVisualizer()
-        if visu_name == "None": return
+        appname = self.GetVisualizer()
+        if appname == "None": return
 
         self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
         try:
-            visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
-
+            visu = self.wfk.visualize_ur2(spin, kpoint, band, appname=appname)
             thread = awx.WorkerThread(self, target=visu)
             thread.start()
 
@@ -192,13 +191,12 @@ class WfkFileTab(awx.Panel):
     #    """Calls the visualizer to visualize the specified wavefunction."""
     #    # To make the Gui responsive one can use the approach described in
     #    # http://wiki.wxpython.org/LongRunningTasks
-    #    visu_name = self.GetVisualizer()
-    #    if visu_name == "None": return
+    #    appname = self.GetVisualizer()
+    #    if appname == "None": return
     #
     #    self.statusbar.PushStatusText("Visualizing wavefunction (spin=%d, kpoint=%s, band=%d)" % (spin, kpoint, band))
     #    try:
-    #        visu = self.wfk.visualize_ur2(spin, kpoint, band, visu_name=visu_name)
-    #
+    #        visu = self.wfk.visualize_ur2(spin, kpoint, band, appname=appname)
     #        thread = awx.WorkerThread(self, target=visu)
     #        thread.start()
     #

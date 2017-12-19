@@ -25,7 +25,5 @@ def print_dataframe(frame, title=None, precision=6, sortby=None, file=sys.stdout
                            "display.max_columns", len(list(frame.keys())),
                            "display.precision", precision,
                            ):
-    #with pd.option_context('display.expand_frame_repr', False):
-    #with pd.option_context('display.large_repr', 'truncate', 'display.max_columns', 0):
         print(frame, file=file)
         print(" ", file=file)

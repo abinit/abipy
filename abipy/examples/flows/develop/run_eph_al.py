@@ -27,7 +27,7 @@ def build_flow(options):
     pseudos = abidata.pseudos("Al.oncvpsp")
 
     structure = abilab.Structure.from_abivars(
-        acell=3*[7.5],
+        acell=3 * [7.5],
         rprim=[0.0, 0.5, 0.5,
                0.5, 0.0, 0.5,
                0.5, 0.5, 0.0],
@@ -36,6 +36,9 @@ def build_flow(options):
         ntypat=1,
         znucl=13,
     )
+
+    same_structure = abilab.Structure.fcc(a=7.5, species=["Al"], units="bohr")
+    assert same_structure == structure
 
     gs_inp = abilab.AbinitInput(structure, pseudos)
 
@@ -66,31 +69,30 @@ def build_flow(options):
     ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints)
     flow.register_work(ph_work)
 
-    # Build input file for E-PH run.
-    eph_inp = gs_inp.new_with_vars(
-        optdriver=7,
-        ddb_ngqpt=ddb_ngqpt,       # q-mesh used to produce the DDB file (must be consistent with DDB data)
-        eph_intmeth=2,             # Tetra method
-        eph_fsewin="0.8 eV",       # Energy window around Ef
-        eph_mustar=0.12,           # mustar parameter
-    )
-
-    # Set q-path for phonons and phonon linewidths.
-    eph_inp.set_qpath(20)
-
-    # TODO: Define wstep and smear
-    # Set q-mesh for phonons DOS and a2F(w)
-    eph_inp.set_phdos_qmesh(nqsmall=16, method="tetra")
-
     eph_work = flow.register_work(flowtk.Work())
     eph_deps = {work0[0]: "WFK", ph_work: ["DDB", "DVDB"]}
-    eph_task = eph_work.register_eph_task(eph_inp, deps=eph_deps)
 
-    flow.allocate()
-    flow.use_smartio()
+    for eph_ngqpt_fine in [(4, 4, 4,), (8, 8, 8)]:
+        # Build input file for E-PH run.
+        eph_inp = gs_inp.new_with_vars(
+            optdriver=7,
+            ddb_ngqpt=ddb_ngqpt,       # q-mesh used to produce the DDB file (must be consistent with DDB data)
+            eph_intmeth=2,             # Tetra method
+            eph_fsewin="0.8 eV",       # Energy window around Ef
+            eph_mustar=0.12,           # mustar parameter
+            eph_ngqpt_fine=eph_ngqpt_fine, # Interpolate DFPT potentials if != ddb_ngqpt
+        )
 
-    # EPH does not support autoparal (yet)
-    #eph_task.with_fixed_mpi_omp(1, 1)
+        # Set q-path for phonons and phonon linewidths.
+        eph_inp.set_qpath(20)
+
+        # TODO: Define wstep and smear
+        # Set q-mesh for phonons DOS and a2F(w)
+        eph_inp.set_phdos_qmesh(nqsmall=16, method="tetra")
+        eph_work.register_eph_task(eph_inp, deps=eph_deps)
+
+    flow.allocate(use_smartio=True)
+
     return flow
 
 

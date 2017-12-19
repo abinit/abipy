@@ -86,6 +86,12 @@ class TestKpoint(AbipyTest):
         X = Kpoint([0.5, 0, 0], lattice)
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         repr(X); str(X)
+        assert X.to_string(verbose=2)
+
+        assert gamma.is_gamma()
+        assert not pgamma.is_gamma()
+        assert pgamma.is_gamma(allow_umklapp=True)
+        assert not X.is_gamma()
 
         # TODO
         #assert np.all(np.array(X) == X.frac_coords)

@@ -40,17 +40,12 @@ def build_flow(options):
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_","flow_")
 
-    manager = options.manager
-    #shell_manager = manager.to_shell_manager(mpi_procs=1)
-    #shell_manager =  manager.deepcopy()
-    #ddk_manager = manager.deepcopy()
-
-    flow = flowtk.Flow(options.workdir, manager=manager)
+    flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Generate the different shifts to average
     ndiv = 1
-    shift1D = np.arange(1,2*ndiv+1,2)/(2*ndiv)
-    all_shifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
+    shift1D = np.arange(1, 2*ndiv+1, 2) / (2 * ndiv)
+    all_shifts = [[x, y, z] for x in shift1D for y in shift1D for z in shift1D]
 
     for structure, eta in zip(displaced_structures, etas):
         for ishift,shift in enumerate(all_shifts):
@@ -108,7 +103,7 @@ def raman_work(structure, pseudos, ngkpt, shiftk):
 
         multi[2 + idir].set_vars(
            iscf=-3,
-	   nband=40,
+           nband=40,
            nbdbuf=5,
            nstep=1,
            nline=0,
@@ -158,7 +153,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
 
 
 @flowtk.flow_main

@@ -84,7 +84,7 @@ class PhaseDiagramResults(object):
         self.mpids = [e.entry_id for e in entries]
 
         # Create phase diagram.
-        from pymatgen.phasediagram.maker import PhaseDiagram
+        from pymatgen.analysis.phase_diagram import PhaseDiagram
         self.phasediagram = PhaseDiagram(self.entries)
 
     def plot(self, show_unstable=True, show=True):
@@ -100,10 +100,7 @@ class PhaseDiagramResults(object):
         Return:
             plotter object.
         """
-        try:
-            from pymatgen.analysis.phase_diagram import PDPlotter
-        except ImportError:
-            from pymatgen.phasediagram.plotter import PDPlotter
+        from pymatgen.analysis.phase_diagram import PDPlotter
         plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
         if show:
             plotter.show()
@@ -112,13 +109,10 @@ class PhaseDiagramResults(object):
     @lazy_property
     def table(self):
         """Pandas dataframe with the most important results."""
-        # TODO: Use PhaseDiagram but enforce new pymatgen first.
-        from pymatgen.phasediagram.analyzer import PDAnalyzer
-        pda = PDAnalyzer(self.phasediagram)
         rows = []
         for e in self.entries:
             d = e.structure.get_dict4pandas(with_spglib=True)
-            decomp, ehull = pda.get_decomp_and_e_above_hull(e)
+            decomp, ehull = self.phasediagram.get_decomp_and_e_above_hull(e)
 
             rows.append(OrderedDict([
                 ("Materials ID", e.entry_id),
@@ -217,6 +211,7 @@ class DatabaseStructures(NotebookWriter):
         """
         Print pandas dataframe, structures using format `fmt`, and data to file `file`.
         `fmt` is automaticall set to `cif` if structure is disordered.
+        Set fmt to None or empty string to disable structure output.
         """
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                 % (len(self.structures), self.dbname), file=file)
@@ -224,15 +219,23 @@ class DatabaseStructures(NotebookWriter):
         if self.table is not None: print_dataframe(self.table, file=file)
         if verbose and self.data is not None: pprint(self.data, stream=file)
 
-        for i, structure in enumerate(self.structures):
-            print(" ", file=file)
-            print(marquee("%s input for %s" % (fmt, self.ids[i]), mark="#"), file=file)
-            print("# " + structure.spget_summary(verbose=verbose).replace("\n", "\n# ") + "\n", file=file)
-            if not structure.is_ordered:
-                print(structure.convert(fmt="cif"), file=file)
-            else:
-                print(structure.convert(fmt=fmt), file=file)
-            print(2 * "\n", file=file)
+        # Print structures
+        print_structures = not (fmt is None or str(fmt) == "None")
+        if print_structures:
+            for i, structure in enumerate(self.structures):
+                print(" ", file=file)
+                print(marquee("%s input for %s" % (fmt, self.ids[i]), mark="#"), file=file)
+                print("# " + structure.spget_summary(verbose=verbose).replace("\n", "\n# ") + "\n", file=file)
+                if not structure.is_ordered:
+                    print(structure.convert(fmt="cif"), file=file)
+                else:
+                    print(structure.convert(fmt=fmt), file=file)
+                print(2 * "\n", file=file)
+
+        if len(self.structures) > 10:
+            # Print info again
+            print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
+                    % (len(self.structures), self.dbname), file=file)
 
     def write_notebook(self, nbpath=None, title=None):
         """

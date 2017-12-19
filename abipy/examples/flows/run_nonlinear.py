@@ -68,7 +68,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)
 
 
 

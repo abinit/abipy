@@ -9,6 +9,8 @@ import six
 
 from monty.os.path import which
 from monty.termcolor import cprint
+from monty.functools import lazy_property
+
 
 __all__ = [
     "Visualizer",
@@ -21,7 +23,9 @@ def is_macosx():
 
 
 def find_loc(app_name):
-    """Returns the location of the application from its name."""
+    """
+    Returns the location of the application from its name. None if not found.
+    """
     path = _find_loc(app_name)
     if path is not None: return path
     path = _find_loc(app_name.upper())
@@ -88,7 +92,7 @@ class Visualizer(object):
 
     def __str__(self):
         return "%s: %s, is_macosx_app %s, filepath: %s" % (
-            self.__class__.__name__, self.bin, self.is_macosx_app, self.filepath)
+            self.__class__.__name__, self.binpath, self.is_macosx_app, self.filepath)
 
     def __call__(self):
         """
@@ -97,10 +101,9 @@ class Visualizer(object):
         Returns: exit status of the subprocess.
         """
         from subprocess import call
-
         if not self.is_macosx_app:
-            cprint("Executing: %s %s %s" % (self.bin, self.cmdarg, self.filepath), "yellow")
-            return call([self.bin, self.cmdarg, self.filepath])
+            cprint("Executing: %s %s %s" % (self.binpath, self.cmdarg, self.filepath), "yellow")
+            return call([self.binpath, self.cmdarg, self.filepath])
 
         else:
             # Mac-OSx applications can be launched with `open -a Vesta --args si.cif`
@@ -119,10 +122,15 @@ class Visualizer(object):
                 return args
         return " "
 
+    @lazy_property
+    def binpath(self):
+        """Absolute path of the binary. None if app is not found"""
+        return find_loc(self.name)
+
     @property
     def is_available(self):
         """True is the visualizer is available on the local machine."""
-        return self.bin is not None
+        return self.binpath is not None
 
     @classmethod
     def get_available(cls, ext=None):
@@ -167,13 +175,13 @@ class Visualizer(object):
         return [e for (e, args) in cls.EXTS]
 
     @classmethod
-    def from_name(cls, visu_name):
+    def from_name(cls, appname):
         """Return the visualizer class from the name of the application."""
         for visu in cls.__subclasses__():
-            if visu.name == visu_name:
+            if visu.name == appname:
                 return visu
 
-        raise cls.Error("visu_name is not among the list of supported visualizers %s " % visu_name)
+        raise cls.Error("appname is not among the list of supported visualizers %s " % appname)
 
     @classmethod
     def all_visunames(cls):
@@ -185,20 +193,17 @@ class Visualizer(object):
 # Concrete classes #
 ####################
 
-
 class Xcrysden(Visualizer):
     name = "xcrysden"
-    bin = find_loc(name)
 
     EXTS = [
         ("xsf", "--xsf"),
-        ("bxsf", "--bxsf")
+        ("bxsf", "--bxsf"),
     ]
 
 
 class V_Sim(Visualizer):
     name = "v_sim"
-    bin = find_loc(name)
 
     EXTS = [
         ("xsf", "--xsf"),
@@ -209,17 +214,27 @@ class Vesta(Visualizer):
     is_macosx_app = is_macosx()
 
     name = "vesta"
-    bin = find_loc(name)
 
     EXTS = [
         ("xsf", ""),
     ]
 
-#class Avogadro(Visualizer):
-#    is_macosx_app = is_macosx()
-#
-#    name = "avogadro"
-#    bin = find_loc(name)
-#
-#    EXTS = [
-#    ]
+
+class Ovito(Visualizer):
+    is_macosx_app = is_macosx()
+
+    name = "ovito"
+
+    EXTS = [
+        ("POSCAR", ""),
+    ]
+
+
+class Avogadro(Visualizer):
+    is_macosx_app = is_macosx()
+
+    name = "avogadro"
+
+    EXTS = [
+       ("cif", ""),
+    ]

@@ -109,7 +109,8 @@ class _Field(Has_Structure):
             try:
                 return self.__class__, float(other)
             except:
-                raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' % other.__class__)
+                raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' %
+                    (other.__class__))
 
         if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
                 self.structure != other.structure, self.mesh != other.mesh]):
@@ -258,7 +259,7 @@ class _Field(Has_Structure):
         else:
             return self.datag.std(axis=axis)
 
-    def export(self, filename, visu=None):
+    def export(self, filename, visu=None, verbose=1):
         """
         Export the real space data to file filename.
 
@@ -271,6 +272,7 @@ class _Field(Has_Structure):
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of
                 applications and formats supported.
+            verbose: Verbosity level
 
         Returns:
             Instance of :class:`Visualizer`
@@ -280,16 +282,22 @@ class _Field(Has_Structure):
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
+        if verbose:
+            print("tokens", tokens, "ext", ext)
 
-        if not tokens[0]: # filename == ".ext" ==> Create temporary file.
-            import tempfile
-            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
+        if not tokens[0]:
+            # filename == ".ext" ==> Create temporary file.
+            # dir = os.getcwd() is needed when we invoke the method from a notebook.
+            # nbworkdir in cwd is needed when we invoke the method from a notebook.
+            from abipy.core.globals import abinb_mkstemp
+            _, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
         with open(filename, mode="wt") as fh:
             if ext == "xsf":
                 # xcrysden
                 xsf.xsf_write_structure(fh, self.structure)
                 xsf.xsf_write_data(fh, self.structure, self.datar, add_replicas=True)
+            #elif ext == "POSCAR":
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
 
@@ -298,24 +306,24 @@ class _Field(Has_Structure):
         else:
             return visu(filename)
 
-    def visualize(self, visu_name):
+    def visualize(self, appname):
         """
         Visualize data with visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
         for ext in visu.supported_extensions():
             ext = "." + ext
             try:
-                return self.export(ext, visu=visu)
+                return self.export(ext, visu=visu)()
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % visu_name)
+            raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_interpolator(self):
         """
@@ -342,7 +350,7 @@ class _Field(Has_Structure):
     #        raise NotImplementedError("nspinor != 1 not implenented")
 
     @add_fig_kwargs
-    def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, **kwargs):
+    def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, fontsize=12, **kwargs):
         """
         Plot (interpolated) density/potential in real space along a line defined
         by `point1` and `point2`.
@@ -357,6 +365,7 @@ class _Field(Has_Structure):
             cartesian: By default, `point1` and `point1` are interpreted as points in fractional
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: legend and title fontsize.
 
         Return:
             `matplotlib` figure
@@ -377,12 +386,12 @@ class _Field(Has_Structure):
             ax.set_xlabel("Distance in Angstrom from %s at %s" % (r.site1.specie.symbol, cs))
         ax.set_ylabel(self.latex_label)
         if self.nspden > 1:
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
-    def plot_line_neighbors(self, site_index, radius, num=200, max_nn=10, **kwargs):
+    def plot_line_neighbors(self, site_index, radius, num=200, max_nn=10, fontsize=12, **kwargs):
         """
         Plot (interpolated) density/potential in real space along the lines connecting
         an atom specified by `site_index` and all neighbors within a sphere of given `radius`.
@@ -397,6 +406,7 @@ class _Field(Has_Structure):
             radius: Radius of the sphere in Angstrom
             num: Number of points sampled along the line.
             max_nn: By default, only the first `max_nn` neighbors are showed.
+            fontsize: legend and title fontsize
 
         Return:
             `matplotlib` figure
@@ -431,14 +441,14 @@ class _Field(Has_Structure):
                 ax.plot(r.dist, r.values[ispden],
                         label=latexlabel_ispden(ispden, self.nspden) if i == 0 else None)
 
-            ax.set_title(title)
+            ax.set_title(title, fontsize=fontsize)
             ax.grid(True)
 
             if i == nrows - 1:
                 ax.set_xlabel("Distance from site_index %s [Angstrom]" % site_index)
                 ax.set_ylabel(self.latex_label)
                 if self.nspden > 1:
-                    ax.legend(loc="best")
+                    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -569,6 +579,7 @@ class Density(_DensityField):
         Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files.
         For points close to the atoms, the value at the grid point would be defined as the average on a finer grid
         in the neghibourhood of the point.
+
         Args:
             valence_density: a Density object representing the valence charge density
             structure: the structure for which the total core density will be calculated
@@ -579,7 +590,7 @@ class Density(_DensityField):
                 with respect to nelec. The total density will also be rescaled to fit exactly the given number.
             tol: tolerance above which the system will raise an exception if the integrated density doesn't sum up
                 to the value specified in nelec. Default 0.01 (1% error).
-            method: different methods to perform the calculation
+            method: different methods to perform the calculation:
                 get_sites_in_sphere: based on Structure.get_sites_in_sphere.
                 mesh3d_dist_gridpoints: based on Mesh3D.dist_gridpoints_in_spheres. Generally faster than
                     get_sites_in_sphere, but tests can be made for specific cases.
@@ -854,30 +865,24 @@ class Density(_DensityField):
     #    gvecs = self.mesh.gvecs
     #    gwork = self.mesh.zeros().ravel()
     #    gnorm = self.structure.gnorm(gvec)
-
     #    for idx, gg in enumerate(gvecs):
     #        #gnorm = self.structure.gnorm(gg)
     #        gnorm = 1.0  # self.structure.gnorm(gg)
-
     #        #gg = np.atleast_2d(gg)
     #        #mv = np.dot(self.structure.gmet, gg.T)
     #        #norm2 = 2*np.pi * np.dot(gg, mv)
     #        #gnorm = np.sqrt(norm2)
-
     #        #print gg, gnorm
     #        if idx != 0:
     #            gwork[idx] = 4*np.pi/gnorm
     #        else:
     #            gwork[idx] = 0.0
-
     #    new_shape = self.mesh.ndivs
     #    gwork = np.reshape(gwork, new_shape)
     #    #gwork = self.mesh.reshape(gwork)
-
     #    # FFT to obtain vh in real space.
     #    vhg = self.total_rhog * gwork
     #    vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
-
     #    return vhr, vhg
 
     def export_to_cube(self, filename, spin='total'):
@@ -931,7 +936,6 @@ class Density(_DensityField):
         if self.nspinor == 1:
             if self.nsppol == 1:
                 data_dict = {"total": myrhor[0]}
-
             if self.nsppol == 2:
                 data_dict = {"total": myrhor[0] + myrhor[1], "diff": myrhor[0] - myrhor[1]}
 

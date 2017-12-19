@@ -417,7 +417,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
 
 def g0w0_with_ppmodel_inputs(structure, pseudos,
                              kppa, nscf_nband, ecuteps, ecutsigx,
-                             ecut=None, pawecutdg=None,
+                             ecut=None, pawecutdg=None, shifts=(0.5, 0.5, 0.5),
                              accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                              ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                              sigma_nband=None, gw_qprange=1):
@@ -447,13 +447,14 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
             See Abinit docs for more detail. The default value makes the code compute the
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
     """
+
     structure = Structure.as_structure(structure)
     multi = MultiDataset(structure, pseudos, ndtset=4)
 
     # Set the cutoff energies.
     multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
 
-    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
 
@@ -464,7 +465,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi[0].set_vars(scf_electrons.to_abivars())
     multi[0].set_vars(_stopping_criterion("scf", accuracy))
 
-    nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
+    nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
     nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
                                     charge=charge, nband=nscf_nband, fband=None)
 
@@ -482,12 +483,11 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi[2].set_vars(nscf_electrons.to_abivars())
     multi[2].set_vars(screening.to_abivars())
     multi[2].set_vars(_stopping_criterion("screening", accuracy)) # Dummy
-    #scr_strategy = ScreeningStrategy(scf_strategy, nscf_strategy, screening)
 
     # Sigma.
     if sigma_nband is None: sigma_nband = nscf_nband
     self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
-                             gw_qprange=gw_qprange, ppmodel=ppmodel)
+                                  gw_qprange=gw_qprange, ppmodel=ppmodel)
 
     multi[3].set_vars(nscf_ksampling.to_abivars())
     multi[3].set_vars(nscf_electrons.to_abivars())
@@ -603,7 +603,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
             scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
             nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=(0, 0, 0))
     else:
-        # this is the original behaviour before the devellopment of the gwwrapper
+        # this is the original behaviour before the development of the gwwrapper
         scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
         nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0)
 
@@ -613,7 +613,6 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                     charge=charge, nband=max(nscf_nband), fband=None)
 
     multi_scf = MultiDataset(structure, pseudos, ndtset=max(1, len(scf_diffs)))
-    #print(len(scf_diffs))
 
     multi_scf.set_vars(scf_ksampling.to_abivars())
     multi_scf.set_vars(scf_electrons.to_abivars())
@@ -660,8 +659,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                                         freqremin=None)
     scr_inputs = []
     sigma_inputs = []
-
-    print("ecuteps", ecuteps, "nscf_nband", nscf_nband)
+    #print("ecuteps", ecuteps, "nscf_nband", nscf_nband)
 
     for response_model in response_models:
         for ecuteps_v in ecuteps:
@@ -812,7 +810,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
+    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0), kptopt=1).points
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.

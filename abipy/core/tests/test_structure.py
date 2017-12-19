@@ -35,7 +35,7 @@ class TestStructure(AbipyTest):
 
             # Export data in Xcrysden format.
             #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
-            #visu = structure.visualize(visu_name="vesta")
+            #visu = structure.visualize(appname="vesta")
             #assert callable(visu)
 
             if self.has_ase():
@@ -47,6 +47,7 @@ class TestStructure(AbipyTest):
         si = Structure.as_structure(abidata.cif_file("si.cif"))
         assert si.formula == "Si2"
         assert si.abi_spacegroup is None and not si.has_abi_spacegroup
+        assert "ntypat" in si.to(fmt="abivars")
 
         spgroup = si.spgset_abi_spacegroup(has_timerev=True)
         assert spgroup is not None
@@ -113,6 +114,9 @@ class TestStructure(AbipyTest):
         assert Specie("Zn", 2) in oxi_znse.composition.elements
         assert Specie("Se", -2) in oxi_znse.composition.elements
 
+        system = si.spget_lattice_type()
+        assert system == "cubic"
+
         e = si.spget_equivalent_atoms(printout=True)
         assert len(e.irred_pos) == 1
         self.assert_equal(e.eqmap[0], [0, 1])
@@ -149,6 +153,7 @@ class TestStructure(AbipyTest):
 
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
         assert mgb2_cod.formula == "Mg1 B2"
+        assert mgb2_cod.spget_lattice_type() == "hexagonal"
 
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():
@@ -167,7 +172,8 @@ class TestStructure(AbipyTest):
         self.serialize_with_pickle(mgb2)
 
         pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
-        assert mgb2.num_valence_electrons(pseudos) == 8
+        nv = mgb2.num_valence_electrons(pseudos)
+        assert nv == 8 and isinstance(nv , int)
         assert mgb2.valence_electrons_per_atom(pseudos) == [2, 3, 3]
         self.assert_equal(mgb2.calc_shiftk() , [[0.0, 0.0, 0.5]])
 
@@ -184,6 +190,7 @@ class TestStructure(AbipyTest):
         # Function to compute cubic a0 from primitive v0 (depends on struct_type)
         vol2a = {"fcc": lambda vol: (4 * vol) ** (1/3.),
                  "bcc": lambda vol: (2 * vol) ** (1/3.),
+                 "zincblende": lambda vol: (4 * vol) ** (1/3.),
                  "rocksalt": lambda vol: (4 * vol) ** (1/3.),
                  "ABO3": lambda vol: vol ** (1/3.),
                  "hH": lambda vol: (4 * vol) ** (1/3.),
@@ -202,6 +209,8 @@ class TestStructure(AbipyTest):
         fcc_conv = Structure.fcc(a, ["Si"], primitive=False)
         assert len(fcc_conv) == 4
         self.assert_almost_equal(a**3, fcc_conv.volume)
+        zns = Structure.zincblende(a / bohr_to_ang, ["Zn", "S"], units="bohr")
+        self.assert_almost_equal(a, vol2a["zincblende"](zns.volume))
         rock = Structure.rocksalt(a, ["Na", "Cl"])
         assert len(rock) == 2
         self.assert_almost_equal(a, vol2a["rocksalt"](rock.volume))

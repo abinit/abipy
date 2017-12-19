@@ -148,23 +148,38 @@ def bench_main(main):
         from abipy.abilab import TaskManager
         options.manager = TaskManager.as_manager(options.manager)
 
+        #if options.tempdir:
+        #    import tempfile
+        #    options.workdir = tempfile.mkdtemp()
+        #    print("Working in temporary directory", options.workdir)
+
         flow = main(options)
         if flow is None: return 0
 
-        if options.validate:
-            # Validate inputs and return
-            retcode = 0
-            for task in flow.iflat_tasks():
-                v = task.input.abivalidate()
-                if v.retcode != 0: cprint(v, color="red")
-                retcode += v.retcode
-            print("input validation retcode: %d" % retcode)
-            return retcode
+        if options.abivalidate:
+            print("Validating input files of the flow...")
+            isok, errors = flow.abivalidate_inputs()
+            if not isok:
+                for e in errors:
+                    if e.retcode == 0: continue
+                    lines = e.log_file.readlines()
+                    i = len(lines) - 50 if len(lines) >= 50 else 0
+                    print("Last 50 line from logfile:")
+                    print("".join(lines[i:]))
+                raise RuntimeError("flow.abivalidate_input failed. See messages above.")
+            else:
+                print("Validation succeeded")
+                return 0
+
+        #if options.remove and os.path.isdir(options.workdir):
+        #    print("Removing old directory:", options.workdir)
+        #    import shutil
+        #    shutil.rmtree(options.workdir)
 
         if options.scheduler:
             return flow.make_scheduler().start()
-
-        return 0
+        else:
+            return flow.build_and_pickle_dump()
 
     return wrapper
 
@@ -198,7 +213,7 @@ def build_bench_main_parser():
     parser.add_argument("--min-eff", default=None, type=float, help="Minimum parallel efficiency accepted. Default None.")
 
     parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
-    parser.add_argument('--validate', default=False, action="store_true", help="Validate input files and return")
+    parser.add_argument("-a", '--abivalidate', default=False, action="store_true", help="Call Abinit to validate input files and return")
 
     parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")

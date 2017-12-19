@@ -41,8 +41,8 @@ class TestScalarField(AbipyTest):
         self.assert_equal(field.std(space="g"), field.datag.std(axis=0))
 
         field.export(self.get_tmpname(text=True, suffix=".xsf"))
-        visu = field.visualize("vesta")
-        assert callable(visu)
+        #visu = field.visualize(appname="vesta")
+        #assert callable(visu)
 
         # Field "algebra"
         #assert field.datar_xyz.ndim == 4

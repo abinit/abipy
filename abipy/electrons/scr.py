@@ -152,7 +152,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return self.reader.read_params()
 
     @add_fig_kwargs
-    def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, **kwargs):
+    def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, fontsize=12, **kwargs):
         r"""
         Plot the macroscopic dielectric function with local-field effects.
 
@@ -165,6 +165,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
                 or scalar e.g. `left`. If left (right) is None, default values are used
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -182,12 +183,12 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         set_axlims(ax, xlims, "x")
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
-        ax.legend(loc="best")
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
     @add_fig_kwargs
-    def plot_eelf(self, ax=None, xlims=None, **kwargs):
+    def plot_eelf(self, ax=None, xlims=None, fontsize=12, **kwargs):
         r"""
         Plot electron energy loss function.
 
@@ -195,6 +196,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
+            fontsize: Legend and label fontsize:
 
         Returns:
             matplotlib figure.
@@ -209,7 +211,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         set_axlims(ax, xlims, "x")
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -555,7 +557,7 @@ class _AwggMatrix(object):
         return _latex_symbol_cplxmode(self.latex_name, cplx_mode)
 
     @add_fig_kwargs
-    def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, **kwargs):
+    def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, fontsize=12, **kwargs):
         r"""
         Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
@@ -568,6 +570,7 @@ class _AwggMatrix(object):
                 "angle" will display the phase of the complex number in radians.
                 Options can be concatenated with "-" e.g. "re-im"
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: legend and label fontsize.
 
         Returns:
             matplotlib figure.
@@ -602,8 +605,8 @@ class _AwggMatrix(object):
 
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ [eV]")
-        ax.set_title("%s, kpoint: %s" % (self.netcdf_name, self.kpoint))
-        ax.legend(loc="best")
+        ax.set_title("%s, kpoint: %s" % (self.netcdf_name, self.kpoint), fontsize=fontsize)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

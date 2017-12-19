@@ -13,7 +13,6 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-
 from collections import OrderedDict, namedtuple
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
@@ -129,7 +128,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
         # Build grid of plots.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
@@ -158,7 +157,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].plot([0,1], [0,1], lw=0)
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
         if label is not None:
@@ -304,7 +303,7 @@ class QpTempList(list):
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
         # Build grid of plots.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
@@ -336,7 +335,7 @@ class QpTempList(list):
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].plot([0,1], [0,1], lw=0)
+            ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
         #if label is not None:
@@ -448,7 +447,7 @@ class EphSelfEnergy(object):
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", cmap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), xlims=None, **kwargs):
+                  what_list=("re", "im", "spfunc"), xlims=None, fontsize=12, **kwargs):
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a color map.
@@ -461,6 +460,7 @@ class EphSelfEnergy(object):
             what_list:
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                 or scalar e.g. `left`. If left (right) is None, default values are used.
+            fontsize: legend and label fontsize.
 
         Returns:
             `matplotlib` figure
@@ -480,7 +480,7 @@ class EphSelfEnergy(object):
                         color=cmap(itemp / self.ntemp),
                         label=tlabels[itemp] if i == 0 else None,
                 )
-            if i == 0: ax.legend(loc="best")
+            if i == 0: ax.legend(loc="best", shadow=True, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
 
         return fig
@@ -665,12 +665,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #def get_dirgaps_dataframe(self):
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, ax=None, **kwargs):
+    def plot_qpgaps_t(self, ax=None, fontsize=12, **kwargs):
         """
         Plot the KS and the QP(T) direct gaps for all the k-points available on file.
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -695,7 +696,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ax.grid(True)
         ax.set_xlabel("Temperature [K]")
         ax.set_ylabel("Direct gap [eV]")
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -756,16 +757,16 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     def __init__(self, *args):
         super(SigEPhRobot, self).__init__(*args)
-        if len(self.ncfiles) in (0, 1): return
+        if len(self.abifiles) in (0, 1): return
 
         # Check dimensions and self-energy states and issue warning.
         warns = []; wapp = warns.append
-        nc0 = self.ncfiles[0]
+        nc0 = self.abifiles[0]
         same_nsppol, same_nkcalc = True, True
-        if any(nc.nsppol != nc0.nsppol for nc in self.ncfiles):
+        if any(nc.nsppol != nc0.nsppol for nc in self.abifiles):
             same_nsppol = False
             wapp("Comparing ncfiles with different values of nsppol.")
-        if any(nc.nkcalc != nc0.nkcalc for nc in self.ncfiles):
+        if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles):
             same_nkcalc = False
             wapp("Comparing ncfiles with different number of k-points in self-energy. Do")
 
@@ -774,9 +775,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
             # Different values of bstart_ks are difficult to handle
             # Because the high-level API assumes an absolute global index
             # Should decided how to treat this case: either raise or interpret band as an absolute band index.
-            if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.ncfiles):
+            if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstart_sk")
-            if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.ncfiles):
+            if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstop_sk")
 
         if wapp:

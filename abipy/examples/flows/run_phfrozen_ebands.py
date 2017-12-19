@@ -85,7 +85,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -100,3 +100,74 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_phfrozen_ebands -s
+#
+# then use:
+#
+#    abirun.py flow_phfrozen_ebands/ structures -v
+#
+# to analyze the input/output structures including the atomic positions:
+#
+# .. code-block:: bash
+#
+#       Lattice parameters:
+#                 formula  natom  angle0  angle1  angle2      a      b      c  volume  \
+#       w0_t0_in      Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w0_t0_out     Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w0_t1_in      Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w1_t0_in      Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w1_t0_out     Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w1_t1_in      Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w2_t0_in      Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w2_t0_out     Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#       w2_t1_in      Si2      2    60.0    60.0    60.0  3.867  3.867  3.867  40.888
+#
+#                 abispg_num  P [GPa]  Max|F| eV/ang task_class              status
+#       w0_t0_in        None      NaN            NaN    ScfTask  Completed
+#       w0_t0_out         12   -3.638      3.180e+00    ScfTask  Completed
+#       w0_t1_in        None      NaN            NaN   NscfTask  Completed
+#       w1_t0_in        None      NaN            NaN    ScfTask  Completed
+#       w1_t0_out        227   -5.212      7.430e-27    ScfTask  Completed
+#       w1_t1_in        None      NaN            NaN   NscfTask  Completed
+#       w2_t0_in        None      NaN            NaN    ScfTask  Completed
+#       w2_t0_out         12   -4.192      2.095e+00    ScfTask  Completed
+#       w2_t1_in        None      NaN            NaN   NscfTask  Completed
+#
+#       Atomic positions (columns give the site index):
+#                                                    0  \
+#       w0_t0_in   (Si, +0.970139 +0.000000 +0.014930)
+#       w0_t0_out  (Si, +0.970139 +0.000000 +0.014930)
+#       w0_t1_in   (Si, +0.970139 +0.000000 +0.014930)
+#       w1_t0_in   (Si, +0.000000 +0.000000 +0.000000)
+#       w1_t0_out  (Si, +0.000000 +0.000000 +0.000000)
+#       w1_t1_in   (Si, +0.000000 +0.000000 +0.000000)
+#       w2_t0_in   (Si, +0.029861 +0.000000 +0.985070)
+#       w2_t0_out  (Si, +0.029861 +0.000000 +0.985070)
+#       w2_t1_in   (Si, +0.029861 +0.000000 +0.985070)
+#
+#                                                    1              status
+#       w0_t0_in   (Si, +0.279861 +0.250000 +0.235070)  Completed
+#       w0_t0_out  (Si, +0.279861 +0.250000 +0.235070)  Completed
+#       w0_t1_in   (Si, +0.279861 +0.250000 +0.235070)  Completed
+#       w1_t0_in   (Si, +0.250000 +0.250000 +0.250000)  Completed
+#       w1_t0_out  (Si, +0.250000 +0.250000 +0.250000)  Completed
+#       w1_t1_in   (Si, +0.250000 +0.250000 +0.250000)  Completed
+#       w2_t0_in   (Si, +0.220139 +0.250000 +0.264930)  Completed
+#       w2_t0_out  (Si, +0.220139 +0.250000 +0.264930)  Completed
+#       w2_t1_in   (Si, +0.220139 +0.250000 +0.264930)  Completed
+#
+#  Finally, we can plot the electronic bands with the command:
+#
+#    abirun.py flow_phfrozen_ebands ebands -p -t NscfTask
+#
+#  to select only the band structures produced by the NscfTask.
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_phfrozen_ebands.png?raw=true
+#    :alt: Band structures of Si computed for different displacement amplitudes.
+#

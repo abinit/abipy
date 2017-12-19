@@ -113,17 +113,15 @@ def build_flow(options):
     flow.allocate()
 
     # EPH does not support autoparal (yet)
-    for eph_task in eph_work:
-        eph_task.with_fixed_mpi_omp(1, 1)
+    #for eph_task in eph_work:
+    #    eph_task.with_fixed_mpi_omp(1, 1)
 
     return flow
 
 
-@abilab.flow_main
+@flowtk.flow_main
 def main(options):
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    return build_flow(options)
 
 if __name__ == "__main__":
     retcode = main()

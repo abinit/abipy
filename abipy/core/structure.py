@@ -9,6 +9,7 @@ import tempfile
 import numpy as np
 import pickle
 import pymatgen
+import pymatgen.core.units as pmg_units
 
 from pprint import pprint, pformat
 from warnings import warn
@@ -18,7 +19,7 @@ from monty.dev import deprecated
 from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
-from pymatgen.core.units import ArrayWithUnit
+
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -350,7 +351,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         cart_coords = np.atleast_2d(cart_coords)
         molecule = pymatgen.Molecule([p.symbol for p in pseudos], cart_coords)
-        l = ArrayWithUnit(acell, "bohr").to("ang")
+        l = pmg_units.ArrayWithUnit(acell, "bohr").to("ang")
 
         new = molecule.get_boxed_structure(l[0], l[1], l[2])
         return cls.as_structure(new)
@@ -368,16 +369,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls.boxed_molecule([pseudo], cart_coords, acell=acell)
 
     @classmethod
-    def bcc(cls, a, species, primitive=True, **kwargs):
+    def bcc(cls, a, species, primitive=True, units="ang", **kwargs):
         """
         Build a primitive or a conventional bcc crystal structure.
 
         Args:
-            a: Lattice parameter in Angstrom.
+            a: Lattice parameter (Angstrom if units is not given)
             species: Chemical species. See __init__ method of :class:`pymatgen.Structue`
             primitive: if True a primitive cell will be produced, otherwise a conventional one
+            units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`
         """
+        a = pmg_units.Length(a, units).to("ang")
         if primitive:
             lattice = 0.5 * float(a) * np.array([
                 -1,  1,  1,
@@ -395,16 +398,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls(lattice, species, coords=coords,  **kwargs)
 
     @classmethod
-    def fcc(cls, a, species, primitive=True, **kwargs):
+    def fcc(cls, a, species, primitive=True, units="ang", **kwargs):
         """
         Build a primitive or a conventional fcc crystal structure.
 
         Args:
-            a: Lattice parameter in Angstrom.
+            a: Lattice parameter (Angstrom if units is not given)
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             primitive: if True a primitive cell will be produced, otherwise a conventional one
+            units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
         """
+        a = pmg_units.Length(a, units).to("ang")
         if primitive:
             lattice = 0.5 * float(a) * np.array([
                 0,  1,  1,
@@ -422,12 +427,38 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls(lattice, species, coords=coords, **kwargs)
 
     @classmethod
-    def rocksalt(cls, a, species, **kwargs):
+    def zincblende(cls, a, species, units="ang", **kwargs):
+        """
+        Build a primitive zincblende crystal structure.
+
+        Args:
+            a: Lattice parameter (Angstrom if units is not given)
+            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            units: Units of input lattice parameters e.g. "bohr", "pm"
+            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
+
+        Example::
+
+            Structure.zincblende(a, ["Zn", "S"])
+
+        """
+        a = pmg_units.Length(a, units).to("ang")
+        lattice = 0.5 * float(a) * np.array([
+            0,  1,  1,
+            1,  0,  1,
+            1,  1,  0])
+
+        frac_coords = np.reshape([0, 0, 0, 0.25, 0.25, 0.25], (2, 3))
+        return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
+
+    @classmethod
+    def rocksalt(cls, a, species, units="ang", **kwargs):
         """
         Build a primitive fcc crystal structure.
 
         Args:
-            a: Lattice parameter in Angstrom.
+            a: Lattice parameter (Angstrom if units is not given)
+            units: Units of input lattice parameters e.g. "bohr", "pm"
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
@@ -436,6 +467,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             Structure.rocksalt(a, ["Na", "Cl"])
 
         """
+        a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
             0,  1,  1,
             1,  0,  1,
@@ -445,10 +477,17 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
     @classmethod
-    def ABO3(cls, a, species, **kwargs):
+    def ABO3(cls, a, species, units="ang", **kwargs):
        """
        Peroviskite structures.
+
+       Args:
+            a: Lattice parameter (Angstrom if units is not given)
+            species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
+            units: Units of input lattice parameters e.g. "bohr", "pm"
+            kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
        """
+       a = pmg_units.Length(a, units).to("ang")
        lattice = float(a) * np.eye(3)
        frac_coords = np.reshape([
           0,     0,   0,  # A (2a)
@@ -592,7 +631,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             symprec: Symmetry precision used to refine the structure.
-            angle_tolerance: Tolerance on anglese
+            angle_tolerance: Tolerance on angles.
                 if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.
             primitive (bool): Whether to convert to a primitive cell following
                 Setyawan, W., & Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010
@@ -683,28 +722,42 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return self.lattice.reciprocal_lattice.matrix
         raise ValueError("Wrong value for space: %s " % str(space))
 
+    def spget_lattice_type(self, symprec=1e-3, angle_tolerance=5):
+        """
+        Call spglib to get the lattice for the structure, e.g., (triclinic,
+        orthorhombic, cubic, etc.).This is the same than the
+        crystal system with the exception of the hexagonal/rhombohedral lattice
+
+        Args:
+            symprec: Symmetry precision for distance
+            angle_tolerance: Tolerance on angles.
+
+        Returns:
+            (str): Lattice type for structure or None if type cannot be detected.
+        """
+        spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
+        return spgan.get_lattice_type()
+
     def spget_equivalent_atoms(self, symprec=1e-3, angle_tolerance=5, printout=False):
         """
         Call spglib to find the inequivalent atoms and build symmetry tables.
 
         Args:
-            symprec: Symmetry precision for distance
-            angle_tolerance: Tolerance on anglese
+            symprec: Symmetry precision for distance.
+            angle_tolerance: Tolerance on angles.
             printout: True to print symmetry tables.
 
-        Returns:
-            namedtuple with the following attributes: irred_pos, eqmap, spgdata
+        Returns: (irred_pos, eqmap, spgdata)
+            `namedtuple` with the following attributes:
+                irred_pos: array giving the position of the i-th irred atom in the structure.
+                    The number of irred atoms is len(irred_pos)
+                eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
+                spgdata: spglib dataset with additional data reported by spglib.
 
-            irred_pos: array giving the position of the i-th irred atom in the structure.
-                The number of irred atoms is len(irred_pos)
-            eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
-            spgdata: spglib dataset with additional data reported by spglib.
-
-         Example::
+         :Example:
 
             for irr_pos in irred_pos:
                 eqmap[irr_pos]   # List of symmetrical positions associated to the irr_pos atom.
-
         """
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
@@ -738,7 +791,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             symprec: Symmetry precision for distance
-            angle_tolerance: Tolerance on anglese
+            angle_tolerance: Tolerance on angles
             verbose: Verbosity level.
         """
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
@@ -1030,7 +1083,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             symprec (float): Symmetry precision for structure refinement. If
                 set to 0, no refinement is done. Otherwise, refinement is
                 performed using spglib with provided precision.
-            debye_waller_factors ({element symbol: float}): Allows the
+            debye_waller_factors `({element symbol: float})`: Allows the
                 specification of Debye-Waller factors. Note that these
                 factors are temperature dependent.
             two_theta_range ([float of length 2]): Tuple for range of
@@ -1045,9 +1098,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
         return fig
 
-    def export(self, filename, visu=None):
+    def export(self, filename, visu=None, verbose=1):
         """
-        Export the crystalline structure on file filename.
+        Export the crystalline structure to file `filename`.
 
         Args:
             filename: String specifying the file path and the file format.
@@ -1056,6 +1109,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             visu: `Visualizer` subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
                 instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.
+            verbose: Verbosity level
 
         Returns: Instance of :class:`Visualizer`
         """
@@ -1064,16 +1118,26 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
+        #print("tokens", tokens, "ext", ext)
+        #if ext == "POSCAR":
 
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
-            # dir=os.getcwd() is needed when we invoke the method from a notebook.
-            _, filename = tempfile.mkstemp(suffix="." + ext, dir=os.getcwd(), text=True)
+            # nbworkdir in cwd is needed when we invoke the method from a notebook.
+            from abipy.core.globals import abinb_mkstemp
+            _, rpath = abinb_mkstemp(force_abinb_workdir=False, use_relpath=False,
+                                     suffix="." + ext, text=True)
+            #if abilab.in_notebook():
+            #    _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
+            #else:
+            #    _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
 
-        if ext == "xsf":
-            # xcrysden
-            print("Writing data to:", filename)
-            s = self.to(fmt="xsf", filename=filename)
+        if ext.lower() in ("xsf", "poscar", "cif"):
+            if verbose:
+                print("Writing data to:", filename, "with fmt:", ext.lower())
+            s = self.to(fmt=ext)
+            with open(filename, "wt") as fh:
+                fh.write(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
@@ -1109,16 +1173,16 @@ class Structure(pymatgen.Structure, NotebookWriter):
         from abipy.display import mvtk
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
-    def visualize(self, visu_name="vesta"):
+    def visualize(self, appname="vesta"):
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
         """
-        if visu_name == "vtk": return self.vtkview()
-        if visu_name == "mayavi": return self.mayaview()
+        if appname == "vtk": return self.vtkview()
+        if appname == "mayavi": return self.mayaview()
 
         # Get the Visualizer subclass from the string.
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
@@ -1126,10 +1190,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
             ext = "." + ext
             try:
                 return self.export(ext, visu=visu)()
-            except visu.Error:
+            except visu.Error as exc:
+                print(exc)
                 pass
         else:
-            raise visu.Error("Don't know how to export data for %s" % visu_name)
+            raise visu.Error("Don't know how to export data for %s" % appname)
 
     def convert(self, fmt="cif", **kwargs):
         """
@@ -1670,7 +1735,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             pseudo = table.pseudo_with_symbol(site.species_string)
             nval += pseudo.Z_val
 
-        return nval
+        return int(nval) if int(nval) == nval else nval
 
     def valence_electrons_per_atom(self, pseudos):
         """
@@ -1732,13 +1797,16 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
         cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
             instead of Reduced coordinates.
 
-    Return:
+    Return: (lattice, coords)
+
         namedtuple with two pandas :class:`DataFrame`:
+
             `lattice` contains the lattice parameters,
             `coords` the atomic positions.
+
         The list of structures is available in the `structures` entry.
 
-    Example::
+    :Example:
 
         dfs = dataframes_from_structures(files)
         dfs.lattice

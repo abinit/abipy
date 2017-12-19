@@ -3,7 +3,8 @@ r"""
 Relaxation Flow
 ===============
 
-Structural relaxation for SiC.
+This example shows how to build a very simple Flow for the structural relaxation of SiC.
+One could use a similar logic to perform multiple relaxations with different input parameters...
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
@@ -21,50 +22,42 @@ def build_flow(options):
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    flow = flowtk.Flow(options.workdir, manager=options.manager)
-
     pseudos = data.pseudos("14si.pspnc", "6c.pspnc")
     structure = data.structure_from_ucell("SiC")
 
-    global_vars = dict(
-        chksymbreak=0,
+    # Initialize the input
+    relax_inp = abilab.AbinitInput(structure, pseudos=pseudos)
+
+    # Set variables
+    relax_inp.set_vars(
         ecut=20,
         paral_kgb=1,
         iomode=3,
-    )
-
-    ngkpt = [4,4,4]
-    shiftk = [[0.5,0.5,0.5],
-              [0.5,0.0,0.0],
-              [0.0,0.5,0.0],
-              [0.0,0.0,0.5]]
-
-
-    multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
-    multi.set_vars(global_vars)
-
-    relax_inp, nscf_inp = multi.split_datasets()
-
-    relax_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
-    relax_inp.set_vars(
-        toldff=1e-6,
-        tolmxf=1e-5,
-        strfact=100,
-        ecutsm=0.5,
-        dilatmx=1.15,
-        ntime=100,
+        # Relaxation part
         ionmov=2,
         optcell=1,
+        strfact=100,
+        ecutsm=0.5,       # Important!
+        dilatmx=1.15,     # Important!
+        toldff=1e-6,
+        tolmxf=1e-5,
+        ntime=100,
     )
 
-    nscf_inp.set_kpath(ndivsm=20)
-    nscf_inp.tolwfr = 1e-22
+    # K-points sampling
+    shiftk=[
+        [0.5,0.5,0.5],
+        [0.5,0.0,0.0],
+        [0.0,0.5,0.0],
+        [0.0,0.0,0.5]
+    ]
+    relax_inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=shiftk)
 
-    # Initialize the work.
-    relax_task = flow.register_task(relax_inp, task_class=flowtk.RelaxTask)
+    # Initialize the flow
+    flow = flowtk.Flow(options.workdir, manager=options.manager)
 
-    #work = RelaxWork(self, ion_input, ioncell_input, workdir=None, manager=None):
-    #nscf_task = flow.register_task(nscf_inp, deps={relax_task: "DEN"}, task_class=flowtk.NscfTask)
+    # Register the task.
+    flow.register_relax_task(relax_inp)
 
     return flow
 
@@ -75,7 +68,7 @@ if os.getenv("GENERATE_SPHINX_GALLERY", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 
 
 @flowtk.flow_main
@@ -90,3 +83,46 @@ def main(options):
 
 if __name__=="__main__":
     sys.exit(main())
+
+
+############################################################################
+#
+# Run the script with:
+#
+#     run_sic_relax.py -s
+#
+# then use:
+#
+#    abirun.py flow_sic_relax structures
+#
+# to compare the input and output structures of the tasks:
+#
+# .. code-block:: bash
+#
+#    Lattice parameters:
+#              formula  natom  angle0  angle1  angle2      a      b      c  volume  \
+#    w0_t0_in   Si1 C1      2    60.0    60.0    60.0  3.065  3.065  3.065  20.351
+#    w0_t0_out  Si1 C1      2    60.0    60.0    60.0  3.065  3.065  3.065  20.355
+#
+#              abispg_num  P [GPa]  Max|F| eV/ang task_class              status
+#    w0_t0_in        None      NaN            NaN  RelaxTask  Completed
+#    w0_t0_out       None   -0.001            0.0  RelaxTask  Completed
+#
+#    Use `--verbose` to print atoms.
+#
+# As you can see, the pressure at the end of the RelaxTask is very small (forces are zero by symmetry):
+#
+# To visualize the evolution of the lattice parameters during the structura relaxation use:
+#
+#    abiopen.py flow_sic_relax/w0/t0/outdata/out_HIST.nc
+#
+# and then inside the ipython terminal, type:
+#
+# .. code-block:: ipython
+#
+#    In [1]: %matplotlib
+#    In [2]: abifile.plot()
+#
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_sic_relax.png?raw=true
+#    :alt: Structural relaxation of SiC.
+#

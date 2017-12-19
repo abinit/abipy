@@ -377,7 +377,8 @@ class PWWaveFunction(WaveFunction):
     #    return new
 
     @add_fig_kwargs
-    def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False, ax=None, **kwargs):
+    def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False,
+                  ax=None, fontsize=12, **kwargs):
         """
         Plot (interpolated) wavefunction in real space along a line defined by `point1` and `point2`.
 
@@ -392,6 +393,7 @@ class PWWaveFunction(WaveFunction):
             cartesian: By default, `point1` and `point1` are interpreted as points in fractional
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: legend and title fontsize.
 
         Return:
             `matplotlib` figure
@@ -412,12 +414,12 @@ class PWWaveFunction(WaveFunction):
 
         ax.grid(True)
         ax.set_xlabel("Distance from site1 [Angstrom]")
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
-    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, max_nn=10, **kwargs):
+    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, max_nn=10, fontsize=12, **kwargs):
         """
         Plot (interpolated) density/potential in real space along the lines connecting
         an atom specified by `site_index` and all neighbors within a sphere of given `radius`.
@@ -433,6 +435,7 @@ class PWWaveFunction(WaveFunction):
             num: Number of points sampled along the line.
             with_krphase: True to include the e^{ikr} phase-factor.
             max_nn: By default, only the first `max_nn` neighbors are showed.
+            fontsize: legend and label fontsize.
 
         Return:
             `matplotlib` figure
@@ -473,12 +476,12 @@ class PWWaveFunction(WaveFunction):
                 ax.plot(r.dist, ur.imag, label=r"$\Im %s$ %s" % (which, spinor_label))
                 ax.plot(r.dist, ur.real**2 + ur.imag**2, label=r"$|\psi(r)|^2$ %s" % spinor_label)
 
-            ax.set_title(title)
+            ax.set_title(title, fontsize=fontsize)
             ax.grid(True)
 
             if i == nrows - 1:
                 ax.set_xlabel("Distance from site_index %s [Angstrom]" % site_index)
-                ax.legend(loc="best")
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -504,8 +507,11 @@ class PWWaveFunction(WaveFunction):
         tokens = filename.strip().split(".")
         ext = tokens[-1]
 
-        if not tokens[0]: # fname == ".ext" ==> Create temporary file.
-            filename = tempfile.mkstemp(suffix="." + ext, text=True)[1]
+        if not tokens[0]:
+            # fname == ".ext" ==> Create temporary file.
+            # dir = os.getcwd() is needed when we invoke the method from a notebook.
+            from abipy.core.globals import abinb_mkstemp
+            _, filename = abinb_mkstemp(suffix="." + ext, text=True)
             print("Creating temporary file: %s" % filename)
 
         # Compute |u(r)|2 and write data according to ext.
@@ -524,14 +530,14 @@ class PWWaveFunction(WaveFunction):
         else:
             return visu(filename)
 
-    def visualize_ur2(self, visu_name="vesta"):
+    def visualize_ur2(self, appname="vesta"):
         """
         Visualize u(r)**2 visualizer.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
         # Get the Visualizer subclass from the string.
-        visu = Visualizer.from_name(visu_name)
+        visu = Visualizer.from_name(appname)
 
         # Try to export data to one of the formats supported by the visualizer
         # Use a temporary file (note "." + ext)
@@ -542,7 +548,7 @@ class PWWaveFunction(WaveFunction):
             except visu.Error:
                 pass
         else:
-            raise visu.Error("Don't know how to export data for %s" % visu_name)
+            raise visu.Error("Don't know how to export data for %s" % str(appname))
 
     #def mvplot_cutplanes(self, show=True):
     #    data = self.ur2

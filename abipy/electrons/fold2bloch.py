@@ -171,7 +171,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @add_fig_kwargs
     def plot_unfolded(self, kbounds, klabels, ylims=None, dist_tol=1e-12, verbose=0,
-                      colormap="afmhot", facecolor="black", ax=None, **kwargs):
+                      colormap="afmhot", facecolor="black", ax=None, fontsize=12, **kwargs):
         r"""
         Plot unfolded band structure with spectral weights.
 
@@ -187,6 +187,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             facecolor:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -224,7 +225,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         ax.grid(True)
         ax.set_ylabel('Energy [eV]')
         set_axlims(ax, ylims, "y")
-        if self.nss == 2: ax.legend(loc="best")
+        if self.nss == 2: ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 

@@ -112,8 +112,12 @@ class ElectronBandsTest(AbipyTest):
         self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
         assert len(ni_ebands_kpath.to_json())
 
+        od = ni_ebands_kmesh.get_dict4pandas(with_spglib=False)
+        assert od["nsppol"] == 2 and od["nspinor"] == 1 and od["nspden"] == 2
+
         df = ni_ebands_kpath.get_dataframe()
         ni_ebands_kpath.to_xmgrace(self.get_tmpname(text=True))
+        ni_ebands_kpath.to_xmgrace(sys.stdout)
 
         # BXSF cannot be produced because.
         #ngkpt    6 6 6
@@ -234,6 +238,7 @@ class ElectronBandsTest(AbipyTest):
         si_edos = si_ebands_kmesh.get_edos()
         repr(si_edos); str(si_edos)
         assert ElectronDos.as_edos(si_edos, {}) is si_edos
+        assert si_edos == si_edos and not (si_edos != si_edos)
         edos_samevals = ElectronDos.as_edos(si_ebands_kmesh, {})
         assert ElectronDos.as_edos(si_ebands_kmesh, {}) == si_edos
         assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == si_edos

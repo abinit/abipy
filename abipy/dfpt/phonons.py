@@ -437,10 +437,16 @@ class PhononBands(object):
         Write xmgrace file with phonon band structure energies and labels for high-symmetry q-points.
 
         Args:
-            filepath: Filename
+            filepath: String with filename or stream.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
-        f = open(filepath, "wt")
+        is_stream = hasattr(filepath, "write")
+
+        if is_stream:
+            f = filepath
+        else:
+            f = open(filepath, "wt")
+
         def w(s):
             f.write(s)
             f.write("\n")
@@ -498,7 +504,8 @@ class PhononBands(object):
                 w('%d %.8E' % (iq, wqnu_units[iq, nu]))
             w('&')
 
-        f.close()
+        if not is_stream:
+            f.close()
 
     #def to_bxsf(self, filepath):
     #    """
@@ -711,43 +718,29 @@ class PhononBands(object):
         with open(filename, 'wt') as f:
             f.write("\n".join(lines))
 
-    def view_phononwebsite(self, open_browser=True, verbose=1, **kwargs):
+    def view_phononwebsite(self, browser=None, verbose=1, **kwargs):
         """
-        Produce json file that can be parsed from the phononwebsite. Contact the server, get
-        the url of the webpage and open it in the browser if `open_browser`.
+        Produce json file that can be parsed from the phononwebsite and open it in `browser`.
 
         Return:
             Exit status
         """
-        filename = kwargs.pop("filename", None)
-        if filename is None:
-            import tempfile
-            prefix = self.structure.formula.replace(" ", "")
-            _, filename = tempfile.mkstemp(text=True, prefix=prefix, suffix=".json")
+        # Create json in abipy_nbworkdir with relative path so that we can read it inside the browser.
+        from abipy.core.globals import abinb_mkstemp
+        prefix = self.structure.formula.replace(" ", "")
+        _, rpath = abinb_mkstemp(force_abinb_workdir=True, use_relpath=True,
+                                 prefix=prefix, suffix=".json", text=True)
 
-        if verbose: print("Writing json file", filename)
-        self.create_phononwebsite_json(filename, indent=None, **kwargs)
-        url = "http://henriquemiranda.github.io/phononwebsite/phonon.html"
-        import requests
-        with open(filename, 'rt') as f:
-            files = {'file-input': (filename, f)}
-            r = requests.post(url, files=files)
-            # @Henrique: the response should contain the url of the bandstructure plot
-            # so that I can open it in the browser.
-            if verbose:
-                print(r)
-                print(r.text)
+        if verbose: print("Writing json file:", rpath)
+        self.create_phononwebsite_json(rpath, indent=None, **kwargs)
 
-        print("Phonon band structure available at:", phbst_url)
-        if open_browser:
-           import webbrowser
-           return int(webbrowser.open(phbst_url))
-        return 0
+        return open_file_phononwebsite(rpath, browser=browser)
 
-    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None, match_bands=True,
-                                  highsym_qpts_mode="split", indent=2):
+    def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None,
+                                  match_bands=True, highsym_qpts_mode="split", indent=2):
         """
-        Writes a json file that can be parsed from the phononwebsite. See <https://github.com/henriquemiranda/phononwebsite>
+        Writes a json file that can be parsed from the phononwebsite.
+        See <https://github.com/henriquemiranda/phononwebsite>
 
         Args:
             filename: name of the json file that will be created
@@ -954,7 +947,8 @@ class PhononBands(object):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``
-            branch_range: Tuple specifying the minimum and maximum branch_i index to plot (default: all branches are plotted).
+            branch_range: Tuple specifying the minimum and maximum branch_i index to plot
+                (default: all branches are plotted).
             colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
                 sequential order to avoid difficulties in distinguishing the lines.
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
@@ -1186,7 +1180,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
                       alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
-                      qlabels=None, ylims=None,
+                      qlabels=None, ylims=None, fontsize=12,
                       **kwargs):
                       #cart_dir=None
         r"""
@@ -1206,6 +1200,7 @@ class PhononBands(object):
                    or scalar e.g. `left`. If left (right) is None, default values are used
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure.
@@ -1287,7 +1282,7 @@ class PhononBands(object):
                 ax.fill_between(qq, yy_qq + d2_type, yy_qq - d2_type, facecolor=color, alpha=alpha, linewidth=0)
 
             set_axlims(ax, ylims, "y")
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         # Type projected DOSes.
         if phdos_file is not None:
@@ -1923,7 +1918,7 @@ class PhononDos(Function1D):
             ax.grid(True)
             ax.set_xlabel("Temperature [K]")
             ax.set_ylabel(_THERMO_YLABELS[qname][units])
-            #ax.legend(loc="best")
+            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         fig.tight_layout()
         return fig
@@ -2065,7 +2060,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                        ax=None, xlims=None, ylims=None, **kwargs):
+                        ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS.
 
@@ -2080,6 +2075,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
+            fontsize: legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -2113,13 +2109,13 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Total PHDOS
         x, y = self.phdos.mesh * factor, self.phdos.values / factor
         ax.plot(x, y, lw=lw, label="Total PHDOS", color='black')
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               xlims=None, ylims=None, axlist=None, **kwargs):
+                               xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS decomposed along the three reduced directions.
         Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
@@ -2135,6 +2131,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
             axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and label fontsize.
 
         Returns:
             matplotlib figure.
@@ -2182,13 +2179,13 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             # Add Total PHDOS
             ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_pjdos_redirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               xlims=None, ylims=None, axlist=None, **kwargs):
+                               xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
@@ -2203,6 +2200,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
 
         Returns:
             `matplotlib` figure
@@ -2264,7 +2262,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             # Add Total PHDOS
             ax.plot(xx, self.phdos.values / factor, lw=lw, label="Total PHDOS", color='black')
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -2879,7 +2877,7 @@ class PhononDosPlotter(NotebookWriter):
         self._phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
     @add_fig_kwargs
-    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, **kwargs):
+    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=12, **kwargs):
         """
         Plot DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
 
@@ -2889,6 +2887,7 @@ class PhononDosPlotter(NotebookWriter):
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
+            fontsize: Legend and title fontsize.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -2905,7 +2904,7 @@ class PhononDosPlotter(NotebookWriter):
             legends.append("DOS: %s" % label)
 
         # Set legends.
-        ax.legend(lines, legends, loc='best', shadow=True)
+        ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -2959,7 +2958,7 @@ class PhononDosPlotter(NotebookWriter):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                             quantities="all", **kwargs):
+                             quantities="all", fontsize=12, **kwargs):
         """
         Plot thermodinamic properties from the phonon DOS within the harmonic approximation.
 
@@ -2973,6 +2972,7 @@ class PhononDosPlotter(NotebookWriter):
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodinamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
+            fontsize: Legend and title fontsize.
 
         Returns:
             matplotlib figure.
@@ -3002,11 +3002,11 @@ class PhononDosPlotter(NotebookWriter):
                 if units == "Jmol": ys = ys * abu.e_Cb * abu.Avogadro
                 ax.plot(f1d.mesh, ys, label=label)
 
-            ax.set_title(qname)
+            ax.set_title(qname, fontsize=fontsize)
             ax.grid(True)
             ax.set_xlabel("Temperature [K]")
             ax.set_ylabel(_THERMO_YLABELS[qname][units])
-            ax.legend(loc="best")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         fig.tight_layout()
         return fig
@@ -3513,7 +3513,7 @@ class RobotWithPhbands(object):
         """
         Build a pandas dataframe with the most important results available in the band structures.
         """
-        return dataframe_from_phbands([nc.phbands for nc in self.ncfiles],
+        return dataframe_from_phbands([nc.phbands for nc in self.abifiles],
                                       index=self.labels, with_spglib=with_spglib)
 
     def get_phbands_code_cells(self, title=None):
@@ -3525,3 +3525,84 @@ class RobotWithPhbands(object):
             nbv.new_markdown_cell(title),
             nbv.new_code_cell("robot.get_phbands_plotter().ipw_select_plot();"),
         ]
+
+
+def open_file_phononwebsite(filename, port=8000,
+                            website="http://henriquemiranda.github.io/phononwebsite",
+                            host="localhost", browser=None):
+    """
+    Take a file, detect the type and open it on the phonon website
+    Based on a similar function in https://github.com/henriquemiranda/phononwebsite/phononweb.py
+
+    Args:
+
+    Return
+    """
+    if filename.endswith(".json"):
+        filetype = "json"
+    elif filename.endswith(".yaml"):
+        filetype = "yaml"
+    else:
+        filetype = "rest"
+
+    try:
+        from http.server import HTTPServer, SimpleHTTPRequestHandler
+    except ImportError:
+        from BaseHTTPServer import HTTPServer
+        # python 2 requires internal implementation
+        from abipy.tools.SimpleHTTPServer import SimpleHTTPRequestHandler
+
+    # Add CORS header to the website
+    class CORSRequestHandler (SimpleHTTPRequestHandler):
+        def end_headers (self):
+            #self.send_header('Access-Control-Allow-Origin', website)
+            self.send_header('Access-Control-Allow-Origin', "http://henriquemiranda.github.io")
+            SimpleHTTPRequestHandler.end_headers(self)
+        def log_message(self, format, *args):
+            return
+
+    # Initialize http server thread
+    print('Starting HTTP server at port %d ...' % port, end=" ")
+    trial, max_ntrial = 0, 50
+    while trial < max_ntrial:
+        try:
+            server = HTTPServer(('', port), CORSRequestHandler)
+            #print("got port:", port)
+            break
+        except OSError:
+            trial += 1
+            port += 1
+            print(port, end=", ")
+    else:
+        raise RuntimeError("Cannot find available port after %s attempts" % max_ntrial)
+
+    # Create threads python
+    server.url = 'http://{}:{}'.format(host, server.server_port)
+    from threading import Thread
+    t = Thread(target=server.serve_forever)
+    t.daemon = True
+    t.start()
+
+    # Open website with the file
+    try:
+        from urllib.parse import quote
+    except ImportError:
+        from urllib import quote
+    url_filename = 'http://{}:{}/{}'.format(host, server.server_port, quote(filename))
+    #url_filename = 'http://{}:{}/{}'.format(host, server.server_port, filename)
+    url = '%s/phonon.html?%s=%s' % (website, filetype, url_filename)
+    print("\nOpening URL:", url)
+    print("Using default browser, if the webpage is not displayed correctly",
+          "\ntry to change browser either via command line options or directly in the shell with e.g:\n\n"
+          "     export BROWSER=firefox\n")
+    print('Press Ctrl+C to terminate HTTP server')
+    import webbrowser
+    webbrowser.get(browser).open_new(url)
+
+    # Quit application when SIGINT is received
+    import sys
+    def signal_handler(signal, frame):
+        sys.exit(0)
+    import signal
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.pause()

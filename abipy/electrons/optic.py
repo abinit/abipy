@@ -252,7 +252,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     @add_fig_kwargs
     def plot_linear_epsilon(self, components="all", what="im", itemp=0,
-                            ax=None, xlims=None, with_xlabel=True, label=None, **kwargs):
+                            ax=None, xlims=None, with_xlabel=True, label=None, fontsize=12, **kwargs):
         """
         Plot components of the linear dielectric function.
 
@@ -266,6 +266,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                    or scalar e.g. `left`. If left (right) is None, default values are used.
             with_xlabel: True if x-label should be added.
             label: True to add legend label to each curve.
+            fontsize: Legend and label fontsize.
 
         Returns:
             `matplotlib` figure
@@ -283,7 +284,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         ax.grid(True)
         if with_xlabel: ax.set_xlabel('Photon Energy [eV]')
         set_axlims(ax, xlims, "x")
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -318,7 +319,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     @add_fig_kwargs
     def plot_chi2(self, key, components="all", what="abs", itemp=0, decompose=False,
-                  ax=None, xlims=None, with_xlabel=True, label=None, **kwargs):
+                  ax=None, xlims=None, with_xlabel=True, label=None, fontsize=12, **kwargs):
         """
         Low-level function to plot chi2 tensor.
 
@@ -334,6 +335,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                    or scalar e.g. `left`. If left (right) is None, default values are used.
             with_xlabel: True to add x-label.
             label: True to add legend label to each curve.
+            fontsize: Legend and label fontsize.
 
         Returns:
             `matplotlib` figure
@@ -353,7 +355,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         ax.grid(True)
         if with_xlabel: ax.set_xlabel('Photon Energy [eV]')
         set_axlims(ax, xlims, "x")
-        ax.legend(loc="best")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -488,7 +490,7 @@ class OpticRobot(Robot, RobotWithEbands):
         available in each file. Use keys from ALL_CHIS.
         """
         od = OrderedDict()
-        for ncfile in self.ncfiles:
+        for ncfile in self.abifiles:
             for chiname in ALL_CHIS:
                 comps = ncfile.reader.computed_components[chiname]
                 if chiname not in od:
