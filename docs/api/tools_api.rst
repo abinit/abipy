@@ -1,6 +1,9 @@
 tools Package
 =============
 
+.. contents::
+   :backlinks: top
+
 
 :mod:`tools` Module
 -------------------

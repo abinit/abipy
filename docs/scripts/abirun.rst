@@ -1,4 +1,4 @@
-.. _abirun:
+.. _abirun.py:
 
 ^^^^^^^^^^^^^
 ``abirun.py``
@@ -15,18 +15,17 @@ This script allows the user to submit the calculations contained in the AbiPy Fl
 
 At the time of writing (|today|), AbiPy supports the following resource managers:
 
-    * ``bluegene``
-    * ``moab``
-    * ``pbspro``
-    * ``sge``
-    * ``shell``
-    * ``slurm``
-    * ``torque``
+* ``shell``
+* pbspro_
+* slurm_
+* IBM loadleveler_
+* moab_
+* sge_
+* torque_
 
 To obtain the list of options supported by a particular resource manager e.g. ``slurm``::
 
-    $ abirun.py . doc_manager slurm
-
+    abirun.py . doc_manager slurm
 
 Complete command line reference
 

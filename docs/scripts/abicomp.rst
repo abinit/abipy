@@ -1,21 +1,21 @@
-.. _abicomp:
+.. _abicomp.py:
 
 ^^^^^^^^^^^^^^
 ``abicomp.py``
 ^^^^^^^^^^^^^^
 
-This script compares results stored in multiple ``netcdf`` files.
+This script compares results stored in multiple netcdf_ files.
 For example, one can compare the crystalline structure used in different calculations
-or compare the electronic bands stored in two or more ``netcdf`` files (e.g. ``GSR.nc`` or ``WFK.nc``).
+or compare the electronic bands stored in two or more netcdf_ files (e.g. GSR.nc_ or ``WFK.nc``).
 By default the script displays the results/plots directly within the shell.
 Use the command::
 
-    $ abicomp.py struct out1_GSR.nc out2_GSR.nc
+    abicomp.py struct out1_GSR.nc out2_GSR.nc
 
-to compare the structures reported in two ``GSR`` files and print the result to screen.
-Use ``--ipython`` to start an ``ipython`` terminal or ``-nb`` to generate a ``jupyter`` notebook, e.g.::
+to compare the structures reported in two ``GSR.nc`` files and print the result to screen.
+Use ``--ipython`` to start an ipython_ terminal or ``-nb`` to generate a jupyter_ notebook, e.g.::
 
-    $ abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
+    abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
 
 .. command-output:: abicomp.py --help
 

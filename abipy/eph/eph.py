@@ -189,19 +189,17 @@ class A2f(object):
         contributions due to the phonon branches.
 
         Args:
-            units: Units for phonon plots. Possible values in
-                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-            with_lambda:
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            with_lambda: True to display lambda(q, nu).
             exchange_xy: True to exchange x-y axes.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                    or scalar e.g. `left`. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
             fontsize: Legend and title fontsize
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -259,13 +257,12 @@ class A2f(object):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             axmat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
-            xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                    or scalar e.g. `left`. If left (right) is None, default values are used
+            xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """""
         # Get axmat and fig.
         import matplotlib.pyplot as plt
@@ -345,8 +342,7 @@ class A2f(object):
             phdos:
             atol:
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         phdos = PhononDos.as_phdos(phdos)
         import matplotlib.pyplot as plt
@@ -379,12 +375,10 @@ class A2f(object):
         Args:
             start: The starting value of the sequence.
             stop: The end value of the sequence
-            num: int, optional
-                Number of samples to generate. Default is 50. Must be non-negative.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            num (int): optional. Number of samples to generate. Default is 50. Must be non-negative.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # TODO start and stop to avoid singularity in Mc Tc
         mustar_values = np.linspace(start, stop, num=num)
@@ -434,7 +428,7 @@ class A2Ftr(object):
 class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the phonon linewidths, EliashbergFunction, the phonon bands,
-    the `ElectronBands` and `ElectronDos` on the k-mesh.
+    the |ElectronBands| and |ElectronDos| on the k-mesh.
     Provides methods to plot results.
 
     Usage example:
@@ -445,6 +439,8 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             print(ncfile)
             ncfile.ebands.plot()
             ncfile.phbands.plot()
+
+    .. inheritance-diagram:: EphFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -483,22 +479,22 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @lazy_property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @lazy_property
     def edos(self):
-        """:class:`ElectronDos` object with e-DOS computed by Abinit."""
+        """|ElectronDos| object with e-DOS computed by Abinit."""
         return self.reader.read_edos()
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     @property
     def phbands(self):
-        """:class:`PhononBands` object with frequencies along the q-path."""
+        """|PhononBands| object with frequencies along the q-path."""
         return self.reader.read_phbands_qpath()
 
     #@lazy_property
@@ -567,15 +563,14 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Plot phonon bands with eph coupling strength lambda(q, nu)
 
         Args:
-            what: `lambda` for eph strength, gamma for phonon linewidths.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            what: ``lambda`` for eph strength, gamma for phonon linewidths.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             label: String used to label the plot in the legend.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -619,17 +614,16 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Plot phonon bands with eph coupling strength lambda(q, nu) or gamma(q, nu)
 
         Args:
-            what: `lambda` for eph strength, gamma for ph linewidth.
+            what: ``lambda`` for eph strength, gamma for ph linewidth.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             scale: float used to scale the marker size.
             alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -774,7 +768,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -801,6 +795,8 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
     """
     This robot analyzes the results contained in multiple EPH.nc files.
+
+    .. inheritance-diagram:: EphRobot
     """
     #TODO: Method to plot the convergence of DOS(e_F)
     EXT = "EPH"
@@ -811,7 +807,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     def get_dataframe(self, abspath=False, with_geo=False, funcs=None):
         """
-        Build and return a pandas dataframe with results
+        Build and return a |pandas-DataFrame| with results
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
@@ -820,8 +816,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 Each function receives a :class:`EphFile` object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
 
-        Return:
-            pandas DataFrame
+        Return: |pandas-DataFrame|
         """
         rows, row_names = [], []
         for i, (label, ncfile) in enumerate(self):
@@ -858,23 +853,22 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
     def plot_lambda_convergence(self, what="lambda", sortby="", ylims=None,
                                 ax=None, cmap="jet", **kwargs):
         """
-        Plot the convergence of the lambda(q, nu) parameters wrt to the `sortby` parameter.
+        Plot the convergence of the lambda(q, nu) parameters wrt to the ``sortby`` parameter.
 
         Args:
-            what: `lambda` for eph strength, gamma for phonon linewidths.
+            what: ``lambda`` for eph strength, gamma for phonon linewidths.
             sortby: Define the convergence parameter, sort files and produce plot labels.
             Can be None, string or function.
                 If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name
                 and `getattr` is invoked.
                 If callable, the output of callable(ncfile) is used.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             cmap:
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(cmap)
@@ -892,7 +886,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
     def plot_a2f_convergence(self, sortby="", qsamps="all", ax=None, xlims=None,
                              cmap="jet", **kwargs):
         """
-        Plot the convergence of the Eliashberg function wrt to the `sortby` parameter.
+        Plot the convergence of the Eliashberg function wrt to the ``sortby`` parameter.
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
@@ -902,13 +896,12 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 and `getattr` is invoked.
                 If callable, the output of callable(ncfile) is used.
             qsamps:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
             cmap: matplotlib color map.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -946,7 +939,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -976,11 +969,13 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 class EphReader(ElectronsReader):
     """
     Reads data from EPH file and constructs objects.
+
+    .. inheritance-diagram:: EphReader
     """
 
     def read_edos(self):
         """
-        Read the ElectronDos used to compute EPH quantities.
+        Read the |ElectronDos| used to compute EPH quantities.
         """
         mesh = self.read_value("edos_mesh") * units.Ha_to_eV
         # [nsppol+1, nw] arrays with TOT_DOS, Spin_up, Spin_down in a.u.
@@ -999,7 +994,7 @@ class EphReader(ElectronsReader):
 
     def read_phbands_qpath(self):
         """
-        Read and return :class:`PhononBands` computed along the path.
+        Read and return |PhononBands| computed along the path.
         """
         structure = self.read_structure()
 

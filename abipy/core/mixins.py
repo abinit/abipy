@@ -14,7 +14,6 @@ from monty.os.path import which
 from monty.termcolor import cprint
 from monty.string import is_string
 from monty.functools import lazy_property
-
 from abipy.iotools.cube import cube_read_structure_mesh_data
 from abipy.flowtk.netcdf import NetcdfReader, NO_DEFAULT
 
@@ -82,7 +81,7 @@ class _File(object):
     def filestat(self, as_string=False):
         """
         Dictionary with file metadata
-        if `as_string` is True, a string is returned.
+        if ``as_string`` is True, a string is returned.
         """
         d = get_filestat(self.filepath)
         if not as_string: return d
@@ -170,8 +169,7 @@ class AbinitNcFile(_File):
 @six.add_metaclass(abc.ABCMeta)
 class AbinitFortranFile(_File):
     """
-    Abstract class representing a fortran file containing
-    output data from abinit.
+    Abstract class representing a fortran file containing output data from abinit.
     """
     def close(self):
         pass
@@ -182,15 +180,15 @@ class CubeFile(_File):
 
     .. attribute:: structure
 
-        :class:`Structure` object
+        |Structure| object
 
     .. attribute:: mesh
 
-        :class:`Mesh3d` object with information on the uniform 3d mesh.
+        |Mesh3d| object with information on the uniform 3d mesh.
 
     .. attribute:: data
 
-        numpy array of shape [nx, ny, nz] with numerical values on the real-space mesh.
+        |numpy-array| of shape [nx, ny, nz] with numerical values on the real-space mesh.
     """
     def __init__(self, filepath):
         from abipy.iotools.cube import cube_read_structure_mesh_data
@@ -213,7 +211,7 @@ class Has_Structure(object):
 
     @abc.abstractproperty
     def structure(self):
-        """Returns the :class:`Structure` object."""
+        """Returns the |Structure| object."""
 
     def plot_bz(self, **kwargs):
         """
@@ -258,7 +256,7 @@ class Has_ElectronBands(object):
 
     @abc.abstractproperty
     def ebands(self):
-        """Returns the :class:`ElectronBands` object."""
+        """Returns the |ElectronBands| object."""
 
     @property
     def nsppol(self):
@@ -314,7 +312,7 @@ class Has_PhononBands(object):
 
     @abc.abstractproperty
     def phbands(self):
-        """Returns the :class:`PhononBands` object."""
+        """Returns the |PhononBands| object."""
 
     def plot_phbands(self, **kwargs):
         """
@@ -381,12 +379,12 @@ def get_filestat(filepath):
 @six.add_metaclass(abc.ABCMeta)
 class NotebookWriter(object):
     """
-    Mixin class for objects that are able to generate jupyter notebooks.
+    Mixin class for objects that are able to generate jupyter_ notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.
     """
     def make_and_open_notebook(self, nbpath=None, foreground=False):
         """
-        Generate an ipython notebook and open it in the browser.
+        Generate an jupyter_ notebook and open it in the browser.
 
         Args:
             nbpath: If nbpath is None, a temporay file is created.
@@ -397,7 +395,7 @@ class NotebookWriter(object):
             system exit code.
 
         Raise:
-            RuntimeError if jupyter is not in $PATH
+            `RuntimeError` if jupyter is not in $PATH
         """
         nbpath = self.write_notebook(nbpath=nbpath)
 
@@ -469,7 +467,7 @@ from abipy import abilab
     @abc.abstractmethod
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file is created.
+        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file is created.
         Return path to the notebook. A typical template is given below.
         """
         # Preable.
@@ -489,8 +487,8 @@ from abipy import abilab
     @staticmethod
     def _write_nb_nbpath(nb, nbpath):
         """
-        This method must be called at the end of `write_notebook`.
-        nb is the ipython notebook and nbpath the argument passed to `write_notebook`.
+        This method must be called at the end of ``write_notebook``.
+        nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
         """
         import io, os, tempfile
         if nbpath is None:
@@ -505,7 +503,7 @@ from abipy import abilab
     @classmethod
     def pickle_load(cls, filepath):
         """
-        Loads the object from a pickle file
+        Loads the object from a pickle file.
         """
         with open(filepath, "rb") as fh:
             new = pickle.load(fh)
@@ -529,11 +527,11 @@ from abipy import abilab
 
 
 class Has_Header(object):
-    """Mixin class for netcdf files with the Abinit header."""
+    """Mixin class for netcdf_ files containing the Abinit header."""
 
     @lazy_property
     def hdr(self):
-        """:class:`AttrDict` with the Abinit header e.g. hdr.ecut."""
+        """|AttrDict| with the Abinit header e.g. hdr.ecut."""
         return self.reader.read_abinit_hdr()
 
     #def compare_hdr(self, other):

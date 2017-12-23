@@ -415,7 +415,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
 
 def g0w0_with_ppmodel_inputs(structure, pseudos,
                              kppa, nscf_nband, ecuteps, ecutsigx,
-                             ecut=None, pawecutdg=None, shifts=(0.5, 0.5, 0.5),
+                             ecut=None, pawecutdg=None, shifts=(0.0, 0.0, 0.0),
                              accuracy="normal", spin_mode="polarized", smearing="fermi_dirac:0.1 eV",
                              ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                              sigma_nband=None, gw_qprange=1):
@@ -432,6 +432,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized
             from the pseudos according to accuracy)
+        shifts: Shifts for k-mesh.
         accuracy: Accuracy of the calculation.
         spin_mode: Spin polarization.
         smearing: Smearing technique.
@@ -444,6 +445,10 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
         gw_qprange: Option for the automatic selection of k-points and bands for GW corrections.
             See Abinit docs for more detail. The default value makes the code compute the
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
+
+    .. warning:
+
+        The default value of `shifts` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0)
     """
 
     structure = Structure.as_structure(structure)

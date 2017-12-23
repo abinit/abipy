@@ -1,6 +1,9 @@
 core Package
 ============
 
+.. contents::
+   :backlinks: top
+
 :mod:`core` Package
 -------------------
 

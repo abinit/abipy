@@ -31,6 +31,8 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
     Netcdf file with structure and density/potential produced by CUT3d
     Unlike _NcFileWithField subclasses, this object does not contain an electronic band-structure
     and it's mainly used to convert from Fortran DEN/POT to netcdf.
+
+    .. inheritance-diagram:: Cut3dDenPotNcFile
     """
     def __init__(self, filepath):
         super(Cut3dDenPotNcFile, self).__init__(filepath)
@@ -39,10 +41,11 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.field.structure
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
 
@@ -68,12 +71,12 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @lazy_property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
@@ -91,6 +94,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return getattr(self, self.__class__.field_name)
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     def __str__(self):
@@ -121,7 +125,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -151,14 +155,18 @@ class DensityNcFile(_NcFileWithField):
         with DensityNcFile("foo_DEN.nc") as ncfile:
             ncfile.density
             ncfile.ebands.plot()
+
+    .. inheritance-diagram:: DensityNcFile
     """
     field_name = "density"
 
     @lazy_property
     def density(self):
+        """Density object."""
         return self.reader.read_density()
 
     def to_string(self, verbose=0):
+        """String representation."""
         s = super(DensityNcFile, self).to_string(verbose=verbose)
 
         # Add density related stuff.
@@ -183,7 +191,7 @@ class DensityNcFile(_NcFileWithField):
 
     def write_xsf(self, filename=None):
         """
-        Write density in XSF format.
+        Write density in XSF format (xcrysden_)
         """
         if filename is None:
             filename = self.basename.replace(".nc", ".xsf")
@@ -192,6 +200,7 @@ class DensityNcFile(_NcFileWithField):
         return self.density.export(filename)
 
     def write_cube(self, filename=None, spin="total"):
+        """Write density in CUBE format."""
         if filename is None:
             filename = self.basename.replace(".nc", ".cube")
             cprint("Writing density in CUBE format to file: %s" % filename, "yellow")
@@ -200,6 +209,9 @@ class DensityNcFile(_NcFileWithField):
 
 
 class VhartreeNcFile(_NcFileWithField):
+    """
+    .. inheritance-diagram:: VhartreeNcFile
+    """
     field_name = "vh"
 
     @lazy_property
@@ -209,6 +221,9 @@ class VhartreeNcFile(_NcFileWithField):
 
 
 class VxcNcFile(_NcFileWithField):
+    """
+    .. inheritance-diagram:: VxcNcFile
+    """
     field_name = "vxc"
 
     @lazy_property
@@ -218,6 +233,9 @@ class VxcNcFile(_NcFileWithField):
 
 
 class VhxcNcFile(_NcFileWithField):
+    """
+    .. inheritance-diagram:: VhxcNcFile
+    """
     field_name = "vhxc"
 
     @lazy_property
@@ -227,6 +245,9 @@ class VhxcNcFile(_NcFileWithField):
 
 
 class PotNcFile(_NcFileWithField):
+    """
+    .. inheritance-diagram:: PotNcFile
+    """
     field_name = "vks"
 
     @lazy_property
@@ -239,6 +260,8 @@ class DensityFortranFile(AbinitFortranFile):
     """
     Class representing the _DEN fortran file containing density.
     Provides methods to run Cut3D and convert data into different formats.
+
+    .. inheritance-diagram:: DensityFortranFile
     """
 
     def _convert(self, cut3d_input, workdir=None):
@@ -256,8 +279,7 @@ class DensityFortranFile(AbinitFortranFile):
 
         Args:
             out_filepath: path to the file that should be produced by cut3D, if required. At this stage it would be
-                safer to use just the file name, as using an absolute or relative path may fail depending on
-                the compiler.
+                safer to use just the file name, as using an absolute or relative path may fail depending on the compiler.
             workdir: directory where cut3d is executed.
 
         Returns:

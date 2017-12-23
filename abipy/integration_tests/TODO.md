@@ -19,17 +19,27 @@ TODO list:
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
   qadapter package ...
 
+* Try to reintegrate AbiPy with new abivars
+
 ## Medium priority
+
+* video with atom and hydrogen
+
+* Fix travis warnings.
+
+* DONE: Fix sphinx warnings.
+
+* Refactor/improve Visualizer
+
+* Read LO-TO data from PHBST.nc instead of anaddb.nc
+
+* Check ddb.update_header (reactivate test)
 
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 
-* Read LO-TO data from phbbands instead of anaddb.nc
-
-* Fix travis and sphinx warnings.
-
 * DONE Solve problem with visualize in jupyter notebooks (files should be produced in workdir)
 
-* Change shifts default value in g0w0_with_ppmodel_inputs
+* DONE Change shifts default value in g0w0_with_ppmodel_inputs
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
@@ -52,7 +62,7 @@ TODO list:
 
 * Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* Remove Old workflow model. Try to reintegrate AbiPy with new abivars
+* Remove Old workflow model. 
 
 ## Low priority
 
@@ -61,6 +71,9 @@ TODO list:
 * Add support for PSML format
 
 * Refactor PyLauncher logic
+
+* Add python API to support discontinuous paths (Abinit is not able to handle that
+  but python code should be agnostic
 
 * Finalize DDK.nc 
 
@@ -72,7 +85,7 @@ TODO list:
 
 * Check xsf_write_data and visualization of potentials.
 
-* Add phbands.to_bxsf
+* Add phbands.to_bxsf and histogram for phonon modes at a given q-point.
 
 * Add treatment of out-of-boundary conditions in scissors operator.
 
@@ -87,13 +100,15 @@ TODO list:
   problem is how to include input_generators (__next__) while preserving data persistence
   with pickle! I've already done something related to this problem in FlowCallback...
 
-* ABINIT abort file should not be produced if we the exit is expected otherwise we 
+* ABINIT abort file should not be produced if the exit is expected otherwise we 
   can have IO race conditions and ABI_CRITICAL events!!!!!!!
 
 * Add option max_num_launchers in scheduler.yml
 
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
   as well as Abinit input as string)
+
+* Replace boilerplate code with get_axmat_fig_plt.
 
 * Improvement in the dilatmx error handler:
 

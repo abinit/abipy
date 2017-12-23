@@ -17,7 +17,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, set_axlims
 
 class DdksAnalyzer(object):
     """
-    This object received 3 ddks files with derivatives along the 3 reduced directions.
+    This object received three ddks files with derivatives along the 3 reduced directions.
     """
 
     def __init__(self, ddk_paths):
@@ -89,8 +89,7 @@ class DdksAnalyzer(object):
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
 
-        Returns:
-            :class:`ElectronDos` object.
+        Returns: |ElectronDos| object.
         """
         self.kpoints.check_weights()
         edos = self.ddks[0].ebands.get_edos(method=method, step=step, width=width)
@@ -114,6 +113,10 @@ class DdksAnalyzer(object):
 
     @add_fig_kwargs
     def plot_vdos(self, method="gaussian", step=0.1, width=0.2, **kwargs):
+        """
+
+        Return: |matplotlib-Figure|
+        """
         import matplotlib.pyplot as plt
         fig, axmat = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=False, squeeze=True)
         r = self.get_doses(method=method, step=step, width=width)
@@ -129,11 +132,10 @@ class DdksAnalyzer(object):
         Args:
             ebands_kpath:
             doses:
-            ylims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
-                or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the x-axis in eV. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used
 
-        Returns:
-            `matplotlib` figure
+        Return: |matplotlib-Figure|
         """
         # Build grid plot.
         import matplotlib.pyplot as plt
@@ -180,7 +182,7 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     """
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file."""
+        """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -223,12 +225,12 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     #@lazy_property
@@ -242,7 +244,7 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def write_notebook(self, nbpath=None, title=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
@@ -262,7 +264,7 @@ if ddk.ebands.kpoints.is_ibz:
 
 class DdkReader(ElectronsReader):
     """
-    This object reads the results stored in the _DDK file
+    This object reads the results stored in the DDK.nc file
     It provides helper function to access the most important quantities.
     """
     def __init__(self, filepath):
@@ -276,7 +278,7 @@ class DdkReader(ElectronsReader):
     def read_ddk_diagonal(self):
         """
         Read the group velocities i.e the diagonal matrix elements.
-        Return (nsppol, nkpt) numpy array of real numbers.
+        Return (nsppol, nkpt) |numpy-array| of real numbers.
         """
         var = self.read_variable("h1_matrix")
         vels = np.diagonal(var[:, :, :, :, :], axis1=2, axis=3)

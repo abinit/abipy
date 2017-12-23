@@ -241,8 +241,8 @@ Usage example:
 # Require Abinit Input
 ######################
 
-    abinp.py validate run.abi       # Call abinit in dry-run mode to validate run.abi input file
-    abinp.py abispg run.abi         # Call abinit to get space group.
+    abinp.py validate run.abi       # Call abinit to validate run.abi input file
+    abinp.py abispg run.abi         # Call abinit to get space group information.
     abinp.py autoparal run.abi      # Call abinit to get list of autoparal configurations.
     abinp.py ibz run.abi            # Call abinit to get list of k-points in the IBZ.
     abinp.py phperts run.abi        # Call abinit to get list of atomic perturbations for phonons.

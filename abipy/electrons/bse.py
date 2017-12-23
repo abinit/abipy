@@ -62,7 +62,7 @@ class DielectricTensor(object):
 
     def to_array(self, red_coords=True):
         """
-        Return numpy array with a copy of the data.
+        Return |numpy-array| with a copy of the data.
 
         Args:
             red_coords: True for tensors in reduced coordinates else Cartesian.
@@ -98,10 +98,10 @@ class DielectricTensor(object):
     @add_fig_kwargs
     def plot(self, ax=None, *args, **kwargs):
         """
-        Plot all the components of the tensor
+        Plot all the components of the tensor.
 
         Args:
-            ax: matplotlib `Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -109,8 +109,7 @@ class DielectricTensor(object):
         red_coords      True to plot the reduced coordinate tensor (Default: True)
         ==============  ==============================================================
 
-        Returns:
-            matplotlib figure
+        Returns: |matplotlib-Figure|
         """
         red_coords = kwargs.pop("red_coords", True)
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -133,9 +132,9 @@ class DielectricTensor(object):
         Helper function to plot data on the axis ax.
 
         Args:
-            ax: plot axis
+            ax: |matplotlib-Axes|
             what: Sequential index of the tensor matrix element.
-            args: Positional arguments passed to ax.plot
+            args: Positional arguments passed to ``ax.plot``
             kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
         ==============  ==============================================================
@@ -173,8 +172,8 @@ class DielectricFunction(object):
     def __init__(self, structure, qpoints, wmesh, emacros_q, info):
         """
         Args:
-            structure: :class: Structure object.
-            qpoints: :class:`KpointList` with the qpoints in reduced coordinates.
+            structure: |Structure| object.
+            qpoints: |KpointList| with the q-points in reduced coordinates.
             wmesh: Array-like object with the frequency mesh (eV).
             emacros_q: Iterable with the macroscopic dielectric function for the different q-points.
             info: Dictionary containing info on the calculation that produced
@@ -182,7 +181,6 @@ class DielectricFunction(object):
 
                     - "lfe": True if local field effects are included.
                     - "calc_type": string defining the calculation type.
-
         """
         self.wmesh = np.array(wmesh)
         self.qpoints = qpoints
@@ -220,11 +218,12 @@ class DielectricFunction(object):
 
     @property
     def num_qpoints(self):
+        """Number of q-points."""
         return len(self.qpoints)
 
     @property
     def qfrac_coords(self):
-        """The fractional coordinates of the q-points as a ndarray."""
+        """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
     #@property
@@ -249,7 +248,7 @@ class DielectricFunction(object):
         Plot the MDF.
 
         Args:
-            ax: matplotlib `Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
         ==============  ==============================================================
         kwargs          Meaning
@@ -257,8 +256,7 @@ class DielectricFunction(object):
         only_mean       True if only the averaged spectrum is wanted (default True)
         ==============  ==============================================================
 
-        Returns:
-            matplotlib figure
+        Returns: |matplotlib-Figure|
         """
         only_mean = kwargs.pop("only_mean", True)
 
@@ -286,8 +284,8 @@ class DielectricFunction(object):
         Helper function to plot data on the axis ax.
 
         Args:
-            ax: plot axis.
-            qpoint: index of the q-point or Kpoint object or None to plot emacro_avg.
+            ax: |matplotlib-Axes|
+            qpoint: index of the q-point or |Kpoint| object or None to plot emacro_avg.
             kwargs: Keyword arguments passed to matplotlib. Accepts also:
 
                 cplx_mode:
@@ -325,6 +323,8 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         with MdfFile("foo_MDF.nc") as mdf:
             mdf.plot_mdfs()
+
+    .. inheritance-diagram:: MdfFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -357,11 +357,12 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @lazy_property
     def structure(self):
-        """Returns the `Structure` object."""
+        """|Structure| object."""
         return self.reader.read_structure()
 
     @lazy_property
@@ -381,11 +382,12 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @property
     def qpoints(self):
+        """List of q-points."""
         return self.reader.qpoints
 
     @property
     def qfrac_coords(self):
-        """The fractional coordinates of the q-points as a ndarray."""
+        """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
     @lazy_property
@@ -462,7 +464,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -486,6 +488,8 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 class MdfReader(ETSF_Reader): #ElectronsReader
     """
     This object reads data from the MDF.nc file produced by ABINIT.
+
+    .. inheritance-diagram:: MdfReader
     """
     def __init__(self, path):
         """Initialize the object from a filename."""
@@ -495,6 +499,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
 
     @property
     def structure(self):
+        """|Structure| object."""
         return self._structure
 
     @lazy_property
@@ -576,15 +581,17 @@ class MdfPlotter(object):
         Get a matplotlib plot showing the MDFs.
 
         Args:
-            ax: matplotlib `Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             cplx_mode: string defining the data to print (case-insensitive).
-                Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
+                Possible choices are ``re`` for the real part, ``im`` for imaginary part only. ``abs`` for the absolute value.
                 Options can be concated with "-".
             qpoint: index of the q-point or :class:`Kpoint` object or None to plot emacro_avg.
-            xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                  or scalar e.g. `left`. If left (right) is None, default values are used
-            ylims: Same meaning as `ylims` but for the y-axis
+            xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used
+            ylims: Same meaning as ``ylims`` but for the y-axis
             fontsize: Legend and label fontsize.
+
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
@@ -624,7 +631,6 @@ class MdfPlotter(object):
     #            cplx_type=["re", "im", "abs"],
     #            qpoint=["None"] + list(range(self.,
     #        )
-
 
 
 class MultipleMdfPlotter(object):
@@ -679,7 +685,7 @@ class MultipleMdfPlotter(object):
 
     def add_mdf_file(self, label, obj):
         """
-        Extract dielectric functions from `obj`, store data for plotting.
+        Extract dielectric functions from object ``obj``, store data for plotting.
 
         Args:
             label: label associated to the MDF file. Must be unique.
@@ -715,7 +721,7 @@ class MultipleMdfPlotter(object):
                   or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Same meaning as `ylims` but for the y-axis
 
-        Return: matplotlib figure
+        Return: |matplotlib-Figure|
         """
         # Build plot grid.
         if qview == "avg":
@@ -806,10 +812,10 @@ class MultipleMdfPlotter(object):
     def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None, xlims=None, ylims=None,
                           with_legend=True, with_xlabel=True, with_ylabel=True, fontsize=12, **kwargs):
         """
-        Helper function to plot data corresponds to `mdf_type`, `cplx_mode`, `qpoint`.
+        Helper function to plot data corresponds to ``mdf_type``, ``cplx_mode``, ``qpoint``.
 
         Args:
-            ax: matplotlib `Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             mdf_type:
             cplx_mode: string defining the data to print (case-insensitive).
                 Possible choices are `re` for the real part, `im` for imaginary part only. `abs` for the absolute value.
@@ -822,7 +828,7 @@ class MultipleMdfPlotter(object):
             with_ylabel:
             fontsize: Legend and label fontsize.
 
-        Return: matplotlib figure
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax.grid(True)
@@ -862,7 +868,7 @@ class MultipleMdfPlotter(object):
         It checks that all dielectric functions stored in the plotter have the same list of
         q-points and returns the q-points of the first dielectric function.
 
-        Raises: ValueError if the q-points cannot be compared.
+        Raises: `ValueError` if the q-points cannot be compared.
         """
         qpoints, errors = [], []
         eapp = errors.append
@@ -908,17 +914,19 @@ class MultipleMdfPlotter(object):
 
 class MdfRobot(Robot, RobotWithEbands):
     """
-    This robot analyzes the results contained in multiple MDF files.
+    This robot analyzes the results contained in multiple MDF.nc files.
+
+    .. inheritance-diagram:: MdfRobot
     """
     EXT = "MDF"
 
     def plot(self, **kwargs):
-        """Wraps plot method of `MultipleMdfPlotter`. kwargs passed to plot."""
+        """Wraps plot method of :class:`MultipleMdfPlotter`. kwargs are passed to plot."""
         return self.get_multimdf_plotter().plot(**kwargs)
 
     def get_multimdf_plotter(self, cls=None):
         """
-        Return an instance of MultipleMdfPlotter to compare multiple dielectric functions.
+        Return an instance of :class:`MultipleMdfPlotter` to compare multiple dielectric functions.
         """
         plotter = MultipleMdfPlotter() if cls is None else cls()
 
@@ -929,8 +937,7 @@ class MdfRobot(Robot, RobotWithEbands):
 
     def get_dataframe(self, with_geo=False, abspath=False, funcs=None, **kwargs):
         """
-        Build and return Pandas dataframe with the most import BSE results.
-        and the filenames as index.
+        Build and return |pandas-DataFrame| with the most import BSE results. and the filenames as index.
 
         Args:
             with_geo: True if structure info should be added to the dataframe
@@ -939,8 +946,7 @@ class MdfRobot(Robot, RobotWithEbands):
                 Each function receives a :class:`MdfFile` object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
 
-        Return:
-            pandas DataFrame
+        Return: |pandas-DataFrame|
         """
         rows, row_names = [], []
         for i, (label, mdf) in enumerate(self):
@@ -987,7 +993,7 @@ class MdfRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

@@ -30,12 +30,12 @@ Style guide
 Importing and name spaces
 -------------------------
 
-For `numpy <http://www.numpy.org>`_, use::
+For numpy_, use::
 
   import numpy as np
   a = np.array([1,2,3])
 
-For `matplotlib <http://matplotlib.org/>`_, use::
+For matplotlib_, use::
 
   import matplotlib as mpl
   mpl.rcParams['xtick.major.pad'] = 6

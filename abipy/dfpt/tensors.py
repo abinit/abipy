@@ -12,15 +12,15 @@ from abipy.iotools import ETSF_Reader
 
 class NLOpticalSusceptibilityTensor(Tensor):
     """
-    Subclass of pymatgen.analysis.elasticity.tensors.Tensor containing the
+    Subclass of :class:`pymatgen.analysis.elasticity.tensors.Tensor` containing the
     non-linear optical susceptibility tensor.
     """
 
     @classmethod
     def from_file(cls, filepath):
         """
-        Creates the tensor from a anaddb.nc netcdf file that contains the dchide.
-        This requires to run anaddb with tnlflag > 0
+        Creates the tensor from a anaddb.nc netcdf file containing ``dchide``.
+        This requires to run anaddb with ``tnlflag`` > 0
         """
         with ETSF_Reader(filepath) as reader:
             try:
@@ -35,8 +35,8 @@ class NLOpticalSusceptibilityTensor(Tensor):
 
 class DielectricTensor(SquareTensor):
     """
-    Subclass of pymatgen.analysis.elasticity.tensors.SquareTensor describing
-    a dielectric tensor.
+    Subclass of :class:`pymatgen.analysis.elasticity.tensors.SquareTensor`
+    describing a dielectric tensor.
     """
 
     def reflectivity(self, tol=1e-6):

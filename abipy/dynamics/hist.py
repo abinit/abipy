@@ -11,6 +11,7 @@ from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
+from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
@@ -31,7 +32,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
     """
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file"""
+        """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -39,6 +40,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         self.reader = HistReader(filepath)
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     def __str__(self):
@@ -63,6 +65,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     @lazy_property
     def final_energy(self):
+        """Total energy in eV of the last iteration."""
         return self.etotals[-1]
 
     @lazy_property
@@ -76,7 +79,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def get_fstats_dict(self, step):
         """
-        Return dictionary with stats on the forces at the given `step`
+        Return |AttrDict| with stats on the forces at the given ``step``.
         """
         # [time, natom, 3]
         var = self.reader.read_variable("fcart")
@@ -92,7 +95,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         )
 
     def to_string(self, verbose=0, title=None):
-        """Return string representation."""
+        """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
 
@@ -126,34 +129,33 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     @lazy_property
     def steps(self):
-        """step indices."""
+        """Step indices."""
         return list(range(self.num_steps))
 
     @property
     def initial_structure(self):
-        """The initial structure."""
+        """The initial |Structure|."""
         return self.structures[0]
 
     @property
     def final_structure(self):
-        """The structure of the last iteration."""
+        """The |Structure| of the last iteration."""
         return self.structures[-1]
 
     @lazy_property
     def structures(self):
-        """List of :class:`Structure` objects at the different steps."""
+        """List of |Structure| objects at the different steps."""
         return self.reader.read_all_structures()
 
     @lazy_property
     def etotals(self):
-        """numpy array with total energies in eV at the different steps."""
+        """|numpy-array| with total energies in eV at the different steps."""
         return self.reader.read_eterms().etotals
 
     def get_relaxation_analyzer(self):
         """
         Return a pymatgen :class:`RelaxationAnalyzer` object to analyze the relaxation in a calculation.
         """
-        from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
     def to_xdatcar(self, filepath=None, groupby_type=True, **kwargs):
@@ -169,7 +171,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def write_xdatcar(self, filepath="XDATCAR", groupby_type=True, overwrite=False):
         """
-        Write Xdatcar file with unit cell and atomic positions to file `filepath`.
+        Write Xdatcar file with unit cell and atomic positions to file ``filepath``.
 
         Args:
             filepath: Xdatcar filename. If None, a temporary file is created.
@@ -196,8 +198,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         num_pseudos = self.reader.read_dimvalue("npsp")
         if num_pseudos != ntypat:
             raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
-        print("znucl:", znucl)
-        print("typat:", typat)
+        #print("znucl:", znucl, "\ntypat:", typat)
 
         symb2pos = OrderedDict()
         symbols_atom = []
@@ -263,7 +264,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def plot_ax(self, ax, what, fontsize=12, **kwargs):
         """
-        Helper function to plot quantity `what` on axis `ax`.
+        Helper function to plot quantity ``what`` on axis ``ax``.
 
         Args:
             fontsize: fontsize for legend
@@ -360,10 +361,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
         as well as pressure, info on forces and total energy.
 
         Args:
-            axlist: List of matplotlib Axes. If None, a new figure is created.
+            axlist: List of |matplotlib-Axes|. If None, a new figure is created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
@@ -382,11 +382,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Plot the total energies as function of the iteration step.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # TODO max force and pressure
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -405,7 +404,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True, with_forces=True, **kwargs):
         """
-        Call mayavi to plot atomic trajectories and the variation of the unit cell.
+        Call mayavi_ to plot atomic trajectories and the variation of the unit cell.
         """
         from abipy.display import mvtk
         figure, mlab = mvtk.get_fig_mlab(figure=figure)
@@ -476,7 +475,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -494,12 +493,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
 class HistRobot(Robot):
     """
-    This robot analyzes the results contained in multiple HIST files.
+    This robot analyzes the results contained in multiple HIST.nc_ files.
     """
     EXT = "HIST"
 
     def to_string(self, verbose=0):
-        """String representation with verbosity level `verbose`."""
+        """String representation with verbosity level ``verbose``."""
         s = ""
         if verbose:
             s = super(HistRobot, self).to_string(verbose=0)
@@ -512,21 +511,19 @@ class HistRobot(Robot):
 
     def get_dataframe(self, with_geo=True, index=None, abspath=False, with_spglib=True, funcs=None, **kwargs):
         """
-        Return a pandas DataFrame with the most important final results.
-        and the filenames as index.
+        Return a |pandas-DataFrame| with the most important final results and the filenames as index.
 
         Args:
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             index: Index of the dataframe, if None, robot labels are used
-            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            with_spglib: If True, spglib_ is invoked to get the space group symbol and number
 
         kwargs:
             attrs:
-                List of additional attributes of the :class:`GsrFile` to add to
-                the pandas :class:`DataFrame`
+                List of additional attributes of the |GsrFile| to add to the |pandas-DataFrame|.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
+                Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # Add attributes specified by the users
@@ -577,7 +574,7 @@ class HistRobot(Robot):
     @add_fig_kwargs
     def gridplot(self, what="abc", sharex=False, sharey=False, fontsize=8, **kwargs):
         """
-        Plot the `what` value extracted from multiple HIST files on a grid.
+        Plot the ``what`` value extracted from multiple HIST.nc_ files on a grid.
 
         Args:
             what: Quantity to plot. Must be in ["energy", "abc", "angles", "volume", "pressure", "forces"]
@@ -585,8 +582,7 @@ class HistRobot(Robot):
             sharey: True if yaxis should be shared.
             fontsize: fontsize for legend.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         num_plots, ncols, nrows = len(self), 1, 1
         if num_plots > 1:
@@ -616,16 +612,14 @@ class HistRobot(Robot):
     @add_fig_kwargs
     def combiplot(self, what_list=None, cmap="jet", fontsize=6, **kwargs):
         """
-        Plot multiple HIST files on a grid. One plot for each `what` value.
+        Plot multiple HIST.nc_ files on a grid. One plot for each ``what`` value.
 
         Args:
-            what_list: List of strings with the quantities to plot.
-                If None, all quanties are plotted.
+            what_list: List of strings with the quantities to plot. If None, all quanties are plotted.
             cmap: matplotlib color map.
             fontsize: fontisize for legend.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|.
         """
         what_list = (list_strings(what_list) if what_list is not None
             else ["energy", "a", "b", "c", "alpha", "beta", "gamma", "volume", "pressure"])
@@ -662,7 +656,7 @@ class HistRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -686,12 +680,12 @@ class HistReader(ETSF_Reader):
 
     @lazy_property
     def num_steps(self):
-        """Number of iterations present in the HIST file."""
+        """Number of iterations present in the HIST.nc_ file."""
         return self.read_dimvalue("time")
 
     @lazy_property
     def natom(self):
-        """Number of atoms un the unit cell"""
+        """Number of atoms un the unit cell."""
         return self.read_dimvalue("natom")
 
     def read_all_structures(self):
@@ -726,6 +720,7 @@ class HistReader(ETSF_Reader):
         return structures
 
     def read_eterms(self, unit="eV"):
+        """|AttrDict| with the decomposition of the total energy in units ``unit``"""
         return AttrDict(
             etotals=units.EnergyArray(self.read_value("etotal"), "Ha").to(unit),
             kinetic_terms=units.EnergyArray(self.read_value("ekin"), "Ha").to(unit),
@@ -734,14 +729,14 @@ class HistReader(ETSF_Reader):
 
     def read_cart_forces(self, unit="eV ang^-1"):
         """
-        Read and return a numpy array with the cartesian forces in unit `unit`.
+        Read and return a |numpy-array| with the cartesian forces in unit ``unit``.
         Shape (num_steps, natom, 3)
         """
         return units.ArrayWithUnit(self.read_value("fcart"), "Ha bohr^-1").to(unit)
 
     def read_reduced_forces(self):
         """
-        Read and return a numpy array with the forces in reduced coordinates
+        Read and return a |numpy-array| with the forces in reduced coordinates
         Shape (num_steps, natom, 3)
         """
         return self.read_value("fred")

@@ -53,11 +53,14 @@ def get_mprester(api_key=None, endpoint=None):
 
 
 class MyMPRester(MPRester):
+    """
+    .. inheritance-diagram:: MyMPRester
+    """
     Error = MPRestError
 
     def get_phasediagram_results(self, elements):
         """
-        Contact the materials project database, fetch entries and build `PhaseDiagramResults` instance.
+        Contact the materials project database, fetch entries and build :class:``PhaseDiagramResults`` instance.
 
         Args:
             elements: List of chemical elements.
@@ -107,7 +110,7 @@ class PhaseDiagramResults(object):
         return plotter
 
     @lazy_property
-    def table(self):
+    def dataframe(self):
         """Pandas dataframe with the most important results."""
         rows = []
         for e in self.entries:
@@ -134,7 +137,7 @@ class PhaseDiagramResults(object):
             file: Output stream.
             verbose: Verbosity level.
         """
-        print_dataframe(self.table, file=file)
+        print_dataframe(self.dataframe, file=file)
         if verbose:
             from abipy.core.structure import dataframes_from_structures
             dfs = dataframes_from_structures(self.structures, index=self.mpids, with_spglib=with_spglib)
@@ -216,7 +219,7 @@ class DatabaseStructures(NotebookWriter):
         print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
                 % (len(self.structures), self.dbname), file=file)
 
-        if self.table is not None: print_dataframe(self.table, file=file)
+        if self.dataframe is not None: print_dataframe(self.dataframe, file=file)
         if verbose and self.data is not None: pprint(self.data, stream=file)
 
         # Print structures
@@ -254,18 +257,22 @@ class DatabaseStructures(NotebookWriter):
             nbv.new_code_cell("# dbs.print_results(fmt='cif', verbose=0)"),
             nbv.new_code_cell("# qgrid.show_grid(dbs.lattice_dataframe)"),
             nbv.new_code_cell("# qgrid.show_grid(dbs.coords_dataframe)"),
-            nbv.new_code_cell("qgrid.show_grid(dbs.table)"),
+            nbv.new_code_cell("qgrid.show_grid(dbs.dataframe)"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 class MpStructures(DatabaseStructures):
-    """Store the results of a query to the Materials Project database."""
+    """
+    Store the results of a query to the Materials Project database.
+
+    .. inheritance-diagram:: MpStructures
+    """
     dbname = "Materials Project"
 
     @lazy_property
-    def table(self):
+    def dataframe(self):
         """Pandas dataframe constructed from self.data. None if data is not available."""
         if not self.data: return None
         import pandas as pd
@@ -283,18 +290,20 @@ class MpStructures(DatabaseStructures):
 
 class CodStructures(DatabaseStructures):
     """
-    Store the results of a query to the COD database http://www.crystallography.net/cod/
+    Store the results of a query to the COD_ database.
+
+    .. inheritance-diagram:: CodStructures
     """
     dbname = "COD"
 
     @lazy_property
-    def table(self):
+    def dataframe(self):
         """
         Pandas dataframe constructed. Essentially geometrical info and space groups found by spglib
         as COD data is rather limited.
         """
         df = self.lattice_dataframe.copy()
-        # Add sg from COD
+        # Add space group from COD
         df["cod_sg"] = [d.get("sg", "").replace(" ", "") for d in self.data]
         return df
 

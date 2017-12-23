@@ -9,6 +9,9 @@ Scripts
    :Release: |version|
    :Date: |today|
 
+This page documents the usage of the AbiPy scripts, 
+the subcommands available and the options supported by each subcommand.
+
 .. toctree::
    :maxdepth: 3
 

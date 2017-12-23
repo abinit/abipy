@@ -1,6 +1,9 @@
 flowtk Package
 ==============
 
+.. contents::
+   :backlinks: top
+
 :mod:`flowtk` Package
 ---------------------
 
@@ -34,7 +37,7 @@ flowtk Package
    :show-inheritance:
 
 :mod:`dfpt_works` Module
-----------------------
+------------------------
 
 .. automodule:: abipy.flowtk.dfpt_works
    :members:

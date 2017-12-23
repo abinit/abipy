@@ -28,6 +28,8 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         with Fold2BlochNcfile("foo_FOLD2BLOCH.nc") as fb:
             fb.plot_unfolded()
+
+    .. inheritance-diagram:: Fold2BlochNcfile
     """
     @classmethod
     def from_wfkpath(cls, wfkpath, folds, workdir=None, manager=None, mpi_procs=1, verbose=0):
@@ -118,20 +120,21 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @property
     def ebands(self):
-        """:class:`ElectronBands` object with folded band energies."""
+        """|ElectronBands| object with folded band energies."""
         return self._ebands
 
     @property
     def structure(self):
-        """:class:`Structure` object defining the supercell."""
+        """|Structure| object defining the supercell."""
         return self.ebands.structure
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @lazy_property
     def uf_eigens(self):
-        """[nsppol, nk_unfolded, nband] array with unfolded eigenvalues in eV."""
+        """[nsppol, nk_unfolded, nband] |numpy-array| with unfolded eigenvalues in eV."""
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
         return self.reader.read_value("unfolded_eigenvalues") * units.Ha_to_eV
 
@@ -177,20 +180,19 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         Args:
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
-                The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+                The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             dist_tol: A point is considered to be on the path if its distance from the line
                 is less than dist_tol.
             verbose: Verbosity level.
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             facecolor:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
 	"""
         cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c)
                        for c in np.reshape(kbounds, (-1, 3))]
@@ -231,7 +233,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If `nbpath` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If `nbpath` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

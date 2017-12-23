@@ -1,5 +1,5 @@
 # coding: utf-8
-"""GSR file."""
+"""GSR.nc_ file."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
@@ -40,10 +40,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         with GsrFile("foo_GSR.nc") as gsr:
             print("energy: ", gsr.energy)
             gsr.ebands.plot()
+
+    .. inheritance-diagram:: GsrFile
     """
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file"""
+        """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -86,7 +88,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self._ebands
 
     @property
@@ -114,12 +116,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
     def energy(self):
-        """Total energy in eV"""
+        """Total energy in eV."""
         return units.Energy(self.reader.read_value("etotal"), "Ha").to("eV")
 
     @lazy_property
@@ -181,7 +183,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def xc(self):
-        """:class:`XcFunc object with info on the exchange-correlation functional."""
+        """:class:`XcFunc` object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
 
     def close(self):
@@ -243,7 +245,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -330,10 +332,12 @@ class GsrReader(ElectronsReader):
     """
     This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
     It provides helper function to access the most important quantities.
+
+    .. inheritance-diagram:: GsrReader
     """
     def read_cart_forces(self, unit="eV ang^-1"):
         """
-        Read and return a numpy array with the cartesian forces in unit `unit`.
+        Read and return a |numpy-array| with the cartesian forces in unit ``unit``.
         Shape (natom, 3)
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
@@ -355,7 +359,7 @@ class GsrReader(ElectronsReader):
 
     def read_energy_terms(self, unit="eV"):
         """
-        Return a dictionary of `Energies` with the different contributions to the total electronic energy.
+        Return a dictionary with the different contributions to the total electronic energy.
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
         d = {k: convert(self.read_value(k)) for k in EnergyTerms.ALL_KEYS}
@@ -364,13 +368,15 @@ class GsrReader(ElectronsReader):
 
 class GsrRobot(Robot, RobotWithEbands):
     """
-    This robot analyzes the results contained in multiple GSR files.
+    This robot analyzes the results contained in multiple GSR.nc_ files.
+
+    .. inheritance-diagram:: GsrRobot
     """
     EXT = "GSR"
 
     def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs):
         """
-        Return a pandas DataFrame with the most important GS results.
+        Return a |pandas-DataFrame| with the most important GS results.
         and the filenames as index.
 
         Args:
@@ -379,10 +385,9 @@ class GsrRobot(Robot, RobotWithEbands):
 
         kwargs:
             attrs:
-                List of additional attributes of the :class:`GsrFile` to add to
-                the pandas :class:`DataFrame`
+                List of additional attributes of the |GsrFile| to add to the DataFrame.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
+                Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # Add attributes specified by the users
@@ -429,8 +434,8 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Return:
             (fits, dataframe) namedtuple.
-                fits is a list of `EOSFit object`
-                dataframe is a pandas Dataframe with the final results.
+                fits is a list of ``EOSFit object``
+                dataframe is a |pandas-DataFrame| with the final results.
         """
         # Read volumes and energies from the GSR files.
         energies, volumes = [], []
@@ -480,8 +485,7 @@ class GsrRobot(Robot, RobotWithEbands):
             eos_names: String or list of strings with EOS names. See pymatgen.analysis.EOS
             fontsize: Fontsize used for caption text.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         r = self.get_eos_fits_dataframe(eos_names=eos_names)
 
@@ -514,7 +518,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

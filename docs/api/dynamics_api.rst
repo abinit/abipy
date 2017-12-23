@@ -1,6 +1,9 @@
 dynamics Package
 ================
 
+.. contents::
+   :backlinks: top
+
 
 :mod:`dynamics` Package
 ------------------------

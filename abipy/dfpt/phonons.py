@@ -54,7 +54,7 @@ def factor_ev2units(units):
 
 def unit_tag(units):
     """
-    Return latex string for `units`.
+    Return latex string for ``units``.
     """
     d = {"ev": "[eV]", "mev": "[meV]", "ha": '[Ha]',
          "cm-1": "[cm$^{-1}$]", 'cm^-1': "[cm$^{-1}$]", "thz": '[Thz]',
@@ -67,7 +67,7 @@ def unit_tag(units):
 
 def wlabel_from_units(units):
     """
-    Return latex string for frequencies in `units`.
+    Return latex string for frequencies in ``units``.
     """
     d = {'ev': 'Energy [eV]', 'mev': 'Energy [meV]', 'ha': 'Energy [Ha]',
         'cm-1': r'Frequency [cm$^{-1}$]',
@@ -82,7 +82,7 @@ def wlabel_from_units(units):
 
 def dos_label_from_units(units):
     """
-    Return latex string for phonon DOS values in `units`.
+    Return latex string for phonon DOS values in ``units``.
     """
     d = {"ev": "[states/eV]", "mev": "[states/meV]", "ha": '[states/Ha]',
          "cm-1": "[states/cm$^{-1}$]", 'cm^-1': "[states/cm$^{-1}$]",
@@ -97,7 +97,7 @@ def dos_label_from_units(units):
 @functools.total_ordering
 class PhononMode(object):
     """
-    A phonon mode has a q-point, a frequency, a cartesian displacement and a structure.
+    A phonon mode has a q-point, a frequency, a cartesian displacement and a |Structure|.
     """
 
     __slots__ = [
@@ -112,8 +112,8 @@ class PhononMode(object):
         Args:
             qpoint: qpoint in reduced coordinates.
             freq: Phonon frequency in eV.
-            displ: Displacement (Cartesian coordinates, Angstrom)
-            structure: :class:`Structure` object.
+            displ: Displacement (Cartesian coordinates in Angstrom)
+            structure: |Structure| object.
         """
         self.qpoint = Kpoint.as_kpoint(qpoint, structure.reciprocal_lattice)
         self.freq = freq
@@ -166,7 +166,7 @@ class PhononBands(object):
     """
     @classmethod
     def from_file(cls, filepath):
-        """Create the object from a netCDF file."""
+        """Create the object from a netcdf_ file."""
         with PHBST_Reader(filepath) as r:
             structure = r.read_structure()
 
@@ -195,12 +195,12 @@ class PhononBands(object):
     @classmethod
     def as_phbands(cls, obj):
         """
-        Return an instance of :class:`PhononBands` from a generic obj.
+        Return an instance of |PhononBands| from a generic object ``obj``.
         Supports:
 
             - instances of cls
-            - files (string) that can be open with abiopen and that provide a `phbands` attribute.
-            - objects providing a `phbands` attribute.
+            - files (string) that can be open with ``abiopen`` and that provide a ``phbands`` attribute.
+            - objects providing a ``phbands`` attribute.
         """
         if isinstance(obj, cls):
             return obj
@@ -230,23 +230,23 @@ class PhononBands(object):
 
     def read_non_anal_from_file(self, filepath):
         """
-        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified and
-        adds them to the object.
+        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file
+        specified and adds them to the object.
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
     def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None):
         """
         Args:
-            structure: :class:`Structure` object.
-            qpoints: :class:`KpointList` instance.
+            structure: |Structure| object.
+            qpoints: |KpointList| instance.
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.
                 The last dimension stores the cartesian components.
             non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
-                None if contribution is not present
+                None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
-                mass units used for the calculation
+                mass units used for the calculation.
         """
         self.structure = structure
 
@@ -282,7 +282,7 @@ class PhononBands(object):
         Human-readable string with useful information such as structure, q-points, ...
 
         Args:
-            with_structure: False if structural info shoud not be displayed.
+            with_structure: False if structural info should not be displayed.
             with_qpoints: False if q-point info shoud not be displayed.
             verbose: Verbosity level.
         """
@@ -308,7 +308,7 @@ class PhononBands(object):
         return "\n".join(lines)
 
     def __add__(self, other):
-        """self + other returns a :class:`PhononBandsPlotter`."""
+        """self + other returns a |PhononBandsPlotter| object."""
         if not isinstance(other, (PhononBands, PhononBandsPlotter)):
             raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
 
@@ -434,7 +434,7 @@ class PhononBands(object):
 
     def to_xmgrace(self, filepath, units="meV"):
         """
-        Write xmgrace file with phonon band structure energies and labels for high-symmetry q-points.
+        Write xmgrace_ file with phonon band structure energies and labels for high-symmetry q-points.
 
         Args:
             filepath: String with filename or stream.
@@ -571,7 +571,7 @@ class PhononBands(object):
         Useful to construct pandas DataFrames
 
         Args:
-            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number
         """
         odict = OrderedDict([
             ("nqpt", self.num_qpoints), ("nmodes", self.num_branches),
@@ -593,7 +593,7 @@ class PhononBands(object):
             width: Standard deviation (eV) of the gaussian.
 
         Returns:
-            :class:`PhononDos` object.
+            |PhononDos| object.
 
         .. warning::
 
@@ -654,7 +654,7 @@ class PhononBands(object):
     def create_ascii_vib(self, iqpts, filename, pre_factor=1):
         """
         Create vibration ascii file for visualization of phonons.
-        This format can be read with V_sim or ascii-phonons.
+        This format can be read with v_sim_ or ascii-phonons.
 
         Args:
             iqpts: an index or a list of indices of the qpoints in self. Note that at present only V_sim supports
@@ -720,10 +720,9 @@ class PhononBands(object):
 
     def view_phononwebsite(self, browser=None, verbose=1, **kwargs):
         """
-        Produce json file that can be parsed from the phononwebsite and open it in `browser`.
+        Produce JSON_ file that can be parsed from the phononwebsite and open it in ``browser``.
 
-        Return:
-            Exit status
+        Return: Exit status
         """
         # Create json in abipy_nbworkdir with relative path so that we can read it inside the browser.
         from abipy.core.globals import abinb_mkstemp
@@ -739,8 +738,7 @@ class PhononBands(object):
     def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None,
                                   match_bands=True, highsym_qpts_mode="split", indent=2):
         """
-        Writes a json file that can be parsed from the phononwebsite.
-        See <https://github.com/henriquemiranda/phononwebsite>
+        Writes a JSON_ file that can be parsed from the phononwebsite_.
 
         Args:
             filename: name of the json file that will be created
@@ -761,7 +759,7 @@ class PhononBands(object):
         def split_non_collinear(qpts):
             r"""
             function that splits the list of qpoints at repetitions (only the first point will be considered as
-            high symm) and where the direction changes. Also sets $\Gamma$ for [0, 0, 0].
+            high symm) and where the direction changes. Also sets :math:`\Gamma` for [0, 0, 0].
             Similar to what is done in phononwebsite.
             """
             h = []
@@ -871,16 +869,14 @@ class PhononBands(object):
         Plot the phonon band structure.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
-                Case-insensitive.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         # Select the band range.
         if branch_range is None:
@@ -906,11 +902,10 @@ class PhononBands(object):
 
     def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
         """
-        Plots the frequencies for the given branches indices as a function of the q index on axis ax.
-        If branch is None, all phonon branches are plotted.
+        Plots the frequencies for the given branches indices as a function of the q-index on axis ``ax``.
+        If ``branch`` is None, all phonon branches are plotted.
 
-        Return:
-            The list of 'matplotlib' lines added.
+        Return: The list of matplotlib lines added.
         """
         if branch is None:
             branch_range = range(self.num_branches)
@@ -943,10 +938,10 @@ class PhononBands(object):
         Plot the phonon band structure with different color for each line.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch_i index to plot
                 (default: all branches are plotted).
             colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
@@ -955,8 +950,7 @@ class PhononBands(object):
             max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
                 It useful to better distinguish close bands when the number of branch is large.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         # Select the band range.
         if branch_range is None:
@@ -1184,7 +1178,7 @@ class PhononBands(object):
                       **kwargs):
                       #cart_dir=None
         r"""
-        Plot phonon fatbands and, optionally, atom-projected DOS.
+        Plot phonon fatbands and, optionally, atom-projected DOSes.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -1202,8 +1196,7 @@ class PhononBands(object):
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         lw = kwargs.pop("lw", 2)
         factor = factor_ev2units(units)
@@ -1314,15 +1307,14 @@ class PhononBands(object):
         Plot the phonon band structure with the phonon DOS.
 
         Args:
-            phdos: An instance of :class:`PhononDos` or netcdf file providing a PhononDos object.
-            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            phdos: An instance of :class:`PhononDos` or a netcdf file providing a PhononDos object.
+            units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
-                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0):"$\Gamma$", (0.5,0,0):"L"}``.
+                The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
 
@@ -1367,7 +1359,7 @@ class PhononBands(object):
 
     def get_dataframe(self):
         """
-        Return a pandas DataFrame with the following columns:
+        Return a |pandas-DataFrame| with the following columns:
 
             ['qidx', 'mode', 'freq', 'qpoint']
 
@@ -1398,10 +1390,10 @@ class PhononBands(object):
     @add_fig_kwargs
     def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
         """
-        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the mode index.
+        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the mode index.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             mode_range: Only modes such as `mode_range[0] <= mode_index < mode_range[1]` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
@@ -1429,7 +1421,7 @@ class PhononBands(object):
 
     def to_pymatgen(self, qlabels=None):
         r"""
-        Creates a pymatgen PhononBandStructureSymmLine object.
+        Creates a pymatgen :class:`PhononBandStructureSymmLine` object.
 
         Args:
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
@@ -1485,13 +1477,13 @@ class PHBST_Reader(ETSF_Reader):
         return self.read_value("qweights")
 
     def read_phfreqs(self):
-        """Array with the phonon frequencies in eV."""
+        """|numpy-array| with the phonon frequencies in eV."""
         return self.read_value("phfreqs")
 
     def read_phdispl_cart(self):
         """
         Complex array with the Cartesian displacements in **Angstrom**
-        shape is (num_qpoints,  mu_mode,  cart_direction).
+        shape is [num_qpoints,  mu_mode,  cart_direction].
         """
         return self.read_value("phdispl_cart", cmode="c")
 
@@ -1504,7 +1496,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def __init__(self, filepath):
         """
-        Object used to access data stored in the PHBST file produced by ABINIT.
+        Object used to access data stored in the PHBST.nc file produced by ABINIT.
 
         Args:
             path: path to the file
@@ -1537,7 +1529,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     @property
     def structure(self):
-        """:class:`Structure` object"""
+        """|Structure| object"""
         return self.phbands.structure
 
     @property
@@ -1547,7 +1539,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     @property
     def phbands(self):
-        """:class:`PhononBands` object"""
+        """|PhononBands| object"""
         return self._phbands
 
     def close(self):
@@ -1572,11 +1564,11 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def get_phframe(self, qpoint, with_structure=True):
         """
-        Return a pandas :class:`DataFrame` with the phonon frequencies at the given q-point and
+        Return a |pandas-DataFrame| with the phonon frequencies at the given q-point and
         information on the crystal structure (used for convergence studies).
 
         Args:
-            qpoint: integer, vector of reduced coordinates or :class:`Kpoint` object.
+            qpoint: integer, vector of reduced coordinates or |Kpoint| object.
 	    with_structure: True to add structural parameters.
         """
         qindex, qpoint = self.qindex_qpoint(qpoint)
@@ -1619,7 +1611,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1642,11 +1634,12 @@ _THERMO_YLABELS = {  # [name][units] --> latex string
     "cv": {"eV": "$C_V(T)$ [eV/cell]", "Jmol": "$C_V(T)$ [J/mole]"},
 }
 
+
 class PhononDos(Function1D):
     """
     This object stores the phonon density of states.
-    An instance of `PhononDos` has a `mesh` (numpy array with the points of the mesh)
-    and another numpy array, `values`, with the DOS on the mesh..
+    An instance of ``PhononDos`` has a ``mesh`` (numpy array with the points of the mesh)
+    and another numpy array, ``values``, with the DOS on the mesh.
 
     .. note::
 
@@ -1663,11 +1656,11 @@ class PhononDos(Function1D):
 
             - instances of cls
             - files (string) that can be open with abiopen and that provide one of the following attributes: [`phdos`, `phbands`]
-            - instances of `PhononBands`
-            - objects providing a `phbands` attribute.
+            - instances of ``PhononBands`
+            - objects providing a ``phbands`` attribute.
 
         Args:
-            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
+            phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
             Used when obj is not already an instance of `cls` or when we have to compute the DOS from obj.
         """
         if phdos_kwargs is None: phdos_kwargs = {}
@@ -1704,7 +1697,7 @@ class PhononDos(Function1D):
     @lazy_property
     def iw0(self):
         """
-        index of the first point in the mesh whose value is >= 0
+        Index of the first point in the mesh whose value is >= 0
         """
         iw0 = self.find_mesh_index(0.0)
         if iw0 == -1:
@@ -1724,10 +1717,10 @@ class PhononDos(Function1D):
 
     def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs):
         """
-        Helper function to plot DOS/IDOS on the axis ax.
+        Helper function to plot DOS/IDOS on the axis ``ax``.
 
         Args:
-            ax: matplotlib axis
+            ax: |matplotlib-Axes|
             what: string selecting the quantity to plot:
                 "d" for DOS, "i" for IDOS. chars can be concatenated
                 hence what="id" plots both IDOS and DOS. (default "d").
@@ -1736,7 +1729,7 @@ class PhononDos(Function1D):
             kwargs: Options passed to matplotlib plot method.
 
         Return:
-            list of lines added to the plot
+            list of lines added to the plot.
         """
         opts = [c.lower() for c in what]
         lines = []
@@ -1762,8 +1755,7 @@ class PhononDos(Function1D):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             kwargs: Keyword arguments passed to :mod:`matplotlib`.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
@@ -1790,12 +1782,12 @@ class PhononDos(Function1D):
         Returns the internal energy, in eV, in the harmonic approximation for different temperatures
         Zero point energy is included.
 
-        tstart: The starting value (in Kelvin) of the temperature mesh.
-        tstop: The end value (in Kelvin) of the mesh.
-        num: int, optional Number of samples to generate. Default is 50.
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num (int): optional Number of samples to generate. Default is 50.
 
-        Return:
-            :class:`Function1D` with U(T) + ZPE
+        Return: |Function1D| object with U(T) + ZPE.
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
@@ -1812,12 +1804,12 @@ class PhononDos(Function1D):
         """
         Returns the entropy, in eV/K, in the harmonic approximation for different temperatures
 
-        tstart: The starting value (in Kelvin) of the temperature mesh.
-        tstop: The end value (in Kelvin) of the mesh.
-        num: int, optional Number of samples to generate. Default is 50.
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num (int): optional Number of samples to generate. Default is 50.
 
-        Return:
-            :class:`Function1D` with S(T).
+        Return: |Function1D| object with S(T).
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
@@ -1835,12 +1827,12 @@ class PhononDos(Function1D):
         Returns the free energy, in eV, in the harmonic approximation for different temperatures
         Zero point energy is included.
 
-        tstart: The starting value (in Kelvin) of the temperature mesh.
-        tstop: The end value (in Kelvin) of the mesh.
-        num: int, optional Number of samples to generate. Default is 50.
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num (int): optional Number of samples to generate. Default is 50.
 
-        Return:
-            :class:`Function1D` with F(T) = U(T) + ZPE - T x S(T)
+        Return: |Function1D| object with F(T) = U(T) + ZPE - T x S(T)
         """
         uz = self.get_internal_energy(tstart=tstart, tstop=tstop, num=num)
         s = self.get_entropy(tstart=tstart, tstop=tstop, num=num)
@@ -1852,12 +1844,12 @@ class PhononDos(Function1D):
         Returns the constant-volume specific heat, in eV/K, in the harmonic approximation
         for different temperatures
 
-        tstart: The starting value (in Kelvin) of the temperature mesh.
-        tstop: The end value (in Kelvin) of the mesh.
-        num: int, optional Number of samples to generate. Default is 50.
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num (int): optional Number of samples to generate. Default is 50.
 
-        Return:
-            :class:`Function1D` with C_v(T).
+        Return: |Function1D| object with C_v(T).
         """
         tmesh = np.linspace(tstart, tstop, num=num)
         w, gw = self.mesh[self.iw0:], self.values[self.iw0:]
@@ -1884,12 +1876,10 @@ class PhononDos(Function1D):
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
                 None means all.
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
-            formula_units:
-                the number of formula units per unit cell. If unspecified, the
+            formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         quantities = list_strings(quantities) if quantities is not None else \
             ["internal_energy", "free_energy", "entropy", "cv"]
@@ -1925,7 +1915,7 @@ class PhononDos(Function1D):
 
     def to_pymatgen(self):
         """
-        Creates a pymatgen PhononDos object
+        Creates a pymatgen :class:`PmgPhononDos` object
         """
         factor = factor_ev2units("thz")
 
@@ -1942,7 +1932,7 @@ class PhdosReader(ETSF_Reader):
     """
     @lazy_property
     def structure(self):
-        """The crystalline structure."""
+        """|Structure| object."""
         return self.read_structure()
 
     @lazy_property
@@ -1966,7 +1956,7 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_rc_dict(self):
         """
-        Return `OrderedDict` mapping element symbol --> [3, nomega] array
+        Return :class:`OrderedDict` mapping element symbol --> [3, nomega] array
         with the the phonon DOSes summed over atom-types and decomposed along
         the three reduced directions.
         """
@@ -1982,9 +1972,9 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_dict(self):
         """
-        Ordered dictionary mapping element symbol --> `PhononDos`
+        Ordered dictionary mapping element symbol --> :class:`PhononDos`
         where PhononDos is the contribution to the total DOS summed over atoms
-        with chemical symbol `symbol`.
+        with chemical symbol ``symbol``.
         """
         # [ntypat, nomega] array with PH-DOS projected over atom types."""
         values = self.read_pjdos_type()
@@ -2003,8 +1993,8 @@ class PhdosReader(ETSF_Reader):
 class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     Container object storing the different DOSes stored in the
-    PHDOS.nc file produced by anaddb. Provides helper function
-    to visualize/extract data.
+    PHDOS.nc file produced by anaddb.
+    Provides helper function to visualize/extract data.
     """
 
     def __init__(self, filepath):
@@ -2041,7 +2031,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def structure(self):
-        """Returns the :class:`Structure` object."""
+        """|Structure| object."""
         return self.reader.structure
 
     @lazy_property
@@ -2065,20 +2055,19 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Plot type-projected phonon DOS.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             stacked: True if DOS partial contributions should be stacked on top of each other.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             colormap: Have a look at the colormaps
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
-            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque).
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
             ylims: y-axis limits.
             fontsize: legend and title fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         lw = kwargs.pop("lw", 2)
         factor = factor_ev2units(units)
@@ -2118,7 +2107,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                                xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
         """
         Plot type-projected phonon DOS decomposed along the three reduced directions.
-        Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total PH DOS.
+        Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total Phonon DOS.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -2127,14 +2116,13 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 `here <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>`_
                 and decide which one you'd like:
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: y-axis limits.
-            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+            axlist: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|.
         """
         lw = kwargs.pop("lw", 2)
         ntypat = self.structure.ntypesp
@@ -2195,15 +2183,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             stacked: True if DOS partial contributions should be stacked on top of each other.
             colormap: matplotlib colormap.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            axlist: List of matplotlib :class:`Axes` or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            axlist: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # Define num_plots and ax2atom depending on view.
         factor = factor_ev2units(units)
@@ -2268,7 +2255,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2286,7 +2273,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def to_pymatgen(self):
         """
-        Creates a pymatgen CompletePhononDos object
+        Creates a pymatgen :class:`PmgCompletePhononDos` object.
         """
         total_dos = self.phdos.to_pymatgen()
 
@@ -2309,17 +2296,16 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     Args:
         phb_objects: List of objects from which the phonon band structures are extracted.
             Each item in phb_objects is either a string with the path of the netcdf file,
-            or one of the abipy object with an `phbands` attribute or a :class:`PhononBands` object.
+            or one of the abipy object with an ``phbands`` attribute or a :class:`PhononBands` object.
         phdos_objects: List of objects from which the phonon DOSes are extracted.
             Accept filepaths or :class:`PhononDos` objects. If phdos_objects is not None,
             each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
         titles: List of strings with the titles to be added to the subplots.
-        phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
-            Used only if `phdos_objects` is not None.
+        phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
+            Used only if ``phdos_objects`` is not None.
         units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
-    Returns:
-        matplotlib figure.
+    Returns: |matplotlib-Figure|
     """
     # Build list of PhononBands objects.
     phbands_list = [PhononBands.as_phbands(obj) for obj in phb_objects]
@@ -2381,12 +2367,11 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
     Args:
         phbands_objects: List of objects that can be converted to phonon bands objects..
             Support netcdf filenames or :class:`PhononBands` objects
-            See `PhononBands.as_phbands` for the complete list.
+            See ``PhononBands.as_phbands`` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
 
-    Return:
-        pandas :class:`DataFrame`
+    Return: |pandas-DataFrame|
     """
     phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
     # Use OrderedDict to have columns ordered nicely.
@@ -2470,7 +2455,7 @@ class PhononBandsPlotter(NotebookWriter):
 
     def get_phbands_frame(self, with_spglib=True):
         """
-        Build a pandas dataframe with the most important results available in the band structures.
+        Build a |pandas-DataFrame| with the most important results available in the band structures.
         """
         return dataframe_from_phbands(list(self.phbands_dict.values()),
                                       index=list(self.phbands_dict.keys()), with_spglib=with_spglib)
@@ -2506,7 +2491,7 @@ class PhononBandsPlotter(NotebookWriter):
     @deprecated(message="add_phbands_from_file method of PhononBandsPlotter has been replaced by add_phbands. It will be removed in 0.4")
     def add_phbands_from_file(self, filepath, label=None):
         """
-        Adds a band structure for plotting. Reads data from a Netcdfile
+        Adds a band structure for plotting. Reads data from a netcdf_ file
         """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
@@ -2521,8 +2506,8 @@ class PhononBandsPlotter(NotebookWriter):
             label: label for the bands. Must be unique.
             bands: :class:`PhononBands` object.
             phdos: :class:`PhononDos` object.
-            phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
-              Used only if `phdos` is not None.
+            phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
+              Used only if ``phdos`` is not None.
         """
         if dos is not None:
             import warnings
@@ -2564,17 +2549,16 @@ class PhononBandsPlotter(NotebookWriter):
     def combiplot(self, qlabels=None, units='eV', ylims=None, **kwargs):
         r"""
         Plot the band structure and the DOS on the same figure.
-        Use `gridplot` to plot band structures on different figures.
+        Use ``gridplot`` to plot band structures on different figures.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the k-points.
                 The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
@@ -2644,8 +2628,7 @@ class PhononBandsPlotter(NotebookWriter):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             with_dos: True if DOS should be printed.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         titles = list(self._bands_dict.keys())
         phb_objects = list(self._bands_dict.values())
@@ -2662,10 +2645,10 @@ class PhononBandsPlotter(NotebookWriter):
         Band structures are drawn on different subplots.
 
         Args:
-            mode_range: Only bands such as `mode_range[0] <= nu_index < mode_range[1]` are included in the plot.
+            mode_range: Only bands such as ``mode_range[0] <= nu_index < mode_range[1]`` are included in the plot.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
-            kwargs: Keywork arguments passed to seaborn boxplot.
+            kwargs: Keywork arguments passed to seaborn_ boxplot.
         """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.phbands_dict), 1, 1
@@ -2692,11 +2675,11 @@ class PhononBandsPlotter(NotebookWriter):
         Phonon Band structures are drawn on the same plot.
 
         Args:
-            mode_range: Only bands such as `mode_range[0] <= nu_index < mode_range[1]` are included in the plot.
+            mode_range: Only bands such as ``mode_range[0] <= nu_index < mode_range[1]`` are included in the plot.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            kwargs: Keyword arguments passed to seaborn boxplot.
+            kwargs: Keyword arguments passed to seaborn_ boxplot.
         """
         frames = []
         for label, phbands in self.phbands_dict.items():
@@ -2738,14 +2721,15 @@ class PhononBandsPlotter(NotebookWriter):
                 Used when there are DOS stored in the plotter.
             show: True if the animation should be shown immediately
 
-        Returns:
-            Animation object.
+        Returns: Animation object.
 
-        See also:
+        .. Seealso::
+
             http://matplotlib.org/api/animation_api.html
             http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
 
-        Note:
+        .. Note::
+
             It would be nice to animate the title of the plot, unfortunately
             this feature is not available in the present version of matplotlib.
             See: http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
@@ -2813,12 +2797,12 @@ class PhononBandsPlotter(NotebookWriter):
             )
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
     def write_notebook(self, nbpath=None):
         """
-        Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2879,15 +2863,17 @@ class PhononDosPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=12, **kwargs):
         """
-        Plot DOSes on the same figure. Use `gridplot` to plot DOSes on different figures.
+        Plot DOSes on the same figure. Use ``gridplot`` to plot DOSes on different figures.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: y-axis limits.
             fontsize: Legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -2919,11 +2905,10 @@ class PhononDosPlotter(NotebookWriter):
 
         Args:
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         titles = list(self._phdoses_dict.keys())
         phdos_list = list(self._phdoses_dict.values())
@@ -2967,15 +2952,13 @@ class PhononDosPlotter(NotebookWriter):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 50.
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
-            formula_units:
-                the number of formula units per unit cell. If unspecified, the
+            formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
             quantities: List of strings specifying the thermodinamic quantities to plot.
-                Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
+                Possible values in ["internal_energy", "free_energy", "entropy", "c_v"].
             fontsize: Legend and title fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         quantities = list_strings(quantities) if quantities != "all" else \
             ["internal_energy", "free_energy", "entropy", "cv"]
@@ -3069,7 +3052,7 @@ class NonAnalyticalPh(Has_Structure):
     def __init__(self, structure, directions, phfreqs, phdispl_cart, amu=None):
         """
         Args:
-            structure: :class:`Structure` object.
+            structure: |Structure| object.
             directions: Cartesian directions along which the non analytical frequencies have been calculated
             phfreqs: Phonon frequencies with non analytical contribution in eV along directions
             phdispl_cart: Displacement in Angstrom in Cartesian coordinates with non analytical contribution
@@ -3116,7 +3099,7 @@ class NonAnalyticalPh(Has_Structure):
 
     @property
     def structure(self):
-        """:class:`Structure` object"""
+        """|Structure| object."""
         return self._structure
 
     def has_direction(self, direction, cartesian=False):
@@ -3169,11 +3152,12 @@ class InteratomicForceConstants(Has_Structure):
 
     @property
     def number_of_atoms(self):
+        """Number of atoms is structure."""
         return len(self.structure)
 
     @classmethod
     def from_file(cls, filepath):
-        """Create the object from a netCDF file."""
+        """Create the object from a netcdf_ file."""
         with ETSF_Reader(filepath) as r:
             try:
                 structure = r.read_structure()
@@ -3197,7 +3181,7 @@ class InteratomicForceConstants(Has_Structure):
 
     @property
     def structure(self):
-        """:class:`Structure` object"""
+        """|Structure| object."""
         return self._structure
 
     @property
@@ -3326,8 +3310,7 @@ class InteratomicForceConstants(Has_Structure):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
-        Returns:
-            matplotlib figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -3368,8 +3351,7 @@ class InteratomicForceConstants(Has_Structure):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
-        Returns:
-            matplotlib figure
+        Returns: |matplotlib-Figure|
         """
         if self.local_vectors is None:
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
@@ -3389,11 +3371,10 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
-        Returns:
-            matplotlib figure
+        Returns: |matplotlib-Figure|
         """
         if self.local_vectors is None:
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
@@ -3420,8 +3401,7 @@ class InteratomicForceConstants(Has_Structure):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
-        Returns:
-            matplotlib figure
+        Returns: |matplotlib-Figure|
         """
         if self.local_vectors is None:
             raise ValueError("Local coordinates are missing. Run anaddb with ifcana=1")
@@ -3444,13 +3424,13 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
         phdispl: a numpy array containing the eigendisplacements in cartesian coordinates. The last index should have
             size 3*(num atoms), but the rest of the shape is arbitrary. If qpts is not None the first dimension
             should match the q points.
-        structure: :class:`Structure` object.
+        structure: |Structure| object.
         amu: dictionary that associates the atomic numbers present in the structure to the values of the atomic
             mass units used for the calculation. If None, values from pymatgen will be used. Note that this will
             almost always lead to inaccuracies in the conversion.
 
     Returns:
-        A numpy array of the same shape as phdispl containing the eigenvectors of the dynamical matrix
+        A |numpy-array| of the same shape as phdispl containing the eigenvectors of the dynamical matrix
     """
     eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
 
@@ -3489,17 +3469,17 @@ def match_eigenvectors(v1, v2):
 
 class RobotWithPhbands(object):
     """
-    Mixin class for robots associated to files with `PhononBands`.
+    Mixin class for robots associated to files with :class:`PhononBands`.
     """
 
     def get_phbands_plotter(self, filter_abifile=None, cls=None):
         """
-        Build and return an instance of `PhononBandsPlotter` or a subclass is cls is not None.
+        Build and return an instance of |PhononBandsPlotter| or a subclass is cls is not None.
 
         Args:
-            filter_abifile: Function that receives an `abifile` object and returns
+            filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
-            cls: subclass of `PhononBandsPlotter`
+            cls: subclass of |PhononBandsPlotter|
         """
         plotter = PhononBandsPlotter() if cls is None else cls()
 
@@ -3511,7 +3491,7 @@ class RobotWithPhbands(object):
 
     def get_phbands_dataframe(self, with_spglib=True):
         """
-        Build a pandas dataframe with the most important results available in the band structures.
+        Build a |pandas-dataframe| with the most important results available in the band structures.
         """
         return dataframe_from_phbands([nc.phbands for nc in self.abifiles],
                                       index=self.labels, with_spglib=with_spglib)
@@ -3532,7 +3512,7 @@ def open_file_phononwebsite(filename, port=8000,
                             host="localhost", browser=None):
     """
     Take a file, detect the type and open it on the phonon website
-    Based on a similar function in https://github.com/henriquemiranda/phononwebsite/phononweb.py
+    Based on a similar function in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
 
     Args:
 

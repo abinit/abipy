@@ -30,7 +30,7 @@ _COLOR_CMODE = dict(re="red", im="blue", abs="black", angle="green")
 
 
 def _latex_symbol_cplxmode(symbol, cplx_mode):
-    """Latex label to be used to plot `symbol` in `cplx_mode`."""
+    """Latex label to be used to plot ``symbol`` in ``cplx_mode``."""
     return {"re": r"$\Re(" + symbol + ")$",
             "im": r"$\Im(" + symbol + ")$",
             "abs": r"$||" + symbol + "||$",
@@ -39,7 +39,7 @@ def _latex_symbol_cplxmode(symbol, cplx_mode):
 
 class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     """
-    This object provides an interface to the `SCR.nc` file produced by the GW code.
+    This object provides an interface to the ``SCR.nc`` file produced by the GW code.
 
     Usage example:
 
@@ -48,6 +48,8 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         with ScrFile("foo_SCR.nc") as ncfile:
             print(ncfile)
             ncfile.plot_emacro()
+
+    .. inheritance-diagram:: ScrFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -59,7 +61,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         self.reader = ScrReader(filepath)
 
     def close(self):
-        """Close file."""
+        """Close the file."""
         self.reader.close()
 
     def __str__(self):
@@ -92,7 +94,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     @property
     def structure(self):
-        """Crystalline structure."""
+        """|Structure| object."""
         return self.reader.structure
 
     @property
@@ -103,7 +105,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     @lazy_property
     def ebands(self):
         """
-        :class:`ElectronBands` object with the single-particle energies used to compute the screening.
+        |ElectronBands| object with the single-particle energies used to compute the screening.
         """
         ebands = ElectronBands.from_file(self.filepath)
         # FIXME
@@ -119,7 +121,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     @property
     def wpoints(self):
         """
-        Array of complex numbers with the frequencies of the dielectric function in Ha.
+        Array of complex numbers with the frequencies of the dielectric function in Hartree.
         """
         return self.reader.wpoints
 
@@ -140,14 +142,14 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     @property
     def netcdf_name(self):
-        """The etsf-io name associated to the data on disk."""
+        """The netcdf_ name associated to the data on disk."""
         return self.reader.netcdf_name
 
     @lazy_property
     def params(self):
         """
-        :class:`AttrDict` with the most important parameters used to compute the screening
-        keys can be accessed with the dot notation i.e. `params.zcut`.
+        |AttrDict| with the most important parameters used to compute the screening
+        keys can be accessed with the dot notation i.e. ``params.zcut``.
         """
         return self.reader.read_params()
 
@@ -158,17 +160,18 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
         Args:
             cplx_mode: string defining the data to print.
-                Possible choices are (case-insensitive): `re` for the real part
-                "im" for the imaginary part, "abs" for the absolute value.
+                Possible choices are (case-insensitive):
+                "re" for the real part. "im" for the imaginary part.
+                "abs" for the absolute value.
                 "angle" will display the phase of the complex number in radians.
-                Options can be concatenated with "-" e.g. "re-im"
-            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
-                or scalar e.g. `left`. If left (right) is None, default values are used
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+                Options can be concatenated with ``-`` e.g. ``re-im``.
+            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. (left, right)
+                or scalar e.g. left. If left (right) is None, default values are used.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
         Returns:
-            matplotlib figure.
+            |matplotlib-Figure|
         """
         emlf = self.reader.read_emacro_lf()
         xx, yy = emlf.mesh * pmgu.Ha_to_eV, emlf.values
@@ -193,13 +196,12 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         Plot electron energy loss function.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: Legend and label fontsize:
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         eelf = self.reader.read_eelf()
         xx, yy = eelf.mesh * pmgu.Ha_to_eV, eelf.values
@@ -217,7 +219,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -248,6 +250,8 @@ class ScrReader(ETSF_Reader):
     double inverse_dielectric_function(number_of_qpoints_dielectric_function,
     number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
     number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)
+
+    .. inheritance-diagram:: ScrReader
     """
     def __init__(self, filepath):
         super(ScrReader, self).__init__(filepath)
@@ -292,8 +296,7 @@ class ScrReader(ETSF_Reader):
         the parameters that may be subject to convergence studies.
 
         Returns:
-            :class:`AttrDict` a dictionary whose keys can be accessed
-            with the dot notation i.e. d.key.
+            |AttrDict| a dictionary whose keys can be accessed with the dot notation i.e. ``d.key``.
         """
         # TODO: ecuteps is missing!
         keys = ["ikxc", "inclvkb", "gwcalctyp", "nbands_used", "npwwfn_used",
@@ -310,7 +313,7 @@ class ScrReader(ETSF_Reader):
         """
         Read the macroscopic dielectric function *with* local field effects 1 / em1_{0,0)(kpoint, omega).
 
-        Return: :class:`Function1D` object.
+        Return: |Function1D| object.
         """
         if self.netcdf_name == "inverse_dielectric_function":
             em1 = self.read_wslice(kpoint, ig1=0, ig2=0)
@@ -324,7 +327,7 @@ class ScrReader(ETSF_Reader):
         """
         Read the macroscopic dielectric function *without* local field effects e_{0,0)(kpoint, omega).
 
-        Return: :class:`Function1D`
+        Return: |Function1D|
 
         .. warning::
 
@@ -345,7 +348,7 @@ class ScrReader(ETSF_Reader):
 
             - Im(1/ emacro)
 
-        Return: :class:`Function1D` object.
+        Return: |Function1D| object.
         """
         # eelf = -Im(1 / eM)
         emacro_lf = self.read_emacro_lf(kpoint=kpoint)
@@ -356,8 +359,8 @@ class ScrReader(ETSF_Reader):
 
     def read_wggmat(self, kpoint, spin1=0, spin2=0, cls=None):
         """
-        Read data at the given k-point and return an instance of `cls` where
-        `cls` is a subclass of `_AwggMatrix`
+        Read data at the given k-point and return an instance of ``cls`` where
+        ``cls`` is a subclass of :class:`_AwggMatrix`
         """
         cls = _AwggMatrix.class_from_netcdf_name(self.netcdf_name) if cls is None else cls
 
@@ -383,7 +386,7 @@ class ScrReader(ETSF_Reader):
     def find_kpoint_fileindex(self, kpoint):
         """
         Returns the k-point and the index of the k-point in the netcdf file.
-        Accepts :class:`Kpoint` or integer
+        Accepts |Kpoint| instance or integer.
         """
         if duck.is_intlike(kpoint):
             ik = int(kpoint)
@@ -422,11 +425,11 @@ class _AwggMatrix(object):
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
         """"
         Args:
-            gsphere: :class:`GSphere` with G-vectors and k-point object.
+            gsphere: |GSphere| with G-vectors and k-point object.
             wpoints: Complex frequency points in Hartree.
             wggmat: [nw, ng, ng] complex array.
-            inord: storage order of `wggmat`. If inord == "F", `wggmat` is in
-                in Fortran column-major order. Default: "C" i.e. C row-major order
+            inord: storage order of ``wggmat``. If inord == "F", ``wggmat`` is in
+                in Fortran column-major order. Default: "C" i.e. C row-major order.
         """
         self.wpoints = np.array(wpoints, dtype=np.complex)
         self.gsphere = gsphere
@@ -491,7 +494,7 @@ class _AwggMatrix(object):
 
     @property
     def kpoint(self):
-        """:class:`Kpoint` object."""
+        """|Kpoint| object."""
         return self.gsphere.kpoint
 
     @property
@@ -534,7 +537,7 @@ class _AwggMatrix(object):
 
     def windex(self, w, atol=0.001):
         """
-        Find the index of the **closest** frequency in `wpoints`.
+        Find the index of the **closest** frequency in ``wpoints``.
         """
         if np.iscomplex(w):
             iw = bs_index(self.imag_wpoints.imag, w.imag, atol=atol)
@@ -546,8 +549,9 @@ class _AwggMatrix(object):
 
     def gindex(self, gvec):
         """
-        Find the index of gvec. If `gvec` is an integer, gvec is returned.
-        Raises `ValueError` if gvec is not found.
+        Find the index of gvec. If ``gvec`` is an integer, gvec is returned.
+        Raises:
+            `ValueError` if gvec is not found.
         """
         if duck.is_intlike(gvec): return int(gvec)
         return self.gsphere.index(gvec)
@@ -563,17 +567,16 @@ class _AwggMatrix(object):
 
         Args:
             gvec1, gvec2:
-            waxis: "real" to plot along the real axis, "imag" for the imaginary axis.
+            waxis: ``real`` to plot along the real axis, ``imag`` for the imaginary axis.
             cplx_mode: string defining the data to print.
-                Possible choices are (case-insensitive): `re` for the real part
-                "im" for the imaginary part, "abs" for the absolute value.
-                "angle" will display the phase of the complex number in radians.
-                Options can be concatenated with "-" e.g. "re-im"
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+                Possible choices are (case-insensitive): ``re`` for the real part
+                ``im`` for the imaginary part, ``abs`` for the absolute value.
+                ``angle`` will display the phase of the complex number in radians.
+                Options can be concatenated with ``-`` e.g. ``re-im``.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         # Select data to plot
         ig1 = self.gindex(gvec1)
@@ -617,16 +620,15 @@ class _AwggMatrix(object):
 
         Args:
             cplx_mode: string defining the data to print.
-                Possible choices are (case-insensitive): `re` for the real part
-                "im" for the imaginary part, "abs" for the absolute value.
-                "angle" will display the phase of the complex number in radians.
+                Possible choices are (case-insensitive): ``re`` for the real part
+                ``im`` for the imaginary part, ``abs`` for the absolute value.
+                ``angle`` will display the phase of the complex number in radians.
             wpos: List of frequency indices to plot. If None, the first frequency is used (usually w=0).
                 If wpos == "all" all frequencies are shown (use it carefully)
                 Other possible values: "real" if only real frequencies are wanted.
                 "imag" for imaginary frequencies only.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         # Get wpos indices.
         choice_wpos = {None: [0], "all": range(self.nw),
@@ -649,16 +651,25 @@ class _AwggMatrix(object):
 
 
 class Polarizability(_AwggMatrix):
+    """
+    .. inheritance-diagram:: Polarizability
+    """
     netcdf_name = "polarizability"
     latex_name = r"\tilde chi"
 
 
 class DielectricFunction(_AwggMatrix):
+    """
+    .. inheritance-diagram:: DielectricFunction
+    """
     netcdf_name = "dielectric_function"
     latex_name = r"\epsilon"
 
 
 class InverseDielectricFunction(_AwggMatrix):
+    """
+    .. inheritance-diagram:: InverseDielectricFunction
+    """
     netcdf_name = "inverse_dielectric_function"
     latex_name = r"\epsilon^{-1}"
 

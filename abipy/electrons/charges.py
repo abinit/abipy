@@ -26,16 +26,18 @@ __all__ = [
 
 class Charges(Has_Structure):
     """
-    Base charges class, describing the atomic chrages in a DFT calculation.
+    Base charges class, describing the atomic charges in a DFT calculation.
     The charges refer to the total charges for each atom (i.e. Z-n_electrons).
     An eccess of electron has a negative charge
+
+    .. inheritance-diagram:: Charges
     """
 
     def __init__(self, electron_charges, structure, reference_charges=None):
         """
         Args:
             electron_charges: Charges coming from the electron for each element of the structure (with negative sign)
-            structure: The crystal structure
+            structure: |Structure| object.
             reference_charges: Reference charges associated to each atom of the structure, considered as isolated
                 (with negative sign). Should represent either all the electrons or just the valence, depending on the
                 charge density used to perform the analysis.
@@ -64,6 +66,8 @@ class HirshfeldCharges(Charges):
     Class representing the charges obtained from the Hirshfeld analysis.
     The charges refer to the total charges for each atom (i.e. Z-n_electrons).
     An eccess of electron has a negative charge
+
+    .. inheritance-diagram:: HirshfeldCharges
     """
     @classmethod
     def from_cut3d_outfile(cls, filepath, structure):
@@ -98,6 +102,8 @@ class BaderCharges(Charges):
     Class representing the charges obtained from the Bader analysis.
     TThe charges refer to the total charges for each atom (i.e. Z-n_electrons).
     An eccess of electron has a negative charge
+
+    .. inheritance-diagram:: BaderCharges
     """
 
     @classmethod
@@ -120,10 +126,10 @@ class BaderCharges(Charges):
             with_core: Core charges will be extracted from the pseudopotentials with the
                 Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.
             workdir: Working directory. If None, a temporary directory is created.
-            **kwargs: arguments passed to the method Density.ae_core_density_on_mesh
+            kwargs: arguments passed to the method ``Density.ae_core_density_on_mesh``
 
         Returns:
-            An instance of BaderCharges
+            An instance of :class:`BaderCharges`
         """
         # read the valence density
         # if density is not a netcdf file, convert with cut3d

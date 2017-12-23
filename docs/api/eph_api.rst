@@ -1,6 +1,9 @@
 eph Package
 ===========
 
+.. contents::
+   :backlinks: top
+
 :mod:`eph` Package
 ----------------------
 

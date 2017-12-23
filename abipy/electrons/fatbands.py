@@ -27,7 +27,7 @@ def gaussians_dos(dos, mesh, width, values, energies, weights):
 
 class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    Provides methods to analyze the data stored in the FATBANDS.nc file.
+    Provides methods to analyze the data stored in the FATBANDS.nc_ file.
 
     Usage example:
 
@@ -37,11 +37,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             print(fb.structure)
             fb.plot_fatbands_lview()
 
-    Alternatively, one can use the `abiopen.py` script to open the file in an ipython notebook with
+    Alternatively, one can use the `abiopen.py` script to open the file in an ipython notebook with::
 
-    .. code-block:: shell
+        abiopen.py out_FATBANDS.nc -nb
 
-        $ abiopen.py out_FATBANDS.nc -nb
+    .. inheritance-diagram:: FatBandsFile
     """
     # These class attributes can be redefined in order to customize the plots.
 
@@ -85,7 +85,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file"""
+        """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -166,7 +166,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @lazy_property
     def wal_sbk(self):
         """
-        Numpy array of shape [natom, mbesslang, nsppol, mband, nkpt]
+        |numpy-array| of shape [natom, mbesslang, nsppol, mband, nkpt]
         with the L-contributions. Present only if prtdos == 3.
         """
         return self._read_wal_sbk()
@@ -174,7 +174,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @lazy_property
     def walm_sbk(self):
         """
-        Numpy array of shape [natom, mbesslang**2, nsppol, mband, nkpt]
+        |numpy-array| of shape [natom, mbesslang**2, nsppol, mband, nkpt]
         with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0
         """
         return self._read_walm_sbk(key="dos_fractions_m")
@@ -273,16 +273,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self._ebands
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     def close(self):
-        """Called at the end of the `with` context manager."""
+        """Called at the end of the ``with`` context manager."""
         return self.reader.close()
 
     def __str__(self):
@@ -328,8 +328,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def get_wl_atom(self, iatom, spin=None, band=None):
         """
-        Return the l-dependent DOS weights for atom index `iatom`. The weights are summed over m.
-        If `spin` and `band` are not specified, the method returns the weights
+        Return the l-dependent DOS weights for atom index ``iatom``. The weights are summed over m.
+        If ``spin`` and ``band`` are not specified, the method returns the weights
         for all spin and bands else the contribution for (spin, band)
         """
         if spin is None and band is None:
@@ -341,8 +341,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     def get_wl_symbol(self, symbol, spin=None, band=None):
         """
         Return the l-dependent DOS weights for a given type specified in terms of the
-        chemical symbol `symbol`. The weights are summed over m and over all atoms of the same type.
-        If `spin` and `band` are not specified, the method returns the weights
+        chemical symbol ``symbol``. The weights are summed over m and over all atoms of the same type.
+        If ``spin`` and ``band`` are not specified, the method returns the weights
         for all spins and bands else the contribution for (spin, band).
         """
         if spin is None and band is None:
@@ -362,9 +362,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     def get_w_symbol(self, symbol, spin=None, band=None):
         """
         Return the DOS weights for a given type specified in terms of the
-        chemical symbol `symbol`. The weights are summed over m and lmax[symbol] and
+        chemical symbol ``symbol``. The weights are summed over m and lmax[symbol] and
         over all atoms of the same type.
-        If `spin` and `band` are not specified, the method returns the weights
+        If ``spin`` and ``band`` are not specified, the method returns the weights
         for all spins and bands else the contribution for (spin, band).
         """
         if spin is None and band is None:
@@ -385,7 +385,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     def get_spilling(self, spin=None, band=None):
         """
         Return the spilling parameter
-        If `spin` and `band` are not specified, the method returns the spilling for all states
+        If ``spin`` and ``band`` are not specified, the method returns the spilling for all states
         as a [nsppol, mband, nkpt] numpy array else the spilling for (spin, band) with shape [nkpt].
         """
         if spin is None and band is None:
@@ -404,8 +404,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def eb_plotax_kwargs(self, spin):
         """
-        Dictionary with the options passed to ebands.plot_ax
-        when plotting a band line with spin index `spin`.
+        Dictionary with the options passed to ``ebands.plot_ax``
+        when plotting a band line with spin index ``spin``.
         Subclasses can redefine the implementation to customize the plots.
         """
         return dict(
@@ -420,21 +420,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=1.0,
                                ylims=None, blist=None, **kwargs):
         """
-        Plot fatbands for each atom in the unit cell. By default, only the "inequivalent" atoms are shown.
+        Plot fatbands for each atom in the unit cell. By default, only the **inequivalent** atoms are shown.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             view: "inequivalent", "all"
             fact:  float used to scale the stripe size.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # Define num_plots and ax2atom depending on view.
         # ax2natom[1:num_plots] --> iatom index in structure.
@@ -512,18 +511,17 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact:  float used to scale the stripe size.
             axmat: Matrix of axes, if None a new figure is produced.
             lmax: Maximum L included in plot. None means full set available on file.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         mylsize = self.lsize if lmax is None else lmax + 1
         # Build or get grid with (nsppol, mylsize) axis.
@@ -581,17 +579,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         Args:
             iatom: Index of the atom in the structure.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact:  float used to scale the stripe size.
             lmax: Maximum L included in plot. None means full set available on file.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # TODO
         #if self.nsppol == 2:
@@ -664,19 +661,17 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact:  float used to scale the stripe size.
             lmax: Maximum L included in plot. None means full set available on file.
             axmat: Matrix of axis. None if a new figure should be created.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
-        Returns:
-            `matplotlib` figure
-
+        Returns: |matplotlib-Figure|
         """
         mylsize = self.lsize if lmax is None else lmax + 1
 
@@ -731,17 +726,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact:  float used to scale the stripe size.
             axlist: List of matplotlib axes for plot. If None, new figure is produced
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             blist: List of band indices for the fatband plot. If None, all bands are included
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         if axlist is None:
@@ -811,8 +805,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #               or scalar e.g. `left`. If left (right) is None, default values are used
     #        blist: List of band indices for the fatband plot. If None, all bands are included
 
-    #    Returns:
-    #        `matplotlib` figure
+    #    Returns: |matplotlib-Figure|
     #    """
     #    if not (self.prtdos == 5 and self.nspinor == 2):
     #        print("This method assumes prtdos=5 and nspinor=2 but file has prtdos=%s and nspinor=%s"
@@ -944,9 +937,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             lmax: Maximum L included in plot. None means full set available on file.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
@@ -958,13 +951,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 If False, up/down components are plotted on different axes.
             axmat:
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ylims: Same meaning as `xlims` but for the y-axis
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            ylims: Same meaning as ``xlims`` but for the y-axis
             fontsize: Legend and label fontsize
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         try:
             intg = self.get_dos_integrator(method, step, width)
@@ -1103,9 +1095,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             lmax: Maximum L included in plot. None means full set available on file.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
@@ -1117,13 +1109,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 If False, up/down components are plotted on different axes.
             axmat:
             exchange_xy: True if the dos should be plotted on the x axis instead of y.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ylims: Same meaning as `xlims` but for the y-axis
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            ylims: Same meaning as ``xlims`` but for the y-axis
             fontsize: Legend and label fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         mylsize = self.lsize if lmax is None else lmax + 1
 
@@ -1261,21 +1252,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            fact:  float used to scale the stripe size.
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy.
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            fact: float used to scale the stripe size.
             lmax: Maximum L included in plot. None means full set available on file.
             blist: List of band indices for the fatband plot. If None, all bands are included
             pjdosfile: FATBANDS file used to compute the PJDOS. If None, the PJDOS is taken from self.
             edos_kwargs:
             stacked: True if DOS partial contributions should be stacked on top of each other.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         closeit = False
         if pjdosfile is not None:
@@ -1356,11 +1346,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         if self.usepaw != 1:
             print("This is not a PAW calculation!")
@@ -1537,7 +1526,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1647,7 +1636,7 @@ class _DosIntegrator(object):
     @lazy_property
     def ls_stackdos(self):
         """
-        Compute `ls_stackdos` datastructure for stacked DOS.
+        Compute ``ls_stackdos`` datastructure for stacked DOS.
         ls_stackdos maps (l, spin) onto a numpy array [nsymbols, nfreqs] where
         [isymb, :] contains the cumulative sum of the PJDOS(l,s) up to symbol isymb.
         """
@@ -1670,8 +1659,8 @@ class _DosIntegrator(object):
 
     def get_lstack_symbol(self, symbol, spin):
         """
-        Return numpy array with the cumulative sum over l for a given
-        atom type (specified by chemical symbol) and spin.
+        Return |numpy-array| with the cumulative sum over l for a given
+        atom type (specified by the chemical symbol ``symbol``) and spin.
         """
         lso = self.symbols_lso[symbol][:, spin]
         return lso.cumsum(axis=0)

@@ -568,16 +568,15 @@ class ElectronInterpolator(object):
         Args:
             kmeshes: List of kmeshes. Each item is given by three integers with the number of
                 divisions along the reciprocal primitive axes.
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+            is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            ax: matplotlib `Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 

@@ -65,7 +65,7 @@ class AnaddbError(DdbError):
 
 class DdbFile(TextFile, Has_Structure, NotebookWriter):
     """
-    This object provides an interface to the DDB file produced by ABINIT
+    This object provides an interface to the DDB_ file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
 
     About the indices (idir, ipert) used by Abinit (Fortran notation)
@@ -128,7 +128,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @property
     def structure(self):
-        """Abipy Structure."""
+        """|Structure| object."""
         return self._structure
 
     @property
@@ -145,12 +145,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def header(self):
         """
         Dictionary with the values reported in the header section.
-        Use ddb.header.ecut to access its values
+        Use e.g. ``ddb.header.ecut`` to access its values
         """
         return self._header
 
     def _parse_header(self):
-        """Parse the header sections. Returns :class:`AttrDict` dictionary."""
+        """Parse the header sections. Returns |AttrDict| dictionary."""
         #ixc         7
         #kpt  0.00000000000000D+00  0.00000000000000D+00  0.00000000000000D+00
         #     0.25000000000000D+00  0.00000000000000D+00  0.00000000000000D+00
@@ -238,7 +238,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return h
 
     def _read_qpoints(self):
-        """Read the list q-points from the DDB file. Returns `ndarray`"""
+        """Read the list q-points from the DDB file. Returns |numpy-array|."""
         # 2nd derivatives (non-stat.)  - # elements :      36
         # qpt  2.50000000E-01  0.00000000E+00  0.00000000E+00   1.0
 
@@ -264,11 +264,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @lazy_property
     def computed_dynmat(self):
         """
-        OrderedDict mapping q-point object to --> pandas Dataframe.
-        The dataframe contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
+        :class:`OrderedDict` mapping q-point object to --> pandas Dataframe.
+        The |pandas-DataFrame| contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
         and (idir1, ipert1, idir2, ipert2) as index.
 
-        .. note:
+        .. note::
 
             The indices follow the Abinit (Fortran) notation so they start at 1.
         """
@@ -351,7 +351,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @property
     def qpoints(self):
-        """:class:`KpointList` object with the list of q-points in reduced coordinates."""
+        """|KpointList| object with the list of q-points in reduced coordinates."""
         return self._qpoints
 
     def has_qpoint(self, qpoint):
@@ -366,7 +366,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def qindex(self, qpoint):
         """
         The index of the q-point in the internal list of q-points.
-        Accepts: :class:`Kpoint` instance or integer.
+        Accepts: |Kpoint| instance or integer.
         """
         if duck.is_intlike(qpoint):
             return int(qpoint)
@@ -420,7 +420,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def has_lo_to_data(self, select="at_least_one"):
         """
-        True if the DDB file contains data requires to compute LO-TO splitting.
+        True if the DDB file contains the data required to compute the LO-TO splitting.
         """
         return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
 
@@ -430,9 +430,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             select: Possible values in ["at_least_one", "all"]
-            If select == "at_least_one", we check if there's at least one entry associated to the electric field.
-            and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
-            If select == "all", all tensor components must be present in the DDB file.
+                If select == "at_least_one", we check if there's at least one entry associated to the electric field.
+                and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all tensor components must be present in the DDB file.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
         if gamma not in self.computed_dynmat:
@@ -460,9 +460,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             select: Possible values in ["at_least_one", "all"]
-            By default, we check if there's at least one entry associated to atomic displacement
-            and electric field and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
-            If select == "all", all bec components must be present in the DDB file.
+                By default, we check if there's at least one entry associated to atomic displacement
+                and electric field and we assume that anaddb will be able to reconstruct the full tensor by symmetry.
+                If select == "all", all bec components must be present in the DDB file.
         """
         gamma = Kpoint.gamma(self.structure.reciprocal_lattice)
         if gamma not in self.computed_dynmat:
@@ -494,7 +494,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr, chneut, dipdp: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             mpi_procs: Number of MPI processes to use.
-            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
                 non_anal_phfreqs attributes will be added to the returned object
@@ -502,8 +502,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 cartesian direction will be used
             anaddb_kwargs: additional kwargs for anaddb
 
-        Return:
-            :class:`PhononBands` object.
+        Return: |PhononBands| object.
         """
         if qpoint is None:
             qpoint = self.qpoints[0]
@@ -564,11 +563,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             verbose: verbosity level. Set it to a value > 0 to get more information
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
-            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
 
         Returns:
-            :class:`PhbstFile` with the phonon band structure.
-            :class:`PhdosFile` with the the phonon DOS.
+            |PhbstFile| with the phonon band structure.
+            |PhdosFile| with the the phonon DOS.
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
@@ -603,8 +602,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                          num_cpus=1, stream=sys.stdout):
         """
         Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
-        reported in the DDB file will be Fourier-interpolated on the list of q-meshes specified
-        by `nqsmalls`. Useful to perform covergence studies.
+        reported in the DDB_ file will be Fourier-interpolated on the list of q-meshes specified
+        by ``nqsmalls``. Useful to perform covergence studies.
 
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
@@ -617,10 +616,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             stream: File-like object used for printing.
 
         Return:
-            `namedtuple` with the following attributes:
-                phdoses: List of :class:`PhononDos` objects
-                plotter: :class:`PhononDosPlotter` object. Client code can use `plotter.gridplot()`
-                to visualize the results.
+            ``namedtuple`` with the following attributes::
+
+                    phdoses: List of |PhononDos| objects
+                    plotter: |PhononDosPlotter| object.
+                        Client code can use ``plotter.gridplot()`` to visualize the results.
         """
         num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
         if num_cpus <= 0: num_cpus = 1
@@ -687,12 +687,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             chneut: Anaddb input variable. See official documentation.
-            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
             mpi_procs: Number of MPI processes to use.
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return:
-            emacro, becs
+            (emacro, becs)
         """
         if not self.has_lo_to_data():
             cprint("Dielectric tensor and Becs are not available in DDB: %s" % self.filepath, "yellow")
@@ -732,7 +732,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
-            manager: :class:`TaskManager` object. If None, the object is initialized from the configuration file
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information
             anaddb_kwargs: additional kwargs for anaddb
 
@@ -806,6 +806,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 variable = "  " + variable
 
             #specific variables
+            print("variable", variable)
             if variable == 'symrel':
                 for sym in data:
                     string += " "*15+(fmti*9)%tuple(sym.T.flatten())+'\n'
@@ -878,8 +879,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def write(self, filepath):
         """
-        Writes the DDB file in filepath.
-        Requires the blocks data.
+        Writes the DDB file in filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         lines = list(self.header.lines)
@@ -933,7 +933,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1017,7 +1017,7 @@ class Becs(Has_Structure):
         """
         Args:
             becs_arr: (3, 3, natom) array with the Born effective charges in Cartesian coordinates.
-            structure: Structure object.
+            structure: |Structure| object.
             chneut: Option used for the treatment of the Charge Neutrality requirement
                 for the effective charges (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
@@ -1039,12 +1039,14 @@ class Becs(Has_Structure):
 
     @property
     def structure(self):
+        """|Structure| object."""
         return self._structure
 
     def __repr__(self):
         return self.to_string()
 
     def to_string(self, verbose=0):
+        """String representation."""
         lines = []
         app = lines.append
         app("Born effective charges computed with chneut: %d" % self.chneut)
@@ -1076,7 +1078,7 @@ class ElasticComplianceTensor(Has_Structure):
         Args:
             elastic_tensor: (6, 6) array with the elastic tensor in Cartesian coordinates
             compliance_tensor: (6, 6) array with the compliance tensor in Cartesian coordinates
-            structure: Structure object.
+            structure: |Structure| object.
         """
         self._structure = structure
         self.elastic_tensor = elastic_tensor
@@ -1085,6 +1087,7 @@ class ElasticComplianceTensor(Has_Structure):
 
     @property
     def structure(self):
+        """|Structure| object."""
         return self._structure
 
     def __repr__(self):
@@ -1150,7 +1153,7 @@ class ElasticComplianceTensor(Has_Structure):
 
     def get_pmg_elastic_tensor(self):
         """
-        Converts to a pymatgen ElasticTensor object.
+        Converts to a pymatgen :class:`ElasticTensor` object.
         """
         return ElasticTensor.from_voigt(self.elastic_tensor)
 
@@ -1171,7 +1174,7 @@ class DielectricTensorGenerator(Has_Structure):
              oscillator_strength: a complex numpy array with shape (number of phonon modes, 3, 3) in atomic units
              emacro: a numpy array containing the dielectric tensor without frequency dependence
                 (at infinite frequency)
-             structure: a pymatgen Structure of the system considered
+             structure: |Structure| object.
         """
         self.phfreqs = phfreqs
         self.oscillator_strength = oscillator_strength
@@ -1180,13 +1183,14 @@ class DielectricTensorGenerator(Has_Structure):
 
     @property
     def structure(self):
+        """|Structure| object."""
         return self._structure
 
     @classmethod
     def from_files(cls, phbst_filepath, anaddbnc_filepath):
         """
         Generates the object from the files that contain the phonon frequencies, oscillator strength and
-        static dielectric tensor, i.e. the PHBST and anaddb netcdf files, respectively.
+        static dielectric tensor, i.e. the PHBST.nc and anaddb.nc netcdf files, respectively.
         """
 
         with ETSF_Reader(phbst_filepath) as reader_phbst:
@@ -1220,7 +1224,7 @@ class DielectricTensorGenerator(Has_Structure):
     @classmethod
     def from_objects(cls, phbands, anaddbnc):
         """
-        Generates the object from the objects PhononBands and AnaddbNcFile
+        Generates the object from the objects |PhononBands| object and AnaddbNcFile
         """
         gamma_index = phbands.qindex([0, 0, 0])
 
@@ -1233,7 +1237,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     def tensor_at_frequency(self, w, units='eV'):
         """
-        Returns a DielectricTensor object representing
+        Returns a :class:`DielectricTensor` object representing
         the dielectric tensor in atomic units at the specified frequency w.
 
         Args:
@@ -1263,19 +1267,23 @@ class DielectricTensorGenerator(Has_Structure):
     @add_fig_kwargs
     def plot_vs_w(self, w_min, w_max, num, component='diago', units='eV', ax=None, fontsize=12, **kwargs):
         """
-        Plots the selected components of the dielectric tensor as a function of the frequency
+        Plots the selected components of the dielectric tensor as a function of the frequency.
 
         Args:
-            w_min: minimum frequency
-            w_max: maximum frequqncy
-            num: number of values of the frequencies between w_min and w_max
+            w_min: minimum frequency.
+            w_max: maximum frequency.
+            num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
-                elements, indicating the indices [i, j] of the desired component or a string among
-                'diag' to plot the elements on diagonal
-                'all' to plot all the components
-                'diag_av' to plot the average of the components on the diagonal
+                elements, indicating the indices [i, j] of the desired component or a string among:
+
+                * 'diag' to plot the elements on diagonal
+                * 'all' to plot all the components
+                * 'diag_av' to plot the average of the components on the diagonal
+
             units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
             fontsize: Legend and label fontsize.
+
+        Return: |matplotlib-Figure|
         """
 
         w_range = np.linspace(w_min, w_max, num, endpoint=True)
@@ -1360,11 +1368,11 @@ class DdbRobot(Robot):
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`DDBFile` object and returns a tuple (key, value)
+                Each function receives a |DdbFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
 
         Return:
-            pandas DataFrame
+            |pandas-DataFrame|
         """
         # If qpoint is None, all the DDB must contain have the same q-point .
         if qpoint is None:
@@ -1408,8 +1416,8 @@ class DdbRobot(Robot):
         Invoke anaddb to compute phonon bands and DOS using the arguments passed via \*\*kwargs.
         Collect results and return `namedtuple` with the following attributes:
 
-            phbands_plotter: `PhononBandsPlotter` object.
-            phdos_plotter: `PhononDosPlotter` object.
+            phbands_plotter: |PhononBandsPlotter| object.
+            phdos_plotter: |PhononDosPlotter| object.
         """
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
@@ -1436,7 +1444,7 @@ class DdbRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

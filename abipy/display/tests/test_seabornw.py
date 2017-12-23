@@ -17,13 +17,13 @@ class SeabornWidgetTest(AbipyTest):
             raise self.SkipTest("This test requires ipywidgets")
 
         tips = sns.load_dataset("tips")
-        snw.joinplot(tips)
+        snw.jointplot(tips)
 
         titanic = sns.load_dataset("titanic")
         snw.countplot(titanic)
 
         tips = sns.load_dataset("tips")
-        snw.joinplot(tips)
+        snw.jointplot(tips)
         snw.swarmplot(tips)
         snw.lmplot(tips)
 

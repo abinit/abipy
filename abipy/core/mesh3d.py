@@ -43,13 +43,11 @@ class Mesh3D(object):
     """
     def __init__(self, shape, vectors):
         """
-        Construct `Mesh3D` object.
+        Construct ``Mesh3D`` object.
 
         Args:
-            shape:
-                3 int's Number of grid points along axes.
-            vectors:
-                unit cell vectors in real space.
+            shape: 3 int's Number of grid points along axes.
+            vectors: unit cell vectors in real space.
 
         Attributes:
 
@@ -141,8 +139,8 @@ class Mesh3D(object):
         """
         Returns new zeroed 3D array for this domain.
 
-        The type can be set with the `dtype` keyword.
-        Extra dimensions can be added with `extra_dims`.
+        The type can be set with the ``dtype`` keyword.
+        Extra dimensions can be added with ``extra_dims``.
         """
         return self._new_array(dtype=dtype, zero=True, extra_dims=extra_dims)
 
@@ -152,19 +150,19 @@ class Mesh3D(object):
 
     def empty(self, dtype=np.float, extra_dims=()):
         """
-        Returns new uninitialized 3D array for this domain.
+        Returns new uninitialized 3D |numpy-array| for this domain.
 
-        The type can be set with the `dtype` keyword.
-        Extra dimensions can be added with `extra_dims`.
+        The type can be set with the ``dtype`` keyword.
+        Extra dimensions can be added with ``extra_dims``.
         """
         return self._new_array(dtype=dtype, zero=False, extra_dims=extra_dims)
 
     def cempty(self, extra_dims=()):
-        """Returns new uninitialized 3D complex array for this domain."""
+        """Returns new uninitialized 3D complex |numpy-array| for this domain."""
         return self._new_array(dtype=np.complex, zero=False, extra_dims=extra_dims)
 
     def random(self, dtype=np.float, extra_dims=()):
-        """Returns random real array for this domain with val in [0.0, 1.0)."""
+        """Returns random real |numpy-array| for this domain with val in [0.0, 1.0)."""
         shape = self.shape
         if duck.is_intlike(extra_dims):
             extra_dims = (extra_dims,)
@@ -181,14 +179,14 @@ class Mesh3D(object):
             raise ValueError("Wrong dtype: %s" % str(dtype))
 
     def crandom(self, extra_dims=()):
-        """Returns random complex array for this domain with val in [0.0, 1.0)."""
+        """Returns random complex |numpy-array| for this domain with val in [0.0, 1.0)."""
         return self.random(dtype=np.complex, extra_dims=extra_dims)
 
     def reshape(self, arr):
         """
         Reshape the array arr defined on the FFT box.
 
-        Returns ndarray with 4 dimensions (?,nx,ny,nz) where ?*nx*ny*nz == arr.size
+        Returns |numpy-array| with 4 dimensions (?, nx, ny, nz) where ?*nx*ny*nz == arr.size
         """
         #if duck.is_intlike(extra_dims): extra_dims = (extra_dims,)
         #shape = extra_dims + self.shape)
@@ -196,7 +194,7 @@ class Mesh3D(object):
 
     def fft_r2g(self, fr, shift_fg=False):
         """
-        FFT of array fr given in real space.
+        FFT of array ``fr`` given in real space.
         """
         ndim, shape = fr.ndim, fr.shape
 
@@ -222,7 +220,7 @@ class Mesh3D(object):
 
     def fft_g2r(self, fg, fg_ishifted=False):
         """
-        FFT of array fg given in G-space.
+        FFT of array ``fg`` given in G-space.
         """
         ndim, shape = fg.ndim, fg.shape
 
@@ -295,7 +293,7 @@ class Mesh3D(object):
 
             These are the G-vectors of the FFT box and should be used
             when we compute quantities on the FFT mesh.
-            These vectors differ from the gvecs stored in `GSphere` that
+            These vectors differ from the gvecs stored in |GSphere| that
             are k-centered and enclosed by a sphere whose radius is defined by ecut.
         """
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
@@ -316,7 +314,7 @@ class Mesh3D(object):
 
     @lazy_property
     def gmods(self):
-        """[ng] array with $|G|$"""
+        """[ng] |numpy-array| with :math:`|G|`"""
         gmet = np.dot(self.inv_vectors.T, self.inv_vectors)
         gmods = np.empty(self.size)
         for i, g in enumerate(self.gvecs):
@@ -330,7 +328,7 @@ class Mesh3D(object):
 
     @lazy_property
     def rpoints(self):
-        """Array with the points in real space in reduced coordinates."""
+        """|numpy-array| with the points in real space in reduced coordinates."""
         nx, ny, nz = self.nx, self.ny, self.nz
         rpoints = np.empty((self.size, 3))
 
@@ -436,7 +434,7 @@ class Mesh3D(object):
 
     def i_closest_gridpoints(self, points):
         """
-        Given a list of points, this function return a numpy array with the indices of the closest gridpoint.
+        Given a list of points, this function return a |numpy-array| with the indices of the closest gridpoint.
         """
         points = np.reshape(points, (-1, 3))
         inv_vectors = self.inv_vectors

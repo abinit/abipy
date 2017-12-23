@@ -171,6 +171,11 @@ def _compare_with_database(options):
     else:
         raise NotImplementedError(str(options.command))
 
+    # Filter by spglib space group number.
+    if getattr(options, "same_spgnum", False):
+        spgnums = [struct.get_space_group_info()[1] for struct in structures]
+        mpres = [r.filter_by_spgnum(spgnum) for spgnum, r in zip(spgnums, mpres)]
+
     retcode = 0
     for this_structure, r in zip(structures, mpres):
         if r.structures:
@@ -183,6 +188,8 @@ def _compare_with_database(options):
                 abilab.print_dataframe(dfs.lattice, title="Lattice parameters:", sortby="spglib_num")
                 if options.verbose:
                     abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+                else:
+                    print("Use --verbose to print atomic positions.")
                 print()
 
         else:
@@ -355,17 +362,17 @@ def abicomp_phdos(options):
     return 0
 
 
-def abicomp_attr(options):
+def abicomp_getattr(options):
     """
     Extract attribute from Abipy object for all files listed on the command line and print them.
-    Use `--show` option to list the attributes available (in the first file).
+    Use `--list` option to list the attributes available (in the first file).
     """
     files = []
     attr_name = options.paths[0]
     values = []
     for p in options.paths[1:]:
         with abilab.abiopen(p) as abifile:
-            if options.show:
+            if options.list:
                 print("List of attributes available in %s" % p)
                 pprint(dir(abifile))
                 return 0
@@ -508,7 +515,7 @@ def _invoke_robot(options):
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
 
     # To define an Help action
-    #http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
+    # http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
 
     if os.path.isdir(paths[0]):
@@ -541,7 +548,6 @@ def _invoke_robot(options):
         robot.make_and_open_notebook(foreground=options.foreground)
 
     else:
-
         # Print dataframe if robot provides get_dataframe method.
         if hasattr(robot, "get_dataframe"):
             try:
@@ -646,7 +652,6 @@ def abicomp_time(options):
     return 0
 
 
-
 def get_epilog():
     return """\
 Usage example:
@@ -672,7 +677,7 @@ Usage example:
   abicomp.py ebands *_GSR.nc -ipy               => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                => Interact with the plotter in the jupyter notebook.
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
-  abicomp.py optic DIR                          => Compare optic results in the jupyter notebook.
+  abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
 
 #########
 # Phonons
@@ -701,8 +706,8 @@ Usage example:
 # Miscelleanous
 ###############
 
-  abicomp.py attr energy *_GSR.nc                 => Extract the `energy` attribute from a list of GSR files
-                                                     and print results. Use `--show` to get list of possible names.
+  abicomp.py getattr energy *_GSR.nc              => Extract the `energy` attribute from a list of GSR files
+                                                     and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
 
 ############
@@ -744,7 +749,7 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare.")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='Verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
+    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings for plots.")
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
@@ -783,10 +788,14 @@ def get_parser(with_epilog=False):
     # Subparser for mp_structure command.
     p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser, nb_parser],
         help=abicomp_mp_structure.__doc__)
+    p_mpstruct.add_argument("--same-spgnum", default=False, action="store_true",
+        help="Select only MP structures with same space group number as input structure.")
 
     # Subparser for cod_structure command.
     p_codstruct = subparsers.add_parser('cod_structure', parents=[copts_parser, nb_parser],
         help=abicomp_cod_structure.__doc__)
+    #p_codstruct.add_argument("--same-spgnum", default=False, action="store_true",
+    #    help="Select only COD structures with same space group number as input structure.")
 
     # Subparser for xrd.
     p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")
@@ -831,10 +840,9 @@ def get_parser(with_epilog=False):
         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
 
     # Subparser for phdos command.
-    p_attr = subparsers.add_parser('attr', parents=[copts_parser], help=abicomp_attr.__doc__)
-    #p_attr.add_argument('attr_name', help="Attribute name.")
-    p_attr.add_argument('--plot', default=False, action="store_true", help="Plot data with matplotlib (requires floats).")
-    p_attr.add_argument('--show', default=False, action="store_true", help="Print attributes available in file")
+    p_getattr = subparsers.add_parser('getattr', parents=[copts_parser], help=abicomp_getattr.__doc__)
+    p_getattr.add_argument('--plot', default=False, action="store_true", help="Plot data with matplotlib (requires floats).")
+    p_getattr.add_argument('--list', default=False, action="store_true", help="Print attributes available in file")
 
     # Subparser for robot commands
     robot_parents = [copts_parser, ipy_parser, robot_parser]

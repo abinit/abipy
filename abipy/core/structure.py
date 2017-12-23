@@ -45,9 +45,8 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     Finds matching structures on the Materials Project database.
 
     Args:
-        obj: filename or Structure object.
-        api_key (str): A String API key for accessing the MaterialsProject
-            REST interface.
+        obj: filename or |Structure| object.
+        api_key (str): A String API key for accessing the MaterialsProject REST interface.
         endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
         final (bool): Whether to get the final structure, or the initial
             (pre-relaxation) structure. Defaults to True.
@@ -119,8 +118,7 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
 
 def cod_search(formula, primitive=False):
     """
-    Connect to the COD database (http://www.crystallography.net/)
-    Get a list of structures corresponding to a chemical formula
+    Connect to the COD_ database. Get a list of structures corresponding to a chemical formula
 
     Args:
         formula (str): Chemical formula (e.g., Fe2O3)
@@ -148,8 +146,9 @@ def cod_search(formula, primitive=False):
 
 class Structure(pymatgen.Structure, NotebookWriter):
     """
-    Extends :class:`pymatgen.Structure` with Abinit-specific methods.
+    Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.
 
+    .. inheritance-diagram:: Structure
     """
     @classmethod
     def as_structure(cls, obj):
@@ -191,12 +190,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         Reads a structure from a file. For example, anything ending in
         a "cif" is assumed to be a Crystallographic Information Format file.
-        Supported formats include CIF, POSCAR/CONTCAR, CHGCAR, LOCPOT,
+        Supported formats include CIF_, POSCAR/CONTCAR, CHGCAR, LOCPOT,
         vasprun.xml, CSSR, Netcdf and pymatgen's JSON serialized structures.
 
         Netcdf files supported:
             All files produced by ABINIT with info of the crystalline geometry
-            HIST_FILEs, in this case the last structure of the history is returned.
+            HIST.nc, in this case the last structure of the history is returned.
 
         Args:
             filename (str): The filename to read from.
@@ -205,8 +204,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 Defaults to True.
             sort (bool): Whether to sort sites. Default to False.
 
-        Returns:
-            :class:`Structure` object
+        Returns: |Structure| object
         """
         if filepath.endswith("_HIST") or filepath.endswith("_HIST.nc"):
             # Abinit history file. In this case we return the last structure!
@@ -280,7 +278,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 (pre-relaxation) structure. Defaults to True.
             api_key (str): A String API key for accessing the MaterialsProject
                 REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+                If this is None, the code will check if there is a ``PMG_MAPI_KEY`` in your .pmgrc.yaml.
                 If so, it will use that environment
                 This makes easier for heavy users to simply add this environment variable
                 to their setups and MPRester can then be called without any arguments.
@@ -288,8 +286,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 Defaults to the standard Materials Project REST address, but
                 can be changed to other urls implementing a similar interface.
 
-        Returns:
-            Structure object.
+        Returns: |Structure| object.
         """
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
@@ -300,15 +297,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @classmethod
     def from_cod_id(cls, cod_id, primitive=False, **kwargs):
         """
-        Queries the COD for a structure by id. Returns Structure object.
+        Queries the COD_ for a structure by id. Returns |Structure| object.
 
         Args:
             cod_id (int): COD id.
             primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.
-            kwargs: Arguments passed to `get_structure_by_id`
+            kwargs: Arguments passed to ``get_structure_by_id``
 
-        Returns:
-            A Structure.
+        Returns: |Structure| object.
         """
         from pymatgen.ext.cod import COD
         new = COD().get_structure_by_id(cod_id, **kwargs)
@@ -740,19 +736,20 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def spget_equivalent_atoms(self, symprec=1e-3, angle_tolerance=5, printout=False):
         """
-        Call spglib to find the inequivalent atoms and build symmetry tables.
+        Call spglib_ to find the inequivalent atoms and build symmetry tables.
 
         Args:
             symprec: Symmetry precision for distance.
             angle_tolerance: Tolerance on angles.
             printout: True to print symmetry tables.
 
-        Returns: (irred_pos, eqmap, spgdata)
-            `namedtuple` with the following attributes:
-                irred_pos: array giving the position of the i-th irred atom in the structure.
+        Returns:
+            `namedtuple` (irred_pos, eqmap, spgdata) with the following attributes::
+
+                * irred_pos: array giving the position of the i-th irred atom in the structure.
                     The number of irred atoms is len(irred_pos)
-                eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
-                spgdata: spglib dataset with additional data reported by spglib.
+                *   eqmap: Mapping irred atom position --> list with positions of symmetrical atoms
+                *   spgdata: spglib dataset with additional data reported by spglib_.
 
          :Example:
 
@@ -926,7 +923,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     @lazy_property
     def hsym_kpoints(self):
-        """:class:`KpointList` object with the high-symmetry K-points."""
+        """|KpointList| object with the high-symmetry K-points."""
         # Get mapping name --> frac_coords for the special k-points in the database.
         name2frac_coords = self.hsym_kpath.kpath["kpoints"]
         kpath = self.hsym_kpath.kpath["path"]
@@ -945,7 +942,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @lazy_property
     def hsym_stars(self):
         """
-        List of :class:`Star` objects. Each star is associated to one of the special k-points
+        List of |KpointStar| objects. Each star is associated to one of the special k-points
         present in the `pymatgen` database.
         """
         # Construct the stars.
@@ -1026,7 +1023,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         abc, angles = self.lattice.abc, self.lattice.angles
         # Get spacegroup info from spglib.
         spglib_symbol, spglib_number = None, None
-        if with_spglib: spglib_symbol, spglib_number = self.get_space_group_info()
+        if with_spglib:
+            try:
+                spglib_symbol, spglib_number = self.get_space_group_info()
+            except Exception as exc:
+                cprint("Spglib couldn't find space group symbol and number for composition %s" % str(self.composition), "red")
+                print("Exception:\n", exc)
         # Get spacegroup number computed by Abinit if available.
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
@@ -1082,8 +1084,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 angstroms. Defaults to "CuKa", i.e, Cu K_alpha radiation.
             symprec (float): Symmetry precision for structure refinement. If
                 set to 0, no refinement is done. Otherwise, refinement is
-                performed using spglib with provided precision.
-            debye_waller_factors `({element symbol: float})`: Allows the
+                performed using spglib_ with provided precision.
+            debye_waller_factors ({element symbol: float}): Allows the
                 specification of Debye-Waller factors. Note that these
                 factors are temperature dependent.
             two_theta_range ([float of length 2]): Tuple for range of
@@ -1091,6 +1093,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 None if you want all diffracted beams within the limiting
                 sphere of radius 2 / wavelength.
             annotate_peaks: Whether to annotate the peaks with plane information.
+
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         from pymatgen.analysis.diffraction.xrd import XRDCalculator
@@ -1566,7 +1570,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         self._lattice = new_lattice
 
     def calc_kptbounds(self):
-        """Returns the suggested value for the ABINIT variable `kptbounds`."""
+        """Returns the suggested value for the ABINIT variable ``kptbounds``."""
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
         return np.reshape(kptbounds, (-1, 3))
 
@@ -1785,35 +1789,30 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
 def dataframes_from_structures(struct_objects, index=None, with_spglib=True, cart_coords=False):
     """
-    Build two pandas dataframes with the most important geometrical parameters associated to
+    Build two pandas Dataframes_ with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
 
     Args:
         struct_objects: List of objects that can be converted to structure.
             Support filenames, structure objects, Abinit input files, dicts and many more types.
-            See `Structure.as_structure` for the complete list.
-        index: Index of the dataframe.
-        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
-        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates
+            See ``Structure.as_structure`` for the complete list.
+        index: Index of the |pandas-DataFrame|.
+        with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
+        cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
             instead of Reduced coordinates.
 
-    Return: (lattice, coords)
+    Return:
+        namedtuple with two |pandas-DataFrames| named ``lattice`` and ``coords``
+        ``lattice`` contains the lattice parameters. ``coords`` the atomic positions..
+        The list of structures is available in the ``structures`` entry.
 
-        namedtuple with two pandas :class:`DataFrame`:
-
-            `lattice` contains the lattice parameters,
-            `coords` the atomic positions.
-
-        The list of structures is available in the `structures` entry.
-
-    :Example:
+    .. code-block:: python
 
         dfs = dataframes_from_structures(files)
         dfs.lattice
         dfs.coords
         for structure in dfs.structures:
             print(structure)
-
     """
     structures = [Structure.as_structure(obj) for obj in struct_objects]
     # Build Frame with lattice parameters.

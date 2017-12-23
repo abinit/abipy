@@ -1,6 +1,9 @@
 data Package
 ============
 
+.. contents::
+   :backlinks: top
+
 :mod:`data` Package
 --------------------
 

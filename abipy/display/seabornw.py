@@ -134,7 +134,7 @@ __all__ = [
 
 
 @wraps(sns.jointplot)
-def joinplot(data, joint_kws=None, marginal_kws=None, annot_kws=None, **kwargs):
+def jointplot(data, joint_kws=None, marginal_kws=None, annot_kws=None, **kwargs):
 
     def sns_joinplot(x, y, kind, color):
         x, y, color = ut.widget2py(x, y, color)

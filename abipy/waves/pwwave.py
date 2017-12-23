@@ -200,7 +200,7 @@ class WaveFunction(object):
             self.__class__.__name__, self.nspinor, self.spin, self.band))
 
         if hasattr(self, "gsphere"):
-            app(self.gsphere.tostring(verbose=verbose))
+            app(self.gsphere.to_string(verbose=verbose))
         if hasattr(self, "mesh"):
             app(self.mesh.to_string(verbose=verbose))
 
@@ -220,13 +220,15 @@ class WaveFunction(object):
 class PWWaveFunction(WaveFunction):
     """
     This object describes a wavefunction expressed in a plane-wave basis set.
+
+    .. inheritance-diagram:: PWWaveFunction
     """
     def __init__(self, structure, nspinor, spin, band, gsphere, ug):
         """
         Creation method.
 
         Args:
-            structure: Structure object.
+            structure: |Structure| object.
             nspinor: number of spinorial components.
             spin: spin index (only used if collinear-magnetism).
             band: band index (>=0)
@@ -380,23 +382,22 @@ class PWWaveFunction(WaveFunction):
     def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False,
                   ax=None, fontsize=12, **kwargs):
         """
-        Plot (interpolated) wavefunction in real space along a line defined by `point1` and `point2`.
+        Plot (interpolated) wavefunction in real space along a line defined by ``point1`` and ``point2``.
 
         Args:
             point1: First point of the line. Accepts 3d vector or integer.
-                The vector is in reduced coordinates unless `cartesian == True`.
+                The vector is in reduced coordinates unless ``cartesian`` is True.
                 If integer, the first point of the line is given by the i-th site of the structure
-                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
-            point2: Second point of the line. Same API as `point1`.
+                e.g. ``point1=0, point2=1`` gives the line passing through the first two atoms.
+            point2: Second point of the line. Same API as ``point1``.
             num: Number of points sampled along the line.
-            with_krphase: True to include the e^{ikr} phase-factor.
-            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+            with_krphase: True to include the :math:`e^{ikr}` phase-factor.
+            cartesian: By default, ``point1`` and ``point1`` are interpreted as points in fractional
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
-        Return:
-            `matplotlib` figure
+        Return: |matplotlib-Figure|
         """
         # Interpolate along line.
         interpolator = self.get_interpolator()
@@ -422,23 +423,22 @@ class PWWaveFunction(WaveFunction):
     def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, max_nn=10, fontsize=12, **kwargs):
         """
         Plot (interpolated) density/potential in real space along the lines connecting
-        an atom specified by `site_index` and all neighbors within a sphere of given `radius`.
+        an atom specified by ``site_index`` and all neighbors within a sphere of given ``radius``.
 
         .. warning:
 
-            This routine can produce lots of plots! Be careful with the value of `radius`.
-            See also `max_nn`.
+            This routine can produce lots of plots! Be careful with the value of ``radius``.
+            See also ``max_nn``.
 
         Args:
             site_index: Index of the atom in the structure.
-            radius: Radius of the sphere in Angstrom
+            radius: Radius of the sphere in Angstrom.
             num: Number of points sampled along the line.
-            with_krphase: True to include the e^{ikr} phase-factor.
-            max_nn: By default, only the first `max_nn` neighbors are showed.
+            with_krphase: True to include the :math:`e^{ikr}` phase-factor.
+            max_nn: By default, only the first ``max_nn`` neighbors are showed.
             fontsize: legend and label fontsize.
 
-        Return:
-            `matplotlib` figure
+        Return: |matplotlib-Figure|
         """
         site = self.structure[site_index]
         nn_list = self.structure.get_neighbors(site, radius, include_index=True)
@@ -487,7 +487,7 @@ class PWWaveFunction(WaveFunction):
 
     def export_ur2(self, filename, visu=None):
         """
-        Export u(r)**2 on file filename.
+        Export :math:`|u(r)|^2` to file ``filename``.
 
         Args:
             filename: String specifying the file path and the file format.
@@ -532,7 +532,7 @@ class PWWaveFunction(WaveFunction):
 
     def visualize_ur2(self, appname="vesta"):
         """
-        Visualize u(r)**2 visualizer.
+        Visualize :math:`|u(r)|^2|`.
 
         See :class:`Visualizer` for the list of applications and formats supported.
         """
@@ -580,4 +580,6 @@ class PWWaveFunction(WaveFunction):
 class PAW_WaveFunction(WaveFunction):
     """
     All the methods that are related to the all-electron representation should start with ae.
+
+    .. inheritance-diagram:: PaW_WaveFunction
     """

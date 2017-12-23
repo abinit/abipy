@@ -43,7 +43,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
     .. Attributes:
 
         spin: spin index (C convention, i.e >= 0)
-        kpoint: :class:`Kpoint` object.
+        kpoint: |Kpoint| object.
         band: band index. (C convention, i.e >= 0).
         e0: Initial KS energy.
         qpe: Quasiparticle energy (complex) computed with the perturbative approach.
@@ -221,7 +221,7 @@ class QPList(list):
         return np.array([qp.e0 for qp in self])
 
     def get_field(self, field):
-        """`ndarray` containing the values of field."""
+        """|numpy-array| containing the values of field."""
         return np.array([getattr(qp, field) for qp in self])
 
     def get_skb_field(self, skb, field):
@@ -258,7 +258,7 @@ class QPList(list):
         Merge self with other. Return new :class:`QPList` object
 
         Raise:
-            ValueError if merge cannot be done.
+            `ValueError` if merge cannot be done.
         """
         skb0_list = [qp.skb for qp in self]
         for qp in other:
@@ -278,13 +278,12 @@ class QPList(list):
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
-            exclude_fields: Similar to `with_field` but excludes fields.
-            axlist: List of matplotlib axes for plot. If None, new figure is produced.
+            exclude_fields: Similar to ``with_field`` but excludes fields.
+            axlist: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             label: Label for plot.
             fermi: Value of the Fermi level used in plot. None to disable plot
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         fields = _get_fields_for_plot(with_fields, exclude_fields)
         if not fields: return None
@@ -339,12 +338,12 @@ class QPList(list):
 
         Args:
             domains: list in the form [ [start1, stop1], [start2, stop2]
-                     Domains should not overlap, cover e0mesh, and given in increasing order.
-                     Holes are permitted but the interpolation will raise an exception if
-                     the point is not in domains.
+                Domains should not overlap, cover e0mesh, and given in increasing order.
+                Holes are permitted but the interpolation will raise an exception if
+                the point is not in domains.
             bounds: Specify how to handle out-of-boundary conditions, i.e. how to treat
-                    energies that do not fall inside one of the domains (not used at present)
-            plot:   If true, use `matplolib` to compare input data  and fit.
+                energies that do not fall inside one of the domains (not used at present)
+            plot: If true, use matplolib plot to compare input data  and fit.
 
         Return:
             instance of :class:`Scissors`operator
@@ -481,8 +480,7 @@ class Sigmaw(object):
                     - a for spectral function
                   Characters can be concatenated.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
 
@@ -709,7 +707,7 @@ class SigresPlotter(Iterable):
 
     def extract_qpgaps(self, spin, kpoint):
         """
-        Returns a `ndarray` with the QP gaps for the given spin, kpoint.
+        Returns a |numpy-array| with the QP gaps for the given spin, kpoint.
         Values are ordered with the list of SIGRES files in self.
         """
         qpgaps = []
@@ -737,14 +735,13 @@ class SigresPlotter(Iterable):
         Plot the QP gaps as function of the convergence parameter.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             spin:
             kpoint:
             hspan:
             kwargs:
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         spin_range = range(self.nsppol) if spin is None else duck.torange(spin)
 
@@ -783,8 +780,7 @@ class SigresPlotter(Iterable):
             hspan:
             kwargs:
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         spin_range = range(self.nsppol) if spin is None else duck.torange(spin)
         band_range = range(self.max_gwbstart, self.min_gwbstop) if band is None else duck.torange(band)
@@ -837,8 +833,7 @@ class SigresPlotter(Iterable):
             exclude_fields: Similar to `with_field` but excludes fields
             axlist: List of matplotlib axes for plot. If None, new figure is produced
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         fields = _get_fields_for_plot(with_fields, exclude_fields)
         if not fields: return None
@@ -869,6 +864,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
+
+    .. inheritance-diagram:: SigresFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -937,7 +934,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.to_string()
 
     def to_string(self, verbose=0):
-        """String representation with verbosity level `verbose`."""
+        """String representation with verbosity level ``verbose``."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -973,12 +970,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @property
     def structure(self):
-        """Structure` instance."""
+        """|Structure| object."""
         return self._structure
 
     @property
     def ebands(self):
-        """`ElectronBands with the KS energies."""
+        """|ElectronBands| with the KS energies."""
         return self._ebands
 
     @lazy_property
@@ -996,7 +993,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def qpgaps(self):
-        """array of shape [nsppol, nkibz] with the QP direct gaps in eV."""
+        """|numpy-array| of shape [nsppol, nkibz] with the QP direct gaps in eV."""
         return self.reader.read_qpgaps()
 
     def get_qpgap(self, spin, kpoint):
@@ -1007,7 +1004,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def get_sigmaw(self, spin, kpoint, band):
         """"
         Read self-energy(w) for (spin, kpoint, band)
-        Return :class:`Function1D` object
+        Return: |Function1D| object
         """
         wmesh, sigxc_values = self.reader.read_sigmaw(spin, kpoint, band)
         wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
@@ -1017,14 +1014,14 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def get_spfunc(self, spin, kpoint, band):
         """"
         Read spectral function for (spin, kpoint, band)
-        Return :class:`Function1D` object
+        Return: |Function1D| object
         """
         wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
         return Function1D(wmesh, spf_values)
 
     def print_qps(self, precision=3, ignore_imag=True, file=sys.stdout):
         """
-        Print QP results to stream `file`.
+        Print QP results to stream ``file``.
 
         Args:
             precision: Number of significant digits.
@@ -1052,8 +1049,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             axlist: List of matplotlib axes for plot. If None, new figure is produced
             label: Label for plot.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         with_fields = _get_fields_for_plot(with_fields, exclude_fields)
 
@@ -1070,10 +1066,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             spin: Spin index.
             kpoint: Required kpoint.
             bands: List of bands
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         if not isinstance(bands, Iterable): bands = [bands]
 
@@ -1115,19 +1110,18 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", e0="fermie", fact=1, ax=None, **kwargs):
         """
         Plot the KS energies as function of k-points and add markers whose size
-        is proportional to the QPState attribute `qpattr`
+        is proportional to the QPState attribute ``qpattr``
 
         Args:
             qpattr: Name of the QP attribute to plot. See :class:`QPState`.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact: Markers are multiplied by this factor.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -1148,10 +1142,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def get_dataframe(self, ignore_imag=False):
         """
-        Returns pandas DataFrame with QP results for all k-points included in the GW calculation
+        Returns |pandas-DataFrame| with QP results for all k-points included in the GW calculation
 
         Args:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         import pandas as pd
         df_list = []
@@ -1167,10 +1161,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def get_dataframe_sk(self, spin, kpoint, index=None, ignore_imag=False, with_params=True):
         """
-        Returns pandas DataFrame with QP results for the given (spin, k-point).
+        Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
 
         Args:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
             with_params: True to include convergence paramenters.
         """
         rows, bands = [], []
@@ -1206,27 +1200,27 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
-            ks_ebands_kpath: KS :class:`ElectronBands` on a k-path. If present,
+            ks_ebands_kpath: KS |ElectronBands| on a k-path. If present,
                 the routine interpolates the QP corrections and apply them on top of the KS band structure
                 This is the recommended option because QP corrections are usually smoother than the
                 QP energies and therefore easier to interpolate. If None, the QP energies are interpolated
-                along the path defined by `vertices_names` and `line_density`.
-            ks_ebands_kmesh: KS :class:`ElectronBands` on a homogeneous k-mesh. If present, the routine
+                along the path defined by ``vertices_names`` and ``line_density``.
+            ks_ebands_kmesh: KS |ElectronBands| on a homogeneous k-mesh. If present, the routine
                 interpolates the corrections on the k-mesh (used to compute QP DOS)
-            ks_degatol: Energy tolerance in eV. Used when either `ks_ebands_kpath` or `ks_ebands_kmesh` are given.
+            ks_degatol: Energy tolerance in eV. Used when either ``ks_ebands_kpath`` or ``ks_ebands_kmesh`` are given.
                 KS energies are assumed to be degenerate if they differ by less than this value.
                 The interpolator may break band degeneracies (the error is usually smaller if QP corrections
                 are interpolated instead of QP energies). This problem can be partly solved by averaging
                 the interpolated values over the set of KS degenerate states.
                 A negative value disables this ad-hoc symmetrization.
             vertices_names: Used to specify the k-path for the interpolated QP band structure
-                when `ks_ebands_kpath` is None.
+                when ``ks_ebands_kpath`` is None.
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
-                the k-point. Each point represents a vertex of the k-path. `line_density` defines
+                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
-            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
+            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
             filter_params: TO BE DESCRIBED
             only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
                 Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
@@ -1234,15 +1228,15 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns:
 
-            :class:`namedtuple` with the following attributes:
+            :class:`namedtuple` with the following attributes::
 
-                qp_ebands_kpath: :class:`ElectronBands` with the QP energies interpolated along the k-path.
-                qp_ebands_kmesh: :class:`ElectronBands` with the QP energies interpolated on the k-mesh.
-                    None if `ks_ebands_kmesh` is not passed.
-                ks_ebands_kpath: :class:`ElectronBands` with the KS energies interpolated along the k-path.
-                ks_ebands_kmesh: :class:`ElectronBands` with the KS energies on the k-mesh..
-                    None if `ks_ebands_kmesh` is not passed.
-                interpolator: :class:`SkwInterpolator` object.
+                * qp_ebands_kpath: |ElectronBands| with the QP energies interpolated along the k-path.
+                * qp_ebands_kmesh: |ElectronBands| with the QP energies interpolated on the k-mesh.
+                    None if ``ks_ebands_kmesh`` is not passed.
+                * ks_ebands_kpath: |ElectronBands| with the KS energies interpolated along the k-path.
+                * ks_ebands_kmesh: |ElectronBands| with the KS energies on the k-mesh..
+                    None if ``ks_ebands_kmesh`` is not passed.
+                * interpolator: |SkwInterpolator| object.
         """
         # TODO: Consistency check.
         errlines = []
@@ -1375,7 +1369,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1548,6 +1542,8 @@ class SigresReader(ETSF_Reader):
     complex(dpc),pointer :: omega4sd(:,:,:,:)
     ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
     ! Frequencies used to evaluate the Derivative of Sigma.
+
+    .. inheritance-diagram:: SigresReader
     """
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
@@ -1627,7 +1623,7 @@ class SigresReader(ETSF_Reader):
     def kpt2fileindex(self, kpoint):
         """
         Helper function that returns the index of kpoint in the netcdf file.
-        Accepts `Kpoint` instance or integer
+        Accepts |Kpoint| instance or integer
 
         Raise:
             `KpointsError` if kpoint cannot be found.
@@ -1655,10 +1651,10 @@ class SigresReader(ETSF_Reader):
 
     def read_allqps(self, ignore_imag=False):
         """
-        Return list with `nsppol` items. Each item is a `QPList` with the QP results
+        Return list with ``nsppol`` items. Each item is a :class:`QPList` with the QP results
 
         Args:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         qps_spin = self.nsppol * [None]
 
@@ -1675,10 +1671,10 @@ class SigresReader(ETSF_Reader):
 
     def read_qplist_sk(self, spin, kpoint, ignore_imag=False):
         """
-        Read and return `QPList` object for the given spin, kpoint.
+        Read and return :class:`QPList` object for the given spin, kpoint.
 
         Args:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         ik = self.gwkpt2seqindex(kpoint)
         bstart, bstop = self.gwbstart_sk[spin, ik], self.gwbstop_sk[spin, ik]
@@ -1693,8 +1689,8 @@ class SigresReader(ETSF_Reader):
 
     def read_qp(self, spin, kpoint, band, ignore_imag=False):
         """
-        Return `QPState` for the given (spin, kpoint, band).
-        Only real part is returned if `ignore_imag`.
+        Return :class`QPState` for the given (spin, kpoint, band).
+        Only real part is returned if ``ignore_imag``.
         """
         ik_file = self.kpt2fileindex(kpoint)
         # Must shift band index (see fortran code that allocates with mdbgw)
@@ -1719,7 +1715,7 @@ class SigresReader(ETSF_Reader):
         )
 
     def read_qpgaps(self):
-        """Read the QP gaps. Returns [nsppol, nkibz] array with QP gaps in eV"""
+        """Read the QP gaps. Returns [nsppol, nkibz] array with QP gaps in eV."""
         return self.read_value("egwgap")
 
     def read_e0(self, spin, kfile, band):
@@ -1771,7 +1767,7 @@ class SigresReader(ETSF_Reader):
     def read_params(self):
         """
         Read the parameters of the calculation.
-        Returns :class:`AttrDict` instance with the value of the parameters.
+        Returns: |AttrDict| instance with the value of the parameters.
         """
         param_names = [
             "ecutwfn", "ecuteps", "ecutsigx", "scr_nband", "sigma_nband",
@@ -1807,7 +1803,9 @@ class SigresReader(ETSF_Reader):
 
 class SigresRobot(Robot, RobotWithEbands):
     """
-    This robot analyzes the results contained in multiple SIGRES files.
+    This robot analyzes the results contained in multiple SIGRES.nc files.
+
+    .. inheritance-diagram:: SigresRobot
     """
     EXT = "SIGRES"
 
@@ -1823,7 +1821,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
     def get_qpgaps_dataframe(self, spin=None, kpoint=None, with_geo=False, abspath=False, funcs=None, **kwargs):
         """
-        Return a pandas DataFrame with the QP gaps for all files in the robot.
+        Return a |pandas-DataFrame| with the QP gaps for all files in the robot.
 
         Args:
             spin: Spin index.
@@ -1880,7 +1878,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

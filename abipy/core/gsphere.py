@@ -39,7 +39,7 @@ class GSphere(collections.Sequence):
 
     @property
     def gvecs(self):
-        """ndarray with the G-vectors in reduced coordinates."""
+        """|numpy-array| with the G-vectors in reduced coordinates."""
         return self._gvecs
 
     #@property
@@ -64,8 +64,8 @@ class GSphere(collections.Sequence):
 
     def index(self, gvec):
         """
-        return the index of the G-vector gvec in self.
-        Raises ValueError if the value is not present.
+        return the index of the G-vector ``gvec`` in self.
+        Raises: `ValueError` if the value is not present.
         """
         gvec = np.asarray(gvec)
         for i, g in enumerate(self):
@@ -93,7 +93,7 @@ class GSphere(collections.Sequence):
         return not (self == other)
 
     def copy(self):
-        """Deep copy."""
+        """shallow copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
     def to_string(self, verbose=0):
@@ -103,7 +103,7 @@ class GSphere(collections.Sequence):
         return s
 
     # TODO: Alias To be removed in 0.4
-    tostring = to_string
+    #tostring = to_string
 
     def _new_array(self, dtype=np.float, zero=True, extra_dims=()):
         """Returns a numpy array defined on the sphere."""
@@ -121,7 +121,7 @@ class GSphere(collections.Sequence):
 
     def zeros(self, dtype=np.float, extra_dims=()):
         """
-        Returns new zeroed 1D array.
+        Returns new zeroed 1D |numpy-array|.
 
         The type can be set with the ``dtype`` keyword.
         Extra dimensions can be added with ``extra_dims``.
@@ -129,12 +129,12 @@ class GSphere(collections.Sequence):
         return self._new_array(dtype=dtype, zero=True, extra_dims=extra_dims)
 
     def czeros(self, extra_dims=()):
-        """New zeroed 1D complex array."""
+        """New zeroed 1D complex |numpy-array|."""
         return self._new_array(dtype=np.complex, zero=True, extra_dims=extra_dims)
 
     def empty(self, dtype=np.float, extra_dims=()):
         """
-        Returns new uninitialized 1D array.
+        Returns new uninitialized 1D |numpy-array|.
 
         The type can be set with the ``dtype`` keyword.
         Extra dimensions can be added with ``extra_dims``.
@@ -142,7 +142,7 @@ class GSphere(collections.Sequence):
         return self._new_array(dtype=dtype, zero=False, extra_dims=extra_dims)
 
     def cempty(self, extra_dims=()):
-        """Returns New uninitialized 1D complex array."""
+        """Returns new uninitialized 1D complex |numpy-array|."""
         return self._new_array(dtype=np.complex, zero=False, extra_dims=extra_dims)
 
     #def build_fftbox(self, boxsph_ratio=1.05):
@@ -151,7 +151,7 @@ class GSphere(collections.Sequence):
 
     def tofftmesh(self, mesh, arr_on_sphere):
         """
-        Insert the array arr_on_sphere given on the sphere inside the FFT mesh.
+        Insert the array ``arr_on_sphere`` given on the sphere inside the FFT mesh.
 
         Args:
             mesh:
@@ -192,7 +192,7 @@ class GSphere(collections.Sequence):
 
     def fromfftmesh(self, mesh, arr_on_mesh):
         """
-        Transfer arr_on_mesh given on the FFT mesh to the G-sphere.
+        Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.
         """
         indim =  arr_on_mesh.ndim
         arr_on_mesh = mesh.reshape(arr_on_mesh)

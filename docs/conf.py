@@ -52,7 +52,7 @@ extensions = [
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib
 extensions += [
-    'matplotlib.sphinxext.mathmpl',
+    #'matplotlib.sphinxext.mathmpl',     # sphinx gets stuck if I remove it!
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_directive',
@@ -120,7 +120,7 @@ release = relmod.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', '**.ipynb_checkpoints']
+exclude_patterns = ['_build', '**.ipynb_checkpoints', "links.rst"]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -368,9 +368,28 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
     'matplotlib': ('http://matplotlib.org/', None),
+    "pymatgen": ("http://pythonhosted.org/monty/", None),
     "pymatgen": ("http://pymatgen.org/", None),
 }
 
 # If true, Sphinx will warn about all references where the target cannot be found.
 # Default is False. You can activate this mode temporarily using the -n command-line switch.
 #nitpicky = True
+
+# A string of reStructuredText that will be included at the end of every source file that is read.
+# This is the right place to add substitutions that should be available in every file.
+with open("links.rst", "rt") as fh:
+    rst_epilog = fh.read()
+
+# http://www.sphinx-doc.org/en/stable/ext/extlinks.html#confval-extlinks
+# :abivar:`ecut`
+#ABINIT_DOCS_URL =
+#extlinks = {'
+#    "abivar" : (ABINIT_DOC_ULRS + '/abinit/%s', "")
+#    api_url' : (settings.BASE_URL + '%s', settings.BASE_URL)
+#}
+
+autodoc_member_order = "bysource"
+
+#'members', 'undoc-members', 'private-members', 'special-members', 'inherited-members' and 'show-inheritance'.
+#autodoc_default_flags = ["show-inheritance", "inherited-members", "special-members"]

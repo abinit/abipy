@@ -59,7 +59,7 @@ def abiview_hist(options):
 
 def abiview_abo(options):
     """
-    Plot self-consisten iterations extracted from Abinit output file
+    Plot self-consistent iterations extracted from Abinit output file
     as well as timer data (if present)
     """
     with abilab.abiopen(options.filepath) as abo:
@@ -130,7 +130,7 @@ def abiview_optic(options):
 
 def abiview_ddb(options):
     """
-    Invoke Anaddb to compute phonon bands and DOS from DDB, plot results.
+    Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.
     """
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
@@ -305,7 +305,7 @@ Usage example:
 
   abiview.py sigres out_SIGRES.nc        ==> Plot QP results stored in SIGRES.
   abiview.py mdf out_MDF.nc --seaborn    ==> Plot macroscopic dielectric functions with excitonic effects.
-                                             Use seaborn settings.
+                                             Use seaborn settings for plots.
 
 
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.

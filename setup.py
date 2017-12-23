@@ -128,7 +128,6 @@ def find_package_data():
         'abipy.gui.awx' : ['images/*'],
     }
 
-    #package_data.update(ref_files)
     return package_data
 
 
@@ -154,9 +153,7 @@ def find_scripts():
 
 def get_long_desc():
     with open("README.rst") as f:
-        long_desc = f.read()
-        #ind = long_desc.find("\n")
-        #long_desc = long_desc[ind + 1:]
+        return f.read()
         return long_desc
 
 

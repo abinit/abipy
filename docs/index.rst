@@ -1,5 +1,4 @@
 .. htmlonly::
-
     :Release: |version|
     :Date: |today|
 
@@ -33,6 +32,7 @@ Post-processing
 
    scripts/index.rst
    gallery/index.rst
+   scripts_howto
 
 Workflows
 =========
@@ -41,7 +41,9 @@ Workflows
    :maxdepth: 1
 
    workflows/taskmanager.rst
+   workflows/manager_examples.rst
    flow_gallery/index.rst
+   flows_howto
 
 API
 ===
@@ -55,9 +57,9 @@ API
 Indices and tables
 ==================
 
-  :ref:`genindex`
-  :ref:`modindex`
-  :ref:`search`
+  :ref:`genindex` 
+  :ref:`modindex` 
+  :ref:`search` 
 
 License
 =======

@@ -1,6 +1,9 @@
 electrons Package
 =================
 
+.. contents::
+   :backlinks: top
+
 
 :mod:`electrons` Package
 ------------------------

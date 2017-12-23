@@ -5,7 +5,7 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from monty.functools import lazy_property
-from monty.string import marquee # is_string, list_strings,
+from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.core.tensor import Tensor
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -22,7 +22,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     .. attribute:: structure
 
-        Structure object.
+        |Structure| object.
 
     .. attribute:: emacro
 
@@ -114,8 +114,8 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def ifc(self):
         """
         The interatomic force constants calculated by anaddb.
-        The following anaddb variables should be used in the run: ifcflag, natifc, atifc, ifcout
-        Return None, if the netcdf file does not contain the IFCs,
+        The following anaddb variables should be used in the run: ``ifcflag``, ``natifc``, ``atifc``, ``ifcout``.
+        Return None, if the netcdf_ file does not contain the IFCs,
         """
         try:
             return InteratomicForceConstants.from_file(self.filepath)
@@ -128,7 +128,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def dchide(self):
         """
         Non-linear optical susceptibility tensor.
-        Returns a NLOpticalSusceptibilityTensor or None if the file does not contain this information.
+        Returns a :class:`NLOpticalSusceptibilityTensor` or None if the file does not contain this information.
         """
         try:
             return NLOpticalSusceptibilityTensor(self.reader.read_value("dchide"))
@@ -162,20 +162,20 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @lazy_property
     def oscillator_strength(self):
         """
-        A complex numpy array containing the oscillator strengths with shape (number of phonon modes, 3, 3),
+        A complex |numpy-array| containing the oscillator strengths with shape (number of phonon modes, 3, 3),
         in a.u. (1 a.u.=253.2638413 m3/s2).
         None if the file does not contain this information.
         """
         try:
             return self.reader.read_value("oscillator_strength", cmode="c")
         except Exception as exc:
-            print(exc, "Requires dieflag == 1, 3 or 4", "Returning None", sep="\n")
+            print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             raise
             return None
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

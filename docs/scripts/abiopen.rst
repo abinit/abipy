@@ -1,4 +1,4 @@
-.. _abiopen:
+.. _abiopen.py:
 
 ^^^^^^^^^^^^^^
 ``abiopen.py``
@@ -6,27 +6,27 @@
 
 AbiPy provides python objects associated to several Abinit output files.
 These objects implement methods to analyze and plot the results.
-The examples in our :doc:`gallery ../gallery>` use this API to plot data with ``matplotlib``.
+The examples in our :ref:`plot-gallery` use this API to plot data with matplotlib_.
 
 The ``abiopen.py`` script provides a handy interface to the AbiPy objects.
-It can be used to open Abinit files directly in the ``ipython`` shell or inside a ``jupyter`` 
+It can be used to open Abinit files directly in the ipython_ shell or inside a jupyter_ 
 notebook and interact with the associated object (called ``abifile`` in the ``ipython`` terminal).
 The syntax of the script is::
 
-    $ abiopen.py FILE [options]
+    abiopen.py FILE [options]
 
-where ``FILE`` is one of the files supported by AbiPy (usually in ``netcdf`` format but other 
+where ``FILE`` is one of the files supported by AbiPy (usually in netcdf_ format but other 
 files are supported as well e.g. Abinit input and output files in text format).
 By default ``abiopen`` starts the ``ipython`` terminal.
-Alternatively, it is possible to generate automatically a ``jupyter`` notebook with the ``-nb`` option e.g.::
+Alternatively, it is possible to generate automatically a jupyter_ notebook with the ``-nb`` option e.g.::
 
-    $ abiopen.py out_FATBANDS.nc -nb
+    abiopen.py out_FATBANDS.nc -nb
 
 will produce a notebook to visualize the electronic fatbands inside your default web browser.
 
 Use the ``-p`` option if you just want to get information on the file without opening it, e.g.::
 
-    $ abiopen.py out_GSR.nc -p
+    abiopen.py out_GSR.nc -p
 
 The script uses the file extension to decide what to do with the file and the type
 of python object that should be instantiated.

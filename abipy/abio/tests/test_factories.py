@@ -107,7 +107,7 @@ class FactoryTest(AbipyTest):
 
         multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo,
                                          scf_kppa, nscf_nband, ecuteps, ecutsigx,
-                                         ecut=2)
+                                         shifts=(0.5, 0.5, 0.5), ecut=2)
 
         scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
 
@@ -138,6 +138,14 @@ class FactoryTest(AbipyTest):
         flow = Flow.temporary_flow()
         flow.register_work(G0W0Work(scf_input, nscf_input, scr_input, sigma_input))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
+
+
+        # The default value of `shifts` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0)
+        multi = g0w0_with_ppmodel_inputs(self.si_structure, self.si_pseudo,
+                                        scf_kppa, nscf_nband, ecuteps, ecutsigx,
+                                        ecut=2)
+        for inp in multi:
+            self.assert_equal(inp["shiftk"].flatten(), (0, 0, 0))
 
     def test_convergence_inputs_single(self):
         """Testing g0w0_convergence_input factory single calculation."""

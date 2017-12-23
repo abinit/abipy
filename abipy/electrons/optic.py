@@ -18,7 +18,7 @@ from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
 def s2itup(comp):
     """
-    Convert string in the form `xx`, `xyz` into tuple of two (three) indices
+    Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices
     that can be used to slice susceptibility tensors (numpy array).
 
     >>> assert s2itup("yy") == (1, 1)
@@ -36,7 +36,7 @@ def s2itup(comp):
 
 def itup2s(t):
     """
-    Convert tuple of 2 (3) integers into string in the form `xx` (`xyz`).
+    Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).
     Assume C-indexing e.g. 0 --> x
 
     >>> assert itup2s((0, 1)) == "xy"
@@ -130,7 +130,7 @@ LINEPS_WHAT2EFUNC = dict(
 class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the results produced by optic. Provides methods to plot optical
-    properties and susceptibilty tensors. Used by OpticRobot to analyze multiple files.
+    properties and susceptibilty tensors. Used by :class:`OpticRobot` to analyze multiple files.
 
     Usage example:
 
@@ -139,11 +139,13 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         with OpticNcFile("out_optic.nc") as optic:
             optic.ebands.plot()
             optic.plot()
+
+    .. inheritance-diagram:: OpticNcFile
     """
 
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file."""
+        """Initialize the object from a netcdf file."""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -206,12 +208,12 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     @lazy_property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     #@lazy_property
@@ -261,15 +263,14 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                 "all" if all components available on file should be plotted on the same ax.
             what: quantity to plot. "re" for real part, "im" for imaginary. Accepts also "abs", "angle".
             itemp: Temperature index.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
             with_xlabel: True if x-label should be added.
             label: True to add legend label to each curve.
             fontsize: Legend and label fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         comp2eps = self.reader.read_lineps(components, itemp=itemp)
 
@@ -291,16 +292,15 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
     @add_fig_kwargs
     def plot_linopt(self, select="all", itemp=0, xlims=None, **kwargs):
         """
-        Subplots with all linear optic quantities selected by `select` at temperature `itemp`
+        Subplots with all linear optic quantities selected by ``select`` at temperature ``itemp``.
 
         Args:
             select:
             itemp: Temperature index.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         key = "linopt"
         if not self.reader.computed_components[key]: return None
@@ -330,15 +330,14 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
             what: quantity to plot. "re" for real part, "im" for imaginary, Accepts also "abs", "angle".
             itemp: Temperature index.
             decompose: True to plot individual contributions.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
             with_xlabel: True to add x-label.
             label: True to add legend label to each curve.
             fontsize: Legend and label fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         if not self.reader.computed_components[key]: return None
         comp2terms = self.reader.read_tensor3_terms(key, components, itemp=itemp)
@@ -371,7 +370,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -397,6 +396,8 @@ class OpticReader(ElectronsReader):
     """
     This object reads the results stored in the optic.nc file
     It provides helper function to access the most important quantities.
+
+    .. inheritance-diagram:: OpticReader
     """
     def __init__(self, filepath):
         super(OpticReader, self).__init__(filepath)
@@ -454,7 +455,7 @@ class OpticReader(ElectronsReader):
             itemp: Temperature index.
 
         Return:
-            OrderedDict mapping cartesian components e.g. "xyz" to data dictionary.
+            :class:`OrderedDict` mapping cartesian components e.g. "xyz" to data dictionary.
             Individual entries are listed in ALL_CHIS[key]["terms"]
         """
         # arrays have Fortran shape [two, nomega, num_comp, ntemp]
@@ -480,6 +481,8 @@ class OpticReader(ElectronsReader):
 class OpticRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple optic.nc files.
+
+    .. inheritance-diagram:: OpticRobot
     """
     EXT = "OPTIC"
 
@@ -505,7 +508,7 @@ class OpticRobot(Robot, RobotWithEbands):
                                 sortby="nkpt", itemp=0, xlims=None, **kwargs):
         """
         Plot the convergence of the dielectric function tensor with respect to
-        parameter defined by `sortby`.
+        parameter defined by ``sortby``.
 
         Args:
             components: List of cartesian tensor components to plot e.g. ["xx", "xy"].
@@ -517,11 +520,10 @@ class OpticRobot(Robot, RobotWithEbands):
                 If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
                 If callable, the output of callable(ncfile) is used.
             itemp: Temperature index.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # Build grid plot: computed tensors along the rows, what_list along columns.
         key = "linopt"
@@ -576,14 +578,13 @@ class OpticRobot(Robot, RobotWithEbands):
                 Accepts also "abs", "angle".
             sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.
                 If None, no sorting is performed.
-                If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
+                If string, it's assumed that the ncfile has an attribute with the same name and ``getattr`` is invoked.
                 If callable, the output of callable(ncfile) is used.
             decompose: True to plot individual contributions.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # Build grid plot: computed tensors along the rows, what_list along columns.
         components = self.computed_components_intersection[key]
@@ -612,7 +613,7 @@ class OpticRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

@@ -29,7 +29,7 @@ class TestMpRestApi(AbipyTest):
         assert mp.structures
         assert "mp-763" in mp.ids
         assert len(mp.structures) == len(mp.data)
-        assert hasattr(mp.table, "describe")
+        assert hasattr(mp.dataframe, "describe")
         mp.print_results(fmt="abivars", verbose=2)
         new = mp.add_entry(mp.structures[-1], "newid")
         assert len(new.ids) == len(mp.ids) + 1
@@ -41,7 +41,7 @@ class TestMpRestApi(AbipyTest):
         repr(mp); str(mp)
         assert mp.structures and mp
         assert "mp-134" in mp.ids
-        assert mp.data is None and mp.table is None
+        assert mp.data is None and mp.dataframe is None
         mp.print_results(fmt="abivars", verbose=2)
 
         if self.has_nbformat():
@@ -53,5 +53,5 @@ class TestMpRestApi(AbipyTest):
         assert cod.structures and cod
         assert 1000026 in cod.ids
         assert cod.data is not None
-        assert hasattr(cod.table, "describe")
+        assert hasattr(cod.dataframe, "describe")
         cod.print_results(fmt="POSCAR", verbose=2)

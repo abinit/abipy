@@ -53,7 +53,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     .. Attributes:
 
         spin: spin index (C convention, i.e >= 0)
-        kpoint: :class:`Kpoint` object.
+        kpoint: |Kpoint| object.
         band: band index. (C convention, i.e >= 0).
         eig: KS eigenvalue.
         occ: Occupation factor.
@@ -84,6 +84,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
         return self.spin, self.kpoint, self.band
 
     def copy(self):
+        """Shallow copy."""
         return self.__class__(**{f: copy.copy(getattr(self, f)) for f in self._fields})
 
     @classmethod
@@ -243,7 +244,7 @@ class Smearing(AttrDict):
 
     def to_json(self):
         """
-        Returns a json string representation of the MSONable object.
+        Returns a JSON_ string representation of the MSONable object.
         """
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
@@ -298,6 +299,8 @@ class ElectronBands(Has_Structure):
             Fermi level in eV. Note that, if the band structure has been computed
             with a NSCF run, fermie corresponds to the fermi level obtained
             in the SCF run that produced the density used for the band structure calculation.
+
+    .. inheritance-diagram:: ElectronBands
     """
     Error = ElectronBandsError
 
@@ -318,7 +321,7 @@ class ElectronBands(Has_Structure):
     @classmethod
     def from_file(cls, filepath):
         """
-        Initialize an instance of :class:`ElectronBands` from the netCDF file `filepath`.
+        Initialize an instance of :class:`ElectronBands` from the netCDF file ``filepath``.
         """
         if filepath.endswith(".nc"):
             with ElectronsReader(filepath) as r:
@@ -331,6 +334,7 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_dict(cls, d):
+        """Reconstruct object from dictionary ``d``."""
         d = d.copy()
         kd = d["kpoints"].copy()
         kd.pop("@module")
@@ -349,7 +353,7 @@ class ElectronBands(Has_Structure):
 
     @pmg_serialize
     def as_dict(self):
-        """Return dictionary with JSON serialization."""
+        """Return dictionary with JSON_ serialization."""
         return dict(
             structure=self.structure.as_dict(),
             kpoints=self.kpoints.as_dict(),
@@ -366,7 +370,7 @@ class ElectronBands(Has_Structure):
     @classmethod
     def as_ebands(cls, obj):
         """
-        Return an instance of :class:`ElectronBands` from a generic `obj`.
+        Return an instance of :class:`ElectronBands` from a generic object `obj`.
         Supports:
 
             - instances of cls
@@ -396,7 +400,7 @@ class ElectronBands(Has_Structure):
     def from_material_id(cls, material_id, api_key=None, endpoint=None,
                          nelect=None, has_timerev=True, nspinor=1, nspden=None):
         """
-        Read bandstructure data corresponding to a materials project material_id.
+        Read bandstructure data corresponding to a materials project ``material_id``.
         and return Abipy ElectronBands object.
 
         Args:
@@ -412,7 +416,7 @@ class ElectronBands(Has_Structure):
                 Defaults to the standard Materials Project REST address, but
                 can be changed to other urls implementing a similar interface.
             nelect: Number of electrons in the unit cell.
-            nspinor: 1
+            nspinor: Number of spinor components.
         """
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
@@ -444,7 +448,7 @@ class ElectronBands(Has_Structure):
 
     def to_json(self):
         """
-        Returns a json string representation of the MSONable object.
+        Returns a JSON_ string representation of the MSONable object.
         """
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
@@ -452,8 +456,8 @@ class ElectronBands(Has_Structure):
                  nband_sk=None, smearing=None):
         """
         Args:
-            structure: pymatgen structure.
-            kpoints: :class:`KpointList` instance.
+            structure: |Structure| object.
+            kpoints: |KpointList| instance.
             eigens: Array-like object with the eigenvalues (eV) stored as [s,k,b]
                     where s: spin , k: kpoint, b: band index
             fermie: Fermi level in eV.
@@ -496,7 +500,7 @@ class ElectronBands(Has_Structure):
 
     @property
     def structure(self):
-        """Crystalline structure."""
+        """|Structure| object."""
         return self._structure
 
     @lazy_property
@@ -530,7 +534,7 @@ class ElectronBands(Has_Structure):
         return self.to_string()
 
     def __add__(self, other):
-        """self + other returns a :class:`ElectronBandsPlotter`."""
+        """self + other returns a |ElectronBandsPlotter|."""
         if not isinstance(other, (ElectronBands, ElectronBandsPlotter)):
             raise TypeError("Cannot add %s to %s" % (type(self), type(other)))
 
@@ -571,17 +575,17 @@ class ElectronBands(Has_Structure):
 
     @property
     def eigens(self):
-        """Eigenvalues in eV. ndarray with shape (nspin, nkpt, mband)."""
+        """Eigenvalues in eV. |numpy-array| with shape [nspin, nkpt, mband]."""
         return self._eigens
 
     @property
     def occfacts(self):
-        """Occupation factors. ndarray with shape (nspin, nkpt, mband)."""
+        """Occupation factors. |numpy-array| with shape [nspin, nkpt, mband]."""
         return self._occfacts
 
     @property
     def reciprocal_lattice(self):
-        """Reciprocal lattice vectors in Angstrom."""
+        """|Lattice| with the reciprocal lattice vectors in Angstrom."""
         return self.structure.reciprocal_lattice
 
     @property
@@ -620,7 +624,7 @@ class ElectronBands(Has_Structure):
         Useful to construct pandas DataFrames
 
         Args:
-            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
         """
         odict = OrderedDict([
             ("nsppol", self.nsppol), ("nspinor", self.nspinor), ("nspden", self.nspden),
@@ -674,7 +678,7 @@ class ElectronBands(Has_Structure):
     def kindex(self, kpoint):
         """
         The index of the k-point in the internal list of k-points.
-        Accepts: :class:`Kpoint` instance or integer.
+        Accepts: |Kpoint| instance or integer.
         """
         if duck.is_intlike(kpoint):
             return int(kpoint)
@@ -824,7 +828,7 @@ class ElectronBands(Has_Structure):
 
     def get_dataframe(self, e0="fermie"):
         """
-        Return a pandas DataFrame with the following columns:
+        Return a |pandas-DataFrame| with the following columns:
 
           ['spin', 'kidx', 'band', 'eig', 'occ', 'kpoint']
 
@@ -871,17 +875,19 @@ class ElectronBands(Has_Structure):
     @add_fig_kwargs
     def boxplot(self, ax=None, e0="fermie", brange=None, swarm=False, **kwargs):
         """
-        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the band index.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV.
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
+            brange: Only bands such as ``brange[0] <= band_index < brange[1]`` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             kwargs: Keyword arguments passed to seaborn boxplot.
+
+        Return: |matplotlib-Figure|
         """
         # Get the dataframe and select bands
         frame = self.get_dataframe(e0=e0)
@@ -903,13 +909,13 @@ class ElectronBands(Has_Structure):
     def from_pymatgen(cls, pmg_bands, nelect, weights=None, has_timerev=True,
                       ksampling=None, smearing=None, nspinor=1, nspden=None):
         """
-        Convert a pymatgen bandstructure object to an Abipy ElectronBands object.
+        Convert a pymatgen bandstructure object to an Abipy |ElectronBands| object.
 
         Args:
             pmg_bands: pymatgen bandstructure object.
             nelect: Number of electrons in unit cell.
             weights: List of K-points weights (normalized to one, same order as pmg_bands.kpoints).
-                This argument is optional but recommended when `pmg_bands` represents an IBZ sampling.
+                This argument is optional but recommended when ``pmg_bands`` represents an IBZ sampling.
                 If weights are not provided, Abipy methods requiring integrations in the BZ won't work.
             has_timerev: True if time-reversal symmetry can be used.
             ksampling: dictionary with parameters passed to :class:`KSamplingInfo` defining the k-points sampling.
@@ -975,7 +981,7 @@ class ElectronBands(Has_Structure):
 
     def to_pymatgen(self):
         """
-        Return a pymatgen bandstructure object from an Abipt :class:`ElectronBands` object.
+        Return a pymatgen bandstructure object from an Abipt |ElectronBands| object.
         """
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
         assert np.all(self.nband_sk == self.nband_sk[0, 0])
@@ -1209,7 +1215,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             prune_step: Optional argument used to select a subset of the irreducible points found.
-            If `prune_step` is None, all irreducible k-points are used.
+            If ``prune_step`` is None, all irreducible k-points are used.
         """
         # Get the index of the irreducible kpoints.
         from abipy.core.kpoints import find_irred_kpoints_generic
@@ -1236,7 +1242,7 @@ class ElectronBands(Has_Structure):
         Compute the statistical parameters of the energy spacing, i.e. e[b+1] - e[b]
 
         Returns:
-            `namedtuple` with the statistical parameters in eV
+            ``namedtuple`` with the statistical parameters in eV
         """
         ediff = self.eigens[:, :, 1:] - self.eigens[:, :, :self.mband-1]
 
@@ -1250,14 +1256,14 @@ class ElectronBands(Has_Structure):
         The bands are aligned wrt to their fermi level.
 
         Args:
-            other: :class:`ElectronBands` object.
+            other: |ElectronBands| object.
             axis:  Axis along which the statistical parameters are computed.
-                   The default is to compute the parameters of the flattened array.
+                The default is to compute the parameters of the flattened array.
             numpy_op: Numpy function to apply to the difference of the eigenvalues. The
-                      default computes `|self.eigens - other.eigens|`.
+                      default computes ``|self.eigens - other.eigens|``.
 
         Returns:
-            `namedtuple` with the statistical parameters in eV
+            ``namedtuple`` with the statistical parameters in eV
         """
         ediff = numpy_op(self.eigens - self.fermie - other.eigens + other.fermie)
         return StatParams(mean=ediff.mean(axis=axis), stdev=ediff.std(axis=axis),
@@ -1288,8 +1294,7 @@ class ElectronBands(Has_Structure):
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
 
-        Returns:
-            :class:`ElectronDos` object.
+        Returns: |ElectronDos| object.
         """
         self.kpoints.check_weights()
 
@@ -1326,7 +1331,7 @@ class ElectronBands(Has_Structure):
     def plot_transitions(self, omega_ev, qpt=(0, 0, 0), atol_ev=0.1, atol_kdiff=1e-4, ylims=None, ax=None, **kwargs):
         """
         Plot energy bands with arrows signaling possible k --> k + q indipendent-particle transitions
-        of energy `omega_ev` connecting occupied to empty states.
+        of energy ``omega_ev`` connecting occupied to empty states.
 
         Args:
             omega_ev: Transition energy in eV.
@@ -1334,11 +1339,10 @@ class ElectronBands(Has_Structure):
             atol_ev: Absolute tolerance for energy difference in eV
             atol_kdiff: Tolerance used to compare k-points.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+                or scalar e.g. `left`. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -1403,8 +1407,7 @@ class ElectronBands(Has_Structure):
             width: Standard deviation (eV) of the gaussian.
             mesh: Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.
 
-        Returns:
-            :class:`Function1D` object.
+        Returns: |Function1D| object.
         """
         self.kpoints.check_weights()
         if not isinstance(valence, Iterable): valence = [valence]
@@ -1472,11 +1475,10 @@ class ElectronBands(Has_Structure):
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             cumulative: True for cumulative plots (default).
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         if not isinstance(crange, Iterable): crange = [crange]
         if not isinstance(vrange, Iterable): vrange = [vrange]
@@ -1532,7 +1534,7 @@ class ElectronBands(Has_Structure):
             scissors: An instance of :class:`Scissors`.
 
         Returns:
-            New instance of :class:`ElectronBands` with modified energies.
+            New instance of |ElectronBands| with modified energies.
         """
         if self.nsppol == 1 and not isinstance(scissors, Iterable):
             scissors = [scissors]
@@ -1575,20 +1577,19 @@ class ElectronBands(Has_Structure):
         Plot the band structure.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             klabels: dictionary whose keys are tuple with the reduced
                 coordinates of the k-points. The values are the labels. e.g.
-                klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}.
+                ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}``.
             band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         # Select the band range.
         if band_range is None:
@@ -1617,16 +1618,16 @@ class ElectronBands(Has_Structure):
     @add_fig_kwargs
     def plot_scatter3d(self, band, spin=0, e0="fermie", colormap="jet", ax=None, **kwargs):
         r"""
-        Use matplotlib `scatter3D` to produce a scatter plot of the eigenvalues in 3D.
+        Use matplotlib ``scatter3D`` to produce a scatter plot of the eigenvalues in 3D.
         The color of the points gives the energy of the state wrt to the Fermi level.
 
         Args:
             band: Band index
             spin: Spin index.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
             colormap: Have a look at the colormaps here and decide which one you like:
                 <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>
             ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
@@ -1679,9 +1680,9 @@ class ElectronBands(Has_Structure):
     def get_e0(self, e0):
         """
         e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
         """
         if e0 is None:
             return 0.0
@@ -1701,12 +1702,12 @@ class ElectronBands(Has_Structure):
         Helper function to plot the energies for (spin, band) on the axis ax.
 
         Args:
-            ax: Matplotlib axis.
+            ax: |matplotlib-Axes|.
             e0: Option used to define the zero of energy in the band structure plot.
             spin: Spin index. If None, all spins are plotted.
             band: Band index, If None, all bands are plotted.
 
-        Return matplotlib lines
+        Return: matplotlib lines
         """
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
@@ -1746,27 +1747,28 @@ class ElectronBands(Has_Structure):
         Plot the band structure and the DOS.
 
         Args:
-            edos: An instance of :class:`ElectronDos`.
+            edos: An instance of |ElectronDos|.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
-                The values are the labels. e.g. `klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}`.
+                The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
                    can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-                   the one used to compute the density. See `edos_fermie`.
-                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                   the one used to compute the density. See ``edos_fermie``.
+                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to ``e0 = 0``
+
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
 
-        Returns:
-            `matplotlib` figure.
+        Return: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
@@ -1820,7 +1822,7 @@ class ElectronBands(Has_Structure):
 
     def to_xmgrace(self, filepath):
         """
-        Write xmgrace file with band structure energies and labels for high-symmetry k-points.
+        Write xmgrace_ file with band structure energies and labels for high-symmetry k-points.
 
         Args:
             filepath: String with filename or stream.
@@ -1899,8 +1901,8 @@ class ElectronBands(Has_Structure):
 
     def to_bxsf(self, filepath):
         """
-        Export the full band structure to `filepath` in BXSF format
-        suitable for the visualization of isosurfaces with Xcrysden (xcrysden --bxsf FILE).
+        Export the full band structure to ``filepath`` in BXSF format
+        suitable for the visualization of isosurfaces with xcrysden_ (xcrysden --bxsf FILE).
         Require k-points in IBZ and gamma-centered k-mesh.
         """
         self.get_ebands3d().to_bxsf(filepath)
@@ -1935,11 +1937,11 @@ class ElectronBands(Has_Structure):
 
     def effective_masses(self, spin, band, acc=4):
         """
-        Compute the effective masses for the given `spin` and `band` index.
-        Use finite difference with accuracy `acc`.
+        Compute the effective masses for the given ``spin`` and ``band`` index.
+        Use finite difference with accuracy ``acc``.
 
         Returns:
-            numpy array of size self.nkpt with effective masses.
+            |numpy-array| of size self.nkpt with effective masses.
         """
         ders2 = self.derivatives(spin, band, order=2, acc=acc) * (units.eV_to_Ha / units.bohr_to_ang**2)
         return 1. / ders2
@@ -1954,8 +1956,6 @@ class ElectronBands(Has_Structure):
                 and the path contains duplicated k-points, the first k-point is selected.
             band: Band index.
             acc: accuracy
-
-        Returns:
         """
         if not self.kpoints.is_path:
             raise ValueError("effmass_line requires points along a path.")
@@ -2017,24 +2017,24 @@ class ElectronBands(Has_Structure):
             vertices_names: Used to specify the k-path for the interpolated band structure
                 It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
-                the k-point. Each point represents a vertex of the k-path. `line_density` defines
+                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
-            line_density: Number of points in the smallest segment of the k-path. Used with `vertices_names`.
-            kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib API).
+            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
+            kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib_ API).
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
-            is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
+            is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
             filter_params: TO BE described.
             verbose: Verbosity level
 
         Returns:
-                namedtuple with the following attributes:
+                namedtuple with the following attributes::
 
-            ebands_kpath: :class:`ElectronBands` with the interpolated band structure on the k-path.
-            ebands_kmesh: :class:`ElectronBands` with the interpolated band structure on the k-mesh.
-                None if `kmesh` is not given.
-            interpolator: :class:`SkwInterpolator` object.
+                    ebands_kpath: |ElectronBands| with the interpolated band structure on the k-path.
+                    ebands_kmesh: |ElectronBands| with the interpolated band structure on the k-mesh.
+                        None if ``kmesh`` is not given.
+                    interpolator: |SkwInterpolator| object.
         """
         # Get symmetries from abinit spacegroup (read from file).
         abispg = self.structure.abi_spacegroup
@@ -2117,13 +2117,12 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
 
     Args:
         ebands_objects: List of objects that can be converted to structure.
-            Support netcdf filenames or :class:`ElectronBands` objects
-            See `ElectronBands.as_ebands` for the complete list.
+            Support netcdf filenames or |ElectronBands| objects
+            See ``ElectronBands.as_ebands`` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
 
-    Return:
-        pandas :class:`DataFrame`
+    Return: |pandas-DataFrame|
     """
     ebands_list = [ElectronBands.as_ebands(obj) for obj in ebands_objects]
     # Use OrderedDict to have columns ordered nicely.
@@ -2149,6 +2148,8 @@ class ElectronBandsPlotter(NotebookWriter):
         fig = plotter.gridplot()
 
     Dictionary with the mapping label --> edos.
+
+    .. inheritance-diagram:: ElectronBandsPlotter
     """
     _LINE_COLORS = ["b", "r",]
     _LINE_STYLES = ["-",":","--","-.",]
@@ -2208,7 +2209,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def get_ebands_frame(self, with_spglib=True):
         """
-        Build a pandas dataframe with the most important results available in the band structures.
+        Build a |pandas-DataFrame| with the most important results available in the band structures.
         Useful to analyze band-gaps.
         """
         return dataframe_from_ebands(list(self.ebands_dict.values()),
@@ -2216,12 +2217,12 @@ class ElectronBandsPlotter(NotebookWriter):
 
     @property
     def ebands_list(self):
-        """"List of `:class:ElectronBands`."""
+        """"List of |ElectronBands| objects."""
         return list(self.ebands_dict.values())
 
     @property
     def edoses_list(self):
-        """"List of :class:`ElectronDos`."""
+        """"List of |ElectronDos| objects."""
         return list(self.edoses_dict.values())
 
     def iter_lineopt(self):
@@ -2244,10 +2245,10 @@ class ElectronBandsPlotter(NotebookWriter):
 
         Args:
             label: label for the bands. Must be unique.
-            bands: :class:`ElectronBands` object.
-            dos: :class:`ElectronDos` object.
-            edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-                Used only if `dos` is not None and it not an ElectronDos instance.
+            bands: |ElectronBands| object.
+            dos: |ElectronDos| object.
+            edos_kwargs: optional dictionary with the options passed to ``get_edos`` to compute the electron DOS.
+                Used only if ``dos`` is not None and it's not an |ElectronDos| instance.
         """
         if label in self.ebands_dict:
             raise ValueError("label %s is already in %s" % (label, list(self.ebands_dict.keys())))
@@ -2281,28 +2282,29 @@ class ElectronBandsPlotter(NotebookWriter):
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8, **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
-        Use `gridplot` to plot band structures on different figures.
+        Use ``gridplot`` to plot band structures on different figures.
 
         Args:
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
                    can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
                    the one used to compute the density. See `edos_fermie`.
-                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                    Available only if plotter contains dos objects.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                *  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to e0=0
+
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
             fontsize: fontsize for titles and legend.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|.
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
@@ -2378,29 +2380,29 @@ class ElectronBandsPlotter(NotebookWriter):
         Args:
             eb_objects: List of objects from which the band structures are extracted.
                 Each item in eb_objects is either a string with the path of the netcdf file,
-                or one of the abipy object with an `ebands` attribute or a :class:`ElectronBands` object.
-            edos_objects:
-                List of objects from which the electron DOSes are extracted.
-                Accept filepaths or :class:`ElectronDos` objects. If edos_objects is not None,
+                or one of the abipy object with an ``ebands`` attribute or a |ElectronBands| object.
+            edos_objects: List of objects from which the electron DOSes are extracted.
+                Accept filepaths or |ElectronDos| objects. If edos_objects is not None,
                 each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
                    can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
                    the one used to compute the density. See `edos_fermie`.
-                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                    Available only if edos_objects is not None
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            with_dos: True if DOS should be printed.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            fontsize: fontsize for titles and legend
+                *  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to e0=0
 
-        Returns:
-            matplotlib figure.
+            with_dos: True if DOS should be printed.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ```(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: fontsize for titles and legend.
+
+        Returns: |matplotlib-Figure|
         """
         titles = list(self.ebands_dict.keys())
         ebands_list, edos_list = self.ebands_list, self.edoses_list
@@ -2454,7 +2456,7 @@ class ElectronBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def boxplot(self, e0="fermie", brange=None, swarm=False, fontsize=8, **kwargs):
         """
-        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
 
         Args:
@@ -2488,7 +2490,7 @@ class ElectronBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiboxplot(self, e0="fermie", brange=None, swarm=False, ax=None, **kwargs):
         """
-        Use seaborn to draw a box plot comparing the distributions of the eigenvalues
+        Use seaborn_ to draw a box plot comparing the distributions of the eigenvalues
         Band structures are drawn on the same plot.
 
         Args:
@@ -2497,9 +2499,9 @@ class ElectronBandsPlotter(NotebookWriter):
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
 
-            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+            brange: Only bands such as ``brange[0] <= band_index < brange[1]`` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: Keyword arguments passed to seaborn boxplot.
         """
         spin_polarized = False
@@ -2541,31 +2543,34 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def animate(self, e0="fermie", interval=500, savefile=None, width_ratios=(2, 1), show=True):
         """
-        Use matplotlib to animate a list of band structure plots (with or without DOS).
+        Use matplotlib_ to animate a list of band structure plots (with or without DOS).
 
         Args:
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    See `edos_fermie`.
-                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
+                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                *  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to e0=0
+
             interval: draws a new frame every interval milliseconds.
             savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
             show: True if the animation should be shown immediately
 
-        Returns:
-            Animation object.
+        Returns: Animation object.
 
-        See also:
+        .. See also::
+
             http://matplotlib.org/api/animation_api.html
             http://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
 
-        Note:
+        .. Note::
+
             It would be nice to animate the title of the plot, unfortunately
             this feature is not available in the present version of matplotlib.
             See: http://stackoverflow.com/questions/17558096/animated-title-in-matplotlib
@@ -2620,7 +2625,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return anim
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
     def ipw_select_plot(self):
@@ -2640,7 +2645,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2675,11 +2680,13 @@ class ElectronBandsPlotter(NotebookWriter):
 
 class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
-    This object reads band structure data from a netcdf file.
+    This object reads band structure data from a netcdf_ file.
+
+    .. inheritance-diagram:: ElectronReader
     """
     def read_ebands(self):
         """
-        Returns an instance of :class:`ElectronBands`. Main entry point for client code
+        Returns an instance of |ElectronBands|. Main entry point for client code
         """
         return ElectronBands(
             structure=self.read_structure(),
@@ -2695,7 +2702,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
             )
 
     def read_nband_sk(self):
-        """Array with the number of bands indexed by [s, k]."""
+        """|numpy-array| with the number of bands indexed by [s, k]."""
         return self.read_value("number_of_states")
 
     def read_nspinor(self):
@@ -2753,7 +2760,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
 class ElectronDos(object):
     """
     This object stores the electronic density of states.
-    It is usually created by calling the get_edos method of :class:`ElectronBands`.
+    It is usually created by calling the get_edos method of |ElectronBands|.
     """
 
     def __init__(self, mesh, spin_dos, nelect, fermie=None):
@@ -2814,7 +2821,7 @@ class ElectronDos(object):
     @classmethod
     def as_edos(cls, obj, edos_kwargs):
         """
-        Return an instance of :class:`ElectronDos` from a generic obj.
+        Return an instance of |ElectronDos| from a generic object ``obj``.
         Supports:
 
             - instances of cls
@@ -2823,7 +2830,7 @@ class ElectronDos(object):
 
         Args:
             edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-            Used when obj is not already an instance of `cls`.
+            Used when obj is not already an instance of ``cls``.
         """
         if edos_kwargs is None: edos_kwargs = {}
         if isinstance(obj, cls):
@@ -2916,7 +2923,7 @@ class ElectronDos(object):
         Helper function to plot the DOS data on the axis ax.
 
         Args:
-            ax: matplotlib axis.
+            ax: |matplotlib-Axes|.
             e0: Option used to define the zero of energy in the band structure plot.
             spin: selects the spin component, None for total DOS, IDOS.
             what: string selecting what will be plotted:
@@ -2924,11 +2931,9 @@ class ElectronDos(object):
                   hence what="id" plots both IDOS and DOS. (default "d").
             fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
             exchange_xy: True to exchange x-y axis.
-            kwargs:
-                Options passes to matplotlib.
+            kwargs: Options passes to matplotlib.
 
-        Return:
-            list of lines added to the axis.
+        Return: list of lines added to the axis.
         """
         dosf, idosf = self.dos_idos(spin=spin)
         opts = [c.lower() for c in what]
@@ -2950,17 +2955,18 @@ class ElectronDos(object):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            spin: Selects the spin component, None if total DOS is wanted.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            kwargs: options passed to ax.plot.
 
-        Returns:
-            matplotlib figure.
+                * ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to ``e0 = 0``.
+
+            spin: Selects the spin component, None if total DOS is wanted.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used
+            kwargs: options passed to ``ax.plot``.
+
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -2986,16 +2992,15 @@ class ElectronDos(object):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             height_ratios:
-            kwargs: options passed to plot_ax
+            kwargs: options passed to ``plot_ax``
 
-        Returns:
-            matplotlib figure.
+        Return: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
@@ -3033,16 +3038,15 @@ class ElectronDos(object):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
-            kwargs: options passed to ax.plot.
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            kwargs: options passed to ``ax.plot``.
 
-        Returns:
-            matplotlib figure.
+        Return: |matplotlib-Figure|
         """
         if self.nsppol == 1: # DOH!
             dos_diff = Function1D.from_constant(self.spin_dos[0].mesh, 0.0)
@@ -3106,9 +3110,9 @@ class ElectronDosPlotter(NotebookWriter):
 
         Args:
             label: label for the DOS. Must be unique.
-            dos: :class:`ElectronDos` object.
-            edos_kwargs: optional dictionary with the options passed to `get_edos` to compute the electron DOS.
-                Used only if `edos` is not an ElectronDos instance.
+            dos: |ElectronDos| object.
+            edos_kwargs: optional dictionary with the options passed to ``get_edos`` to compute the electron DOS.
+                Used only if ``edos`` is not an ElectronDos instance.
         """
         if label in self.edoses_dict:
             raise ValueError("label %s is already in %s" % (label, list(self.edoses_dict.keys())))
@@ -3117,21 +3121,21 @@ class ElectronDosPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiplot(self, ax=None, e0="fermie", xlims=None, fontsize=8, **kwargs):
         """
-        Plot the the DOSes on the same figure.
-        Use `gridplot` to plot DOSes on different figures.
+        Plot the the DOSes on the same figure. Use ``gridplot`` to plot DOSes on different figures.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to ``e0 = 0``
+
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: fontsize for titles and legend
 
-        Returns:
-            `matplotlib` figure.
+        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -3162,22 +3166,23 @@ class ElectronDosPlotter(NotebookWriter):
         Plot multiple DOSes on a grid.
 
         Args:
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
                    can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-                   the one used to compute the density. See `edos_fermie`.
-                - `edos_fermie`: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                   the one used to compute the density. See ``edos_fermie``.
+                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                    Available only if edos_objects is not None
-                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                -  None: Don't shift energies, equivalent to e0=0
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used
+                *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                *  None: Don't shift energies, equivalent to ``e0 = 0``.
 
-        Returns:
-            matplotlib figure.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+
+        Return: |matplotlib-Figure|
         """
         titles = list(self.edoses_dict.keys())
         edos_list = self.edos_list
@@ -3221,7 +3226,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -3376,7 +3381,7 @@ class Bands3D(object):
 
         Args:
             name: keyword used to store symmetrized values.
-            scalars: scalars in IBZ. See `inshape` for shape
+            scalars: scalars in IBZ. See ``inshape`` for shape
             inshape: shape of input scalars. "skb" if (nsppol, nkibz, nband)
             "sbk" for (nsppol, nband, nkibz).
         """
@@ -3392,7 +3397,7 @@ class Bands3D(object):
             "sbk" for (nsppol, nband, nkibz).
 
         Return:
-            numpy array with scalars in unit cell. shape is **always**: (nsppol, nband, nkbz)
+            |numpy-array| with scalars in unit cell. shape is **always**: (nsppol, nband, nkbz)
         """
         # Symmetrize scalars unit cell grid: e_{TSk} = e_{k}
         ucdata_sbk = np.empty((self.nsppol, self.nband, len(self.uc2ibz)))
@@ -3432,7 +3437,7 @@ class Bands3D(object):
         #bzgrid2ibz = ws
 
     def get_isobands(self, e0):
-        """Return index of the bands crossing e0. None if no band is found."""
+        """Return index of the bands crossing ``e0``in eV. None if no band is found."""
         isobands = [[] for _ in self.spins]
         for spin in self.spins:
             for band in self.bands:
@@ -3444,13 +3449,13 @@ class Bands3D(object):
 
     def to_bxsf(self, filepath, unit="eV"):
         """
-        Export the full band structure to `filepath` in BXSF format
-        suitable for the visualization of the Fermi surface with Xcrysden (use `xcrysden --bxsf FILE`).
+        Export the full band structure to ``filepath`` in BXSF format
+        suitable for the visualization of the Fermi surface with xcrysden_ (use ``xcrysden --bxsf FILE``).
         Require k-points in IBZ and gamma-centered k-mesh.
 
         Args:
             filepath: BXSF filename or stream.
-            unit: Input energies are in unit `unit`.
+            unit: Input energies are in unit ``unit``.
         """
         from abipy.iotools import bxsf_write
         if hasattr(filepath, "write"):
@@ -3495,8 +3500,7 @@ class Bands3D(object):
             e0: Isolevel in eV. Default: Fermi energy.
             verbose: verbosity level.
 
-        Return:
-            `matplotlib` figure
+        Return: |matplotlib-Figure|
         """
         try:
             from skimage import measure
@@ -3538,7 +3542,7 @@ class Bands3D(object):
 
     def mvplot_isosurfaces(self, e0="fermie", verbose=0, figure=None, show=True):
         """
-        Plot isosurface with mayavi
+        Plot isosurface with mayavi_
 
         Args:
             e0:
@@ -3598,8 +3602,7 @@ class Bands3D(object):
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
             fontsize: Label and title fontsize.
 
-        Return:
-            `matplotlib` figure
+        Return: |matplotlib-Figure|
         """
         data = np.reshape(self.ucdata_sbk[spin, band], self.kdivs) - self.fermie
 
@@ -3655,7 +3658,7 @@ class Bands3D(object):
         #return
 
     def mvplot_cutplanes(self, band, spin=0, figure=None, show=True, **kwargs):
-        """Plot cutplanes with mayavi."""
+        """Plot cutplanes with mayavi_."""
         data = np.reshape(self.ucdata_sbk[spin, band], self.kdivs) - self.fermie
         contours = [-1.0, 0.0, 1.0]
 
@@ -3686,40 +3689,40 @@ class PhononBands3D(Bands3D):
 
 class RobotWithEbands(object):
     """
-    Mixin class for robots associated to files with `ElectronBands`.
+    Mixin class for robots associated to files with |ElectronBands|.
     """
     def combiplot_ebands(self, **kwargs):
-        """Wraps combiplot method of `ElectronBandsPlotter`. kwargs passed to combiplot."""
+        """Wraps combiplot method of |ElectronBandsPlotter|. kwargs passed to combiplot."""
         return self.get_ebands_plotter().combiplot(**kwargs)
 
     def gridplot_ebands(self, **kwargs):
-        """Wraps gridplot method of `ElectronBandsPlotter`. kwargs passed to gridplot."""
+        """Wraps gridplot method of |ElectronBandsPlotter|. kwargs passed to gridplot."""
         return self.get_ebands_plotter().gridplot(**kwargs)
 
     def boxplot_ebands(self, **kwargs):
-        """Wraps boxplot method of `ElectronBandsPlotter`. kwargs passed to boxplot."""
+        """Wraps boxplot method of |ElectronBandsPlotter|. kwargs passed to boxplot."""
         return self.get_ebands_plotter().boxplot(**kwargs)
 
     def combiboxplot_ebands(self, **kwargs):
-        """Wraps combiboxplot method of `ElectronDosPlotter`. kwargs passed to combiboxplot."""
+        """Wraps combiboxplot method of |ElectronDosPlotter|. kwargs passed to combiboxplot."""
         return self.get_ebands_plotter().combiboxplot(**kwargs)
 
     def combiplot_edos(self, **kwargs):
-        """Wraps combiplot method of `ElectronDosPlotter`. kwargs passed to combiplot."""
+        """Wraps combiplot method of |ElectronDosPlotter|. kwargs passed to combiplot."""
         return self.get_edos_plotter().combiplot(**kwargs)
 
     def gridplot_edos(self, **kwargs):
-        """Wraps gridplot method of `ElectronDosPlotter`. kwargs passed to gridplot."""
+        """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
         return self.get_edos_plotter().gridplot(**kwargs)
 
     def get_ebands_plotter(self, filter_abifile=None, cls=None):
         """
-        Build and return an instance of `ElectronBandsPlotter` or a subclass is cls is not None.
+        Build and return an instance of |ElectronBandsPlotter| or a subclass is ``cls`` is not None.
 
         Args:
-            filter_abifile: Function that receives an `abifile` object and returns
+            filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
-            cls: subclass of `ElectronBandsPlotter`
+            cls: subclass of |ElectronBandsPlotter|.
         """
         plotter = ElectronBandsPlotter() if cls is None else cls()
 
@@ -3731,12 +3734,12 @@ class RobotWithEbands(object):
 
     def get_edos_plotter(self, cls=None, filter_abifile=None, **kwargs):
         """
-        Build and return an instance of `ElectronDosPlotter` or a subclass is cls is not None.
+        Build and return an instance of |ElectronDosPlotter| or a subclass is cls is not None.
 
         Args:
-            filter_abifile: Function that receives an `abifile` object and returns
+            filter_abifile: Function that receives an ``abifile` object and returns
                 True if the file should be added to the plotter.
-            cls: subclass of `ElectronDosPlotter`
+            cls: subclass of |ElectronDosPlotter|.
             kwargs: Arguments passed to ebands.get_edos
         """
         plotter = ElectronDosPlotter() if cls is None else cls()

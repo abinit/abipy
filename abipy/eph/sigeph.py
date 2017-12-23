@@ -74,7 +74,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
         return tuple(fields)
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         return self.get_dataframe()._repr_html_()
 
     def __str__(self):
@@ -82,7 +82,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
     def to_string(self, verbose=0, title=None):
         """
-        String representation with verbosity level `verbose` and optional title
+        String representation with verbosity level ``verbose`` and optional ``title``.
         """
         s = str(self.get_dataframe())
         return "\n".join([marquee(title, mark="="), s]) if title is not None else s
@@ -119,8 +119,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
             # FIXME
             fermi: Value of the Fermi level used in plot. None to disable plot
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         fields = _get_fields_for_plot("temp", with_fields, exclude_fields)
         if not fields: return None
@@ -244,7 +243,7 @@ class QpTempList(list):
         return np.array([qp.e0 for qp in self])
 
     def get_field_itemp(self, field, itemp):
-        """`ndarray` containing the values of field at temperature `itemp`"""
+        """numpy array containing the values of field at temperature ``itemp``"""
         return np.array([getattr(qp, field)[itemp] for qp in self])
 
     #def get_skb_field(self, skb, field):
@@ -267,7 +266,7 @@ class QpTempList(list):
         Merge self with other. Return new :class:`QpTempList` object
 
         Raise:
-            ValueError if merge cannot be done.
+            `ValueError` if merge cannot be done.
         """
         skb0_list = [qp.skb for qp in self]
         for qp in other:
@@ -290,12 +289,11 @@ class QpTempList(list):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to `with_field` but excludes fields.
-            ax_list: List of matplotlib axes for plot. If None, new figure is produced.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             cmap: matplotlib color map.
             fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         fields = _get_fields_for_plot("e0", with_fields, exclude_fields)
         if not fields: return None
@@ -346,7 +344,7 @@ class QpTempList(list):
 
 class EphSelfEnergy(object):
     r"""
-    Electron self-energy due to phonon interaction $\Sigma_{nk}(\omega,T)$
+    Electron self-energy due to phonon interaction :math:`\Sigma_{nk}(\omega,T)`
     Actually diagonal matrix elements in the KS basis set.
     """
 
@@ -462,8 +460,7 @@ class EphSelfEnergy(object):
                 or scalar e.g. `left`. If left (right) is None, default values are used.
             fontsize: legend and label fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         what_list = list_strings(what_list)
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1, sharex=True, sharey=False)
@@ -498,6 +495,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         with SigEPhFile("out_SIGEPH.nc") as ncfile:
             print(ncfile)
             ncfile.ebands.plot()
+
+    .. inheritance-diagram:: SigEPhFile
     """
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
@@ -630,12 +629,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
-        returns pandas dataframe with qp results for all k-points, bands and spins
+        Returns |pandas-Dataframe| with QP results for all k-points, bands and spins
         included in the calculation.
 
         Args:
             with_params:
-            ignore_imag: only real part is returned if `ignore_imag`.
+            ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
         for spin in range(self.nsppol):
@@ -646,7 +645,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def get_dataframe_sk(self, spin, sigma_kpoint, index=None, with_params=True, ignore_imag=False):
         """
-        Returns pandas DataFrame with QP results for the given (spin, k-point).
+        Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
 
         Args:
             with_params:
@@ -670,11 +669,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Plot the KS and the QP(T) direct gaps for all the k-points available on file.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -715,13 +713,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
-            exclude_fields: Similar to `with_field` but excludes fields.
-            ax_list: List of matplotlib axes for plot. If None, new figure is produced.
+            exclude_fields: Similar to ``with_field`` but excludes fields.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             cmap: matplotlib color map.
             fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
 
-        Returns:
-            `matplotlib` figure.
+        Returns: |matplotlib-Figure|
         """
         ax_list = None
         for spin in range(self.nsppol):
@@ -731,7 +728,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def write_notebook(self, nbpath=None, title=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
@@ -752,6 +749,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 class SigEPhRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple SIGEPH.nc files.
+
+    .. inheritance-diagram:: SigEPhRobot
     """
     EXT = "SIGEPH"
 
@@ -786,13 +785,13 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     def get_dataframe_sk(self, spin, sigma_kpoint, with_params=True, ignore_imag=False):
         """
-        returns pandas dataframe with qp results for this spin, k-point
+        Return |pandas-Dataframe| with qp results for this spin, k-point
 
         Args:
             spin:
             sigma_kpoint:
             with_params:
-            ignore_imag: only real part is returned if `ignore_imag`.
+            ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
         for label, ncfile in self:
@@ -802,12 +801,12 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
-        Return pandas dataframe with qp results for all k-points, bands and spins
+        Return |pandas-Dataframe| with QP results for all k-points, bands and spins
         present in the files treated by the robot.
 
         Args:
             with_params:
-            ignore_imag: only real part is returned if `ignore_imag`.
+            ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
         for label, ncfile in self:
@@ -819,7 +818,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_selfenergy_conv(self, spin, sigma_kpoint, band, itemp=0, sortby=None, xlims=None, **kwargs):
         """
-        Plot the convergence of the E-PH self-energy wrt to the `sortby` parameter.
+        Plot the convergence of the E-PH self-energy wrt to the ``sortby`` parameter.
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
@@ -828,12 +827,11 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 If string and not empty it's assumed that the ncfile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of callable(ncfile) is used.
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                   or scalar e.g. `left`. If left (right) is None, default values are used.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
             cmap: matplotlib color map.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         ax_list = None
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
@@ -866,10 +864,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 If string and not empty it's assumed that the ncfile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of callable(ncfile) is used.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            `matplotlib` figure
+        Returns: |matplotlib-Figure|
         """
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             fig = ncfile.plot_qpgaps_t(ax=ax, show=False)
@@ -878,7 +875,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None, title=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
@@ -902,8 +899,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
 class SigmaPhReader(ElectronsReader):
     """
     Reads data from file and constructs objects.
-    """
 
+    .. inheritance-diagram:: SigmaPhReader
+    """
     def __init__(self, path):
         super(SigmaPhReader, self).__init__(path)
 

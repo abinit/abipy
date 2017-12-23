@@ -128,7 +128,6 @@ class DdbTest(AbipyTest):
         self.assert_equal(ddb.header.spinat, 0.0)
         #assert ddb.header.occ.shape = (ddb.header.nsppol, ddb.header.nkpt, ddb.header.nsppol)
 
-        # TODO
         assert not ddb.has_qpoint([0.345, 0.456, 0.567])
         assert ddb.has_qpoint([0, 0, 0])
         for qpoint in ddb.qpoints:

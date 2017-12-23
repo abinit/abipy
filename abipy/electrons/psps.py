@@ -78,6 +78,7 @@ class PspsFile(AbinitNcFile):
         self.reader = r = PspsReader(filepath)
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @add_fig_kwargs
@@ -88,7 +89,7 @@ class PspsFile(AbinitNcFile):
         Args:
             ecut_ffnl: Max cutoff energy for ffnl plot (optional)
 
-        Return: matplotlb Figure
+        Return: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
 
@@ -113,12 +114,11 @@ class PspsFile(AbinitNcFile):
         Plot the model core and its derivatives in real space.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             ders: Tuple used to select the derivatives to be plotted.
             rmax: Max radius for plot in Bohr. None is full grid is wanted.
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -148,12 +148,11 @@ class PspsFile(AbinitNcFile):
         Plot the model core in q space
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             ders: Tuple used to select the derivatives to be plotted.
             with_qn:
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -199,12 +198,11 @@ class PspsFile(AbinitNcFile):
         Plot the local part of the pseudopotential in q space.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             ders: Tuple used to select the derivatives to be plotted.
             with_qn:
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -242,16 +240,15 @@ class PspsFile(AbinitNcFile):
     @add_fig_kwargs
     def plot_ffspl(self, ax=None, ecut_ffnl=None, ders=(0,), with_qn=0, with_fact=False, **kwargs):
         """
-        Plot the nonlocal part of the pseudopotential in q space.
+        Plot the nonlocal part of the pseudopotential in q-space.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             ecut_ffnl: Max cutoff energy for ffnl plot (optional)
             ders: Tuple used to select the derivatives to be plotted.
             with_qn:
 
-        Returns:
-            matplotlib figure.
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -301,7 +298,7 @@ class PspsFile(AbinitNcFile):
 
     @add_fig_kwargs
     def compare(self, others, **kwargs):
-        """Produce matplotlib plot comparing self with another list of pseudos `others`."""
+        """Produce matplotlib plot comparing self with another list of pseudos ``others``."""
         if not isinstance(others, (list, tuple)):
             others = [others]
 
