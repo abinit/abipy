@@ -82,7 +82,7 @@ class A2f(object):
         return self.to_string()
 
     def to_string(self, title=None, verbose=0):
-        """String representation with verbosity level `verbose`."""
+        """String representation with verbosity level ``verbose`` and an optional ``title``."""
         lines = []; app = lines.append
 
         app("Eliashberg Function" if not title else str(title))
@@ -110,7 +110,7 @@ class A2f(object):
     @lazy_property
     def omega_log(self):
         r"""
-        Get log moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
+        Logarithmic moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
         """
         #return 270 / abu.eV_to_K
         iw = self.iw0 + 1
@@ -162,8 +162,7 @@ class A2f(object):
         """
         Computes the critical temperature with the McMillan equation and the input mustar.
 
-        Return:
-            Tc in Kelvin degrees
+        Return: Tc in Kelvin.
         """
         tc = (self.omega_log / 1.2) * \
             np.exp(-1.04 * (1.0 + self.lambda_iso) / (self.lambda_iso - mustar * (1.0 + 0.62 * self.lambda_iso)))
@@ -171,11 +170,11 @@ class A2f(object):
 
     def get_mustar_from_tc(self, tc):
         """
-        Return the value of mustar that gives the critical temperature `tc` in the McMillan equation.
+        Return the value of mustar that gives the critical temperature ``tc`` in the McMillan equation.
 
         Args:
             tc:
-                Critical temperature in Kelvin
+                Critical temperature in Kelvin.
         """
         l = self.lambda_iso
         num = l + (1.04 * (1 + l) / np.log(1.2 * abu.kb_eVK * tc / self.omega_log))
@@ -185,7 +184,7 @@ class A2f(object):
     def plot(self, units="eV", with_lambda=True, exchange_xy=False, ax=None,
              xlims=None, ylims=None, label=None, fontsize=12, **kwargs):
         """
-        Plot a2F(w), it's primitive lambda(w) and optionally the individual
+        Plot a2F(w), its primitive lambda(w) and optionally the individual
         contributions due to the phonon branches.
 
         Args:
@@ -250,7 +249,7 @@ class A2f(object):
     def plot_nuterms(self, units="eV", axmat=None, with_lambda=True,
                      xlims=None, ylims=None, label=None, **kwargs):
         """
-        Plot a2F(w), it's primitive lambda(w) and optionally the individual
+        Plot a2F(w), its primitive lambda(w) and optionally the individual
         contributions due to the phonon branches.
 
         Args:
@@ -440,11 +439,12 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ncfile.ebands.plot()
             ncfile.phbands.plot()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EphFile
     """
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file."""
+        """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -519,14 +519,14 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return self.reader.read_a2f(qsamp="qintp")
 
     def get_a2f_qsamp(self, qsamp):
-        """Return the :class:`A2f` object associated to q-sampling `qsamp`."""
+        """Return the :class:`A2f` object associated to q-sampling ``qsamp``."""
         if qsamp == "qcoarse": return self.a2f_qcoarse
         if qsamp == "qintp": return self.a2f_qintp
         raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
 
     @lazy_property
     def has_a2ftr(self):
-        """True if netcdf file contains transport data."""
+        """True if the netcdf file contains transport data."""
         return "a2ftr_qcoarse" in self.reader.rootgrp.variables
 
     @lazy_property
@@ -548,7 +548,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return self.reader.read_a2ftr(qsamp="qintp")
 
     def get_a2ftr_qsamp(self, qsamp):
-        """Return the :class:`A2ftr` object associated to q-sampling `qsamp`."""
+        """Return the :class:`A2ftr` object associated to q-sampling ``qsamp``."""
         if qsamp == "qcoarse": return self.a2ftr_qcoarse
         if qsamp == "qintp": return self.a2ftr_qintp
         raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
@@ -563,7 +563,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Plot phonon bands with eph coupling strength lambda(q, nu)
 
         Args:
-            what: ``lambda`` for eph strength, gamma for phonon linewidths.
+            what: ``lambda`` for the eph coupling strength, ``gamma`` for phonon linewidths.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -614,7 +614,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Plot phonon bands with eph coupling strength lambda(q, nu) or gamma(q, nu)
 
         Args:
-            what: ``lambda`` for eph strength, gamma for ph linewidth.
+            what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             scale: float used to scale the marker size.
@@ -768,7 +768,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -796,6 +796,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
     """
     This robot analyzes the results contained in multiple EPH.nc files.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EphRobot
     """
     #TODO: Method to plot the convergence of DOS(e_F)
@@ -807,7 +808,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     def get_dataframe(self, abspath=False, with_geo=False, funcs=None):
         """
-        Build and return a |pandas-DataFrame| with results
+        Build and return a |pandas-DataFrame| with the most important results.
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
@@ -861,7 +862,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
             Can be None, string or function.
                 If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name
-                and `getattr` is invoked.
+                and ``getattr`` is invoked.
                 If callable, the output of callable(ncfile) is used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -970,9 +971,9 @@ class EphReader(ElectronsReader):
     """
     Reads data from EPH file and constructs objects.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EphReader
     """
-
     def read_edos(self):
         """
         Read the |ElectronDos| used to compute EPH quantities.
@@ -994,7 +995,7 @@ class EphReader(ElectronsReader):
 
     def read_phbands_qpath(self):
         """
-        Read and return |PhononBands| computed along the path.
+        Read and return a |PhononBands| object with frequencies computed along the path.
         """
         structure = self.read_structure()
 
@@ -1026,7 +1027,7 @@ class EphReader(ElectronsReader):
     def read_phlambda_qpath(self):
         """
         Reads the EPH coupling strength *interpolated* along the q-path.
-        Shape [nsppol, nqpath, natom3]
+        Return |numpy-array| with shape [nsppol, nqpath, natom3]
         """
         return self.read_value("phlambda_qpath")
 
@@ -1034,13 +1035,13 @@ class EphReader(ElectronsReader):
         """
         Reads the phonon linewidths *interpolated* along the q-path.
         Return results in eV
-        Shape [nsppol, nqpath, natom3]
+        Return |numpy-array| with shape [nsppol, nqpath, natom3]
         """
         return self.read_value("phgamma_qpath") * units.Ha_to_eV
 
     def read_a2f(self, qsamp):
         """
-        Read and return the Eliashberg function a2F(w).
+        Read and return the Eliashberg function :class:`A2F`.
         """
         assert qsamp in ("qcoarse", "qintp")
         mesh = self.read_value("a2f_mesh_" + qsamp)  * units.Ha_to_eV

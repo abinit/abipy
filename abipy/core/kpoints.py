@@ -715,6 +715,7 @@ class KpointList(collections.Sequence):
         elif kpoints.is_ibz:
             # code specific to IBZ sampling.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: KpointList
     """
     Error = KpointsError

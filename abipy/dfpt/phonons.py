@@ -1411,7 +1411,8 @@ class PhononBands(object):
         yname = "freq %s" % unit_tag(units)
         frame[yname] = factor * frame["freq"]
 
-        import seaborn.apionly as sns
+        #import seaborn.apionly as sns
+        import seaborn as sns
         hue = None
         ax = sns.boxplot(x="mode", y=yname, data=frame, hue=hue, ax=ax, **kwargs)
         if swarm:
@@ -1466,7 +1467,13 @@ class PhononBands(object):
 
 
 class PHBST_Reader(ETSF_Reader):
-    """This object reads data from PHBST.nc file produced by anaddb."""
+    """
+    This object reads data from PHBST.nc file produced by anaddb.
+
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PHBST_Reader
+    """
 
     def read_qredcoords(self):
         """Array with the reduced coordinates of the q-points."""
@@ -1493,11 +1500,16 @@ class PHBST_Reader(ETSF_Reader):
 
 
 class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
+    """
+    Object used to access data stored in the PHBST.nc file produced by ABINIT.
+
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PhbstFile
+    """
 
     def __init__(self, filepath):
         """
-        Object used to access data stored in the PHBST.nc file produced by ABINIT.
-
         Args:
             path: path to the file
         """
@@ -1995,6 +2007,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     Container object storing the different DOSes stored in the
     PHDOS.nc file produced by anaddb.
     Provides helper function to visualize/extract data.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PhdosFile
     """
 
     def __init__(self, filepath):
@@ -2641,7 +2656,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
         """
-        Use seaborn to draw a box plot to show distributions of eigenvalues with respect to the band index.
+        Use seaborn_ to draw a box plot to show distributions of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
 
         Args:
@@ -2671,7 +2686,7 @@ class PhononBandsPlotter(NotebookWriter):
     @add_fig_kwargs
     def combiboxplot(self, mode_range=None, units="eV", swarm=False, ax=None, **kwargs):
         """
-        Use seaborn to draw a box plot comparing the distributions of the frequencies.
+        Use seaborn_ to draw a box plot comparing the distributions of the frequencies.
         Phonon Band structures are drawn on the same plot.
 
         Args:
@@ -2694,7 +2709,6 @@ class PhononBandsPlotter(NotebookWriter):
         import pandas as pd
         data = pd.concat(frames, ignore_index=True)
 
-        import seaborn.apionly as sns
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
@@ -2703,6 +2717,8 @@ class PhononBandsPlotter(NotebookWriter):
         yname = "freq %s" % unit_tag(units)
         data[yname] = factor * data["freq"]
 
+        #import seaborn.apionly as sns
+        import seaborn as sns
         sns.boxplot(x="mode", y=yname, data=data, hue="label", ax=ax, **kwargs)
         if swarm:
             sns.swarmplot(x="mode", y=yname, data=data, hue="label", color=".25", ax=ax)
@@ -3469,7 +3485,7 @@ def match_eigenvectors(v1, v2):
 
 class RobotWithPhbands(object):
     """
-    Mixin class for robots associated to files with :class:`PhononBands`.
+    Mixin class for robots associated to files with |PhononBands|.
     """
 
     def get_phbands_plotter(self, filter_abifile=None, cls=None):

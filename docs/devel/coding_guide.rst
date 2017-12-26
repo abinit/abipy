@@ -83,5 +83,5 @@ Thus any example data that is required for the example should be added to the :f
 Testing
 =======
 
-Abipy has a testing infrastructure based on :mod:`unittest`.
-The tests are in :mod:`abipy.tests`, data files are strore in :file:`abipy/tests/data`.
+Abipy has a testing infrastructure based on :mod:`unittest` and pytest_.
+The tests are in :mod:`abipy.core.testing`, data files are strore in :file:`abipy/tests/data`.

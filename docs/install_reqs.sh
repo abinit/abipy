@@ -9,3 +9,5 @@ pip install sphinx-gallery
 pip install sphinx-argparse
 pip install sphinx_bootstrap_theme
 pip install nbsphinx
+pip install sphinxcontrib-bibtex
+pip install releases

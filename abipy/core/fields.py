@@ -568,6 +568,7 @@ class Density(_DensityField):
 
         Unlike in Abinit, datar[nspden] contains the up/down components if nsppol = 2
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Density
     """
     netcdf_name = "density"
@@ -1008,6 +1009,7 @@ class VxcPotential(_PotentialField):
     """
     XC Potential.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VxcPotential
     """
     netcdf_name = "exchange_correlation_potential"
@@ -1018,6 +1020,7 @@ class VhartreePotential(_PotentialField):
     """
     Hartree Potential.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VhartreePotential
     """
     netcdf_name = "vhartree"
@@ -1028,6 +1031,7 @@ class VhxcPotential(_PotentialField):
     """
     Hartree + XC
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VhxcPotential
     """
     netcdf_name = "vhxc"
@@ -1038,6 +1042,7 @@ class VksPotential(_PotentialField):
     """
     Hartree + XC + sum of local pseudo-potential terms.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VksPotential
     """
     netcdf_name = "vtrial"
@@ -1048,6 +1053,7 @@ class FieldReader(ETSF_Reader):
     """
     This object reads density data from a netcdf file.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: FieldReader
     """
 

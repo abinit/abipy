@@ -324,6 +324,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         with MdfFile("foo_MDF.nc") as mdf:
             mdf.plot_mdfs()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MdfFile
     """
     @classmethod
@@ -489,6 +490,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
     """
     This object reads data from the MDF.nc file produced by ABINIT.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MdfReader
     """
     def __init__(self, path):
@@ -916,6 +918,7 @@ class MdfRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple MDF.nc files.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MdfRobot
     """
     EXT = "MDF"

@@ -883,7 +883,7 @@ class LatticeRotation(Operation):
 
     .. note::
 
-        This object is immutable and therefore we do not inherit from `ndarray``
+        This object is immutable and therefore we do not inherit from |numpy-array|.
     """
     _E3D = np.identity(3,  np.int)
 

@@ -12,7 +12,7 @@ TODO list:
 
 * DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
 
-* DONE Re-implement max_njobs in the queque using a counter local to the Launcher.
+* DONE Re-implement max_njobs in the queue using a counter local to the Launcher.
 
 * Fix annoying warnings about k-point sampling.
 
@@ -21,11 +21,17 @@ TODO list:
 
 * Try to reintegrate AbiPy with new abivars
 
+* Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
+
+* Rename EPH.nc
+
+* DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
+
 ## Medium priority
 
 * video with atom and hydrogen
 
-* Fix travis warnings.
+* ALMOST DONE: Fix travis warnings.
 
 * DONE: Fix sphinx warnings.
 
@@ -59,8 +65,6 @@ TODO list:
   report.errors in task.get_event.report
 
 * Add memory error to Abinit errors
-
-* Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
 * Remove Old workflow model. 
 

@@ -36,6 +36,9 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         :class:`InteratomicForceConstants` object with the interatomic force constants calculated by anaddb.
         None, if the netcdf file does not contain the IFCs.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AnaddbNcFile
     """
 
     @classmethod

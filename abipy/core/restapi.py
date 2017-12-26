@@ -54,6 +54,10 @@ def get_mprester(api_key=None, endpoint=None):
 
 class MyMPRester(MPRester):
     """
+    Subclass Materials project Rester.
+    See :cite:`Jain2013,Ong2015`.
+
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MyMPRester
     """
     Error = MPRestError
@@ -76,6 +80,8 @@ class PhaseDiagramResults(object):
     Inspired to:
 
         https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook
+
+    See also: :cite:`Ong2008,Ong2010`
     """
     def __init__(self, entries):
         self.entries = entries
@@ -290,7 +296,7 @@ class MpStructures(DatabaseStructures):
 
 class CodStructures(DatabaseStructures):
     """
-    Store the results of a query to the COD_ database.
+    Store the results of a query to the COD_ database :cite:`Grazulis2011`.
 
     .. inheritance-diagram:: CodStructures
     """
@@ -299,8 +305,8 @@ class CodStructures(DatabaseStructures):
     @lazy_property
     def dataframe(self):
         """
-        Pandas dataframe constructed. Essentially geometrical info and space groups found by spglib
-        as COD data is rather limited.
+        |pandas-Dataframe| constructed. Essentially geometrical info and space groups found by spglib_
+        as COD API is rather limited.
         """
         df = self.lattice_dataframe.copy()
         # Add space group from COD

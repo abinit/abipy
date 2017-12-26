@@ -1,5 +1,7 @@
 # coding: utf-8
-"""This module defines basic objects representing the crystalline structure."""
+"""
+This module defines basic objects representing the crystalline structure.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
@@ -122,7 +124,7 @@ def cod_search(formula, primitive=False):
 
     Args:
         formula (str): Chemical formula (e.g., Fe2O3)
-        primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.
+        primitive (bool): True if primitive structures are wanted. Note that many COD structures are not primitive.
 
     Returns:
         :class:`CodStructures` object with
@@ -148,17 +150,23 @@ class Structure(pymatgen.Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.
 
+    A jupyter_ notebook documenting the usage of this object is available at
+    <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb>
+
+    For the pymatgen project see :cite:`Ong2013`.
+
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Structure
     """
     @classmethod
     def as_structure(cls, obj):
         """
-        Convert obj into a structure. Accepts:
+        Convert obj into a |Structure|. Accepts:
 
-            - Structure instances
-            - Filenames
-            - Dictionaries (JSON format or dictionaries with abinit variables).
-            - Objects with a `structure` attribute.
+            - Structure object.
+            - Filename
+            - Dictionaries (JSON_ format or dictionaries with abinit variables).
+            - Objects with a ``structure`` attribute.
         """
         if isinstance(obj, cls): return obj
         if isinstance(obj, pymatgen.Structure):
@@ -301,7 +309,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             cod_id (int): COD id.
-            primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.
+            primitive (bool): True if primitive structures are wanted. Note that many COD structures are not primitive.
             kwargs: Arguments passed to ``get_structure_by_id``
 
         Returns: |Structure| object.
@@ -327,10 +335,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def to_ase_atoms(self):
         """
-        Returns ASE Atoms object from structure.
-
-        Returns:
-            ASE Atoms object
+        Returns ASE_ Atoms object from structure.
         """
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_atoms(self)
@@ -371,10 +376,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             a: Lattice parameter (Angstrom if units is not given)
-            species: Chemical species. See __init__ method of :class:`pymatgen.Structue`
+            species: Chemical species. See __init__ method of |pymatgen-Structure|
             primitive: if True a primitive cell will be produced, otherwise a conventional one
             units: Units of input lattice parameters e.g. "bohr", "pm"
-            kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`
+            kwargs: All keyword arguments accepted by |pymatgen-Structure|.
         """
         a = pmg_units.Length(a, units).to("ang")
         if primitive:
@@ -498,7 +503,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @classmethod
     def from_abivars(cls, *args, **kwargs):
         """
-        Build a :class:`Structure` object from a dictionary with ABINIT variables.
+        Build a |Structure| object from a dictionary with ABINIT variables.
 
         Example::
 
@@ -513,7 +518,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 znucl=13,
             )
 
-        `xred` can be replaced with `xcart` or `xangst`.
+        ``xred`` can be replaced with ``xcart`` or ``xangst``.
         """
         return structure_from_abivars(cls, *args, **kwargs)
 
@@ -583,12 +588,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
                                             symprec=1e-3, angle_tolerance=5):
         """
         Gives a structure with a conventional cell according to certain
-        standards. The standards are defined in Setyawan, W., & Curtarolo,
-        S. (2010). High-throughput electronic band structure calculations:
-        Challenges and tools. Computational Materials Science,
-        49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010
-        They basically enforce as much as possible
-        norm(a1)<norm(a2)<norm(a3)
+	standards. The standards are defined in :cite:`Setyawan2010`
+        They basically enforce as much as possible norm(a1)<norm(a2)<norm(a3)
 
         Returns:
             The structure in a conventional standardized cell
@@ -626,12 +627,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
             * Lattice vectors are exchanged if the triple product is negative
 
         Args:
-            symprec: Symmetry precision used to refine the structure.
-            angle_tolerance: Tolerance on angles.
-                if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.
-            primitive (bool): Whether to convert to a primitive cell following
-                Setyawan, W., & Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010
-            primitive_standard: Returns most primitive structure found.
+            symprec (float): Symmetry precision used to refine the structure.
+            angle_tolerance (float): Tolerance on angles.
+                if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.
+            primitive (bool): Whether to convert to a primitive cell following :cite:`Setyawan2010`
+            primitive_standard (bool): Returns most primitive structure found.
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
         structure = self.__class__.from_sites(self)
@@ -666,7 +666,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def get_oxi_state_decorated(self, **kwargs):
         """
-        Use :class:`BVAnalyzer` to estimate oxidation states
+        Use :class:`pymatgen.analysis.bond_valence.BVAnalyzer` to estimate oxidation states
         Return oxidation state decorated structure.
         This currently works only for ordered structures only.
 
@@ -681,7 +681,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         try:
             from nbjsmol import nbjsmol_display
             return nbjsmol_display(self.to(fmt="cif"), ext=".cif", html=True)
@@ -725,8 +725,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
         crystal system with the exception of the hexagonal/rhombohedral lattice
 
         Args:
-            symprec: Symmetry precision for distance
-            angle_tolerance: Tolerance on angles.
+            symprec (float): Symmetry precision for distance
+            angle_tolerance (float): Tolerance on angles.
 
         Returns:
             (str): Lattice type for structure or None if type cannot be detected.
@@ -739,12 +739,12 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Call spglib_ to find the inequivalent atoms and build symmetry tables.
 
         Args:
-            symprec: Symmetry precision for distance.
-            angle_tolerance: Tolerance on angles.
-            printout: True to print symmetry tables.
+            symprec (float): Symmetry precision for distance.
+            angle_tolerance (float): Tolerance on angles.
+            printout (bool): True to print symmetry tables.
 
         Returns:
-            `namedtuple` (irred_pos, eqmap, spgdata) with the following attributes::
+            ``namedtuple`` (irred_pos, eqmap, spgdata) with the following attributes::
 
                 * irred_pos: array giving the position of the i-th irred atom in the structure.
                     The number of irred atoms is len(irred_pos)
@@ -787,9 +787,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         space group, point group, wyckoff positions, equivalent sites.
 
         Args:
-            symprec: Symmetry precision for distance
-            angle_tolerance: Tolerance on angles
-            verbose: Verbosity level.
+            symprec (float): Symmetry precision for distance.
+            angle_tolerance (float): Tolerance on angles.
+            verbose (int): Verbosity level.
         """
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
@@ -851,7 +851,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
             return None
 
     def set_abi_spacegroup(self, spacegroup):
-        """`AbinitSpaceGroup` setter."""
+        """``AbinitSpaceGroup`` setter."""
         self._abi_spacegroup = spacegroup
 
     @property
@@ -862,15 +862,15 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def spgset_abi_spacegroup(self, has_timerev, overwrite=False):
         """
         Call spglib to find the spacegroup of the crystal, create new
-        `AbinitSpaceGroup` object and store it in `self.abi_spacegroup`.
+	:class:`AbinitSpaceGroup` object and store it in ``self.abi_spacegroup``.
 
         Args:
-            has_timerev: True if time-reversal can be used.
-            overwrite: By default, the method raises `ValueError` if the object
+            has_timerev (bool): True if time-reversal can be used.
+            overwrite (bool): By default, the method raises `ValueError` if the object
                 already has the list of symmetries found by Abinit.
 
         Returns:
-            `AbinitSpaceGroup`
+	    :class:`AbinitSpaceGroup`
 
         .. warning:
 
@@ -898,7 +898,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def print_neighbors(self, radius=2.0):
         """
-        Get neighbors for each atom in the unit cell, out to a distance `radius` in Angstrom
+        Get neighbors for each atom in the unit cell, out to a distance ``radius`` in Angstrom
         Print results.
         """
         print(" ")
@@ -915,7 +915,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @lazy_property
     def hsym_kpath(self):
         """
-        Returns an instance of :class:`HighSymmKpath`.
+        Returns an instance of :class:`pymatgen.symmetry.bandstructure.HighSymmKpath`.
         (Database of high symmetry k-points and high symmetry lines).
         """
         from pymatgen.symmetry.bandstructure import HighSymmKpath
@@ -943,7 +943,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def hsym_stars(self):
         """
         List of |KpointStar| objects. Each star is associated to one of the special k-points
-        present in the `pymatgen` database.
+        present in the pymatgen database.
         """
         # Construct the stars.
         return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
@@ -1018,7 +1018,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Useful to construct pandas DataFrames
 
         Args:
-            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number
+            with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
         """
         abc, angles = self.lattice.abc, self.lattice.angles
         # Get spacegroup info from spglib.
@@ -1051,10 +1051,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
-            pmg_path: True if the default path used in pymatgen should be show.
-            with_labels: True to plot k-point labels.
+            pmg_path (bool): True if the default path used in pymatgen should be show.
+            with_labels (bool): True to plot k-point labels.
 
-        Returns: `matplotlib` figure.
+        Returns: |matplotlib-Figure|.
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
@@ -1092,7 +1092,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
                 two_thetas to calculate in degrees. Defaults to (0, 90). Set to
                 None if you want all diffracted beams within the limiting
                 sphere of radius 2 / wavelength.
-            annotate_peaks: Whether to annotate the peaks with plane information.
+            annotate_peaks (bool): Whether to annotate the peaks with plane information.
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
 
         Returns: |matplotlib-Figure|
         """
@@ -1104,18 +1105,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def export(self, filename, visu=None, verbose=1):
         """
-        Export the crystalline structure to file `filename`.
+        Export the crystalline structure to file ``filename``.
 
         Args:
-            filename: String specifying the file path and the file format.
+            filename (str): String specifying the file path and the file format.
                 The format is defined by the file extension. filename="prefix.xsf", for example,
                 will produce a file in XSF format. An *empty* prefix, e.g. ".xsf" makes the code use a temporary file.
-            visu: `Visualizer` subclass. By default, this method returns the first available
+            visu: |Visualizer| subclass. By default, this method returns the first available
                 visualizer that supports the given file format. If visu is not None, an
-                instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.
+                instance of visu is returned. See |Visualizer| for the list of applications and formats supported.
             verbose: Verbosity level
 
-        Returns: Instance of :class:`Visualizer`
+        Returns: ``Visulizer`` instance.
         """
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s:" % filename)
@@ -1150,7 +1151,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def chemview(self, **kwargs):
         """
-        Visualize Structure in jupyter notebook using chemview package.
+        Visualize structure in jupyter notebook using chemview package.
         """
         from pymatgen.vis.structure_chemview import quick_view
         return quick_view(self, **kwargs)
@@ -1180,7 +1181,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def visualize(self, appname="vesta"):
         """
         Visualize the crystalline structure with visualizer.
-        See :class:`Visualizer` for the list of applications and formats supported.
+        See |Visualizer| for the list of applications and formats supported.
         """
         if appname == "vtk": return self.vtkview()
         if appname == "mayavi": return self.mayaview()
@@ -1458,14 +1459,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Compute the supercell needed for a given qpoint and add the displacement.
 
         Args:
-            qpoint:
-                q vector in reduced coordinate in reciprocal space.
-            displ:
-                displacement in real space of the atoms, will be normalized to 1 Angstrom.
-            eta:
-                pre-factor multiplying the displacement.
-            do_real:
-                true if we want only the real part of the displacement.
+            qpoint: q vector in reduced coordinate in reciprocal space.
+            displ: displacement in real space of the atoms, will be normalized to 1 Angstrom.
+            eta: pre-factor multiplying the displacement.
+            do_real: true if we want only the real part of the displacement.
         """
         # I've copied code from make_supercell since the loop over supercell images
         # is inside make_supercell and I don't want to create a mapping
@@ -1602,7 +1599,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def calc_ksampling(self, nksmall, symprec=0.01, angle_tolerance=5):
         """
-        Return the k-point sampling from the number of divisions to be used for
+        Return the k-point sampling from the number of divisions ``nksmall`` to be used for
         the smallest reciprocal lattice vector.
         """
         ngkpt = self.calc_ngkpt(nksmall)
@@ -1612,10 +1609,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def calc_ngkpt(self, nksmall):
         """
-        Compute the ABINIT variable `ngkpt` from the number of divisions used for the smallest lattice vector.
+        Compute the ABINIT variable ``ngkpt`` from the number of divisions used for the smallest lattice vector.
 
         Args:
-            nksmall: Number of division for the smallest lattice vector.
+            nksmall (int): Number of division for the smallest lattice vector.
         """
         lengths = self.lattice.reciprocal_lattice.abc
         lmin = np.min(lengths)
@@ -1630,7 +1627,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def calc_shiftk(self, symprec=0.01, angle_tolerance=5):
         """
-        Find the values of `shiftk` and `nshiftk` appropriated for the sampling of the Brillouin zone.
+        Find the values of ``shiftk`` and ``nshiftk`` appropriated for the sampling of the Brillouin zone.
 
         When the primitive vectors of the lattice do NOT form a FCC or a BCC lattice,
         the usual (shifted) Monkhorst-Pack grids are formed by using nshiftk=1 and shiftk 0.5 0.5 0.5 .
@@ -1732,7 +1729,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Returns the number of valence electrons.
 
         Args:
-            pseudos: List of :class:`Pseudo` objects or list of filenames.
+            pseudos: List of |Pseudo| objects or list of filenames.
         """
         nval, table = 0, PseudoTable.as_table(pseudos)
         for site in self:
@@ -1746,7 +1743,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Returns the number of valence electrons for each atom in the structure.
 
         Args:
-            pseudos: List of :class:`Pseudo` objects or list of filenames.
+            pseudos: List of |Pseudo| objects or list of filenames.
         """
         table = PseudoTable.as_table(pseudos)
         psp_valences = []
@@ -1758,7 +1755,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1797,7 +1794,7 @@ def dataframes_from_structures(struct_objects, index=None, with_spglib=True, car
             Support filenames, structure objects, Abinit input files, dicts and many more types.
             See ``Structure.as_structure`` for the complete list.
         index: Index of the |pandas-DataFrame|.
-        with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
+        with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.
         cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
             instead of Reduced coordinates.
 

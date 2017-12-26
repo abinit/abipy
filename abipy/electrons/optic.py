@@ -140,6 +140,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
             optic.ebands.plot()
             optic.plot()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: OpticNcFile
     """
 
@@ -397,6 +398,7 @@ class OpticReader(ElectronsReader):
     This object reads the results stored in the optic.nc file
     It provides helper function to access the most important quantities.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: OpticReader
     """
     def __init__(self, filepath):
@@ -482,6 +484,7 @@ class OpticRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple optic.nc files.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: OpticRobot
     """
     EXT = "OPTIC"

@@ -221,6 +221,7 @@ class PWWaveFunction(WaveFunction):
     """
     This object describes a wavefunction expressed in a plane-wave basis set.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PWWaveFunction
     """
     def __init__(self, structure, nspinor, spin, band, gsphere, ug):
@@ -581,5 +582,6 @@ class PAW_WaveFunction(WaveFunction):
     """
     All the methods that are related to the all-electron representation should start with ae.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PaW_WaveFunction
     """

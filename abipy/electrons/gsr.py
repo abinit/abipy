@@ -41,6 +41,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             print("energy: ", gsr.energy)
             gsr.ebands.plot()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrFile
     """
     @classmethod
@@ -183,7 +184,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def xc(self):
-        """:class:`XcFunc` object with info on the exchange-correlation functional."""
+        """
+        :class:`XcFunc` object with info on the exchange-correlation functional.
+        Use libxc convention :cite:`Marques2012`.
+        """
         return self.reader.read_abinit_xcfunc()
 
     def close(self):
@@ -333,6 +337,7 @@ class GsrReader(ElectronsReader):
     This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.
     It provides helper function to access the most important quantities.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrReader
     """
     def read_cart_forces(self, unit="eV ang^-1"):
@@ -350,10 +355,10 @@ class GsrReader(ElectronsReader):
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
         c = self.read_value("cartesian_stress_tensor")
         tensor = np.empty((3, 3), dtype=np.float)
-        for i in range(3): tensor[i,i] = c[i]
-        for p, (i, j) in enumerate(((2,1), (2,0), (1,0))):
-            tensor[i,j] = c[3+p]
-            tensor[j,i] = c[3+p]
+        for i in range(3): tensor[i, i] = c[i]
+        for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
+            tensor[i, j] = c[3 + p]
+            tensor[j, i] = c[3 + p]
 
         return tensor
 
@@ -370,6 +375,7 @@ class GsrRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple GSR.nc_ files.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrRobot
     """
     EXT = "GSR"

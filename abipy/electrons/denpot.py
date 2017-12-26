@@ -32,6 +32,7 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
     Unlike _NcFileWithField subclasses, this object does not contain an electronic band-structure
     and it's mainly used to convert from Fortran DEN/POT to netcdf.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Cut3dDenPotNcFile
     """
     def __init__(self, filepath):
@@ -156,6 +157,7 @@ class DensityNcFile(_NcFileWithField):
             ncfile.density
             ncfile.ebands.plot()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DensityNcFile
     """
     field_name = "density"
@@ -210,6 +212,7 @@ class DensityNcFile(_NcFileWithField):
 
 class VhartreeNcFile(_NcFileWithField):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VhartreeNcFile
     """
     field_name = "vh"
@@ -222,6 +225,7 @@ class VhartreeNcFile(_NcFileWithField):
 
 class VxcNcFile(_NcFileWithField):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VxcNcFile
     """
     field_name = "vxc"
@@ -234,6 +238,7 @@ class VxcNcFile(_NcFileWithField):
 
 class VhxcNcFile(_NcFileWithField):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VhxcNcFile
     """
     field_name = "vhxc"
@@ -246,6 +251,7 @@ class VhxcNcFile(_NcFileWithField):
 
 class PotNcFile(_NcFileWithField):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PotNcFile
     """
     field_name = "vks"
@@ -261,6 +267,7 @@ class DensityFortranFile(AbinitFortranFile):
     Class representing the _DEN fortran file containing density.
     Provides methods to run Cut3D and convert data into different formats.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DensityFortranFile
     """
 

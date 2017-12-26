@@ -106,7 +106,7 @@ def has_matplotlib(version=None, op=">="):
 def has_seaborn():
     """True if seaborn is installed."""
     try:
-        import seaborn.apionly as sns
+        import seaborn as sns
         return True
     except ImportError:
         return False

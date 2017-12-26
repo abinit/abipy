@@ -46,6 +46,8 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     "sphinxarg.ext",         # CLI doc
     #'nbsphinx',
+    'sphinxcontrib.bibtex',
+    "releases",
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -393,3 +395,24 @@ autodoc_member_order = "bysource"
 
 #'members', 'undoc-members', 'private-members', 'special-members', 'inherited-members' and 'show-inheritance'.
 #autodoc_default_flags = ["show-inheritance", "inherited-members", "special-members"]
+
+# From https://sphinxcontrib-bibtex.readthedocs.io/en/latest/usage.html#custom-formatting-sorting-and-labelling
+# pybtex provides a very powerful way to create and register new styles, using setuptools entry points,
+# as documented here: http://docs.pybtex.org/api/plugins.html
+
+#from pybtex.style.formatting.unsrt import Style as UnsrtStyle
+#from pybtex.style.template import toplevel # ... and anything else needed
+#from pybtex.plugin import register_plugin
+#
+#class MyStyle(UnsrtStyle):
+#
+#    def format_XXX(self, e):
+#        template = toplevel [
+#            # etc.
+#        ]
+#        return template.format_data(e)
+#
+#register_plugin('pybtex.style.formatting', 'mystyle', MyStyle)
+
+# This is for releases http://releases.readthedocs.io/en/latest/usage.html
+releases_github_path = "abinit/abipy"

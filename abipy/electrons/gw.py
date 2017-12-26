@@ -865,6 +865,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         sigres = SigresFile("foo_SIGRES.nc")
         sigres.plot_qps_vs_e0()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresFile
     """
     @classmethod
@@ -1543,6 +1544,7 @@ class SigresReader(ETSF_Reader):
     ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
     ! Frequencies used to evaluate the Derivative of Sigma.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresReader
     """
     def __init__(self, path):
@@ -1805,6 +1807,7 @@ class SigresRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple SIGRES.nc files.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresRobot
     """
     EXT = "SIGRES"

@@ -30,6 +30,7 @@ class Charges(Has_Structure):
     The charges refer to the total charges for each atom (i.e. Z-n_electrons).
     An eccess of electron has a negative charge
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Charges
     """
 
@@ -67,6 +68,7 @@ class HirshfeldCharges(Charges):
     The charges refer to the total charges for each atom (i.e. Z-n_electrons).
     An eccess of electron has a negative charge
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: HirshfeldCharges
     """
     @classmethod
@@ -103,6 +105,7 @@ class BaderCharges(Charges):
     TThe charges refer to the total charges for each atom (i.e. Z-n_electrons).
     An eccess of electron has a negative charge
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: BaderCharges
     """
 

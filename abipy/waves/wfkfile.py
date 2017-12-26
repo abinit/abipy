@@ -42,6 +42,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # Get a wavefunction.
         wave = wfk.get_wave(spin=0, kpoint=[0, 0, 0], band=0)
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: WfkFile
     """
     def __init__(self, filepath):
@@ -296,6 +297,7 @@ class WFK_Reader(ElectronsReader):
     """
     This object reads data from the WFK file.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Wfk_Reader
     """
 

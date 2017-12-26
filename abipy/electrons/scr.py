@@ -49,6 +49,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             print(ncfile)
             ncfile.plot_emacro()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ScrFile
     """
     @classmethod
@@ -251,6 +252,7 @@ class ScrReader(ETSF_Reader):
     number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,
     number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ScrReader
     """
     def __init__(self, filepath):
@@ -652,6 +654,7 @@ class _AwggMatrix(object):
 
 class Polarizability(_AwggMatrix):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Polarizability
     """
     netcdf_name = "polarizability"
@@ -660,6 +663,7 @@ class Polarizability(_AwggMatrix):
 
 class DielectricFunction(_AwggMatrix):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DielectricFunction
     """
     netcdf_name = "dielectric_function"
@@ -668,6 +672,7 @@ class DielectricFunction(_AwggMatrix):
 
 class InverseDielectricFunction(_AwggMatrix):
     """
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: InverseDielectricFunction
     """
     netcdf_name = "inverse_dielectric_function"

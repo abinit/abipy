@@ -29,6 +29,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         with Fold2BlochNcfile("foo_FOLD2BLOCH.nc") as fb:
             fb.plot_unfolded()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Fold2BlochNcfile
     """
     @classmethod

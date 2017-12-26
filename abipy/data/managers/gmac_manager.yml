@@ -4,7 +4,6 @@ qadapters:
       queue:
         qname: gmac
         qtype: shell
-        #qtype: slurm
       job:
         mpi_runner: mpirun
         pre_run: 
@@ -22,12 +21,3 @@ qadapters:
          #condition: {"$eq": {omp_threads: 2}} 
         
 batch_adapter: *batch
-         
-db_connector:
-    enabled: no
-    database: abinit 
-    collection: test
-    host: 0.0.0.0 
-    port: 8080 
-    user: gmatteo
-    password: helloworld

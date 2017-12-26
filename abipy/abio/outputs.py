@@ -58,7 +58,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -326,7 +326,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     @lazy_property
     def initial_structures(self):
-        """List of initial structures."""
+        """List of initial |Structure|."""
         return self._get_structures("header")
 
     @property
@@ -336,7 +336,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     @lazy_property
     def final_structures(self):
-        """List of final structures."""
+        """List of final |Structure|."""
         if self.run_completed:
             return self._get_structures("footer")
         else:
@@ -346,7 +346,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     @lazy_property
     def initial_structure(self):
         """
-        The structure defined in the output file.
+        The |Structure| defined in the output file.
 
         If the input file contains multiple datasets **AND** the datasets
         have different structures, this property returns None.
@@ -370,7 +370,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     @lazy_property
     def final_structure(self):
         """
-        The structure defined in the output file.
+        The |Structure| defined in the output file.
 
         If the input file contains multiple datasets **AND** the datasets
         have different structures, this property returns None.

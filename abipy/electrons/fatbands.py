@@ -41,6 +41,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         abiopen.py out_FATBANDS.nc -nb
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: FatBandsFile
     """
     # These class attributes can be redefined in order to customize the plots.

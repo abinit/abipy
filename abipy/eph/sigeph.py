@@ -2,6 +2,8 @@
 """
 This module contains objects for the postprocessing of Sigma_eph calculations.
 
+For a theoretical introduction see :cite:`Giustino2017`
+
 Warning:
 
     Work in progress, DO NOT USE THIS CODE
@@ -37,9 +39,9 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
     .. Attributes:
 
         spin: spin index (C convention, i.e >= 0)
-        kpoint: :class:`Kpoint` object.
+        kpoint: |Kpoint| object.
         band: band index. (C convention, i.e >= 0).
-        tmesh: Temperature mesh in K.
+        tmesh: Temperature mesh in Kelvin.
         e0: Initial KS energy.
         qpe: Quasiparticle energy (complex) computed with the perturbative approach.
         sigxme: Matrix element of Sigma_x.
@@ -207,13 +209,14 @@ class QpTempList(list):
 
     @property
     def tmesh(self):
-        """Temperature mesh in K."""
+        """Temperature mesh in Kelvin."""
         if len(self):
             return self[0].tmesh
         return []
 
     @property
     def ntemp(self):
+        """Number of temperatures."""
         return len(self.tmesh)
 
     def __repr__(self):
@@ -243,7 +246,7 @@ class QpTempList(list):
         return np.array([qp.e0 for qp in self])
 
     def get_field_itemp(self, field, itemp):
-        """numpy array containing the values of field at temperature ``itemp``"""
+        """|numpy-array| containing the values of field at temperature ``itemp``"""
         return np.array([getattr(qp, field)[itemp] for qp in self])
 
     #def get_skb_field(self, skb, field):
@@ -315,7 +318,7 @@ class QpTempList(list):
 
         linestyle = kwargs.pop("linestyle", "o")
         for i, (field, ax) in enumerate(zip(fields, ax_list)):
-            print("About to plot field", field)
+            #print("About to plot field", field)
             irow, icol = divmod(i, ncols)
             ax.grid(True)
             if irow == nrows - 1: ax.set_xlabel(xlabel)
@@ -345,7 +348,7 @@ class QpTempList(list):
 class EphSelfEnergy(object):
     r"""
     Electron self-energy due to phonon interaction :math:`\Sigma_{nk}(\omega,T)`
-    Actually diagonal matrix elements in the KS basis set.
+    Actually these are the diagonal matrix elements in the KS basis set.
     """
 
     # Symbols used in matplotlib plots.
@@ -360,7 +363,7 @@ class EphSelfEnergy(object):
         Args:
             qp: QpTempState instance.
             spin: spin index
-            kpoint: K-point object.
+            kpoint: |Kpoint| object.
             band: band index
             wmesh: Frequency mesh in eV.
             tmesh: Temperature mesh in K
@@ -456,8 +459,8 @@ class EphSelfEnergy(object):
             cmap: matplotlib color map.
             ax_list:
             what_list:
-            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
-                or scalar e.g. `left`. If left (right) is None, default values are used.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
@@ -496,6 +499,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             print(ncfile)
             ncfile.ebands.plot()
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigEPhFile
     """
     # Markers used for up/down bands.
@@ -547,7 +551,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("Number of k-points computed: %d" % (self.nkcalc))
         #app("K-mesh: %s" % (str(self.ngkpt)))
         app("Q-mesh: %s" % (str(self.ngqpt)))
-        app("zcut: %.3f [Ha], %3.f [eV]" % (self.zcut, self.zcut * units.Ha_to_eV))
+        app("zcut: %.3f [Ha], %.3f [eV]" % (self.zcut, self.zcut * units.Ha_to_eV))
         app("Number of temperatures: %d, from %.1f to %.1f [K]" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
         app("Number of bands included in self-energy: %d" % (self.nbsum))
         app("symsigma: %s" % (self.symsigma))
@@ -563,12 +567,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def ebands(self):
-        """:class:`ElectronBands` object."""
+        """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
     def structure(self):
-        """:class:`Structure` object."""
+        """|Structure| object."""
         return self.ebands.structure
 
     def close(self):
@@ -588,14 +592,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @lazy_property
     def ks_dirgaps(self):
         """
-        Array of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.
+        |numpy-array| of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.
         """
         return self.reader.read_value("ks_gaps") * units.Ha_to_eV
 
     @lazy_property
     def qp_dirgaps_t(self):
         """
-        Array of shape [nsppol, nkcalc, ntemp] with the QP gaps in eV ordered as kcalc.
+        |numpy-array| of shape [nsppol, nkcalc, ntemp] with the QP gaps in eV ordered as kcalc.
         """
         return self.reader.read_value("qp_gaps") * units.Ha_to_eV
 
@@ -618,7 +622,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def params(self):
-        """AttrDict dictionary with the convergence parameters, e.g. nbsum."""
+        """:class:`OrderedDict` with the convergence parameters, e.g. nbsum."""
         return OrderedDict([
             ("nbsum", self.nbsum),
             ("zcut", self.zcut),
@@ -649,7 +653,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Args:
             with_params:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         ik = self.sigkpt2index(sigma_kpoint)
         rows = []
@@ -728,7 +732,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def write_notebook(self, nbpath=None, title=None):
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
@@ -750,6 +754,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple SIGEPH.nc files.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigEPhRobot
     """
     EXT = "SIGEPH"
@@ -788,7 +793,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         Return |pandas-Dataframe| with qp results for this spin, k-point
 
         Args:
-            spin:
+            spin: Spin index
             sigma_kpoint:
             with_params:
             ignore_imag: only real part is returned if ``ignore_imag``.
@@ -900,6 +905,7 @@ class SigmaPhReader(ElectronsReader):
     """
     Reads data from file and constructs objects.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigmaPhReader
     """
     def __init__(self, path):

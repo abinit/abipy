@@ -1,6 +1,7 @@
 # coding: utf-8
 """
 Shankland-Koelling-Wood Fourier interpolation scheme.
+For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Madsen2006`.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 

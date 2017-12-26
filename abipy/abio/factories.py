@@ -123,7 +123,7 @@ def _stopping_criterion(runlevel, accuracy):
 
 
 def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
-    """Return a :class:`AttrDict` with the value of ecut and pawecutdg"""
+    """Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
     # Get ecut and pawecutdg from the pseudo hints.
     if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
         has_hints = all(p.has_hints for p in pseudos)
@@ -145,7 +145,7 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
 
 
 def _find_scf_nband(structure, pseudos, electrons, spinat=None):
-    """Find the value of nband."""
+    """Find the value of ``nband``."""
     if electrons.nband is not None: return electrons.nband
 
     nsppol, smearing = electrons.nsppol, electrons.smearing
@@ -186,7 +186,7 @@ def _get_shifts(shift_mode, structure):
         centered otherwise.
 
     Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the
-        `chksymbreak` condition (Abinit input variable).
+        ``chksymbreak`` condition (Abinit input variable).
     """
     if shift_mode == ShiftMode.GammaCentered:
         return ((0, 0, 0))
@@ -210,11 +210,11 @@ def gs_input(structure, pseudos,
              kppa=None, ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`AbinitInput` for ground-state calculation.
+    Returns a |AbinitInput| for ground-state calculation.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
@@ -240,11 +240,11 @@ def ebands_input(structure, pseudos,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
                  smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, dos_kppa=None):
     """
-    Returns a :class:`MultiDataset` for band structure calculations.
+    Returns a |MultiDataset| object for band structure calculations.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.
         nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.
         ndivsm: Number of divisions used to sample the smallest segment of the k-path.
@@ -319,12 +319,12 @@ def ion_ioncell_relax_input(structure, pseudos,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, shift_mode='Monkhorst-pack'):
     """
-    Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the
+    Returns a |MultiDataset| for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the Brillouin zone.
         nband: Number of bands included in the SCF run.
         accuracy: Accuracy of the calculation.
@@ -374,7 +374,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
                                        ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                                        smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.
+    Returns a |MultiDataset| for a structural relaxation followed by a band structure run.
     The first dataset optimizes the atomic positions at fixed unit cell.
     The second datasets optimizes both ions and unit cell parameters.
     The other datasets perform a band structure calculation.
@@ -385,8 +385,8 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
         second dataset to the inputs used for the band structure calculation.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the Brillouin zone.
         nband: Number of bands included in the SCF run.
         accuracy: Accuracy of the calculation.
@@ -395,8 +395,7 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
 
-    Returns:
-        :class:`MultiDataset` object
+    Returns: |MultiDataset| object
     """
     structure = Structure.as_structure(structure)
 
@@ -420,11 +419,11 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
                              ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
                              sigma_nband=None, gw_qprange=1):
     """
-    Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.
+    Returns a |MultiDataset| object that performs G0W0 calculations with the plasmon pole approximation.
 
     Args:
-        structure: Pymatgen structure.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         ecuteps: Cutoff energy [Ha] for the screening matrix.
@@ -446,9 +445,9 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
             See Abinit docs for more detail. The default value makes the code compute the
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
 
-    .. warning:
+    .. versionchanged: 0.3
 
-        The default value of `shifts` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0)
+        The default value of ``shifts`` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0).
     """
 
     structure = Structure.as_structure(structure)
@@ -508,12 +507,13 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                             response_models=None, charge=0.0, scf_algorithm=None, inclvkb=2,
                             gw_qprange=1, gamma=True, nksmall=None, extra_abivars=None):
     """
-    Returns a :class:`MultiDataset` object to generate a G0W0 work for the given the material.
+    Returns a |MultiDataset| object to generate a G0W0 work for the given the material.
+    See also :cite:`Setten2017`.
 
     Args:
-        structure: Pymatgen structure.
-        pseudos: List of `Pseudo` objects.
-        kppa: k poits per reciprocal atom
+        structure: |Structure| object
+        pseudos: List of |Pseudo| objects.
+        kppa: k points per reciprocal atom.
         scf_nband: number of scf bands
         ecut: ecut for all calcs that that are not ecut convergence  cals at scf level
         scf_ Defines the sampling used for the SCF run.
@@ -703,13 +703,13 @@ def bse_with_mdf_inputs(structure, pseudos,
                         exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="polarized",
                         smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
     """
-    Returns a :class:`MultiDataset` object that performs a GS + NSCF + Bethe-Salpeter calculation.
+    Returns a |MultiDataset| object that performs a GS + NSCF + Bethe-Salpeter calculation.
     The self-energy corrections are approximated with the scissors operator.
     The screening is modeled with the model dielectric function.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         scf_kppa: Defines the sampling used for the SCF run.
         nscf_nband: Number of bands included in the NSCF run.
         nscf_ngkpt: Divisions of the k-mesh used for the NSCF and the BSE run.
@@ -787,8 +787,8 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     GS input + the input files for the phonon calculation.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the SCF run.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
@@ -860,13 +860,13 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
                          ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None):
     """
     Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
-    a ground state AbinitInput.
+    a ground state |AbinitInput|.
     It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.
     The inputs have the following tags, according to their function: "ddk", "dde", "nscf", "ph_q_pert".
     All of them have the tag "phonon".
 
     Args:
-        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.
             If None and qpoint==None the ngkpt value present in the gs_input will be used.
             Incompatible with qpoints.
@@ -983,7 +983,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
 
 def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
     """
-    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
+    Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
@@ -1071,12 +1071,12 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                              ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
 
     """
-    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.
+    Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
 
     Args:
-        structure: :class:`Structure` object.
-        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.
+        structure: |Structure| object.
+        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
         kppa: Defines the sampling used for the SCF run.
         ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
         pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the
@@ -1115,7 +1115,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
               spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
               shift_mode="Monkhorst-Pack"):
     """
-    Returns an :class:`AbinitInput` for standard GS calculations.
+    Returns an |AbinitInput| object for standard GS calculations.
     """
     structure = Structure.as_structure(structure)
 
@@ -1148,7 +1148,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
 def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
     """
-    Return an :class:`AbinitInput` object to compute a band structure from a GS SCF input.
+    Return an |AbinitInput| object to compute a band structure from a GS SCF input.
 
     Args:
         gsinput:
@@ -1156,7 +1156,7 @@ def ebands_from_gsinput(gsinput, nband=None, ndivsm=15, accuracy="normal"):
         ndivsm:
         accuracy:
 
-    Return: :class:`AbinitInput`
+    Return: |AbinitInput|
     """
     # create a copy to avoid messing with the previous input
     bands_input = gsinput.deepcopy()
@@ -1268,14 +1268,14 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
 def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None, dte_tol=None,
                      skip_dte_permutations=False):
     """
-    Returns a list of inputs in the form of a MultiDataset to perform calculations of non-linear properties, based on
+    Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on
     a ground state AbinitInput.
 
     The inputs have the following tags, according to their function: "ddk", "dde", "ph_q_pert" and "dte".
     All of them have the tag "dfpt".
 
     Args:
-        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         use_phonons: determine wether the phonon perturbations at gamma should be included or not
         ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and
             its value. Default: {"tolvrs": 1.0e-22}.

@@ -300,6 +300,7 @@ class ElectronBands(Has_Structure):
             with a NSCF run, fermie corresponds to the fermi level obtained
             in the SCF run that produced the density used for the band structure calculation.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ElectronBands
     """
     Error = ElectronBandsError
@@ -897,7 +898,8 @@ class ElectronBands(Has_Structure):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        import seaborn.apionly as sns
+        #import seaborn.apionly as sns
+        import seaborn as sns
         hue = None if self.nsppol == 1 else "spin"
         ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, ax=ax, **kwargs)
         if swarm:
@@ -2149,6 +2151,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     Dictionary with the mapping label --> edos.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ElectronBandsPlotter
     """
     _LINE_COLORS = ["b", "r",]
@@ -2461,10 +2464,10 @@ class ElectronBandsPlotter(NotebookWriter):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
-            brange: Only bands such as `brange[0] <= band_index < brange[1]` are included in the plot.
+            brange: Only bands such as ``brange[0] <= band_index < brange[1]`` are included in the plot.
             swarm: True to show the datapoints on top of the boxes
             fontsize: Fontsize for title.
             kwargs: Keyword arguments passed to seaborn boxplot.
@@ -2495,7 +2498,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
 
@@ -2520,7 +2523,8 @@ class ElectronBandsPlotter(NotebookWriter):
         data = pd.concat(frames, ignore_index=True)
 
         import matplotlib.pyplot as plt
-        import seaborn.apionly as sns
+        #import seaborn.apionly as sns
+        import seaborn as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
             ax.grid(True)
@@ -2682,6 +2686,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     """
     This object reads band structure data from a netcdf_ file.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ElectronReader
     """
     def read_ebands(self):
@@ -2920,7 +2925,7 @@ class ElectronDos(object):
 
     def plot_ax(self, ax, e0, spin=None, what="d", fact=1.0, exchange_xy=False, **kwargs):
         """
-        Helper function to plot the DOS data on the axis ax.
+        Helper function to plot the DOS data on the axis ``ax``.
 
         Args:
             ax: |matplotlib-Axes|.
@@ -3296,7 +3301,7 @@ class Bands3D(object):
 
     def __init__(self, structure, ibz, has_timrev, eigens, fermie):
         """
-        This object reconstructs by symmetri the eigenvalues in the full BZ starting from the IBZ.
+        This object reconstructs by symmetry the eigenvalues in the full BZ starting from the IBZ.
         Provides methods to extract and visualize isosurfaces.
 
         Args:
@@ -3490,7 +3495,7 @@ class Bands3D(object):
     @add_fig_kwargs
     def plot_isosurfaces(self, e0="fermie", verbose=0, **kwargs):
         """
-        Plot isosurface with matplotlib
+        Plot isosurface with matplotlib_
 
         .. warning::
 
@@ -3592,7 +3597,7 @@ class Bands3D(object):
     @add_fig_kwargs
     def plot_contour(self, band, spin=0, plane="xy", elevation=0, ax=None, fontsize=10, **kwargs):
         """
-        Contour plot with matplotlib.
+        Contour plot with matplotlib_.
 
         Args:
             band:

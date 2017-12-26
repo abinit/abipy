@@ -154,7 +154,7 @@ class AbinitNcFile(_File):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
-    A AbinitNcFile has a netcdf reader to read data from file and build objects.
+    An AbinitNcFile has a netcdf reader to read data from file and build objects.
     """
     def ncdump(self, *nc_args, **nc_kwargs):
         """Returns a string with the output of ncdump."""
@@ -285,7 +285,7 @@ class Has_ElectronBands(object):
 
     @property
     def nelect(self):
-        """Number of elecrons per unit cell"""
+        """Number of electrons per unit cell"""
         return self.ebands.nelect
 
     @property
@@ -340,7 +340,7 @@ class NcDumper(object):
     def dump(self, filepath):
         """Returns a string with the output of ncdump."""
         if self.ncdump is None:
-            return "Cannot find ncdump tool in PATH"
+            return "Cannot find ncdump tool in $PATH"
         else:
             from subprocess import check_output
             return check_output(["ncdump", filepath])
@@ -395,7 +395,7 @@ class NotebookWriter(object):
             system exit code.
 
         Raise:
-            `RuntimeError` if jupyter is not in $PATH
+            `RuntimeError` if jupyter_ is not in $PATH
         """
         nbpath = self.write_notebook(nbpath=nbpath)
 
@@ -424,7 +424,7 @@ class NotebookWriter(object):
 
     def get_nbformat_nbv_nb(self, title=None):
         """
-        Return nbformat module, notebook version module
+        Return ``nbformat`` module, notebook version module
         and new notebook with title and import section
         """
         nbformat, nbv = self.get_nbformat_nbv()
@@ -443,11 +443,6 @@ import numpy as np
 %matplotlib notebook
 from IPython.display import display
 
-# Use seaborn settings for plots. See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
-#import seaborn as sns
-#sns.set(context='notebook', style='darkgrid', palette='deep',
-#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
-
 # This to render pandas DataFrames with https://github.com/quantopian/qgrid
 #import qgrid
 #qgrid.nbinstall(overwrite=True)  # copies javascript dependencies to your /nbextensions folder
@@ -456,6 +451,10 @@ from IPython.display import display
 #from mayavi import mlab; mlab.init_notebook(backend='x3d', width=None, height=None, local=True)
 
 from abipy import abilab
+
+# Tell AbiPy we are inside a notebook and use seaborn settings for plots.
+# See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
+abilab.enable_notebook(with_seaborn=True)
 
 # AbiPy widgets for pandas and seaborn plot APIs
 #import abipy.display.seabornw import snw
@@ -467,7 +466,7 @@ from abipy import abilab
     @abc.abstractmethod
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file is created.
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file is created.
         Return path to the notebook. A typical template is given below.
         """
         # Preable.

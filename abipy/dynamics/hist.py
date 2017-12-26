@@ -29,6 +29,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         with HistFile("foo_HIST") as hist:
             hist.plot()
+
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: HistFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -494,6 +498,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
 class HistRobot(Robot):
     """
     This robot analyzes the results contained in multiple HIST.nc_ files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: HistRobot
     """
     EXT = "HIST"
 
@@ -676,7 +683,13 @@ class HistRobot(Robot):
 
 
 class HistReader(ETSF_Reader):
-    """This object reads data from the HIST file."""
+    """
+    This object reads data from the HIST file.
+
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: HistReader
+    """
 
     @lazy_property
     def num_steps(self):

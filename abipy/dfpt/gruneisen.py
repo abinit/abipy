@@ -39,6 +39,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         with GrunsNcFile("foo_GRUNS.nc") as ncfile:
             print(ncfile)
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GrunsNcFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -325,6 +328,9 @@ class GrunsReader(ETSF_Reader):
     """
     This object reads the results stored in the GRUNS.nc file produced by ABINIT.
     It provides helper functions to access the most important quantities.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GrunsReader
     """
     # Fortran arrays (remember to transpose dimensions!)
     # Remember: Atomic units are used everywhere in this file.

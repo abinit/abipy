@@ -60,7 +60,6 @@ Gmac
 	      queue:
 	        qname: gmac
 	        qtype: shell
-	        #qtype: slurm
 	      job:
 	        mpi_runner: mpirun
 	        pre_run:
@@ -78,15 +77,6 @@ Gmac
 	         #condition: {"$eq": {omp_threads: 2}}
 	
 	batch_adapter: *batch
-	
-	db_connector:
-	    enabled: no
-	    database: abinit
-	    collection: test
-	    host: 0.0.0.0
-	    port: 8080
-	    user: gmatteo
-	    password: helloworld
 
 
 Hercules
@@ -218,12 +208,7 @@ Juqueen
 	job: &job
 	    mpi_runner: runjob
 	    shell_env:
-	        #PATH: $HOME/abinit/801-private/bgq_xlf_base/src/98_main/:$PATH
-	        #PATH: $HOME/abinit/801-private/bgq_xlf_omp/src/98_main/:$PATH
 	        PATH: $HOME/abinit/801-private/bgq_xlf_legacy/src/98_main/:$PATH
-	        #PATH: $HOME/abinit/801-private/bgq_xlf_o2/src/98_main/:$PATH
-	        #PATH: $HOME/abinit/801-private/bgq_gcc_legacy/src/98_main/:$PATH
-	        #PATH: $HOME/abinit/801-private/bgq_gcc/src/98_main/:$PATH
 	
 	# List of qadapters
 	# Note that on the BlueGeneQ we need at least two qadapters
@@ -240,7 +225,7 @@ Juqueen
 	       qparams:
 	         # Mandatory on juqueen.
 	         notification: error
-	         mail_user: matteo.giantomassi@uclouvain.be
+	         mail_user: john@nowhere.com
 	         environment: COPY_ALL
 	    limits:
 	       timelimit: 00:20:00

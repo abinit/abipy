@@ -1,4 +1,5 @@
 .. Links to websites
+.. _Sphinx: http://sphinx.pocoo.org
 .. _Abinit: https://www.abinit.org
 .. _abiconfig: https://github.com/abinit/abiconfig
 .. _abiflows: https://github.com/abinit/abiflows
@@ -60,7 +61,7 @@
 
 .. Links to jupyter notebooks associated to AbiPy files available at
    https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb?flush_cache=true
-   .. _AbipyStructure: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb
+.. _AbipyStructure: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb
 .. _AbinitInput: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/abinit_input.ipynb
 .. _GSR.nc: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/gsr.ipynb
 .. _HIST.nc: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/hist.ipynb
@@ -79,8 +80,10 @@
 .. |IrredZone| replace:: :class:`abipy.core.kpoints.IrredZone`
 .. |KpointStar| replace:: :class:`abipy.core.kpoints.KpointStar`
 .. |Structure| replace:: :class:`abipy.core.structure.Structure`
+.. |pymatgen-Structure| replace:: :class:`pymatgen.core.structure.Structure`
 .. |Lattice| replace:: :class:`pymatgen.core.lattice.Lattice`
 .. |AbinitInput| replace:: :class:`abipy.abio.inputs.AbinitInput`
+.. |MultiDataset| replace:: :class:`abipy.abio.inputs.MultiDataset`
 .. |ElectronBands| replace:: :class:`abipy.electrons.ebands.ElectronBands`
 .. |SkwInterpolator| replace:: :class:`abipy.core.skw.SkwInterpolator`
 .. |ElectronDos| replace:: :class:`abipy.electrons.ebands.ElectronDos`
@@ -89,12 +92,17 @@
 .. |NscfTask| replace:: :class:`pymatgen.io.abinit.tasks.NscfTask`
 .. |TaskManager| replace:: :class:`pymatgen.io.abinit.tasks.TaskManager`
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
+.. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
+.. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
 .. |PhdosFile| replace:: :class:`abipy.dfpt.phonons.PhdosFile`
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
 .. |PhononBandsPlotter| replace:: :class:`abipy.dfpt.phonons.PhononBandsPlotter`
 .. |PhononDosPlotter| replace:: :class:`abipy.dfpt.phonons.PhononDosPlotter`
+.. |Pseudo| replace:: :class:`pymatgen.io.abinit.pseudos.Pseudo`
+.. |PseudoTable| replace:: :class:`pymatgen.io.abinit.pseudos.PseudoTable`
+.. |Visualizer| replace:: :class:`abipy.iotools.visualizer.Visualizer`
 
 .. Important objects provided by libraries.
 .. |matplotlib-Figure| replace:: :class:`matplotlib.figure.Figure`

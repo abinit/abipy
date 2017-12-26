@@ -78,6 +78,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         * ipert = natom + 2 gives the electric field
         * ipert = natom + 3 gives the uniaxial stress
         * ipert = natom + 4 gives the shear stree.
+
+    .. rubric:: Inheritance
+    .. inheritance-diagram:: DdbFile
     """
     Error = DdbError
     AnaddbError = AnaddbError
@@ -1328,7 +1331,10 @@ class DielectricTensorGenerator(Has_Structure):
 
 class DdbRobot(Robot):
     """
-    This robot analyzes the results contained in multiple DDB files.
+    This robot analyzes the results contained in multiple DDB_ files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: DdbRobot
     """
     EXT = "DDB"
 
