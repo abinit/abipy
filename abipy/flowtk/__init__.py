@@ -27,7 +27,7 @@ from pymatgen.io.abinit.abiinspect import GroundStateScfCycle, D2DEScfCycle
 from abipy.flowtk.works import *
 
 
-def flow_main(main):
+def flow_main(main):  # pragma: no cover
     """
     This decorator is used to decorate main functions producing `Flows`.
     It adds the initialization of the logger and an argument parser that allows one to select

@@ -130,6 +130,10 @@ class GSRFileTestCase(AbipyTest):
                 assert d["energy"] == gsr.energy
                 assert gsr.energy == e.energy
 
+            if self.has_matplotlib():
+                assert gsr.plot_ebands(show=False)
+                assert gsr.plot_ebands_with_edos(edos=gsr.ebands.get_edos(), show=False)
+
             if self.has_nbformat():
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
 
@@ -173,7 +177,6 @@ class GstRobotTest(AbipyTest):
             assert robot.gridplot_ebands(show=False)
             assert robot.boxplot_ebands(show=False)
             assert robot.combiboxplot_ebands(show=False)
-
 
             assert edos_plotter.gridplot(show=False)
             assert robot.combiplot_edos(show=False)

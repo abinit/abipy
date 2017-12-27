@@ -10,7 +10,7 @@ from monty.termcolor import cprint
 from monty.string import list_strings
 
 
-def ask_yes_no(prompt, default=None):
+def ask_yes_no(prompt, default=None):  # pragma: no cover
     """
     Ask a question and return a boolean (y/n) answer.
 
@@ -48,7 +48,7 @@ def ask_yes_no(prompt, default=None):
     return answers[ans]
 
 
-def _user_wants_to_exit():
+def _user_wants_to_exit(): # pragma: no cover
     # Fixes py2.x
     try:
         my_input = raw_input
@@ -68,7 +68,7 @@ class EditorError(Exception):
     """Base class for exceptions raised by `Editor`"""
 
 
-class Editor(object):
+class Editor(object):  # pragma: no cover
     DEFAULT_EDITOR = "vi"
 
     Error = EditorError
@@ -98,7 +98,7 @@ class Editor(object):
         return 0
 
 
-def input_from_editor(message=None):
+def input_from_editor(message=None):  # pragma: no cover
     if message is not None:
         print(message, end="")
 

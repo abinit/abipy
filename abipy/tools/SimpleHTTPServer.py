@@ -32,7 +32,7 @@ import mimetypes
 from six.moves import cStringIO as StringIO
 
 
-class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):   # pragma: no cover
 
     """Simple HTTP request handler with GET and HEAD commands.
 

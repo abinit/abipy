@@ -2,9 +2,9 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 
-def print_source_in_module(function, module):
+def print_source_in_module(function, module):  # pragma: no cover
     """
-    For use inside an IPython notebook: given a module and a function, print the source code.
+    For use inside an jupyter_ notebook: given a module and a function, print the source code.
 
     Based on:
 
@@ -21,9 +21,9 @@ def print_source_in_module(function, module):
     return HTML(highlight(getsource(internal_functions[function]), PythonLexer(), HtmlFormatter(full=True)))
 
 
-def print_source(function, **kwargs):
+def print_source(function, **kwargs):  # pragma: no cover
     """
-    For use inside an IPython notebook: given a function, print the source code.
+    For use inside a jupyter_ notebook: given a function, print the source code.
 
     Args:
         **kwargs: Passed to HtmlFormatter
@@ -41,15 +41,15 @@ def print_source(function, **kwargs):
     return HTML(highlight(getsource(function), PythonLexer(), HtmlFormatter(**kwargs)))
 
 
-def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):
+def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no cover
     """
-    Return an ipython widget listing all the files located within the directory `top`
-    that can be inspected with `abiopen`. The user can select the file in the widget
+    Return an ipython widget listing all the files located within the directory ``top``
+    that can be inspected with :ref:`abiopen.py`. The user can select the file in the widget
     and print info on the corresponding file inside the notebook.
 
     Args:
         top: Initial directory.
-        recurse: False to ignore directories within `top`.
+        recurse: False to ignore directories within ``top``.
         widget_type: Specify the widget to create. Possible values in:
             ["tooglebuttons", "dropdown", "radiobuttons"]
     """

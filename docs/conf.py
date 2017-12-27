@@ -31,7 +31,6 @@ relmod = imp.load_source(mod_name, mod_name)
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    #'sphinx.ext.coverage',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
@@ -370,7 +369,7 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
     'matplotlib': ('http://matplotlib.org/', None),
-    "pymatgen": ("http://pythonhosted.org/monty/", None),
+    "monty": ("http://pythonhosted.org/monty/", None),
     "pymatgen": ("http://pymatgen.org/", None),
 }
 

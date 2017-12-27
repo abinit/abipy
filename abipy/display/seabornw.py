@@ -136,7 +136,7 @@ __all__ = [
 @wraps(sns.jointplot)
 def jointplot(data, joint_kws=None, marginal_kws=None, annot_kws=None, **kwargs):
 
-    def sns_joinplot(x, y, kind, color):
+    def sns_joinplot(x, y, kind, color):  # pragma: no cover
         x, y, color = ut.widget2py(x, y, color)
         # TODO: stat_func
         return sns.jointplot(x, y, data=data, kind=kind, # stat_func=<function pearsonr>,
@@ -158,7 +158,7 @@ def jointplot(data, joint_kws=None, marginal_kws=None, annot_kws=None, **kwargs)
 def pairplot(data, plot_kws=None, diag_kws=None, grid_kws=None):
     # TODO: Write widget with multiple checkboxes to implement lists.
 
-    def sns_pairplot(x_vars, y_vars, hue, kind, diag_kind):
+    def sns_pairplot(x_vars, y_vars, hue, kind, diag_kind): # pragma: no cover
         x_vars, y_vars, hue = ut.widget2py(x_vars, y_vars, hue)
         return sns.pairplot(data, hue=hue, hue_order=None, palette=None, vars=None, x_vars=x_vars, y_vars=y_vars,
                      kind=kind, diag_kind=diag_kind, markers=None, size=2.5, aspect=1, dropna=True,
@@ -222,7 +222,7 @@ def kdeplot(data, **kwargs):
 @wraps(sns.lmplot)
 def lmplot(data, scatter_kws=None, line_kws=None):
 
-    def sns_lmplot(x, y, hue, col, row, legend, size):
+    def sns_lmplot(x, y, hue, col, row, legend, size):  # pragma: no cover
         x, y, hue, col, row = ut.widget2py(x, y, hue, col, row)
 
         return sns.lmplot(x, y, data, hue=hue, col=col, row=row, palette=None, col_wrap=None,
@@ -274,7 +274,7 @@ def lmplot(data, scatter_kws=None, line_kws=None):
 @wraps(sns.factorplot)
 def factorplot(data, facet_kws=None, **kwargs):
 
-    def sns_factorplot(x, y, hue, color, kind, size, legend):
+    def sns_factorplot(x, y, hue, color, kind, size, legend):  # pragma: no cover
         x, y, hue, color = ut.widget2py(x, y, hue, color)
         return sns.factorplot(x=x, y=y, hue=hue, data=data, row=None, col=None, col_wrap=None, # estimator=<function mean>,
                        ci=95, n_boot=1000, units=None, order=None, hue_order=None, row_order=None, col_order=None,
@@ -298,7 +298,7 @@ def factorplot(data, facet_kws=None, **kwargs):
 @wraps(sns.boxplot)
 def boxplot(data, **kwargs):
 
-    def sns_boxplot(x, y, hue, orient, color, saturation, notch):
+    def sns_boxplot(x, y, hue, orient, color, saturation, notch): # pragma: no cover
         x, y, hue, orient, color = ut.widget2py(x, y, hue, orient, color)
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.boxplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None, orient=orient,
@@ -321,7 +321,7 @@ def boxplot(data, **kwargs):
 @wraps(sns.violinplot)
 def violinplot(data, **kwargs):
 
-    def sns_violinplot(x, y, hue, bw, scale, inner, split, orient, color, saturation):
+    def sns_violinplot(x, y, hue, bw, scale, inner, split, orient, color, saturation): # pragma: no cover
         x, y, hue, inner, orient, color = ut.widget2py(x, y, hue, inner, orient, color)
         ax, fig, _ = ut.get_ax_fig_plt()
 
@@ -349,7 +349,7 @@ def violinplot(data, **kwargs):
 @wraps(sns.stripplot)
 def stripplot(data, **kwargs):
 
-    def sns_stripplot(x, y, hue, split, orient, color, size, linewidth):
+    def sns_stripplot(x, y, hue, split, orient, color, size, linewidth): # pragma: no cover
         x, y, hue, orient, color = ut.widget2py(x, y, hue, orient, color)
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.stripplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None, jitter=False,
@@ -373,7 +373,7 @@ def stripplot(data, **kwargs):
 @wraps(sns.swarmplot)
 def swarmplot(data, **kwargs):
 
-    def sns_swarmplot(x, y, hue, split, orient, color, size, linewidth):
+    def sns_swarmplot(x, y, hue, split, orient, color, size, linewidth): # pragma: no cover
         x, y, hue, orient, color = ut.widget2py(x, y, hue, orient, color)
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.swarmplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None,
@@ -397,7 +397,7 @@ def swarmplot(data, **kwargs):
 @wraps(sns.pointplot)
 def pointplot(data, **kwargs):
 
-    def sns_pointplot(x, y, hue, split, join, orient, color, linewidth):
+    def sns_pointplot(x, y, hue, split, join, orient, color, linewidth): # pragma: no cover
         x, y, hue, orient, color = ut.widget2py(x, y, hue, orient, color)
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.pointplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None, # estimator=<function mean>,
@@ -421,7 +421,7 @@ def pointplot(data, **kwargs):
 @wraps(sns.barplot)
 def barplot(data, **kwargs):
 
-    def sns_barplot(x, y, hue, orient, color, saturation):
+    def sns_barplot(x, y, hue, orient, color, saturation): # pragma: no cover
         x, y, hue, orient, color = ut.widget2py(x, y, hue, orient, color)
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.barplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None, # estimator=<function mean>,
@@ -443,7 +443,7 @@ def barplot(data, **kwargs):
 @wraps(sns.countplot)
 def countplot(data, **kwargs):
 
-    def sns_countplot(x, y, hue, color, saturation):
+    def sns_countplot(x, y, hue, color, saturation): # pragma: no cover
         x, y, hue, color = ut.widget2py(x, y, hue, color)
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.countplot(x=x, y=y, hue=hue, data=data, order=None, hue_order=None, orient=None,
@@ -466,7 +466,7 @@ def countplot(data, **kwargs):
 @wraps(sns.heatmap)
 def heatmap(data, annot_kws=None, cbar_kws=None, **kwargs):
 
-    def sns_heatmap():
+    def sns_heatmap(): # pragma: no cover
         ax, fig, _ = ut.get_ax_fig_plt()
         return sns.heatmap(data, vmin=None, vmax=None, cmap=None, center=None, robust=False, annot=None,
                            fmt='.2g', annot_kws=annot_kws, linewidths=0, linecolor='white', cbar=True,
@@ -481,7 +481,7 @@ def heatmap(data, annot_kws=None, cbar_kws=None, **kwargs):
 @wraps(sns.clustermap)
 def clustermap(data, pivot_kws=None, cbar_kws=None, **kwargs):
 
-    def sns_clustermap():
+    def sns_clustermap(): # pragma: no cover
         return sns.clustermap(data, pivot_kws=pivot_kws, method='average', metric='euclidean',
                               z_score=None, standard_scale=None, figsize=None, cbar_kws=cbar_kws,
                               row_cluster=True, col_cluster=True, row_linkage=None, col_linkage=None,

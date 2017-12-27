@@ -32,7 +32,7 @@ def find_loc(app_name):
     return path
 
 
-def _find_loc(app_name):
+def _find_loc(app_name):  # pragma: no cover
     # Try command line version
     path = which(app_name)
     if path is not None: return path
@@ -94,7 +94,7 @@ class Visualizer(object):
         return "%s: %s, is_macosx_app %s, filepath: %s" % (
             self.__class__.__name__, self.binpath, self.is_macosx_app, self.filepath)
 
-    def __call__(self):
+    def __call__(self):  # pragma: no cover
         """
         Call the visualizer in a subprocess.
 
