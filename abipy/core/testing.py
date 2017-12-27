@@ -333,7 +333,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def get_abistructure_from_abiref(basename):
-        """Return an Abipy structure from the basename of one of the reference files."""
+        """Return an Abipy |Structure| from the basename of one of the reference files."""
         from abipy.core.structure import Structure
         return Structure.as_structure(abidata.ref_file(basename))
 

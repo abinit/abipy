@@ -17,14 +17,14 @@ def in_notebook():
 
 
 def disable_notebook():
-    """Set `in_notebook` flag to False."""
+    """Set ``in_notebook`` flag to False."""
     global __IN_NOTEBOOK
     __IN_NOTEBOOK = False
 
 
 def enable_notebook(with_seaborn=True):
     """
-    Set `in_notebook` flag to True and activate seaborn settings for notebooks if `with_seaborn`.
+    Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``.
     """
     global __IN_NOTEBOOK
     __IN_NOTEBOOK = True
@@ -38,11 +38,11 @@ def enable_notebook(with_seaborn=True):
 def get_abinb_workdir():
     """
     Return the absolute path of the scratch directory used to produce
-    and save temporary files when we are runnning inside a jupyter notebook.
+    and save temporary files when we are runnning inside a jupyter_ notebook.
 
     .. note:
 
-        Due to web-browser policy, files used in the notebook must be within the cwd.
+        Due to web-browser policy, files used in the notebook must be within the current working directory.
     """
     wdir = os.path.join(os.getcwd(), "__abinb_workdir__")
     if not os.path.exists(wdir): os.mkdir(wdir)
@@ -52,11 +52,11 @@ def get_abinb_workdir():
 def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs):
     """
     Invoke mkstep with kwargs, return the (fd, name) of the temporary file.
-    kwargs are passed to `mkstemp` except for `dir` if we are inside a jupyter notebook.
+    kwargs are passed to ``mkstemp`` except for ``dir`` if we are inside a jupyter notebook.
 
     Args:
         use_abipy_nbworkdir:
-        use:relpath: Return relative path (os.path.relpath) if True else absolute (default)
+        use_relpath: Return relative path (os.path.relpath) if True else absolute (default)
             Relative paths are required if we are gonna use the temporary file in
             notebooks or in web browers.
             In this case, the caller is responsbile for calling the function with the correct flag.

@@ -92,7 +92,10 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
     def get_dataframe(self, index=None, params=None):
         """
         Args:
+            index:
             params: Optional (Ordered) dictionary with extra parameters.
+
+        Return: |pandas-DataFrame|
         """
         od = OrderedDict()
         for k in "tmesh e0 qpe qpeme0 ze0 spin kpoint band".split():
@@ -116,6 +119,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QpTempState` for the list of available fields.
             exclude_fields: Similar to `with_field` but excludes fields.
+            fermi:
             ax_list: List of matplotlib axes for plot. If None, new figure is produced.
             label: Label for plot.
             # FIXME
@@ -187,7 +191,7 @@ def _get_fields_for_plot(vs, with_fields, exclude_fields):
         fields = list_strings(with_fields)
         for f in fields:
             if f not in all_fields:
-                raise ValueError("Field %s not in allowed values %s" % (f, all_fields))
+                raise ValueError("Field %s not in allowed values %s" % (f, str(all_fields)))
 
     # Remove entries
     if exclude_fields:
@@ -235,7 +239,7 @@ class QpTempList(list):
     #    return self.__class__([qp.copy() for qp in self], is_e0sorted=self.is_e0sorted)
 
     def sort_by_e0(self):
-        """Return a new object with the E0 energies sorted in ascending order."""
+        """Return a new :class:`QpTempList` object with the E0 energies sorted in ascending order."""
         return self.__class__(sorted(self, key=lambda qp: qp.e0), is_e0sorted=True)
 
     def get_e0mesh(self):
@@ -292,9 +296,9 @@ class QpTempList(list):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to `with_field` but excludes fields.
-            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
-            cmap: matplotlib color map.
             fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            cmap: matplotlib color map.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
 
         Returns: |matplotlib-Figure|
         """
@@ -361,17 +365,12 @@ class EphSelfEnergy(object):
     def __init__(self, wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr):
         """
         Args:
-            qp: QpTempState instance.
-            spin: spin index
-            kpoint: |Kpoint| object.
-            band: band index
             wmesh: Frequency mesh in eV.
-            tmesh: Temperature mesh in K
+            qp: :class:`QpTempState` instance.
             vals_e0ks: complex [ntemp] array with Sigma_eph(omega=eKS, kT)
             dvals_de0ks: complex [ntemp] arrays with d Sigma_eph(omega, kT) / d omega (omega=eKS)
             dw_vals: [ntemp] array with Debye-Waller term (static)
-            vals_wr: [ntemp, nwr] complex array with Sigma_eph(omega, kT).
-                enk_KS corresponds to nwr//2 + 1.
+            vals_wr: [ntemp, nwr] complex array with Sigma_eph(omega, kT). enk_KS corresponds to nwr//2 + 1.
             spfunc_wr: [ntemp, nwr] real array with spectral function.
         """
         self.qp = qp
@@ -488,7 +487,7 @@ class EphSelfEnergy(object):
 
 class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This file contains the Fan-Migdal self-energy, the ElectronBands on the k-mesh.
+    This file contains the Fan-Migdal Debye-Waller self-energy, the |ElectronBands| on the k-mesh.
     Provides methods to analyze and plot results.
 
     Usage example:
@@ -508,7 +507,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @classmethod
     def from_file(cls, filepath):
-        """Initialize the object from a Netcdf file."""
+        """Initialize the object from a netcdf file."""
         return cls(filepath)
 
     def __init__(self, filepath):
@@ -652,6 +651,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
 
         Args:
+            spin:
+            sigma_kpoint:
+            index:
             with_params:
             ignore_imag: Only real part is returned if ``ignore_imag``.
         """
@@ -718,9 +720,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to ``with_field`` but excludes fields.
-            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
-            cmap: matplotlib color map.
             fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
+            label:
+            cmap: matplotlib color map.
+
 
         Returns: |matplotlib-Figure|
         """
@@ -826,8 +830,12 @@ class SigEPhRobot(Robot, RobotWithEbands):
         Plot the convergence of the E-PH self-energy wrt to the ``sortby`` parameter.
 
         Args:
+            spin:
+            sigma_kpoint:
+            band:
+            itemp:
             sortby: Define the convergence parameter, sort files and produce plot labels.
-            Can be None, string or function.
+                Can be None, string or function.
                 If None, no sorting is performed.
                 If string and not empty it's assumed that the ncfile has an attribute
                 with the same name and `getattr` is invoked.
@@ -864,7 +872,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
-            Can be None, string or function.
+                Can be None, string or function.
                 If None, no sorting is performed.
                 If string and not empty it's assumed that the ncfile has an attribute
                 with the same name and `getattr` is invoked.
@@ -880,7 +888,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None, title=None):
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
@@ -969,10 +977,12 @@ class SigmaPhReader(ElectronsReader):
 
     def read_qplist_sk(self, spin, sigma_kpoint, ignore_imag=False):
         """
-        Read and return `QpTempList` object for the given spin, kpoint.
+        Read and return :class:`QpTempList` object for the given spin, kpoint.
 
         Args:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            spin:
+            sigma_kpoint:
+            ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         ik = self.sigkpt2index(sigma_kpoint)
         bstart, bstop = self.bstart_sk[spin, ik], self.bstop_sk[spin, ik]
@@ -1026,8 +1036,8 @@ class SigmaPhReader(ElectronsReader):
 
     def read_qp(self, spin, sigma_kpoint, band, ignore_imag=False):
         """
-        Return `QpTempState` for the given (spin, kpoint, band).
-        Only real part is returned if `ignore_imag`.
+        Return :class:``QpTempState` for the given (spin, kpoint, band).
+        Only real part is returned if ``ignore_imag``.
         """
         spin, ik, ib, sigma_kpoint = self.get_sigma_skb_kpoint(spin, sigma_kpoint, band)
 
@@ -1061,10 +1071,10 @@ class SigmaPhReader(ElectronsReader):
 
     def read_allqps(self, ignore_imag=False):
         """
-        Return list with `nsppol` items. Each item is a `QpTempList` with the QP results.
+        Return list with ``nsppol`` items. Each item is a :class:`QpTempList` with the QP results.
 
         Args:
-            ignore_imag: Only real part is returned if `ignore_imag`.
+            ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         qps_spin = self.nsppol * [None]
 

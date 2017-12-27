@@ -173,8 +173,7 @@ class A2f(object):
         Return the value of mustar that gives the critical temperature ``tc`` in the McMillan equation.
 
         Args:
-            tc:
-                Critical temperature in Kelvin.
+            tc: Critical temperature in Kelvin.
         """
         l = self.lambda_iso
         num = l + (1.04 * (1 + l) / np.log(1.2 * abu.kb_eVK * tc / self.omega_log))
@@ -193,7 +192,7 @@ class A2f(object):
             exchange_xy: True to exchange x-y axes.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                    or scalar e.g. ``left``. If left (right) is None, default values are used
+		or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
             fontsize: Legend and title fontsize
@@ -257,7 +256,7 @@ class A2f(object):
                 Case-insensitive.
             axmat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                    or scalar e.g. ``left``. If left (right) is None, default values are used
+		or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
 
@@ -403,11 +402,10 @@ class A2Ftr(object):
 
         Args:
             mesh: Energy mesh in eV
-
-        vals_in(nomega,3,3,0:natom3,nsppol)
-        Eliashberg transport functions for in and out scattering
-        vals_in(w,3,3,1:natom3,1:nsppol): a2f_tr(w) decomposed per phonon branch and spin
-        vals_in(w,3,3,0,1:nsppol): a2f_tr(w) summed over phonons modes, decomposed in spin
+	    vals_in(nomega,3,3,0:natom3,nsppol):
+		Eliashberg transport functions for in and out scattering
+	    vals_in(w,3,3,1:natom3,1:nsppol): a2f_tr(w) decomposed per phonon branch and spin
+	    vals_in(w,3,3,0,1:nsppol): a2f_tr(w) summed over phonons modes, decomposed in spin
         """
         self.mesh = mesh
 
@@ -426,9 +424,9 @@ class A2Ftr(object):
 # TODO Change name.
 class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This file contains the phonon linewidths, EliashbergFunction, the phonon bands,
+    This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|,
     the |ElectronBands| and |ElectronDos| on the k-mesh.
-    Provides methods to plot results.
+    Provides methods to analyze and plot results.
 
     Usage example:
 
@@ -891,7 +889,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
-            Can be None, string or function.
+		Can be None, string or function.
                 If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name
                 and `getattr` is invoked.
@@ -940,7 +938,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -969,7 +967,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
 class EphReader(ElectronsReader):
     """
-    Reads data from EPH file and constructs objects.
+    Reads data from the EPH.nc file and constructs objects.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EphReader
@@ -995,7 +993,7 @@ class EphReader(ElectronsReader):
 
     def read_phbands_qpath(self):
         """
-        Read and return a |PhononBands| object with frequencies computed along the path.
+        Read and return a |PhononBands| object with frequencies computed along the q-path.
         """
         structure = self.read_structure()
 

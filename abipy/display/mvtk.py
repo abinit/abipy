@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Mayavi toolkit."""
+"""mayavi_ toolkit."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import itertools
@@ -12,7 +12,7 @@ def get_fig_mlab(figure=None, **kwargs):
     try:
         from mayavi import mlab
     except ImportError as exc:
-        print("mayavi is not installed. Use `conda install mayavi` or `pip installa mayavi")
+        print("mayavi is not installed. Use `conda install mayavi` or `pip install mayavi`")
         raise exc
 
     # To use the full envisage application
@@ -31,16 +31,15 @@ def get_fig_mlab(figure=None, **kwargs):
 
 def plot_wigner_seitz(lattice, figure=None, **kwargs):
     """
-    Adds the skeleton of the Wigner-Seitz cell of the lattice to a mayavi figure
+    Adds the skeleton of the Wigner-Seitz cell of the lattice to a mayavi_ figure
 
     Args:
-        lattice: Lattice object
+        lattice: Reciprocal-space |Lattice| object
         figure: mayavi figure, None to plot on the curretn figure
-        kwargs: kwargs passed to the mayavi function `plot3d`. Color defaults to black
+        kwargs: kwargs passed to the mayavi function ``plot3d``. Color defaults to black
             and line_width to 1.
 
-    Returns:
-        mayavi figure
+    Returns: mayavi figure
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
@@ -72,16 +71,15 @@ def plot_wigner_seitz(lattice, figure=None, **kwargs):
 
 def plot_unit_cell(lattice, figure=None, **kwargs):
     """
-    Adds the unit cell of the lattice to a mayavi figure.
+    Adds the unit cell of the lattice to a mayavi_ figure.
 
     Args:
         lattice: Lattice object
         figure: mayavi figure, None to plot on the curretn figure
-        kwargs: kwargs passed to the mayavi function 'plot3d'. Color defaults to black
+        kwargs: kwargs passed to the mayavi function ``plot3d``. Color defaults to black
             and line_width to 1.
 
-    Returns:
-        mayavi figure
+    Returns: mayavi figure
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
@@ -115,16 +113,15 @@ def plot_unit_cell(lattice, figure=None, **kwargs):
 
 def plot_lattice_vectors(lattice, figure=None, **kwargs):
     """
-    Adds the basis vectors of the lattice provided to a mayavi figure.
+    Adds the basis vectors of the lattice provided to a mayavi_ figure.
 
     Args:
-        lattice: Lattice object
+        lattice: |Lattice| object.
         figure: mayavi figure, None if a new figure should be created.
-        kwargs: kwargs passed to the mayavi function `plot3d`. Color defaults to black
+        kwargs: kwargs passed to the mayavi function ``plot3d``. Color defaults to black
             and line_width to 1.
 
-    Returns:
-        mayavi figure
+    Returns: mayavi figure
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
@@ -161,8 +158,7 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
         figure:
         kwargs:
 
-    Returns:
-        mayavi figure
+    Returns: mayavi figure
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
@@ -190,20 +186,18 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
 
 def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, **kwargs):
     """
-    Adds labels to a mayavi figure.
+    Adds labels to a mayavi_ figure.
 
     Args:
         labels: dict containing the label as a key and the coordinates as value.
-        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
+        lattice: |Lattice| object used to convert from reciprocal to cartesian coordinates
         coords_are_cartesian: Set to True if you are providing.
             coordinates in cartesian coordinates. Defaults to False.
             Requires lattice if False.
         figure: mayavi figure, None to plot on the curretn figure
-        kwargs: kwargs passed to the mayavi function `text3d`. Color defaults to blue
-            and size to 25.
+        kwargs: kwargs passed to the mayavi function `text3d`. Color defaults to blue and size to 25.
 
-    Returns:
-        mayavi figure
+    Returns: mayavi figure
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
