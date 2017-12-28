@@ -3,6 +3,6 @@ sphinxcontrib-programoutput
 sphinx-gallery
 sphinx-argparse
 sphinx_bootstrap_theme
-nbsphinx
+#nbsphinx
 sphinxcontrib-bibtex
 releases
