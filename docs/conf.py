@@ -16,8 +16,8 @@ import shutil
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-ABIPY_ROOT = os.path.join(os.path.abspath(__file__), "..", "abipy")
-print("ABIPY_ROOT", ABIPY_ROOT)
+ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "abipy"))
+#print("ABIPY_ROOT", ABIPY_ROOT)
 
 sys.path.insert(0, ABIPY_ROOT)
 
