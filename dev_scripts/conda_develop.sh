@@ -8,6 +8,9 @@ conda config --add channels conda-forge
 conda config --add channels matsci
 conda config --add channels abinit
 
+# https://github.com/ContinuumIO/anaconda-issues/issues/542
+conda install -c anaconda setuptools
+
 conda install -y --file ./requirements.txt
 conda install -y --file ./requirements-optional.txt
 
