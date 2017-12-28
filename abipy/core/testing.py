@@ -79,16 +79,17 @@ def has_matplotlib(version=None, op=">="):
     """
     try:
         import matplotlib
-        import matplotlib.pyplot as plt
+
         # have_display = "DISPLAY" in os.environ
     except ImportError:
         print("Skipping matplotlib test")
         return False
 
-    # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
-    plt.close("all")
     matplotlib.use("Agg")
     #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+    import matplotlib.pyplot as plt
+    # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+    plt.close("all")
 
     backend = matplotlib.get_backend()
     if backend.lower() != "agg":

@@ -1,9 +1,13 @@
 ipython
 jupyter
 nbformat
+ipywidgets
 networkx
 scikit-image
+phonopy
 #mayavi
 # Unit tests
 pytest
 pytest-xdist
+scripttest
+python-coveralls
