@@ -12,7 +12,7 @@ class MayaviTest(AbipyTest):
 
     def test_mayavi_toolkit(self):
         """Test mayavi toolkit."""
-        if npt self.has_mayavi():
+        if not self.has_mayavi():
             raise self.SkipTest("This test requires mayavi!")
 
         figure, mlab = mvtk.get_fig_mlab(figure=None)
