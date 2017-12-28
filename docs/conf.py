@@ -56,7 +56,7 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinxcontrib.programoutput',
     'sphinx_gallery.gen_gallery',
-    "sphinxarg.ext",         # CLI doc
+    #"sphinxarg.ext",         # CLI doc
     #'nbsphinx',
     'sphinxcontrib.bibtex',
     "releases",
