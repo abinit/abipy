@@ -57,6 +57,11 @@ install:
   # phonopy is not a requirement but we test scripts in data/runs that use it
   #- conda install -c conda-forge phonopy
 
+  #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then rm -rf /home/travis/miniconda/envs/test-environment/lib/python2.7/site-packages/pymatgen*; fi
+  #- if [[ "${PYTHON_VERSION}" == "3.6" ]]; then rm -rf /home/travis/miniconda/envs/test-environment/lib/python3.6/site-packages/pymatgen*; fi
+
+  - conda uninstall -y pymatgen
+
   # Get pymatgen from matsci
   #- conda config --add channels matsci
   #- conda install pymatgen #=4.7.2
