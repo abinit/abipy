@@ -9,3 +9,9 @@ conda:
 
 python:
    version: 2.7
+
+build:
+    image: latest
+
+python:
+   setup_py_install: true
