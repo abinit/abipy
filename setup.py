@@ -16,31 +16,8 @@ if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
 
-#with_cython = True
-#try:
-#    from Cython.Distutils import build_ext
-#except ImportError:
-#    with_cython = False
-
 #cmdclass = {}
 ext_modules = []
-
-# Disable cython for the time being.
-#with_cexts = False
-#if with_cexts:
-#    with_cython = False
-#    if with_cython:
-#        import numpy as np
-#        #define_macros = [("CYTHON_TRACE", "1")]
-#        ext_modules += [
-#            Extension("abipy.extensions.klib", ["abipy/extensions/klib.pyx"], include_dirs=[np.get_include()])
-#        ]
-#        cmdclass.update({'build_ext': build_ext})
-#
-#    else:
-#        ext_modules += [
-#            Extension("abipy.extensions.klib", ["abipy/extensions/klib.c"], include_dirs=[np.get_include()])
-#        ]
 
 #-------------------------------------------------------------------------------
 # Useful globals and utility functions
@@ -194,11 +171,6 @@ install_requires = [
     "seaborn",
 ]
 
-#if with_cython:
-#    install_requires += [
-#        "cython",
-#    ]
-
 with_wxpython = False
 if with_wxpython:
     install_requires += [
@@ -237,6 +209,7 @@ setup_args = dict(
       download_url=download_url,
       ext_modules=ext_modules,
       )
+
 
 if __name__ == "__main__":
     setup(**setup_args)

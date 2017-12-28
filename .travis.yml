@@ -41,7 +41,7 @@ install:
   #- pip install scikit-image
   #- conda install ipython jupyter nbformat
   - pip install ipython jupyter nbformat
-  - pip install nose
+  - pip install nose nose-exclude
   #- conda install -c conda-forge ipywidgets
   #- pip install ipywidgets
 
