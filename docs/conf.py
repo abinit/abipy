@@ -8,6 +8,7 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 
 import sys
 import os
+import shutil
 #import matplotlib as mpl
 #mpl.use("Agg")
 
@@ -15,11 +16,23 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-sys.path.insert(0, os.path.abspath('../abipy'))
+ABIPY_ROOT = os.path.join(os.path.abspath(__file__), "..", "abipy")
+print("ABIPY_ROOT", ABIPY_ROOT)
+
+sys.path.insert(0, ABIPY_ROOT)
 
 import imp
-mod_name = "../abipy/core/release.py"
+mod_name = os.path.join(ABIPY_ROOT, "core", "release.py")
 relmod = imp.load_source(mod_name, mod_name)
+
+on_rtd = os.environ.get('READTHEDOCS') == 'True' and os.environ.get("READTHEDOCS_PROJECT")
+if on_rtd:
+    print("Preparing execution on READTHEDOCS server...")
+    os.makedirs(os.path.expanduser("~/.abinit/abipy"))
+    shutil.copy(os.path.join(ABIPY_ROOT, "data", "managers", "travis_scheduler.yml"),
+                os.path.expanduser("~/.abinit/abipy/scheduler.yml"))
+    shutil.copy(os.path.join(ABIPY_ROOT, "data", "managers", "travis_manager.yml"),
+                os.path.expanduser("~/.abinit/abipy/manager.yml"))
 
 # -- General configuration -----------------------------------------------------
 
