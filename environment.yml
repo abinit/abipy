@@ -7,7 +7,7 @@ channels:
 - defaults
 dependencies:
 - vtk=7.1.0=py36_3
-- appnope=0.1.0=py36_0
+#- appnope=0.1.0=py36_0  # This is MacOsX specific, should create 2 envs
 - argh=0.26.2=py36_1
 - ase=3.13.0=py36_1
 - babel=2.3.4=py36_0
