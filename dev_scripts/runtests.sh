@@ -14,6 +14,6 @@ nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO
 
 # Generate documentation
 if [[ "${PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
-    ./docs/install_reqs.sh;
-    cd ./docs && export GENERATE_SPHINX_GALLERY=1 && make && unset GENERATE_SPHINX_GALLERY && cd ..;
+    pip install -q -r ./docs/requirements.txt
+    cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..;
 fi
