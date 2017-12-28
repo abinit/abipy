@@ -7,8 +7,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import os
 import abipy.flowtk as flowtk
 
-from subprocess import call, Popen
-from abipy.core.testing import *
+from abipy.core.testing import AbipyTest
 from abipy.benchmarks import build_bench_main_parser, bench_monkey_patch_options
 
 
@@ -19,12 +18,13 @@ class TestScripts(AbipyTest):
 
     #def test_all_scripts(self):
     #    """Testing all scripts in abipy/benckmarks"""
+    #    from subprocess import call
     #    retcode = call(os.path.join(root, "_runemall.py"))
     #    if retcode != 0: print(retcode, "scripts in ~abipy/data/runs exited with non-zero return code")
     #    assert retcode == 0
 
     def test_build_flow_method_in_scripts(self):
-        """Testing build_flow method in all scripts in abipy/data/runs"""
+        """Testing build_flow method in all scripts in abipy/benchmarks"""
         parser = build_bench_main_parser()
 
         import importlib

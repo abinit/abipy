@@ -44,7 +44,9 @@
 .. _avogadro: https://avogadro.cc/
 .. _nbjsmol: https://github.com/gmatteo/nbjsmol
 .. _phononwebsite: http://henriquemiranda.github.io/phononwebsite/
+.. _phonopy: https://atztogo.github.io/phonopy/
 .. _netcdf: https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit
+.. _ipywidgets: https://github.com/jupyter-widgets/ipywidgets
 .. _YAML: https://en.wikipedia.org/wiki/YAML
 .. _JSON: https://en.wikipedia.org/wiki/JSON
 .. _slurm: https://slurm.schedmd.com/
@@ -90,6 +92,7 @@
 .. |PhononBands| replace:: :class:`abipy.dfpt.phonons.PhononBands`
 .. |ScfTask| replace:: :class:`pymatgen.io.abinit.tasks.ScfTask`
 .. |NscfTask| replace:: :class:`pymatgen.io.abinit.tasks.NscfTask`
+.. |Flow| replace:: :class:`pymatgen.io.abinit.flows.Flow`
 .. |TaskManager| replace:: :class:`pymatgen.io.abinit.tasks.TaskManager`
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
 .. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`

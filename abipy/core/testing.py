@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Common test support for all abipy test scripts.
+Common test support for all AbiPy test scripts.
 
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
@@ -35,8 +35,7 @@ __all__ = [
 
 def cmp_version(this, other, op=">="):
     """
-    Compare two version strings with the given operator `op`
-
+    Compare two version strings with the given operator ``op``
     >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
     """
     from pkg_resources import parse_version
@@ -50,7 +49,7 @@ def has_abinit(version=None, op=">="):
     """
     True if abinit is in $PATH.
     If version is not None, abinit version op version is evaluated and the result is returned.
-    False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError
+    False if condition is not fulfilled or the execution of ``abinit -v`` raised CalledProcessError
     """
     abinit = which("abinit")
     if abinit is None: return False
@@ -75,7 +74,7 @@ def has_abinit(version=None, op=">="):
 
 def has_matplotlib(version=None, op=">="):
     """
-    True if matplotlib is installed.
+    True if matplotlib_ is installed.
     If version is None, the result of matplotlib.__version__ `op` version is returned.
     """
     try:
@@ -104,7 +103,7 @@ def has_matplotlib(version=None, op=">="):
 
 
 def has_seaborn():
-    """True if seaborn is installed."""
+    """True if seaborn_ is installed."""
     try:
         import seaborn as sns
         return True
@@ -114,7 +113,7 @@ def has_seaborn():
 
 def has_phonopy(version=None, op=">="):
     """
-    True if phonopy is installed.
+    True if phonopy_ is installed.
     If version is None, the result of phonopy.__version__ `op` version is returned.
     """
     try:
@@ -145,7 +144,7 @@ def get_mock_module():
 
 def json_read_abinit_input_from_path(json_path):
     """
-    Read a json file from the absolute path `json_path`, return AbinitInput instance.
+    Read a json file from the absolute path ``json_path``, return |AbinitInput| instance.
     """
     from abipy.abio.inputs import AbinitInput
 
@@ -300,7 +299,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def has_ase(version=None, op=">="):
-        """True if ASE package is available."""
+        """True if ASE_ package is available."""
         try:
             import ase
         except ImportError:
@@ -311,7 +310,7 @@ class AbipyTest(PymatgenTest):
 
     def has_mayavi(self):
         """
-        True if Mayavi is available. Set also offscreen to True
+        True if mayavi_ is available. Set also offscreen to True
         """
         # Disable mayavi for the time being.
         #return False
@@ -345,7 +344,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def tmpfileindir(basename, **kwargs):
         """
-        Return the absolute path of a temporary file with basename `basename` created in a temporary directory.
+        Return the absolute path of a temporary file with basename ``basename`` created in a temporary directory.
         """
         tmpdir = tempfile.mkdtemp(**kwargs)
         return os.path.join(tmpdir, basename)
@@ -358,7 +357,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def has_nbformat():
-        """Return True if nbformat is available and we can test the generation of ipython notebooks."""
+        """Return True if nbformat is available and we can test the generation of jupyter_ notebooks."""
         try:
             import nbformat
             return True
@@ -367,7 +366,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def has_ipywidgets():
-        """Return True if ipywidgets is available."""
+        """Return True if ipywidgets_ package is available."""
         # Disable widget tests on TRAVIS
         #if os.environ.get("TRAVIS"): return False
         try:
@@ -392,7 +391,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def json_read_abinit_input(json_basename):
-        """Return an AbinitInput from the basename of the file in abipy/data/test_files."""
+        """Return an |AbinitInput| from the basename of the file in abipy/data/test_files."""
         return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
 
     @staticmethod
@@ -400,9 +399,10 @@ class AbipyTest(PymatgenTest):
         """
         Check equality between an input and a reference in test_files.
         only input variables and structure are compared.
+
         Args:
             ref_basename: base name of the reference file to test against in test_files
-            input_to_test: AbinitInput object to test
+            input_to_test: |AbinitInput| object to test
             rtol: passed to numpy.isclose for float comparison
             atol: passed to numpy.isclose for float comparison
             equal_nan: passed to numpy.isclose for float comparison
@@ -422,8 +422,8 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def skip_if_not_phonopy(version=None, op=">="):
         """
-        Raise SkipTest if phonopy is not installed.
-        Use `version` and `op` to ask for a specific version
+        Raise SkipTest if phonopy_ is not installed.
+        Use ``version`` and ``op`` to ask for a specific version
         """
         if not has_phonopy(version=version, op=op):
             if version is None:
@@ -449,7 +449,7 @@ class AbipyTest(PymatgenTest):
 
     def abivalidate_input(self, abinput, must_fail=False):
         """
-        Invoke Abinit to test validity of an Input object
+        Invoke Abinit to test validity of an |AbinitInput| object
         Print info to stdout if failure before raising AssertionError.
         """
         v = abinput.abivalidate()
@@ -468,7 +468,7 @@ class AbipyTest(PymatgenTest):
 
     def abivalidate_multi(self, multi):
         """
-        Invoke Abinit to test validity of a `MultiDataset` or a list of input objects.
+        Invoke Abinit to test validity of a |MultiDataset| or a list of |AbinitInput| objects.
         """
         if hasattr(multi, "split_datasets"):
             inputs = multi.split_datasets()
@@ -492,7 +492,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def abivalidate_flow(self, flow):
         """
-        Invoke Abinit to test validity of the inputs of a flow
+        Invoke Abinit to test validity of the inputs of a |Flow|
         """
         isok, errors = flow.abivalidate_inputs()
         if not isok:
