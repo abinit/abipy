@@ -40,7 +40,8 @@ install:
   #- pip install matplotlib seaborn
   #- pip install scikit-image
   #- conda install ipython jupyter nbformat
-  #- pip install ipython jupyter nbformat
+  - pip install ipython jupyter nbformat
+  - pip install nose
   #- conda install -c conda-forge ipywidgets
   #- pip install ipywidgets
 
@@ -61,7 +62,9 @@ install:
   #- conda install pymatgen #=4.7.2
 
   # Use my pymatgen fork
-  - git clone --depth=50 https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+  #- git clone --depth=50 https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
+
+  - git clone --depth=50 https://github.com/gmatteo/pymatgen.git && cd pymatgen && python setup.py install && cd ../
 
   # Use pymatgen master
   #- git clone --depth=50 https://github.com/materialsproject/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
