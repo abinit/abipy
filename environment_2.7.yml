@@ -8,7 +8,7 @@ dependencies:
 - apscheduler=2.1.0=py27_0
 - html2text=2016.9.19=py27_0
 - alabaster=0.7.10=py27_0
-- appnope=0.1.0=py27_0
+#- appnope=0.1.0=py27_0 # This is MacOsX specific, should create 2 envs
 - apptools=4.4.0=py27_0
 - ase=3.13.0=py27_1
 - babel=2.3.4=py27_0
