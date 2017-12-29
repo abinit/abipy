@@ -8,6 +8,7 @@ phonopy
 #mayavi
 # Unit tests
 pytest
+pytest-cov
 pytest-xdist
 scripttest
 python-coveralls
