@@ -31,6 +31,7 @@
 .. _jupyter: http://jupyter.org/
 .. _Python: http://www.python.org/
 .. _spglib: https://atztogo.github.io/spglib/
+.. _bader: http://theory.cm.utexas.edu/henkelman/code/bader/
 .. _ase: https://wiki.fysik.dtu.dk/ase/
 .. _COD: http://www.crystallography.net/cod/
 .. _CIF: http://www.iucr.org/resources/cif

@@ -17,33 +17,16 @@ install:
   - env
 
   # pip-based installation.
-  #- pip install numpy
   #- travis_wait pip install -q -r requirements.txt
   #- travis_wait pip install -q -r requirements-optional.txt
 
   # Install conda https://conda.io/docs/travis.html
   - source dev_scripts/conda_installer.sh
-
   - source dev_scripts/conda_develop.sh
+  - conda uninstall -y pymatgen
 
-  #- conda config --add channels conda-forge
-  # See https://github.com/BVLC/caffe/issues/3884 and https://docs.continuum.io/mkl-optimizations/
-  #- conda install nomkl
-  #- conda install pandas
-  #- conda install netcdf4 
-  # See https://github.com/ContinuumIO/anaconda-issues/issues/1360
-  #- conda install hdf4=4.2.12
-  #- pip install pytest scripttest
   - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
-  #- pip install pep8 python-coveralls
-  #- conda install matplotlib seaborn
-  #- pip install matplotlib seaborn
-  #- pip install scikit-image
-  #- conda install ipython jupyter nbformat
-  - pip install ipython jupyter nbformat
   - pip install nose nose-exclude
-  #- conda install -c conda-forge ipywidgets
-  #- pip install ipywidgets
 
   # Install abinit from abinit conda channel.
   #- conda install -c gmatteo abinit=8.6.1
@@ -53,18 +36,6 @@ install:
   # Mayavi (optional requirement)
   #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
   #- if [[ "${PYTHON_VERSION}" == "3.6" ]]; then conda install vtk && pip install mayavi; fi
-  #
-  # phonopy is not a requirement but we test scripts in data/runs that use it
-  #- conda install -c conda-forge phonopy
-
-  #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then rm -rf /home/travis/miniconda/envs/test-environment/lib/python2.7/site-packages/pymatgen*; fi
-  #- if [[ "${PYTHON_VERSION}" == "3.6" ]]; then rm -rf /home/travis/miniconda/envs/test-environment/lib/python3.6/site-packages/pymatgen*; fi
-
-  - conda uninstall -y pymatgen
-
-  # Get pymatgen from matsci
-  #- conda config --add channels matsci
-  #- conda install pymatgen #=4.7.2
 
   # Use my pymatgen fork
   #- git clone --depth=50 https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -q -r requirements.txt && pip install -q -r requirements-optional.txt && python setup.py install && cd ../
@@ -79,9 +50,6 @@ install:
   - cp abipy/data/managers/travis_scheduler.yml ${HOME}/.abinit/abipy/scheduler.yml
   - cp abipy/data/managers/travis_manager.yml ${HOME}/.abinit/abipy/manager.yml
   - ./dev_scripts/pyclean.py .
-
-  # Install bader (http://theory.cm.utexas.edu/henkelman/code/bader/) from matsci
-  #- conda install -c matsci bader
 
 before_script:
     # This to run tests requiring a graphical user e.g. mayavi
