@@ -314,27 +314,25 @@ def itest_bandstructure_schedflow(fwp, tvars):
 
             # TODO: This does not work yet because GSR files do not contain
             # enough info to understand if we have a path or a mesh.
-            #if i == 1:
-                # Bandstructure case
-                #assert gsr.ebands.has_bzpath
-                #with pytest.raises(ValueError):
-                #    gse.ebands.get_edos()
+            if i == 0:
+                # DOS case
+                assert gsr.ebands.has_bzmesh
+                assert not gsr.ebands.has_bzpath
+                with pytest.raises(ValueError):
+                    gsr.ebands.get_edos()
 
-            #if i == 2:
-            #    # DOS case
-            #    assert gsr.ebands.has_bzmesh
-            #    gsr.ebands.get_edos()
+            if i == 1:
+                # Bandstructure case
+                assert gsr.ebands.has_bzpath
+                assert not gsr.ebands.has_bzmesh
+                with pytest.raises(ValueError):
+                    gsr.ebands.get_edos()
 
 
 def itest_htc_bandstructure(fwp, tvars):
     """Test band-structure calculations done with the HTC interface."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
-
-    # TODO: Add this options because I don't like the kppa approach
-    # I had to use it because it was the approach used in VaspIO
-    #dos_ngkpt = [4,4,4]
-    #dos_shiftk = [0.1, 0.2, 0.3]
 
     # Initialize the flow.
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
