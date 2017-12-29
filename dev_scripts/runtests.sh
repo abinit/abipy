@@ -14,7 +14,7 @@ abicheck.py --with-flow
 #    --ignore=abipy/gui --ignore=abipy/gw --ignore=abipy/htc
 
 # This is to run the integration tests (append results)
-pytest --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
+pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
 
 # Generate documentation
 if [[ "${PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
