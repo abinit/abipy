@@ -1119,7 +1119,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return tolvar, value
 
-    def make_ph_inputs_qpoint(self, qpt, tolerance=None):
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None, manager=None):
         """
         This functions builds and returns a list of input files
         for the calculation of phonons at the given q-point `qpt`.
@@ -1129,6 +1129,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             qpt: q-point in reduced coordinates.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             List of |AbinitInput| objects for DFPT runs.
@@ -1145,7 +1146,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
 
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_phperts(qpt=qpt)
+        perts = self.abiget_irred_phperts(qpt=qpt, manager=manager)
 
         # Build list of datasets (one input per perturbation)
         # Remove iscf if any (required if we pass an input for NSCF calculation)
@@ -1220,7 +1221,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return ddk_inputs
 
-    def make_dde_inputs(self, tolerance=None, use_symmetries=True):
+    def make_dde_inputs(self, tolerance=None, use_symmetries=True, manager=None):
         """
         Return inputs for the calculation of the electric field perturbations.
         This functions should be called with an input the represents a gs run.
@@ -1230,6 +1231,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 Defaults to {"tolwfr": 1.0e-22}.
             use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
 
         Return:
             List of |AbinitInput| objects for DFPT runs.
@@ -1242,7 +1244,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         if use_symmetries == True:
             # Call Abinit to get the list of irred perts.
-            perts = self.abiget_irred_ddeperts()
+            perts = self.abiget_irred_ddeperts(manager=manager)
 
             # Build list of datasets (one input per irreducible perturbation)
             multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
@@ -1282,7 +1284,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False):
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, manager=None):
         """
         Return inputs for the DTE calculation.
         This functions should be called with an input that represents a GS run.
@@ -1292,9 +1294,10 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             skip_permutations: Since the current version of abinit always performs all the permutations
                 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
                 will produce duplicated outputs.
+            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
         """
         # Call Abinit to get the list of irred perts.
-        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert)
+        perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert, manager=manager)
 
         if skip_permutations:
             perts_to_skip = []
@@ -1348,7 +1351,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def make_bec_inputs(self, tolerance=None):
+    def make_bec_inputs(self, tolerance=None, manager=None):
         """
         Return inputs for the calculation of the Born effective charges.
 
@@ -1363,7 +1366,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Call Abinit to get the list of irred perts.
         # TODO:
         # Check that one can use the same list of irred perts as in phonons
-        perts = self.abiget_irred_phperts(qpt=(0, 0, 0))
+        perts = self.abiget_irred_phperts(qpt=(0, 0, 0), manager=manager)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
@@ -1388,13 +1391,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         return multi
 
-    def make_strain_perts_inputs(self, tolerance=None):
+    def make_strain_perts_inputs(self, tolerance=None, manager=None):
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-12}
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
 
-        perts = self.abiget_irred_strainperts(kptopt=2)
+        perts = self.abiget_irred_strainperts(kptopt=2, manager=manager)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))

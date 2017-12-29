@@ -29,9 +29,9 @@
     [
       "ngkpt", 
       [
-        8, 
-        8, 
-        8
+        7, 
+        7, 
+        5
       ]
     ], 
     [
@@ -64,7 +64,7 @@
     ], 
     [
       "nband", 
-      8
+      12
     ], 
     [
       "fband", 
@@ -108,81 +108,131 @@
   "decorators": [], 
   "pseudos": [
     {
-      "l_max": 2, 
-      "Z_val": 4.0, 
-      "filepath": "/home/guido/programming/python/develop/mat_proj/abipy/abipy/abipy/data/pseudos/14si.pspnc", 
-      "symbol": "Si", 
+      "l_max": 1, 
+      "Z_val": 5.0, 
+      "filepath": "/home/guido/programming/python/develop/mat_proj/abipy/abipy/abipy/data/pseudos/7n.pspnc", 
+      "symbol": "N", 
       "@module": "pymatgen.io.abinit.pseudos", 
-      "Z": 14, 
+      "Z": 7, 
       "type": "NcAbinitPseudo", 
-      "basename": "14si.pspnc", 
+      "basename": "7n.pspnc", 
       "@class": "NcAbinitPseudo", 
-      "md5": "3916b143991b1cfa1542b130be320e5e"
+      "md5": "b32922f6e50fd55b78b426e2f84d8459"
+    }, 
+    {
+      "l_max": 1, 
+      "Z_val": 3.0, 
+      "filepath": "/home/guido/programming/python/develop/mat_proj/abipy/abipy/abipy/data/pseudos/31ga.pspnc", 
+      "symbol": "Ga", 
+      "@module": "pymatgen.io.abinit.pseudos", 
+      "Z": 31, 
+      "type": "NcAbinitPseudo", 
+      "basename": "31ga.pspnc", 
+      "@class": "NcAbinitPseudo", 
+      "md5": "f0d760aad874ea3f64d5f4b40adef9bd"
     }
   ], 
   "structure": {
     "lattice": {
-      "a": 3.86697462, 
-      "c": 3.86697462, 
-      "b": 3.86697462, 
+      "a": 3.21629013, 
+      "c": 5.23996246, 
+      "b": 3.21629013378, 
       "matrix": [
         [
-          3.3488982567096763, 
+          3.21629013, 
           0.0, 
-          1.9334873100000005
+          1.9694097064168623e-16
         ], 
         [
-          1.1162994189032256, 
-          3.1573715557642927, 
-          1.9334873100000005
+          -1.608145070001309, 
+          2.7853889599984156, 
+          1.9694097087314446e-16
         ], 
         [
           0.0, 
           0.0, 
-          3.86697462
+          5.23996246
         ]
       ], 
-      "volume": 40.88829179346891, 
-      "beta": 59.99999999999999, 
-      "gamma": 59.99999999999999, 
-      "alpha": 59.99999999999999
+      "volume": 46.94282735957225, 
+      "beta": 90.0, 
+      "gamma": 120.000000064, 
+      "alpha": 90.0
     }, 
     "sites": [
       {
         "abc": [
-          0.0, 
-          0.0, 
-          0.0
+          0.666667, 
+          0.333333, 
+          0.49912
         ], 
         "xyz": [
-          0.0, 
-          0.0, 
-          0.0
+          1.608146671477964, 
+          0.9284620582031519, 
+          2.6153700630352
         ], 
-        "label": "Si", 
+        "label": "Ga", 
         "species": [
           {
             "occu": 1.0, 
-            "element": "Si"
+            "element": "Ga"
           }
         ]
       }, 
       {
         "abc": [
-          0.25, 
-          0.25, 
-          0.25
+          0.333333, 
+          0.666667, 
+          0.99912
         ], 
         "xyz": [
-          1.1162994189032256, 
-          0.7893428889410732, 
-          1.9334873100000003
+          -1.6114792726321182e-06, 
+          1.8569269017952639, 
+          5.2353512930352
         ], 
-        "label": "Si", 
+        "label": "Ga", 
         "species": [
           {
             "occu": 1.0, 
-            "element": "Si"
+            "element": "Ga"
+          }
+        ]
+      }, 
+      {
+        "abc": [
+          0.666667, 
+          0.333333, 
+          0.87588
+        ], 
+        "xyz": [
+          1.608146671477964, 
+          0.9284620582031519, 
+          4.5895783194648
+        ], 
+        "label": "N", 
+        "species": [
+          {
+            "occu": 1.0, 
+            "element": "N"
+          }
+        ]
+      }, 
+      {
+        "abc": [
+          0.333333, 
+          0.666667, 
+          0.37588
+        ], 
+        "xyz": [
+          -1.6114792726321182e-06, 
+          1.8569269017952639, 
+          1.9695970894648003
+        ], 
+        "label": "N", 
+        "species": [
+          {
+            "occu": 1.0, 
+            "element": "N"
           }
         ]
       }

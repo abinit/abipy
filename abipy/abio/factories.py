@@ -35,6 +35,8 @@ __all__ = [
     "scf_phonons_inputs",
     "piezo_elastic_inputs_from_gsinput",
     "scf_piezo_elastic_inputs",
+    "scf_for_phonons",
+    "dte_from_gsinput"
 ]
 
 
@@ -857,7 +859,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
 
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
-                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None):
+                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None, manager=None):
     """
     Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
     a ground state |AbinitInput|.
@@ -890,6 +892,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
             Useful when calculating multiple grids for the same system to avoid duplicate calculations.
             If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().
+        manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
     """
     gs_inp = gs_inp.deepcopy()
     gs_inp.pop_irdvars()
@@ -924,7 +927,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         else:
             ph_ngqpt = np.array(ph_ngqpt)
 
-        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=1).points
+        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=1, manager=manager).points
 
     if qpoints_to_skip:
         preserved_qpoints = []
@@ -935,7 +938,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
 
     if ph_ngqpt is None or any(gs_inp["ngkpt"] % ph_ngqpt != 0):
         # find which q points are needed and build nscf inputs to calculate the WFQ
-        kpts = gs_inp.abiget_ibz(shiftk=(0, 0, 0), kptopt=3).points.tolist()
+        kpts = gs_inp.abiget_ibz(shiftk=(0, 0, 0), kptopt=3, manager=manager).points.tolist()
         nscf_qpt = []
         for q in qpoints:
             if list(q) not in kpts:
@@ -981,7 +984,8 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
 
     return multi
 
-def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False):
+def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False,
+                                      manager=None):
     """
     Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
@@ -992,6 +996,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
         rf_tol: Tolerance for the Strain RF calculations (i.e. {"tolvrs": 1.0e-12}).
         ddk_split: Whether to split the DDK calculations.
         rf_split: whether to split the RF calculations.
+        manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
     """
     # Ddk input(s)
     if ddk_split:
@@ -1025,7 +1030,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
 
     # Response Function input(s)
     if rf_split:
-        multi_rf = gs_inp.make_strain_perts_inputs(tolerance=rf_tol)
+        multi_rf = gs_inp.make_strain_perts_inputs(tolerance=rf_tol, manager=manager)
     else:
         rf_inp = gs_inp.deepcopy()
 
@@ -1266,7 +1271,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
 
 
 def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None, dte_tol=None,
-                     skip_dte_permutations=False):
+                     skip_dte_permutations=False, manager=None):
     """
     Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on
     a ground state AbinitInput.
@@ -1286,6 +1291,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
         dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and
             its value. Default: {"tolwfr": 1.0e-20}.
         skip_dte_permutations:
+        manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
     """
     gs_inp = gs_inp.deepcopy()
     gs_inp.pop_irdvars()
@@ -1307,12 +1313,12 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     multi_ddk = gs_inp.make_ddk_inputs(tolerance=ddk_tol)
     multi_ddk.add_tags(DDK)
     multi.extend(multi_ddk)
-    multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False)
+    multi_dde = gs_inp.make_dde_inputs(dde_tol, use_symmetries=False, manager=manager)
     multi_dde.add_tags(DDE)
     multi.extend(multi_dde)
 
     if use_phonons:
-        multi_ph = gs_inp.make_ph_inputs_qpoint([0,0,0], ph_tol)
+        multi_ph = gs_inp.make_ph_inputs_qpoint([0,0,0], ph_tol, manager=manager)
         multi_ph.add_tags(PH_Q_PERT)
         multi.extend(multi_ph)
 
@@ -1323,7 +1329,8 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
     nband = int(round(nval / 2))
     gs_inp.set_vars(nband=nband)
     gs_inp.pop('nbdbuf', None)
-    multi_dte = gs_inp.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations)
+    multi_dte = gs_inp.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations,
+                                       manager=manager)
     multi_dte.add_tags(DTE)
     multi.extend(multi_dte)
 

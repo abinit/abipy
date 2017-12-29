@@ -326,10 +326,6 @@ class AbipyTest(PymatgenTest):
         mlab.options.backend = "test"
         return True
 
-    #def assertFwSerializable(self, obj):
-    #    assert '_fw_name' in obj.to_dict()
-    #    self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())
-
     @staticmethod
     def get_abistructure_from_abiref(basename):
         """Return an Abipy |Structure| from the basename of one of the reference files."""
