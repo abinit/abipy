@@ -13,8 +13,7 @@ def make_g0w0_inputs(ngkpt, tvars):
     """
     Input files for the calculation of the GW corrections.
 
-    Returns:
-        gs_input, nscf_input, scr_input, sigma_input
+    Returns: gs_input, nscf_input, scr_input, sigma_input
     """
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                 pseudos=abidata.pseudos("14si.pspnc"), ndtset=4)
@@ -250,7 +249,6 @@ def itest_htc_g0w0(fwp, tvars):
     flow.allocate()
     flow.connect_signals()
 
-    #flow.build_and_pickle_dump(abivalidate=True)
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions

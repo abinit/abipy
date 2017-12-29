@@ -29,6 +29,8 @@ TODO list:
 
 ## Medium priority
 
+* remove phononflow
+
 * video with atom and hydrogen
 
 * ALMOST DONE: Fix travis warnings.
@@ -113,6 +115,8 @@ TODO list:
   as well as Abinit input as string)
 
 * Replace boilerplate code with get_axmat_fig_plt.
+
+* Initialize job.sh with max number of MPI procs?
 
 * Improvement in the dilatmx error handler:
 

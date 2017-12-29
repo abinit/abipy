@@ -12,6 +12,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
     Returns two input files: GS run and NSCF on a high symmetry k-mesh
@@ -24,12 +25,13 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
     # Global variables
     ecut = 4
-    global_vars = dict(ecut=ecut,
-                       nband=int(nval/2),
-                       nstep=nstep,
-                       paral_kgb=tvars.paral_kgb,
-                       timopt=-1,
-                       )
+    global_vars = dict(
+        ecut=ecut,
+        nband=int(nval/2),
+        nstep=nstep,
+        paral_kgb=tvars.paral_kgb,
+        timopt=-1,
+    )
 
     if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
