@@ -10,7 +10,7 @@ abicheck.py --with-flow
 # Run unit tests with nose.
 #nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO --doctest-tests
 
-pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules --cache-clear abipy 
+pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy 
 # This is to run the integration tests (append results)
 # pytest --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests
 
