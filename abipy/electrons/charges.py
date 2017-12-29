@@ -114,9 +114,9 @@ class BaderCharges(Charges):
               "BaderCharges.from_files requires the executable bader to be in the path.")
     def from_files(cls, density_path, pseudopotential_paths, with_core=True, workdir=None, **kwargs):
         """
-        Uses the abinit density files and the bader executable_ from Henkelmann et al. to calculate
+        Uses the abinit density files and the bader_ executable from Henkelmann et al. to calculate
         the bader charges of the system. If pseudopotentials are given, the atomic charges will be
-        extracted as well. See also :cite:`Henkelmann2006`.
+        extracted as well. See also :cite:`Henkelman2006`.
 
         The extraction of the core charges may be a time consuming calculation, depending on the
         size of the system. A tuning of the parameters may be required (see Density.ae_core_density_on_mesh).
