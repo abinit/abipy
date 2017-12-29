@@ -79,7 +79,6 @@ def has_matplotlib(version=None, op=">="):
     """
     try:
         import matplotlib
-
         # have_display = "DISPLAY" in os.environ
     except ImportError:
         print("Skipping matplotlib test")

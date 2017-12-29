@@ -2,6 +2,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
+import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
@@ -84,7 +85,6 @@ def itest_dilatmxerror_handler(fwp):
 
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     structure.scale_lattice(structure.volume * 0.8)
-
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     #structure.perturb(distance=0.1)
 
