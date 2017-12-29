@@ -79,6 +79,9 @@ def itest_dilatmxerror_handler(fwp):
 
     in variable cell structural optimizations.
     """
+    if fwp.on_travis:
+        pytest.xfail("dilatmxerror_handler is not portable and it's been disabled on travis builder!")
+
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     structure.scale_lattice(structure.volume * 0.8)
 

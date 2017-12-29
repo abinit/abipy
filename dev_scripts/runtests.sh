@@ -14,10 +14,12 @@ nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO --doctes
 #    --ignore=abipy/gui --ignore=abipy/gw --ignore=abipy/htc
 
 # This is to run the integration tests (append results)
-pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
+if [[ "${PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then 
+    pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
+fi
 
 # Generate documentation
-if [[ "${PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
+if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
     pip install -q -r ./docs/requirements.txt
     cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..;
 fi

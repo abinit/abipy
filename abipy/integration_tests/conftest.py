@@ -44,7 +44,7 @@ def fwp(tmpdir, request):
     """
     Parameters used to initialize Flows.
 
-    This fixture allows us to change the :class:`TaskManager`
+    This fixture allows us to change the |TaskManager|
     so that we can easily test different configurations.
     """
     # Temporary working directory
@@ -54,6 +54,8 @@ def fwp(tmpdir, request):
     fwp.manager = flowtk.TaskManager.from_string(request.param)
 
     fwp.scheduler = flowtk.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
+
+    fwp.on_travis = on_travis
 
     return fwp
 
