@@ -80,7 +80,7 @@ def itest_dilatmxerror_handler(fwp):
     in variable cell structural optimizations.
     """
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-    structure.scale_lattice(structure.volume * 0.6)
+    structure.scale_lattice(structure.volume * 0.8)
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     #structure.perturb(distance=0.1)
@@ -89,8 +89,8 @@ def itest_dilatmxerror_handler(fwp):
 
     inp.set_vars(
         ecut=4,
-        ngkpt=[4,4,4],
-        shiftk=[0,0,0],
+        ngkpt=[4, 4, 4],
+        shiftk=[0, 0, 0],
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=1,
@@ -116,7 +116,8 @@ def itest_dilatmxerror_handler(fwp):
     assert flow.all_ok
 
     task = flow[0][0]
-    assert len(task.corrections) == 2
+    # Don't check the number of corrections as it's not portable.
+    assert len(task.corrections)
     for i in range(task.num_corrections):
         assert task.corrections[i]["event"]["@class"] == "DilatmxError"
     #assert 0

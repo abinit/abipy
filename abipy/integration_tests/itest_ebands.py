@@ -59,7 +59,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
 def itest_unconverged_scf(fwp, tvars):
     """Testing the treatment of unconverged GS calculations."""
-    print("tvars:\n %s" % str(tvars))
+    #print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc", nstep=1)
@@ -153,7 +153,7 @@ def itest_bandstructure_flow(fwp, tvars):
     """
     Testing band-structure flow with one dependency: SCF -> NSCF.
     """
-    print("tvars:\n %s" % str(tvars))
+    #print("tvars:\n %s" % str(tvars))
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc")
@@ -236,11 +236,11 @@ def itest_bandstructure_flow(fwp, tvars):
     with abilab.Robot.from_flow(flow, ext="GSR") as robot:
         table = robot.get_dataframe()
         assert table is not None
-        print(table)
+        #print(table)
 
     # Test AbinitTimer.
     timer = t0.parse_timing()
-    print(timer)
+    assert str(timer)
 
     if has_matplotlib():
         assert timer.plot_pie(show=False)
@@ -273,7 +273,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     """
     Testing bandstructure flow with the scheduler.
     """
-    print("tvars:\n %s" % str(tvars))
+    #print("tvars:\n %s" % str(tvars))
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="Si.GGA_PBE-JTH-paw.xml")
@@ -286,7 +286,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow.build_and_pickle_dump(abivalidate=True)
 
     fwp.scheduler.add_flow(flow)
-    print(fwp.scheduler)
+    #print(fwp.scheduler)
     # scheduler cannot handle more than one flow.
     with pytest.raises(fwp.scheduler.Error):
         fwp.scheduler.add_flow(flow)
@@ -306,8 +306,8 @@ def itest_bandstructure_schedflow(fwp, tvars):
     # Test if GSR files are produced and are readable.
     for i, task in enumerate(flow[0]):
         with task.open_gsr() as gsr:
-            print(gsr)
             assert gsr.nsppol == 1
+            assert gsr.to_string(verbose=2)
             #assert gsr.structure == structure
 
             # TODO: This does not work yet because GSR files do not contain

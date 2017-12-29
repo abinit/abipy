@@ -10,5 +10,6 @@ phonopy
 pytest
 pytest-cov
 pytest-xdist
+#pytest-sugar
 scripttest
 python-coveralls

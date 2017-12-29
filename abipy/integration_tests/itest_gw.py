@@ -146,11 +146,11 @@ def itest_g0w0_flow(fwp, tvars):
             assert len(scr.wpts) == 2
             assert scr.nwre == 1 and scr.nwim == 1
             for iq, qpoint in enumerate(scr.qpoints[:2]):
-                print(qpoint)
+                #print(qpoint)
                 qpt, iqcheck = scr.reader.find_qpoint_fileindex(qpoint)
                 assert iqcheck == iq
                 em1 = scr.get_em1(qpoint)
-                print(em1)
+                #print(em1)
 
     # TODO Add more tests
     #assert flow.validate_json_schema()
@@ -176,7 +176,7 @@ def itest_g0w0qptdm_flow(fwp, tvars):
     assert not scr_work.depends_on(bands_work.scf_task)
 
     for sigma_task in sigma_work:
-        print("sigma_task.deps", sigma_task.deps)
+        #print("sigma_task.deps", sigma_task.deps)
         assert sigma_task.depends_on(bands_work.nscf_task)
         assert not sigma_task.depends_on(bands_work.scf_task)
         assert sigma_task.depends_on(scr_work)

@@ -10,6 +10,9 @@ import abipy.flowtk as flowtk
 
 from monty.collections import AttrDict
 
+# Are we running on travis?
+on_travis = os.environ.get("TRAVIS", "False") == "true"
+
 # Create the list of Manager configurations used for the integration tests.
 # Note that the items in _manager_confs must be hashable hence we cannot use dictionaries directly
 # To bypass this problem we operate on dictionaries to generate the different configuration
@@ -56,10 +59,17 @@ def fwp(tmpdir, request):
 
 
 # Use tuples instead of dict because pytest require objects to be hashable.
-_tvars_list = [
-    (("paral_kgb", 0),),
-    (("paral_kgb", 1),),
-]
+if on_travis:
+    _tvars_list = [
+        (("paral_kgb", 0),),
+        #(("paral_kgb", 1),),
+    ]
+
+else:
+    _tvars_list = [
+        #(("paral_kgb", 0),),
+        (("paral_kgb", 1),),
+    ]
 
 @pytest.fixture(params=_tvars_list)
 def tvars(request):

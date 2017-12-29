@@ -58,7 +58,7 @@ def itest_phonopy_flow(fwp, tvars):
 
     out_filenames = set([os.path.basename(f) for f in phpy_work.outdir.list_filepaths()])
     nmiss = 0
-    for f in ["POSCAR", "disp.yaml", "FORCE_SETS", "band.conf", "dos.conf", "band-dos.conf", "README"]:
+    for f in ["POSCAR", "disp.yaml", "FORCE_SETS", "band.conf", "dos.conf", "band-dos.conf", "README.md"]:
         if f not in out_filenames:
             nmiss += 1
             print("Cannot find %s in work.outdir" % f)
@@ -111,7 +111,7 @@ def itest_phonopy_flow(fwp, tvars):
     for work in flow[1:]:
         out_filenames = set([os.path.basename(f) for f in work.outdir.list_filepaths()])
         nmiss = 0
-        for f in ["POSCAR", "disp.yaml", "FORCE_SETS", "band.conf", "dos.conf", "band-dos.conf", "README"]:
+        for f in ["POSCAR", "disp.yaml", "FORCE_SETS", "band.conf", "dos.conf", "band-dos.conf", "README.md"]:
             if f not in out_filenames:
                 nmiss += 1
                 print("Cannot find %s in work.outdir" % f)

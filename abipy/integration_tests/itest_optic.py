@@ -93,7 +93,7 @@ def itest_optic_flow(fwp, tvars):
         num_nonlin_comp=2,
         nonlin_comp=(123, 222),
     )
-    print(optic_input)
+    #print(optic_input)
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
@@ -137,7 +137,7 @@ def itest_optic_flow(fwp, tvars):
     # strings with the path to the input files instead of task objects.
     ddk_nodes = [task.outdir.has_abiext("1WF") for task in ddk_work]
     #ddk_nodes = [task.outdir.has_abiext("DDK") for task in ddk_work]
-    print("ddk_nodes:", ddk_nodes)
+    #print("ddk_nodes:", ddk_nodes)
     assert all(ddk_nodes)
 
     #nscf_node = bands_work.nscf_task

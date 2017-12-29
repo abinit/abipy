@@ -21,12 +21,12 @@ def make_scf_nscf_inputs(paral_kgb=1):
     global_vars = dict(ecut=ecut, nband=8, nstep=15, paral_kgb=paral_kgb)
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[2,2,2], shiftk=[0,0,0])
+    multi[0].set_kmesh(ngkpt=[2, 2, 2], shiftk=[0, 0, 0])
     multi[0].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
