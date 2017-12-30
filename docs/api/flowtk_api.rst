@@ -44,6 +44,14 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`events` Module
+--------------------
+
+.. automodule:: abipy.flowtk.events
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`flows` Module
 -------------------
 
@@ -84,10 +92,26 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`pseudos` Module
+---------------------
+
+.. automodule:: abipy.flowtk.pseudos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`qha` Module
 -----------------
 
 .. automodule:: abipy.flowtk.qha
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`qutils` Module
+--------------------
+
+.. automodule:: abipy.flowtk.qutils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -100,10 +124,26 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`utils` Module
+-------------------
+
+.. automodule:: abipy.flowtk.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`works` Module
 -------------------
 
 .. automodule:: abipy.flowtk.works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`wrappers` Module
+----------------------
+
+.. automodule:: abipy.flowtk.wrappers
    :members:
    :undoc-members:
    :show-inheritance:

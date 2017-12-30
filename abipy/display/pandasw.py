@@ -12,8 +12,9 @@ from functools import wraps
 @wraps(pd.DataFrame.plot)
 def plot(data, **kwargs):
 
-    def plot_dataframe(x, y, kind, sharex, sharey, subplots, grid, legend,   # pragma: no cover
-                      logx, logy, loglog, colorbar, sort_columns):
+    def plot_dataframe(x, y, kind, sharex, sharey, subplots, grid, legend,
+                      logx, logy, loglog, colorbar, sort_columns): # pragma: no cover
+
         x, y = ut.widget2py(x, y)
         sharex, colorbar = ut.str2bool_or_none(sharex, colorbar)
         data.plot(x=x, y=y, kind=kind, subplots=subplots, sharex=None, sharey=sharey,

@@ -175,15 +175,15 @@ class Robot(NotebookWriter):
     @classmethod
     def from_flow(cls, flow, outdirs="all", nids=None, ext=None, task_class=None):
         """
-        Build a robot from a Flow object.
+        Build a robot from a |Flow| object.
 
         Args:
-            flow: :class:`Flow` object
+            flow: |Flow| object
             outdirs: String used to select/ignore the files in the output directory of flow, works and tasks
                 outdirs="work" selects only the outdir of the Works,
                 outdirs="flow+task" selects the outdir of the Flow and the outdirs of the tasks
                 outdirs="-work" excludes the outdir of the Works.
-                Cannot use `+` and `-` flags in the same string.
+                Cannot use ``+`` and ``-`` flags in the same string.
                 Default: `all` that is equivalent to "flow+work+task"
             nids: List of node identifiers used to select particular nodes. Not used if None
             ext: File extension associated to the robot. Mainly used if method is invoked with the BaseClass
@@ -202,7 +202,7 @@ class Robot(NotebookWriter):
                 print(robot)
 
         Returns:
-            `Robot` subclass.
+            ``Robot`` subclass.
         """
         robot = cls() if ext is None else cls.class_for_ext(ext)()
         all_opts = ("flow", "work", "task")
@@ -239,9 +239,9 @@ class Robot(NotebookWriter):
         Add the file produced by this node to the robot.
 
         Args:
-            node: Flow/Work/Task object.
+            node: |Flow| or |Work| or |Task| object.
             nids: List of node identifiers used to select particular nodes. Not used if None
-            task_class: Task class or string wtih class name used to select the tasks in the flow.
+            task_class: Task class or string with class name used to select the tasks in the flow.
                 None implies no filtering.
         """
         if nids and node.node_id not in nids: return
@@ -265,11 +265,11 @@ class Robot(NotebookWriter):
 
     def scan_dir(self, top, walk=True):
         """
-        Scan directory tree starting from `top`. Add files to the robot instance.
+        Scan directory tree starting from ``top``. Add files to the robot instance.
 
         Args:
             top (str): Root directory
-            walk: if True, directories inside `top` are included as well.
+            walk: if True, directories inside ``top`` are included as well.
 
         Return:
             Number of files found.
@@ -289,7 +289,7 @@ class Robot(NotebookWriter):
             label: String used to identify the file (must be unique, ax exceptions is
                 raised if label is already present.
             abifile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.
-            filter_abifile: Function that receives an `abifile` object and returns
+            filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
         """
         if is_string(abifile):
@@ -344,7 +344,7 @@ class Robot(NotebookWriter):
 
     def pop_label(self, label):
         """
-        Remove file with the given `label` and close it.
+        Remove file with the given ``label`` and close it.
         """
         if label in self._abifiles:
             abifile = self._abifiles.pop(label)
@@ -377,8 +377,8 @@ class Robot(NotebookWriter):
 
     def trim_paths(self, start=None):
         """
-        Replace absolute filepaths in the robot with relative paths wrt to `start` directory.
-        If start is None, os.getcwd() is used. Set `self.start` attribute, return self.start.
+        Replace absolute filepaths in the robot with relative paths wrt to ``start`` directory.
+        If start is None, os.getcwd() is used. Set ``self.start`` attribute, return ``self.start``.
         """
         self.start = os.getcwd() if start is None else start
         old_paths = list(self._abifiles.keys())
@@ -444,7 +444,7 @@ class Robot(NotebookWriter):
         return "\n".join(lines)
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, abifile in self))
 
     @property
@@ -454,7 +454,7 @@ class Robot(NotebookWriter):
 
     def is_sortable(self, aname, raise_exc=False):
         """
-        Return True if `aname` is an attribute of the netcdf file
+        Return True if ``aname`` is an attribute of the netcdf file
         If raise_exc is True, AttributeError with an explicit message is raised.
         """
         try:
@@ -479,8 +479,8 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     def sortby(self, func_or_string, reverse=False):
         """
-        Sort files in the robot by `func_or_string`
-        Return list of (label, abifile, param) tuples where param is obtained via `func_or_string`.
+        Sort files in the robot by ``func_or_string``.
+        Return list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
 
         Args:
             func_or_string: Either None, string, callable defining the quantity to be used for sorting.
@@ -512,35 +512,35 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
 
-    @classmethod
-    def open(cls, obj, nids=None, **kwargs):
-        """
-        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.
-        `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
-        """
-        has_dirpath = False
-        if is_string(obj):
-            try:
-                from abipy.flowtk import Flow
-                obj = Flow.pickle_load(obj)
-            except:
-                has_dirpath = True
+    #@classmethod
+    #def open(cls, obj, nids=None, **kwargs):
+    #    """
+    #    Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.
+    #    `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
+    #    """
+    #    has_dirpath = False
+    #    if is_string(obj):
+    #        try:
+    #            from abipy.flowtk import Flow
+    #            obj = Flow.pickle_load(obj)
+    #        except:
+    #            has_dirpath = True
 
-        if not has_dirpath:
-            # We have a Flow. smeth is the name of the Task method used to open the file.
-            items = []
-            smeth = "open_" + cls.EXT.lower()
-            for task in obj.iflat_tasks(nids=nids): #, status=obj.S_OK):
-                open_method = getattr(task, smeth, None)
-                if open_method is None: continue
-                abifile = open_method()
-                if abifile is not None: items.append((task.pos_str, abifile))
-            return cls(*items)
+    #    if not has_dirpath:
+    #        # We have a Flow. smeth is the name of the Task method used to open the file.
+    #        items = []
+    #        smeth = "open_" + cls.EXT.lower()
+    #        for task in obj.iflat_tasks(nids=nids): #, status=obj.S_OK):
+    #            open_method = getattr(task, smeth, None)
+    #            if open_method is None: continue
+    #            abifile = open_method()
+    #            if abifile is not None: items.append((task.pos_str, abifile))
+    #        return cls(*items)
 
-        else:
-            # directory --> search for files with the appropriate extension and open it with abiopen.
-            if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
-            return cls.from_dir(obj)
+    #    else:
+    #        # directory --> search for files with the appropriate extension and open it with abiopen.
+    #        if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
+    #        return cls.from_dir(obj)
 
     #def get_attributes(self, attr_name, obj=None, retdict=False):
     #    od = OrderedDict()
@@ -569,7 +569,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     @staticmethod
     def sortby_label(sortby, param):
-        """Return the label to be used when files are sorted with `sortby`."""
+        """Return the label to be used when files are sorted with ``sortby``."""
         return "%s %s" % (sortby, param) if not callable(sortby) else str(param)
 
     def get_structure_dataframes(self, abspath=False, filter_abifile=None, **kwargs):
@@ -578,7 +578,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
-            filter_abifile: Function that receives an `abifile` object and returns
+            filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
         """
         from abipy.core.structure import dataframes_from_structures
@@ -591,12 +591,12 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         return dataframes_from_structures(struct_objects=abifiles, **kwargs)
 
     def get_lattice_dataframe(self, **kwargs):
-        """Return pandas DataFrame with lattice parameters."""
+        """Return |pandas-DataFrame| with lattice parameters."""
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.lattice
 
     def get_coords_dataframe(self, **kwargs):
-        """Return pandas DataFrame with atomic positions."""
+        """Return |pandas-DataFrame| with atomic positions."""
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.coords
 
@@ -611,7 +611,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     def get_baserobot_code_cells(self, title=None):
         """
-        Return list of notebook cells with calls to methods provides by the baseclass.
+        Return list of notebook_ cells with calls to methods provides by the baseclass.
         """
         # Try not pollute namespace with lots of variables.
         nbformat, nbv = self.get_nbformat_nbv()

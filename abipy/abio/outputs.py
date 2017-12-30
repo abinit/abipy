@@ -615,11 +615,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     def compare_gs_scf_cycles(self, others, show=True):
         """
-        Produce and returns a list of `matplotlib` figure comparing the GS self-consistent
+        Produce and returns a list of matplotlib_ figure comparing the GS self-consistent
         cycle in self with the ones in others.
 
         Args:
-            others: list of `AbinitOutputFile` objects or strings with paths to output files.
+            others: list of :class:`AbinitOutputFile` objects or strings with paths to output files.
             show: True to diplay plots.
         """
         # Open file here if we receive a string. Files will be closed before returning
@@ -654,11 +654,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     def compare_d2de_scf_cycles(self, others, show=True):
         """
-        Produce and returns a `matplotlib` figure comparing the DFPT self-consistent
+        Produce and returns a matplotlib_ figure comparing the DFPT self-consistent
         cycle in self with the ones in others.
 
         Args:
-            others: list of `AbinitOutputFile` objects or strings with paths to output files.
+            others: list of :class:`AbinitOutputFile` objects or strings with paths to output files.
             show: True to diplay plots.
         """
         # Open file here if we receive a string. Files will be closed before returning
@@ -693,7 +693,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -707,7 +707,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def validate_output_parser(abitests_dir=None, output_files=None):
+def validate_output_parser(abitests_dir=None, output_files=None):  # pragma: no cover
     """
     Validate/test Abinit output parser.
 
@@ -793,7 +793,7 @@ class AboRobot(Robot):
 
     def get_dims_dataframe(self, index=None):
         """
-        Build and return pandas DataFrame with the dimensions of the calculation.
+        Build and return |pandas-DataFrame| with the dimensions of the calculation.
 
         Args:
             index: Index of the dataframe. Use relative paths of files if None.
@@ -816,8 +816,7 @@ class AboRobot(Robot):
 
     def get_dataframe(self, with_geo=True, with_dims=True, abspath=False, funcs=None):
         """
-        Return a pandas DataFrame with the most important results.
-        and the filenames as index.
+        Return a |pandas-DataFrame| with the most important results and the filenames as index.
 
         Args:
             with_geo: True if structure info should be added to the dataframe
@@ -855,7 +854,7 @@ class AboRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -878,7 +877,7 @@ class OutNcFile(AbinitNcFile):
     """
     Class representing the _OUT.nc file containing the dataset results
     produced at the end of the run. The netcdf variables can be accessed
-    via instance attribute e.g. `outfile.ecut`. Provides integration with ipython.
+    via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
     def __init__(self, filepath):
         super(OutNcFile, self).__init__(filepath)
@@ -903,11 +902,12 @@ class OutNcFile(AbinitNcFile):
             return varscache[name]
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     def get_allvars(self):
         """
-        Read all netcdf variables present in the file.
+        Read all netcdf_ variables present in the file.
         Return dictionary varname --> value
         """
         for k, v in self._varscache.items():

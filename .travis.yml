@@ -1,4 +1,5 @@
 language: python
+#cache: true
 
 # We don't actually use the Travis Python but conda
 matrix:

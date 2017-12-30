@@ -188,6 +188,9 @@ class GstRobotTest(AbipyTest):
         self.assert_equal(df["ecut"].values, 6.0)
         self.assert_almost_equal(df["energy"].values, -241.2364683)
 
+        assert "angle1" in robot.get_lattice_dataframe()
+        assert hasattr(robot.get_coords_dataframe(), "keys")
+
         if self.has_matplotlib():
             assert robot.plot_xy_with_hue(df, x="nkpt", y="pressure", hue="a", show=False)
 

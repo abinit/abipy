@@ -83,6 +83,8 @@ TODO list:
 
 * Finalize DDK.nc 
 
+* Remove abipy.core.mixis.AbinitOutNcFile
+
 * Fix issue with DOJO_REPORT and PAW XML files.
 
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow

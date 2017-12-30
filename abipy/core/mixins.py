@@ -12,6 +12,7 @@ import pickle
 from time import ctime
 from monty.os.path import which
 from monty.termcolor import cprint
+from monty.dev import deprecated
 from monty.string import is_string
 from monty.functools import lazy_property
 from abipy.iotools.cube import cube_read_structure_mesh_data
@@ -135,6 +136,7 @@ class TextFile(_File):
         self._file.seek(offset, whence)
 
 
+@deprecated(message="AbinitOutNcFile is deprecated, use abipy.abio.outputs.OutNcFile")
 class AbinitOutNcFile(NetcdfReader):
     """
     Class representing the _OUT.nc file.
