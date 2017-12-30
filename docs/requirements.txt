@@ -1,4 +1,4 @@
-sphinxcontrib.napoleon
+sphinxcontrib-napoleon
 sphinxcontrib-programoutput
 sphinx-gallery
 sphinx-argparse
