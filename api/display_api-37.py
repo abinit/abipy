@@ -1,1 +1,4 @@
-ax = sns.violinplot(x="day", y="total_bill", data=tips)
+import seaborn as sns
+sns.set_style("whitegrid")
+tips = sns.load_dataset("tips")
+ax = sns.boxplot(x=tips["total_bill"])

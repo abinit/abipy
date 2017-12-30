@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -205,7 +209,8 @@
 
 
 <span class="nd">@add_fig_kwargs</span>
-<span class="k">def</span> <span class="nf">plot_xy_with_hue</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">plot_xy_with_hue</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot y = f(x) relation for different values of `hue`.</span>
 <span class="sd">    Useful for convergence tests done wrt to two parameters.</span>
@@ -215,6 +220,7 @@
 <span class="sd">        x: Name of the column used as x-value</span>
 <span class="sd">        y: Name of the column used as y-value</span>
 <span class="sd">        hue: Variable that define subsets of the data, which will be drawn on separate lines</span>
+<span class="sd">        decimals: Number of decimal places to round `hue` columns. Ignore if None</span>
 <span class="sd">        ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
 <span class="sd">        xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`</span>
 <span class="sd">                     or scalar e.g. `left`. If left (right) is None, default values are used</span>
@@ -228,6 +234,10 @@
     <span class="n">miss</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">miss</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find `</span><span class="si">%s</span><span class="s2">` in dataframe.</span><span class="se">\n</span><span class="s2">Available keys are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">miss</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+    <span class="c1"># Truncate values in hue column so that we can group.</span>
+    <span class="k">if</span> <span class="n">decimals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">round</span><span class="p">({</span><span class="n">hue</span><span class="p">:</span> <span class="n">decimals</span><span class="p">})</span>
 
     <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">hue</span><span class="p">):</span>
@@ -464,126 +474,126 @@
         <span class="k">return</span> <span class="n">Marker</span><span class="p">(</span><span class="n">pos_x</span><span class="p">,</span> <span class="n">pos_y</span><span class="p">,</span> <span class="n">pos_s</span><span class="p">),</span> <span class="n">Marker</span><span class="p">(</span><span class="n">neg_x</span><span class="p">,</span> <span class="n">neg_y</span><span class="p">,</span> <span class="n">neg_s</span><span class="p">)</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">isdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">isfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span> <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">path</span>
-
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">FileNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
-    <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
-
-
-<span class="k">class</span> <span class="nc">DirNode</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
-    <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span> <span class="o">/</span> <span class="mi">255</span>
-
-    <span class="nd">@lazy_property</span>
-    <span class="k">def</span> <span class="nf">isempty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;True if empty directory.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
-
-
-<span class="k">class</span> <span class="nc">DirTreePlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">DirNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="p">))</span>
-
-        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">dirpath</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
-                <span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">dirpath</span><span class="p">)</span>
-                <span class="n">head</span><span class="p">,</span> <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span>
-                <span class="n">node</span> <span class="o">=</span> <span class="n">DirNode</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span>
-                <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-                <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">DirNode</span><span class="p">(</span><span class="n">head</span><span class="p">),</span> <span class="n">node</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-                <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-                <span class="n">node</span> <span class="o">=</span> <span class="n">FileNode</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-                <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-                <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">DirNode</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filepath</span><span class="p">)),</span> <span class="n">node</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">g</span>
-
-    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_ends</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot directory tree with files</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            filter_ends: List of file extensions (actually file ends) that should be displayed.</span>
-<span class="sd">                If None, all files are displayed</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-        <span class="n">fixed</span><span class="p">,</span> <span class="n">initial_pos</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-        <span class="n">fixed</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">arrows</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span>
-        <span class="k">if</span> <span class="n">filter_ends</span><span class="p">:</span>
-            <span class="n">filter_ends</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">filter_ends</span><span class="p">)</span>
-            <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">([</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">isdir</span> <span class="c1"># and not n.isempty)</span>
-                <span class="ow">or</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">isfile</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">filter_ends</span><span class="p">))])</span>
-
-        <span class="k">if</span> <span class="n">arrows</span><span class="p">:</span>
-            <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">convert_to_directed</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-
-        <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top</span>
-        <span class="n">top_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">DirNode</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">top</span><span class="p">)</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">d</span><span class="p">))]</span>
-        <span class="c1">#print(&quot;top_nodes&quot;, top_nodes)</span>
-        <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">top_nodes</span><span class="p">)</span>
-        <span class="n">initial_pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-
-        <span class="c1"># Get positions for all nodes using layout_type.</span>
-        <span class="c1"># e.g. pos = nx.spring_layout(g)</span>
-        <span class="c1">#layout_type = &quot;spring&quot;</span>
-        <span class="c1">#pos = getattr(nx, layout_type + &quot;_layout&quot;)(g)</span>
-
-        <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="n">top_nodes</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">initial_pos</span><span class="p">)</span>
-
-        <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span>
-                         <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">basename</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">nodes</span><span class="p">()},</span>
-                         <span class="n">node_color</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">color</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">nodes</span><span class="p">()],</span>
-                         <span class="c1">#node_size=[make_node_size(task) for task in g.nodes()],</span>
-                         <span class="c1">#node_size=50,</span>
-                         <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                         <span class="n">style</span><span class="o">=</span><span class="s2">&quot;dotted&quot;</span><span class="p">,</span>
-                         <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">font_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-                         <span class="n">arrows</span><span class="o">=</span><span class="n">arrows</span><span class="p">,</span>
-                         <span class="n">alpha</span><span class="o">=</span> <span class="mf">0.6</span><span class="p">,</span>
-                         <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fig</span>
-
-    <span class="c1">#def __str__(self)</span>
-    <span class="c1">#    from monty.pprint import _draw_tree</span>
-    <span class="c1">#    return _draw_tree(node, prefix, child_iter, text_str)</span>
+<span class="c1">#class Node(object):</span>
+<span class="c1">#    def __init__(self, path):</span>
+<span class="c1">#        self.path = path</span>
+<span class="c1">#        self.basename = os.path.basename(path)</span>
+<span class="c1">#        self.isdir = os.path.isdir(self.path)</span>
+<span class="c1">#        self.isfile = os.path.isfile(self.path)</span>
+<span class="c1">#</span>
+<span class="c1">#    def __eq__(self, other):</span>
+<span class="c1">#        if not isinstance(other, self.__class__): return False</span>
+<span class="c1">#        return self.path == other.path</span>
+<span class="c1">#</span>
+<span class="c1">#    def __ne__(self, other):</span>
+<span class="c1">#        return not self.__eq__(other)</span>
+<span class="c1">#</span>
+<span class="c1">#    def __hash__(self):</span>
+<span class="c1">#        return hash(self.path)</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#class FileNode(Node):</span>
+<span class="c1">#    color = np.array((255, 0, 0)) / 255</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#class DirNode(Node):</span>
+<span class="c1">#    color = np.array((0, 0, 255)) / 255</span>
+<span class="c1">#</span>
+<span class="c1">#    @lazy_property</span>
+<span class="c1">#    def isempty(self):</span>
+<span class="c1">#        &quot;&quot;&quot;True if empty directory.&quot;&quot;&quot;</span>
+<span class="c1">#        return bool(os.listdir(self.path))</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#class DirTreePlotter(object):</span>
+<span class="c1">#</span>
+<span class="c1">#    def __init__(self, top):</span>
+<span class="c1">#        self.top = os.path.abspath(top)</span>
+<span class="c1">#        self.build_graph()</span>
+<span class="c1">#</span>
+<span class="c1">#    def build_graph(self):</span>
+<span class="c1">#        import networkx as nx</span>
+<span class="c1">#        g = nx.Graph()</span>
+<span class="c1">#        g.add_node(DirNode(self.top))</span>
+<span class="c1">#</span>
+<span class="c1">#        for root, dirs, files in os.walk(self.top):</span>
+<span class="c1">#            for dirpath in dirs:</span>
+<span class="c1">#                dirpath = os.path.join(root, dirpath)</span>
+<span class="c1">#                head, basename = os.path.split(dirpath)</span>
+<span class="c1">#                node = DirNode(dirpath)</span>
+<span class="c1">#                g.add_node(node)</span>
+<span class="c1">#                g.add_edge(DirNode(head), node)</span>
+<span class="c1">#</span>
+<span class="c1">#            for f in files:</span>
+<span class="c1">#                filepath = os.path.join(root, f)</span>
+<span class="c1">#                node = FileNode(filepath)</span>
+<span class="c1">#                g.add_node(node)</span>
+<span class="c1">#                g.add_edge(DirNode(os.path.dirname(filepath)), node)</span>
+<span class="c1">#</span>
+<span class="c1">#        self.graph = g</span>
+<span class="c1">#</span>
+<span class="c1">#    @add_fig_kwargs</span>
+<span class="c1">#    def plot(self, filter_ends=None, ax=None, **kwargs):</span>
+<span class="c1">#        &quot;&quot;&quot;</span>
+<span class="c1">#        Plot directory tree with files</span>
+<span class="c1">#</span>
+<span class="c1">#        Args:</span>
+<span class="c1">#            filter_ends: List of file extensions (actually file ends) that should be displayed.</span>
+<span class="c1">#                If None, all files are displayed</span>
+<span class="c1">#            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="c1">#</span>
+<span class="c1">#        Returns:</span>
+<span class="c1">#            `matplotlib` figure.</span>
+<span class="c1">#        &quot;&quot;&quot;</span>
+<span class="c1">#        ax, fig, plt = get_ax_fig_plt(ax=ax)</span>
+<span class="c1">#        fixed, initial_pos = None, None</span>
+<span class="c1">#        fixed = True</span>
+<span class="c1">#        arrows = False</span>
+<span class="c1">#</span>
+<span class="c1">#        g = self.graph</span>
+<span class="c1">#        if filter_ends:</span>
+<span class="c1">#            filter_ends = list_strings(filter_ends)</span>
+<span class="c1">#            g = self.graph.subgraph([n for n in self.graph.nodes() if n.isdir # and not n.isempty)</span>
+<span class="c1">#                or (n.isfile and any(n.basename.endswith(e) for e in filter_ends))])</span>
+<span class="c1">#</span>
+<span class="c1">#        if arrows:</span>
+<span class="c1">#            g = nx.convert_to_directed(g)</span>
+<span class="c1">#</span>
+<span class="c1">#        top = self.top</span>
+<span class="c1">#        top_nodes = [DirNode(os.path.join(top, d)) for d in os.listdir(top) if os.path.isdir(os.path.join(top, d))]</span>
+<span class="c1">#        #print(&quot;top_nodes&quot;, top_nodes)</span>
+<span class="c1">#        import networkx as nx</span>
+<span class="c1">#        t = nx.Graph()</span>
+<span class="c1">#        t.add_nodes_from(top_nodes)</span>
+<span class="c1">#        initial_pos = nx.circular_layout(t)</span>
+<span class="c1">#</span>
+<span class="c1">#        # Get positions for all nodes using layout_type.</span>
+<span class="c1">#        # e.g. pos = nx.spring_layout(g)</span>
+<span class="c1">#        #layout_type = &quot;spring&quot;</span>
+<span class="c1">#        #pos = getattr(nx, layout_type + &quot;_layout&quot;)(g)</span>
+<span class="c1">#</span>
+<span class="c1">#        pos = nx.spring_layout(g, iterations=50, fixed=top_nodes, pos=initial_pos)</span>
+<span class="c1">#</span>
+<span class="c1">#        nx.draw_networkx(g, pos,</span>
+<span class="c1">#                         labels={n: n.basename for n in g.nodes()},</span>
+<span class="c1">#                         node_color=[n.color for n in g.nodes()],</span>
+<span class="c1">#                         #node_size=[make_node_size(task) for task in g.nodes()],</span>
+<span class="c1">#                         #node_size=50,</span>
+<span class="c1">#                         width=1,</span>
+<span class="c1">#                         style=&quot;dotted&quot;,</span>
+<span class="c1">#                         with_labels=True,</span>
+<span class="c1">#                         font_size=10,</span>
+<span class="c1">#                         arrows=arrows,</span>
+<span class="c1">#                         alpha= 0.6,</span>
+<span class="c1">#                         ax=ax,</span>
+<span class="c1">#        )</span>
+<span class="c1">#</span>
+<span class="c1">#        ax.axis(&quot;off&quot;)</span>
+<span class="c1">#        return fig</span>
+<span class="c1">#</span>
+<span class="c1">#    #def __str__(self)</span>
+<span class="c1">#    #    from monty.pprint import _draw_tree</span>
+<span class="c1">#    #    return _draw_tree(node, prefix, child_iter, text_str)</span>
 </pre></div>
 
     </div>
@@ -598,7 +608,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -1,3 +1,3 @@
-g = sns.pairplot(iris,
-                 x_vars=["sepal_width", "sepal_length"],
-                 y_vars=["petal_width", "petal_length"])
+x, y = np.random.randn(2, 300)
+g = (sns.jointplot(x, y, kind="hex", stat_func=None)
+        .set_axis_labels("x", "y"))

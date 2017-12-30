@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -128,9 +132,9 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 
-<div class="viewcode-block" id="print_source_in_module"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_source_in_module">[docs]</a><span class="k">def</span> <span class="nf">print_source_in_module</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+<div class="viewcode-block" id="print_source_in_module"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_source_in_module">[docs]</a><span class="k">def</span> <span class="nf">print_source_in_module</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    For use inside an IPython notebook: given a module and a function, print the source code.</span>
+<span class="sd">    For use inside an jupyter_ notebook: given a module and a function, print the source code.</span>
 
 <span class="sd">    Based on:</span>
 
@@ -147,9 +151,9 @@
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">getsource</span><span class="p">(</span><span class="n">internal_functions</span><span class="p">[</span><span class="n">function</span><span class="p">]),</span> <span class="n">PythonLexer</span><span class="p">(),</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="print_source"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_source">[docs]</a><span class="k">def</span> <span class="nf">print_source</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="print_source"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.print_source">[docs]</a><span class="k">def</span> <span class="nf">print_source</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    For use inside an IPython notebook: given a function, print the source code.</span>
+<span class="sd">    For use inside a jupyter_ notebook: given a function, print the source code.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        **kwargs: Passed to HtmlFormatter</span>
@@ -167,15 +171,15 @@
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">highlight</span><span class="p">(</span><span class="n">getsource</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="n">PythonLexer</span><span class="p">(),</span> <span class="n">HtmlFormatter</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="ipw_listdir"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.ipw_listdir">[docs]</a><span class="k">def</span> <span class="nf">ipw_listdir</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">widget_type</span><span class="o">=</span><span class="s2">&quot;dropdown&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="ipw_listdir"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.notebooks.ipw_listdir">[docs]</a><span class="k">def</span> <span class="nf">ipw_listdir</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">widget_type</span><span class="o">=</span><span class="s2">&quot;dropdown&quot;</span><span class="p">):</span>   <span class="c1"># pragma: no cover</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return an ipython widget listing all the files located within the directory `top`</span>
-<span class="sd">    that can be inspected with `abiopen`. The user can select the file in the widget</span>
+<span class="sd">    Return an ipython widget listing all the files located within the directory ``top``</span>
+<span class="sd">    that can be inspected with :ref:`abiopen.py`. The user can select the file in the widget</span>
 <span class="sd">    and print info on the corresponding file inside the notebook.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        top: Initial directory.</span>
-<span class="sd">        recurse: False to ignore directories within `top`.</span>
+<span class="sd">        recurse: False to ignore directories within ``top``.</span>
 <span class="sd">        widget_type: Specify the widget to create. Possible values in:</span>
 <span class="sd">            [&quot;tooglebuttons&quot;, &quot;dropdown&quot;, &quot;radiobuttons&quot;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -228,7 +232,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

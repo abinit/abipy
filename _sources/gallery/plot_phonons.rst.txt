@@ -58,7 +58,7 @@ See tutorial/lesson_rf2.html
     # and pass it to the plot method:
     #phbands.plot(title="AlAs without LO-TO splitting", qlabels=qlabels)
 
-**Total running time of the script:** ( 0 minutes  0.823 seconds)
+**Total running time of the script:** ( 0 minutes  0.818 seconds)
 
 
 

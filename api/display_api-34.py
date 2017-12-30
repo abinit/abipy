@@ -1,2 +1,4 @@
-ax = sns.boxplot(x="day", y="total_bill", data=tips)
-ax = sns.swarmplot(x="day", y="total_bill", data=tips, color=".25")
+titanic = sns.load_dataset("titanic")
+g = sns.factorplot("alive", col="deck", col_wrap=4,
+                   data=titanic[titanic.deck.notnull()],
+                   kind="count", size=2.5, aspect=.8)

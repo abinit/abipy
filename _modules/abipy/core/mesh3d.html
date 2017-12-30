@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -169,13 +173,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">vectors</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Construct `Mesh3D` object.</span>
+<span class="sd">        Construct ``Mesh3D`` object.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            shape:</span>
-<span class="sd">                3 int&#39;s Number of grid points along axes.</span>
-<span class="sd">            vectors:</span>
-<span class="sd">                unit cell vectors in real space.</span>
+<span class="sd">            shape: 3 int&#39;s Number of grid points along axes.</span>
+<span class="sd">            vectors: unit cell vectors in real space.</span>
 
 <span class="sd">        Attributes:</span>
 
@@ -267,8 +269,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns new zeroed 3D array for this domain.</span>
 
-<span class="sd">        The type can be set with the `dtype` keyword.</span>
-<span class="sd">        Extra dimensions can be added with `extra_dims`.</span>
+<span class="sd">        The type can be set with the ``dtype`` keyword.</span>
+<span class="sd">        Extra dimensions can be added with ``extra_dims``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
@@ -278,19 +280,19 @@
 
 <div class="viewcode-block" id="Mesh3D.empty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.empty">[docs]</a>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns new uninitialized 3D array for this domain.</span>
+<span class="sd">        Returns new uninitialized 3D |numpy-array| for this domain.</span>
 
-<span class="sd">        The type can be set with the `dtype` keyword.</span>
-<span class="sd">        Extra dimensions can be added with `extra_dims`.</span>
+<span class="sd">        The type can be set with the ``dtype`` keyword.</span>
+<span class="sd">        Extra dimensions can be added with ``extra_dims``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Mesh3D.cempty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.cempty">[docs]</a>    <span class="k">def</span> <span class="nf">cempty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;Returns new uninitialized 3D complex array for this domain.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns new uninitialized 3D complex |numpy-array| for this domain.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Mesh3D.random"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.random">[docs]</a>    <span class="k">def</span> <span class="nf">random</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;Returns random real array for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns random real |numpy-array| for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">):</span>
             <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">extra_dims</span><span class="p">,)</span>
@@ -307,14 +309,14 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong dtype: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Mesh3D.crandom"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.crandom">[docs]</a>    <span class="k">def</span> <span class="nf">crandom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;Returns random complex array for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns random complex |numpy-array| for this domain with val in [0.0, 1.0).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Mesh3D.reshape"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.reshape">[docs]</a>    <span class="k">def</span> <span class="nf">reshape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reshape the array arr defined on the FFT box.</span>
 
-<span class="sd">        Returns ndarray with 4 dimensions (?,nx,ny,nz) where ?*nx*ny*nz == arr.size</span>
+<span class="sd">        Returns |numpy-array| with 4 dimensions (?, nx, ny, nz) where ?*nx*ny*nz == arr.size</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">#if duck.is_intlike(extra_dims): extra_dims = (extra_dims,)</span>
         <span class="c1">#shape = extra_dims + self.shape)</span>
@@ -322,7 +324,7 @@
 
 <div class="viewcode-block" id="Mesh3D.fft_r2g"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.fft_r2g">[docs]</a>    <span class="k">def</span> <span class="nf">fft_r2g</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fr</span><span class="p">,</span> <span class="n">shift_fg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        FFT of array fr given in real space.</span>
+<span class="sd">        FFT of array ``fr`` given in real space.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ndim</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">fr</span><span class="o">.</span><span class="n">shape</span>
 
@@ -348,7 +350,7 @@
 
 <div class="viewcode-block" id="Mesh3D.fft_g2r"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.fft_g2r">[docs]</a>    <span class="k">def</span> <span class="nf">fft_g2r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">fg_ishifted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        FFT of array fg given in G-space.</span>
+<span class="sd">        FFT of array ``fg`` given in G-space.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ndim</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">fg</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">fg</span><span class="o">.</span><span class="n">shape</span>
 
@@ -421,7 +423,7 @@
 
 <span class="sd">            These are the G-vectors of the FFT box and should be used</span>
 <span class="sd">            when we compute quantities on the FFT mesh.</span>
-<span class="sd">            These vectors differ from the gvecs stored in `GSphere` that</span>
+<span class="sd">            These vectors differ from the gvecs stored in |GSphere| that</span>
 <span class="sd">            are k-centered and enclosed by a sphere whose radius is defined by ecut.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">fftfreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
@@ -442,7 +444,7 @@
 
 <div class="viewcode-block" id="Mesh3D.gmods"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.gmods">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">gmods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[ng] array with $|G|$&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;[ng] |numpy-array| with :math:`|G|`&quot;&quot;&quot;</span>
         <span class="n">gmet</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inv_vectors</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inv_vectors</span><span class="p">)</span>
         <span class="n">gmods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="p">):</span>
@@ -456,7 +458,7 @@
 
 <div class="viewcode-block" id="Mesh3D.rpoints"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.rpoints">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">rpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array with the points in real space in reduced coordinates.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|numpy-array| with the points in real space in reduced coordinates.&quot;&quot;&quot;</span>
         <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nz</span>
         <span class="n">rpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
@@ -562,7 +564,7 @@
 
 <div class="viewcode-block" id="Mesh3D.i_closest_gridpoints"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mesh3d.Mesh3D.i_closest_gridpoints">[docs]</a>    <span class="k">def</span> <span class="nf">i_closest_gridpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Given a list of points, this function return a numpy array with the indices of the closest gridpoint.</span>
+<span class="sd">        Given a list of points, this function return a |numpy-array| with the indices of the closest gridpoint.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">inv_vectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inv_vectors</span>
@@ -684,7 +686,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

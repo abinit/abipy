@@ -1,2 +1,2 @@
-ax = sns.violinplot(x="time", y="tip", data=tips,
-                    order=["Dinner", "Lunch"])
+ax = sns.boxplot(x="day", y="total_bill", hue="time",
+                 data=tips, linewidth=2.5)

@@ -1,1 +1,2 @@
-ax = sns.barplot(x="day", y="tip", data=tips, capsize=.2)
+from numpy import median
+ax = sns.pointplot(x="day", y="tip", data=tips, estimator=median)

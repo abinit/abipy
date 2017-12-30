@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -326,7 +330,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;gsphere&quot;</span><span class="p">):</span>
-            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
+            <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;mesh&quot;</span><span class="p">):</span>
             <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
 
@@ -346,13 +350,16 @@
 <div class="viewcode-block" id="PWWaveFunction"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction">[docs]</a><span class="k">class</span> <span class="nc">PWWaveFunction</span><span class="p">(</span><span class="n">WaveFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object describes a wavefunction expressed in a plane-wave basis set.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: PWWaveFunction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">nspinor</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">ug</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creation method.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            structure: Structure object.</span>
+<span class="sd">            structure: |Structure| object.</span>
 <span class="sd">            nspinor: number of spinorial components.</span>
 <span class="sd">            spin: spin index (only used if collinear-magnetism).</span>
 <span class="sd">            band: band index (&gt;=0)</span>
@@ -503,24 +510,25 @@
     <span class="c1">#    return new</span>
 
 <div class="viewcode-block" id="PWWaveFunction.plot_line"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.plot_line">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">with_krphase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">point2</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">with_krphase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot (interpolated) wavefunction in real space along a line defined by `point1` and `point2`.</span>
+<span class="sd">        Plot (interpolated) wavefunction in real space along a line defined by ``point1`` and ``point2``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            point1: First point of the line. Accepts 3d vector or integer.</span>
-<span class="sd">                The vector is in reduced coordinates unless `cartesian == True`.</span>
+<span class="sd">                The vector is in reduced coordinates unless ``cartesian`` is True.</span>
 <span class="sd">                If integer, the first point of the line is given by the i-th site of the structure</span>
-<span class="sd">                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.</span>
-<span class="sd">            point2: Second point of the line. Same API as `point1`.</span>
+<span class="sd">                e.g. ``point1=0, point2=1`` gives the line passing through the first two atoms.</span>
+<span class="sd">            point2: Second point of the line. Same API as ``point1``.</span>
 <span class="sd">            num: Number of points sampled along the line.</span>
-<span class="sd">            with_krphase: True to include the e^{ikr} phase-factor.</span>
-<span class="sd">            cartesian: By default, `point1` and `point1` are interpreted as points in fractional</span>
+<span class="sd">            with_krphase: True to include the :math:`e^{ikr}` phase-factor.</span>
+<span class="sd">            cartesian: By default, ``point1`` and ``point1`` are interpreted as points in fractional</span>
 <span class="sd">                coordinates (if not integers). Use True to pass points in cartesian coordinates.</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            fontsize: legend and title fontsize.</span>
 
-<span class="sd">        Return:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Interpolate along line.</span>
         <span class="n">interpolator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interpolator</span><span class="p">()</span>
@@ -538,30 +546,30 @@
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Distance from site1 [Angstrom]&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="PWWaveFunction.plot_line_neighbors"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.plot_line_neighbors">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_line_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site_index</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">with_krphase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_nn</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_line_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site_index</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">with_krphase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_nn</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot (interpolated) density/potential in real space along the lines connecting</span>
-<span class="sd">        an atom specified by `site_index` and all neighbors within a sphere of given `radius`.</span>
+<span class="sd">        an atom specified by ``site_index`` and all neighbors within a sphere of given ``radius``.</span>
 
 <span class="sd">        .. warning:</span>
 
-<span class="sd">            This routine can produce lots of plots! Be careful with the value of `radius`.</span>
-<span class="sd">            See also `max_nn`.</span>
+<span class="sd">            This routine can produce lots of plots! Be careful with the value of ``radius``.</span>
+<span class="sd">            See also ``max_nn``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            site_index: Index of the atom in the structure.</span>
-<span class="sd">            radius: Radius of the sphere in Angstrom</span>
+<span class="sd">            radius: Radius of the sphere in Angstrom.</span>
 <span class="sd">            num: Number of points sampled along the line.</span>
-<span class="sd">            with_krphase: True to include the e^{ikr} phase-factor.</span>
-<span class="sd">            max_nn: By default, only the first `max_nn` neighbors are showed.</span>
+<span class="sd">            with_krphase: True to include the :math:`e^{ikr}` phase-factor.</span>
+<span class="sd">            max_nn: By default, only the first ``max_nn`` neighbors are showed.</span>
+<span class="sd">            fontsize: legend and label fontsize.</span>
 
-<span class="sd">        Return:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">site_index</span><span class="p">]</span>
         <span class="n">nn_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">include_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -599,18 +607,18 @@
                 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">ur</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Im </span><span class="si">%s</span><span class="s2">$ </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">which</span><span class="p">,</span> <span class="n">spinor_label</span><span class="p">))</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">dist</span><span class="p">,</span> <span class="n">ur</span><span class="o">.</span><span class="n">real</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">ur</span><span class="o">.</span><span class="n">imag</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$|\psi(r)|^2$ </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spinor_label</span><span class="p">)</span>
 
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">nrows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Distance from site_index </span><span class="si">%s</span><span class="s2"> [Angstrom]&quot;</span> <span class="o">%</span> <span class="n">site_index</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="PWWaveFunction.export_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.export_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">export_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Export u(r)**2 on file filename.</span>
+<span class="sd">        Export :math:`|u(r)|^2` to file ``filename``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            filename: String specifying the file path and the file format.</span>
@@ -630,8 +638,11 @@
         <span class="n">tokens</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="c1"># fname == &quot;.ext&quot; ==&gt; Create temporary file.</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1"># fname == &quot;.ext&quot; ==&gt; Create temporary file.</span>
+            <span class="c1"># dir = os.getcwd() is needed when we invoke the method from a notebook.</span>
+            <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="k">import</span> <span class="n">abinb_mkstemp</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">abinb_mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating temporary file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
 
         <span class="c1"># Compute |u(r)|2 and write data according to ext.</span>
@@ -650,14 +661,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">visu</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PWWaveFunction.visualize_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.visualize_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="PWWaveFunction.visualize_ur2"><a class="viewcode-back" href="../../../api/waves_api.html#abipy.waves.pwwave.PWWaveFunction.visualize_ur2">[docs]</a>    <span class="k">def</span> <span class="nf">visualize_ur2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Visualize u(r)**2 visualizer.</span>
+<span class="sd">        Visualize :math:`|u(r)|^2|`.</span>
 
 <span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get the Visualizer subclass from the string.</span>
-        <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">visu_name</span><span class="p">)</span>
+        <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
 
         <span class="c1"># Try to export data to one of the formats supported by the visualizer</span>
         <span class="c1"># Use a temporary file (note &quot;.&quot; + ext)</span>
@@ -668,7 +679,7 @@
             <span class="k">except</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
                 <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">appname</span><span class="p">))</span></div></div>
 
     <span class="c1">#def mvplot_cutplanes(self, show=True):</span>
     <span class="c1">#    data = self.ur2</span>
@@ -700,6 +711,9 @@
 <span class="k">class</span> <span class="nc">PAW_WaveFunction</span><span class="p">(</span><span class="n">WaveFunction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    All the methods that are related to the all-electron representation should start with ae.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: PaW_WaveFunction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 </pre></div>
 
@@ -715,7 +729,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

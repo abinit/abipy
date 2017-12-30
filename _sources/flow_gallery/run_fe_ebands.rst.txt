@@ -77,7 +77,7 @@ See also <~abinit/tutorial/Input/tspin_1.in>
 
     # This block generates the thumbnails in the Abipy gallery.
     # You can safely REMOVE this part if you are using this script for production runs.
-    if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
@@ -121,7 +121,7 @@ to analyze all the band structures produced by the Flow and plot the data
 
 
 
-**Total running time of the script:** ( 0 minutes  0.180 seconds)
+**Total running time of the script:** ( 0 minutes  0.174 seconds)
 
 
 

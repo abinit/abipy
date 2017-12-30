@@ -65,15 +65,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -202,14 +206,16 @@ latex output. Such tables can not be used when documenting matplotlib.</p>
 </li>
 <li><p class="first">Mathematical expressions can be rendered as png images in html, and in the
 usual way by latex. For example:</p>
-<p><code class="docutils literal"><span class="pre">:math:`\sin(x_n^2)`</span></code> yields: <img src="../_images/mathmpl/math-fa85ea0416.png" style="position: relative; bottom: -8px"/>, and:</p>
+<p><code class="docutils literal"><span class="pre">:math:`\sin(x_n^2)`</span></code> yields: <span class="math">\(\sin(x_n^2)\)</span>, and:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">math</span><span class="p">::</span>
 
   \<span class="n">int_</span><span class="p">{</span><span class="o">-</span>\<span class="n">infty</span><span class="p">}</span><span class="o">^</span><span class="p">{</span>\<span class="n">infty</span><span class="p">}</span>\<span class="n">frac</span><span class="p">{</span><span class="n">e</span><span class="o">^</span><span class="p">{</span><span class="n">i</span>\<span class="n">phi</span><span class="p">}}{</span><span class="mi">1</span><span class="o">+</span><span class="n">x</span><span class="o">^</span><span class="mi">2</span>\<span class="n">frac</span><span class="p">{</span><span class="n">e</span><span class="o">^</span><span class="p">{</span><span class="n">i</span>\<span class="n">phi</span><span class="p">}}{</span><span class="mi">1</span><span class="o">+</span><span class="n">x</span><span class="o">^</span><span class="mi">2</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>yields:</p>
-<img src="../_images/mathmpl/math-5b4e20db62.png" class="center" /></li>
+<div class="math">
+\[\int_{-\infty}^{\infty}\frac{e^{i\phi}}{1+x^2\frac{e^{i\phi}}{1+x^2}}\]</div>
+</li>
 <li><p class="first">Interactive IPython sessions can be illustrated in the documentation using the following directive:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">sourcecode</span><span class="p">::</span> <span class="n">ipython</span>
 
@@ -310,7 +316,7 @@ automatically at build time to ensure that the code that is included runs and pr
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

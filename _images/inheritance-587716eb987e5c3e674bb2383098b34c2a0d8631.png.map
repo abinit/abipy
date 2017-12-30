@@ -1,0 +1,5 @@
+<map id="inheritancee626124432" name="inheritancee626124432">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="5,5,208,28"/>
+<area shape="rect" id="node2" title="Base charges class, describing the atomic charges in a DFT calculation." alt="" coords="254,5,460,28"/>
+<area shape="rect" id="node3" href="#abipy.electrons.charges.HirshfeldCharges" target="_top" title="Class representing the charges obtained from the Hirshfeld analysis." alt="" coords="506,5,763,28"/>
+</map>

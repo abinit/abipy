@@ -1,1 +1,1 @@
-ax = sns.countplot(x="class", hue="who", data=titanic)
+ax = sns.barplot(x="tip", y="day", data=tips)

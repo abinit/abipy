@@ -1,11 +1,11 @@
-.. _abiview:
+.. _abiview.py:
 
 ^^^^^^^^^^^^^^
 ``abiview.py``
 ^^^^^^^^^^^^^^
 
-This script visualizes data with external graphical applications.
-It's also possible to generate movies from Abinit output files.
+This script visualizes provides a simplified interface to the AbiPy post-processing tools 
+It can also visualize data (structures, densities)  with external graphical applications.
 
 Complete command line reference
 

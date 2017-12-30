@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -146,52 +150,61 @@
     <div class="col-md-12 content">
       
   <div class="section" id="eph-package">
-<h1>eph Package<a class="headerlink" href="#eph-package" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#contents">eph Package</a><a class="headerlink" href="#eph-package" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#eph-package" id="id3">eph Package</a><ul>
+<li><a class="reference internal" href="#id1" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.eph.eph" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.eph.sigeph" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">sigeph</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="id1">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Package</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-abipy.eph"></span></div>
 <div class="section" id="module-abipy.eph.eph">
-<span id="eph-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Module<a class="headerlink" href="#module-abipy.eph.eph" title="Permalink to this headline">¶</a></h2>
+<span id="eph-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">eph</span></code> Module</a><a class="headerlink" href="#module-abipy.eph.eph" title="Permalink to this headline">¶</a></h2>
 <p>This module contains objects for the postprocessing of EPH calculations.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Work in progress, DO NOT USE THIS CODE.</p>
 </div>
 <dl class="class">
-<dt id="abipy.eph.eph.A2Ftr">
-<em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">A2Ftr</code><span class="sig-paren">(</span><em>mesh</em>, <em>vals_in</em>, <em>vals_out</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2Ftr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2Ftr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<dl class="attribute">
-<dt id="abipy.eph.eph.A2Ftr.iw0">
-<code class="descname">iw0</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2Ftr.iw0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2Ftr.iw0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Index of the first point in the mesh whose value is &gt;= 0
-Integrals are performed with wmesh[iw0 + 1, :] i.e. unstable modes are neglected.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.A2Ftr.marker_spin">
-<code class="descname">marker_spin</code><em class="property"> = {0: '^', 1: 'v'}</em><a class="headerlink" href="#abipy.eph.eph.A2Ftr.marker_spin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="abipy.eph.eph.A2f">
 <em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">A2f</code><span class="sig-paren">(</span><em>mesh</em>, <em>values_spin</em>, <em>values_spin_nu</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Eliashberg function a2F(w). Energies are in eV.</p>
+<dl class="attribute">
+<dt id="abipy.eph.eph.A2f.marker_spin">
+<code class="descname">marker_spin</code><em class="property"> = {0: '^', 1: 'v'}</em><a class="headerlink" href="#abipy.eph.eph.A2f.marker_spin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.A2f.iw0">
+<code class="descname">iw0</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.iw0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.iw0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of the first point in the mesh whose value is &gt;= 0
+Integrals are performed with wmesh[iw0 + 1, :] i.e. unstable modes are neglected.</p>
+</dd></dl>
+
 <dl class="method">
-<dt id="abipy.eph.eph.A2f.get_mcmillan_tc">
-<code class="descname">get_mcmillan_tc</code><span class="sig-paren">(</span><em>mustar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.get_mcmillan_tc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.get_mcmillan_tc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the critical temperature with the McMillan equation and the input mustar.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Tc in Kelvin degrees</td>
-</tr>
-</tbody>
-</table>
+<dt id="abipy.eph.eph.A2f.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation with verbosity level <code class="docutils literal"><span class="pre">verbose</span></code> and an optional <code class="docutils literal"><span class="pre">title</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.A2f.lambda_iso">
+<code class="descname">lambda_iso</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.lambda_iso"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.lambda_iso" title="Permalink to this definition">¶</a></dt>
+<dd><p>Isotropic lambda.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.A2f.omega_log">
+<code class="descname">omega_log</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.omega_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.omega_log" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Logarithmic moment of alpha^2F</em> – exp((2/lambda) int dw a2F(w) ln(w)/w)</p>
 </dd></dl>
 
 <dl class="method">
@@ -209,114 +222,52 @@ From Allen PRL 59 1460 (See also Grimvall, Eq 6.72 page 175)</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.eph.eph.A2f.get_mcmillan_tc">
+<code class="descname">get_mcmillan_tc</code><span class="sig-paren">(</span><em>mustar</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.get_mcmillan_tc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.get_mcmillan_tc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the critical temperature with the McMillan equation and the input mustar.</p>
+<p>Return: Tc in Kelvin.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.eph.eph.A2f.get_mustar_from_tc">
 <code class="descname">get_mustar_from_tc</code><span class="sig-paren">(</span><em>tc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.get_mustar_from_tc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.get_mustar_from_tc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the value of mustar that gives the critical temperature <cite>tc</cite> in the McMillan equation.</p>
+<dd><p>Return the value of mustar that gives the critical temperature <code class="docutils literal"><span class="pre">tc</span></code> in the McMillan equation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tc</strong> – Critical temperature in Kelvin</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tc</strong> – Critical temperature in Kelvin.</td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.A2f.iw0">
-<code class="descname">iw0</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.iw0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.iw0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Index of the first point in the mesh whose value is &gt;= 0
-Integrals are performed with wmesh[iw0 + 1, :] i.e. unstable modes are neglected.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.A2f.lambda_iso">
-<code class="descname">lambda_iso</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.lambda_iso"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.lambda_iso" title="Permalink to this definition">¶</a></dt>
-<dd><p>Isotropic lambda.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.A2f.marker_spin">
-<code class="descname">marker_spin</code><em class="property"> = {0: '^', 1: 'v'}</em><a class="headerlink" href="#abipy.eph.eph.A2f.marker_spin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.A2f.omega_log">
-<code class="descname">omega_log</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.omega_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.omega_log" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Get log moment of alpha^2F</em> – exp((2/lambda) int dw a2F(w) ln(w)/w)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.eph.eph.A2f.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>with_lambda=True</em>, <em>exchange_xy=False</em>, <em>ax=None</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.plot" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot a2F(w), it’s primitive lambda(w) and optionally the individual
+<code class="descname">plot</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>with_lambda=True</em>, <em>exchange_xy=False</em>, <em>ax=None</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>label=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a2F(w), its primitive lambda(w) and optionally the individual
 contributions due to the phonon branches.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>units: Units for phonon plots. Possible values in</dt>
-<dd>(“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</dd>
-</dl>
-<p>with_lambda:
-exchange_xy: True to exchange x-y axes.
-ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-xlims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
-<blockquote>
-<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
-<p class="last">ylims: Limits for y-axis. See xlims for API.
-label: True to add legend label to each curve.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
+<li><strong>with_lambda</strong> – True to display lambda(q, nu).</li>
+<li><strong>exchange_xy</strong> – True to exchange x-y axes.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>xlims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
+<li><strong>ylims</strong> – Limits for y-axis. See xlims for API.</li>
+<li><strong>label</strong> – True to add legend label to each curve.</li>
+<li><strong>fontsize</strong> – Legend and title fontsize</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.A2f.plot_a2">
-<code class="descname">plot_a2</code><span class="sig-paren">(</span><em>phdos</em>, <em>atol=1e-12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.plot_a2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.plot_a2" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Grid with 3 plots (a2F, F, a2F).</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>phdos:
-atol:</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -335,11 +286,11 @@ atol:</dd>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -351,27 +302,27 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.eph.eph.A2f.plot_nuterms">
 <code class="descname">plot_nuterms</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>axmat=None</em>, <em>with_lambda=True</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.plot_nuterms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.plot_nuterms" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot a2F(w), it’s primitive lambda(w) and optionally the individual
+<dd><p>Plot a2F(w), its primitive lambda(w) and optionally the individual
 contributions due to the phonon branches.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).</dt>
-<dd>Case-insensitive.</dd>
-</dl>
-<p>axmat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
-xlims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
-<blockquote>
-<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
-<p class="last">ylims: Limits for y-axis. See xlims for API.
-label: True to add legend label to each curve.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
+Case-insensitive.</li>
+<li><strong>axmat</strong> – Matrix of axis of shape [natom, 3]. None if a new figure should be created.</li>
+<li><strong>xlims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
+<li><strong>ylims</strong> – Limits for y-axis. See xlims for API.</li>
+<li><strong>label</strong> – True to add legend label to each curve.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -390,11 +341,60 @@ label: True to add legend label to each curve.</p>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.A2f.plot_a2">
+<code class="descname">plot_a2</code><span class="sig-paren">(</span><em>phdos</em>, <em>atol=1e-12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.plot_a2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.plot_a2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Grid with 3 plots (a2F, F, a2F).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>phdos</strong> – </li>
+<li><strong>atol</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -406,22 +406,23 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.eph.eph.A2f.plot_tc_vs_mustar">
 <code class="descname">plot_tc_vs_mustar</code><span class="sig-paren">(</span><em>start=0.1</em>, <em>stop=0.5</em>, <em>num=50</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.plot_tc_vs_mustar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.plot_tc_vs_mustar" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot Tc(mustar)</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">start: The starting value of the sequence.
-stop: The end value of the sequence
-num: int, optional</p>
-<blockquote>
-<div>Number of samples to generate. Default is 50. Must be non-negative.</div></blockquote>
-<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<dd><p>Plot Tc(mustar)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>start</strong> – The starting value of the sequence.</li>
+<li><strong>stop</strong> – The end value of the sequence</li>
+<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – optional. Number of samples to generate. Default is 50. Must be non-negative.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -440,11 +441,11 @@ num: int, optional</p>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -453,10 +454,22 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="abipy.eph.eph.A2f.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>title=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2f.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2f.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.eph.eph.A2Ftr">
+<em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">A2Ftr</code><span class="sig-paren">(</span><em>mesh</em>, <em>vals_in</em>, <em>vals_out</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2Ftr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2Ftr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="abipy.eph.eph.A2Ftr.marker_spin">
+<code class="descname">marker_spin</code><em class="property"> = {0: '^', 1: 'v'}</em><a class="headerlink" href="#abipy.eph.eph.A2Ftr.marker_spin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.A2Ftr.iw0">
+<code class="descname">iw0</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#A2Ftr.iw0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.A2Ftr.iw0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of the first point in the mesh whose value is &gt;= 0
+Integrals are performed with wmesh[iw0 + 1, :] i.e. unstable modes are neglected.</p>
 </dd></dl>
 
 </dd></dl>
@@ -465,9 +478,9 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt id="abipy.eph.eph.EphFile">
 <em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">EphFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>This file contains the phonon linewidths, EliashbergFunction, the phonon bands,
-the <cite>ElectronBands</cite> and <cite>ElectronDos</cite> on the k-mesh.
-Provides methods to plot results.</p>
+<p>This file contains the phonon linewidths, EliashbergFunction, the <a class="reference internal" href="dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a>,
+the <a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> and <a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronDos" title="abipy.electrons.ebands.ElectronDos"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronDos</span></code></a> on the k-mesh.
+Provides methods to analyze and plot results.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">EphFile</span><span class="p">(</span><span class="s2">&quot;out_EPH.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
@@ -475,6 +488,51 @@ Provides methods to plot results.</p>
     <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-caf2a408a679be7689c62dc8dc2a7fef0db4805a.png" alt="Inheritance diagram of EphFile" usemap="#inheritance89004f9994" class="inheritance"/>
+<map id="inheritance89004f9994" name="inheritance89004f9994">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="29,5,227,29"/>
+<area shape="rect" id="node5" href="#abipy.eph.eph.EphFile" target="_top" title="This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|," alt="" coords="298,77,451,101"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing electron data." alt="" coords="5,53,250,77"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="22,101,234,125"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="18,149,238,173"/>
+</map>
+<dl class="classmethod">
+<dt id="abipy.eph.eph.EphFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the object from a <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.EphFile.ebands">
+<code class="descname">ebands</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.ebands" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.EphFile.edos">
+<code class="descname">edos</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.edos" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronDos" title="abipy.electrons.ebands.ElectronDos"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronDos</span></code></a> object with e-DOS computed by Abinit.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.EphFile.structure">
+<code class="descname">structure</code><a class="headerlink" href="#abipy.eph.eph.EphFile.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.EphFile.phbands">
+<code class="descname">phbands</code><a class="headerlink" href="#abipy.eph.eph.EphFile.phbands" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> object with frequencies along the q-path.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abipy.eph.eph.EphFile.a2f_qcoarse">
 <code class="descname">a2f_qcoarse</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.a2f_qcoarse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.a2f_qcoarse" title="Permalink to this definition">¶</a></dt>
@@ -487,6 +545,18 @@ computed on the (coarse) ab-initio q-mesh.</p>
 <code class="descname">a2f_qintp</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.a2f_qintp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.a2f_qintp" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#abipy.eph.eph.A2f" title="abipy.eph.eph.A2f"><code class="xref py py-class docutils literal"><span class="pre">A2f</span></code></a> with the Eliashberg function a2F(w)
 computed on the dense q-mesh by Fourier interpolation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphFile.get_a2f_qsamp">
+<code class="descname">get_a2f_qsamp</code><span class="sig-paren">(</span><em>qsamp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.get_a2f_qsamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.get_a2f_qsamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference internal" href="#abipy.eph.eph.A2f" title="abipy.eph.eph.A2f"><code class="xref py py-class docutils literal"><span class="pre">A2f</span></code></a> object associated to q-sampling <code class="docutils literal"><span class="pre">qsamp</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.EphFile.has_a2ftr">
+<code class="descname">has_a2ftr</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.has_a2ftr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.has_a2ftr" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the netcdf file contains transport data.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -504,76 +574,39 @@ computed on the dense q-mesh by Fourier interpolation.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.eph.eph.EphFile.get_a2ftr_qsamp">
+<code class="descname">get_a2ftr_qsamp</code><span class="sig-paren">(</span><em>qsamp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.get_a2ftr_qsamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.get_a2ftr_qsamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <code class="xref py py-class docutils literal"><span class="pre">A2ftr</span></code> object associated to q-sampling <code class="docutils literal"><span class="pre">qsamp</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.eph.eph.EphFile.close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Close the file.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="abipy.eph.eph.EphFile.ebands">
-<code class="descname">ebands</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code> object.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.EphFile.edos">
-<code class="descname">edos</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.edos" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">ElectronDos</span></code> object with e-DOS computed by Abinit.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.eph.eph.EphFile.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the object from a Netcdf file.</p>
-</dd></dl>
-
 <dl class="method">
-<dt id="abipy.eph.eph.EphFile.get_a2f_qsamp">
-<code class="descname">get_a2f_qsamp</code><span class="sig-paren">(</span><em>qsamp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.get_a2f_qsamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.get_a2f_qsamp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the <a class="reference internal" href="#abipy.eph.eph.A2f" title="abipy.eph.eph.A2f"><code class="xref py py-class docutils literal"><span class="pre">A2f</span></code></a> object associated to q-sampling <cite>qsamp</cite>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphFile.get_a2ftr_qsamp">
-<code class="descname">get_a2ftr_qsamp</code><span class="sig-paren">(</span><em>qsamp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.get_a2ftr_qsamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.get_a2ftr_qsamp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the <code class="xref py py-class docutils literal"><span class="pre">A2ftr</span></code> object associated to q-sampling <cite>qsamp</cite>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.EphFile.has_a2ftr">
-<code class="descname">has_a2ftr</code><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.has_a2ftr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.has_a2ftr" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if netcdf file contains transport data.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.EphFile.phbands">
-<code class="descname">phbands</code><a class="headerlink" href="#abipy.eph.eph.EphFile.phbands" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">PhononBands</span></code> object with frequencies along the q-path.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphFile.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>what='lambda'</em>, <em>units='eV'</em>, <em>alpha=0.8</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.plot" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot phonon bands with eph coupling strength lambda(q, nu) or gamma(q, nu)</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">what: <cite>lambda</cite> for eph strength, gamma for ph linewidth.
-units: Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).</p>
-<blockquote>
-<div>Case-insensitive.</div></blockquote>
-<p>scale: float used to scale the marker size.
-alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)
-ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
-<blockquote>
-<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
-<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<dt id="abipy.eph.eph.EphFile.plot_eph_strength">
+<code class="descname">plot_eph_strength</code><span class="sig-paren">(</span><em>what='lambda'</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>label=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.plot_eph_strength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.plot_eph_strength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot phonon bands with eph coupling strength lambda(q, nu)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>what</strong> – <code class="docutils literal"><span class="pre">lambda</span></code> for the eph coupling strength, <code class="docutils literal"><span class="pre">gamma</span></code> for phonon linewidths.</li>
+<li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>label</strong> – String used to label the plot in the legend.</li>
+<li><strong>fontsize</strong> – Legend and title fontsize.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -592,11 +625,66 @@ ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphFile.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>what='lambda'</em>, <em>units='eV'</em>, <em>alpha=0.8</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot phonon bands with eph coupling strength lambda(q, nu) or gamma(q, nu)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>what</strong> – <code class="docutils literal"><span class="pre">lambda</span></code> for eph coupling strength, <code class="docutils literal"><span class="pre">gamma</span></code> for phonon linewidths.</li>
+<li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
+Case-insensitive.</li>
+<li><strong>scale</strong> – float used to scale the marker size.</li>
+<li><strong>alpha</strong> – The alpha blending value for the markers between 0 (transparent) and 1 (opaque)</li>
+<li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -608,9 +696,8 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.eph.eph.EphFile.plot_a2f_interpol">
 <code class="descname">plot_a2f_interpol</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>ax=None</em>, <em>ylims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.plot_a2f_interpol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.plot_a2f_interpol" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Plot</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<dd><p>Plot</p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -629,61 +716,11 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphFile.plot_eph_strength">
-<code class="descname">plot_eph_strength</code><span class="sig-paren">(</span><em>what='lambda'</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.plot_eph_strength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.plot_eph_strength" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot phonon bands with eph coupling strength lambda(q, nu)</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">what: <cite>lambda</cite> for eph strength, gamma for phonon linewidths.
-ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
-<blockquote>
-<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</div></blockquote>
-<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-label: String used to label the plot in the legend.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -695,9 +732,8 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.eph.eph.EphFile.plot_with_a2f">
 <code class="descname">plot_with_a2f</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>qsamp='qintp'</em>, <em>phdos=None</em>, <em>ylims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.plot_with_a2f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.plot_with_a2f" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Plot phonon bands with lambda(q, nu) + a2F(w) + phonon DOS.</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<dd><p>Plot phonon bands with lambda(q, nu) + a2F(w) + phonon DOS.</p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -716,11 +752,11 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -729,63 +765,11 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="abipy.eph.eph.EphFile.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.eph.eph.EphFile.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="abipy.eph.eph.EphFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphFile.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.eph.eph.EphReader">
-<em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">EphReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronsReader</span></code></p>
-<p>Reads data from EPH file and constructs objects.</p>
-<dl class="method">
-<dt id="abipy.eph.eph.EphReader.read_a2f">
-<code class="descname">read_a2f</code><span class="sig-paren">(</span><em>qsamp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_a2f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_a2f" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return the Eliashberg function a2F(w).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphReader.read_edos">
-<code class="descname">read_edos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_edos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the ElectronDos used to compute EPH quantities.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphReader.read_phbands_qpath">
-<code class="descname">read_phbands_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_phbands_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_phbands_qpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return <code class="xref py py-class docutils literal"><span class="pre">PhononBands</span></code> computed along the path.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphReader.read_phgamma_qpath">
-<code class="descname">read_phgamma_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_phgamma_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_phgamma_qpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the phonon linewidths <em>interpolated</em> along the q-path.
-Return results in eV
-Shape [nsppol, nqpath, natom3]</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphReader.read_phlambda_qpath">
-<code class="descname">read_phlambda_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_phlambda_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_phlambda_qpath" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the EPH coupling strength <em>interpolated</em> along the q-path.
-Shape [nsppol, nqpath, natom3]</p>
 </dd></dl>
 
 </dd></dl>
@@ -795,9 +779,23 @@ Shape [nsppol, nqpath, natom3]</p>
 <em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">EphRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.RobotWithEbands</span></code>, <code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.RobotWithPhbands</span></code></p>
 <p>This robot analyzes the results contained in multiple EPH.nc files.</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-62ea54cea91ea5f24f5bd3ded00d99f2087a0e49.png" alt="Inheritance diagram of EphRobot" usemap="#inheritance24449b2e53" class="inheritance"/>
+<map id="inheritance24449b2e53" name="inheritance24449b2e53">
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="327,101,488,125"/>
+<area shape="rect" id="node5" href="#abipy.eph.eph.EphRobot" target="_top" title="This robot analyzes the results contained in multiple EPH.nc files." alt="" coords="589,53,757,77"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
+<area shape="rect" id="node3" title="Mixin class for robots associated to files with |PhononBands|." alt="" coords="281,5,533,29"/>
+<area shape="rect" id="node4" title="Mixin class for robots associated to files with |ElectronBands|." alt="" coords="273,53,541,77"/>
+</map>
 <dl class="attribute">
 <dt id="abipy.eph.eph.EphRobot.EXT">
 <code class="descname">EXT</code><em class="property"> = 'EPH'</em><a class="headerlink" href="#abipy.eph.eph.EphRobot.EXT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.eph.EphRobot.linestyle_qsamp">
+<code class="descname">linestyle_qsamp</code><em class="property"> = {'qcoarse': '--', 'qintp': '-'}</em><a class="headerlink" href="#abipy.eph.eph.EphRobot.linestyle_qsamp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -808,12 +806,12 @@ Shape [nsppol, nqpath, natom3]</p>
 <dl class="method">
 <dt id="abipy.eph.eph.EphRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>abspath=False</em>, <em>with_geo=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return a pandas dataframe with results</p>
+<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>abspath</strong> – True if paths in index should be absolute. Default: Relative to getcwd().</li>
 <li><strong>with_geo</strong> – True if structure info should be added to the dataframe</li>
 <li><strong>funcs</strong> – Function or list of functions to execute to add more data to the DataFrame.
@@ -822,44 +820,37 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">pandas DataFrame</p>
+</tbody>
+</table>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphRobot.plot_lambda_convergence">
+<code class="descname">plot_lambda_convergence</code><span class="sig-paren">(</span><em>what='lambda'</em>, <em>sortby=''</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>cmap='jet'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot.plot_lambda_convergence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot.plot_lambda_convergence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the convergence of the lambda(q, nu) parameters wrt to the <code class="docutils literal"><span class="pre">sortby</span></code> parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>what</strong> – <code class="docutils literal"><span class="pre">lambda</span></code> for eph strength, gamma for phonon linewidths.</li>
+<li><strong>sortby</strong> – Define the convergence parameter, sort files and produce plot labels.</li>
+<li><strong>be None</strong><strong>, </strong><strong>string</strong><strong> or </strong><strong>function.</strong> (<em>Can</em>) – If None, no sorting is performed.
+If string, it’s assumed that the ncfile has an attribute with the same name
+and <code class="docutils literal"><span class="pre">getattr</span></code> is invoked.
+If callable, the output of callable(ncfile) is used.</li>
+<li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>cmap</strong> – </li>
+</ul>
 </td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.eph.EphRobot.linestyle_qsamp">
-<code class="descname">linestyle_qsamp</code><em class="property"> = {'qcoarse': '--', 'qintp': '-'}</em><a class="headerlink" href="#abipy.eph.eph.EphRobot.linestyle_qsamp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.eph.EphRobot.plot_a2f_convergence">
-<code class="descname">plot_a2f_convergence</code><span class="sig-paren">(</span><em>sortby=''</em>, <em>qsamps='all'</em>, <em>ax=None</em>, <em>xlims=None</em>, <em>cmap='jet'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot.plot_a2f_convergence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot.plot_a2f_convergence" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the convergence of the Eliashberg function wrt to the <cite>sortby</cite> parameter.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">sortby: Define the convergence parameter, sort files and produce plot labels.
-Can be None, string or function.</p>
-<blockquote>
-<div>If None, no sorting is performed.
-If string, it’s assumed that the ncfile has an attribute with the same name
-and <cite>getattr</cite> is invoked.
-If callable, the output of callable(ncfile) is used.</div></blockquote>
-<p>qsamps:
-ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
-<blockquote>
-<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used.</div></blockquote>
-<p class="last">cmap: matplotlib color map.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -878,11 +869,11 @@ xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -892,32 +883,32 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.eph.eph.EphRobot.plot_lambda_convergence">
-<code class="descname">plot_lambda_convergence</code><span class="sig-paren">(</span><em>what='lambda'</em>, <em>sortby=''</em>, <em>ylims=None</em>, <em>ax=None</em>, <em>cmap='jet'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot.plot_lambda_convergence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot.plot_lambda_convergence" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the convergence of the lambda(q, nu) parameters wrt to the <cite>sortby</cite> parameter.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">what: <cite>lambda</cite> for eph strength, gamma for phonon linewidths.
-sortby: Define the convergence parameter, sort files and produce plot labels.
-Can be None, string or function.</p>
-<blockquote>
-<div>If None, no sorting is performed.
+<dt id="abipy.eph.eph.EphRobot.plot_a2f_convergence">
+<code class="descname">plot_a2f_convergence</code><span class="sig-paren">(</span><em>sortby=''</em>, <em>qsamps='all'</em>, <em>ax=None</em>, <em>xlims=None</em>, <em>cmap='jet'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot.plot_a2f_convergence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot.plot_a2f_convergence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the convergence of the Eliashberg function wrt to the <code class="docutils literal"><span class="pre">sortby</span></code> parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sortby</strong> – Define the convergence parameter, sort files and produce plot labels.
+Can be None, string or function.
+If None, no sorting is performed.
 If string, it’s assumed that the ncfile has an attribute with the same name
 and <cite>getattr</cite> is invoked.
-If callable, the output of callable(ncfile) is used.</div></blockquote>
-<dl class="docutils">
-<dt>ylims: Set the data limits for the y-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
-<dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</dd>
-</dl>
-<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.
-cmap:</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+If callable, the output of callable(ncfile) is used.</li>
+<li><strong>qsamps</strong> – </li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
+<li><strong>cmap</strong> – matplotlib color map.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -936,11 +927,11 @@ cmap:</p>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -952,197 +943,71 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.eph.eph.EphRobot.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.eph.eph.EphReader">
+<em class="property">class </em><code class="descclassname">abipy.eph.eph.</code><code class="descname">EphReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronsReader</span></code></p>
+<p>Reads data from the EPH.nc file and constructs objects.</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-e30b51d2630bdb5201771d78afb1d01974888f55.png" alt="Inheritance diagram of EphReader" usemap="#inheritancee6026743d8" class="inheritance"/>
+<map id="inheritancee6026743d8" name="inheritancee6026743d8">
+<area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="337,3,474,16"/>
+<area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="500,16,643,29"/>
+<area shape="rect" id="node4" href="#abipy.eph.eph.EphReader" target="_top" title="Reads data from the EPH.nc file and constructs objects." alt="" coords="669,16,765,29"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="355,29,456,42"/>
+<area shape="rect" id="node5" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="169,29,311,42"/>
+<area shape="rect" id="node6" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="3,29,143,42"/>
+</map>
+<dl class="method">
+<dt id="abipy.eph.eph.EphReader.read_edos">
+<code class="descname">read_edos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_edos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_edos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the <a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronDos" title="abipy.electrons.ebands.ElectronDos"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronDos</span></code></a> used to compute EPH quantities.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphReader.read_phbands_qpath">
+<code class="descname">read_phbands_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_phbands_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_phbands_qpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return a <a class="reference internal" href="dfpt_api.html#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> object with frequencies computed along the q-path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphReader.read_phlambda_qpath">
+<code class="descname">read_phlambda_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_phlambda_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_phlambda_qpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the EPH coupling strength <em>interpolated</em> along the q-path.
+Return <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nsppol, nqpath, natom3]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphReader.read_phgamma_qpath">
+<code class="descname">read_phgamma_qpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_phgamma_qpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_phgamma_qpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the phonon linewidths <em>interpolated</em> along the q-path.
+Return results in eV
+Return <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with shape [nsppol, nqpath, natom3]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.eph.EphReader.read_a2f">
+<code class="descname">read_a2f</code><span class="sig-paren">(</span><em>qsamp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/eph.html#EphReader.read_a2f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.eph.EphReader.read_a2f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read and return the Eliashberg function <code class="xref py py-class docutils literal"><span class="pre">A2F</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.eph.sigeph">
-<span id="sigeph-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">sigeph</span></code> Module<a class="headerlink" href="#module-abipy.eph.sigeph" title="Permalink to this headline">¶</a></h2>
+<span id="sigeph-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">sigeph</span></code> Module</a><a class="headerlink" href="#module-abipy.eph.sigeph" title="Permalink to this headline">¶</a></h2>
 <p>This module contains objects for the postprocessing of Sigma_eph calculations.</p>
+<p>For a theoretical introduction see <a class="reference internal" href="../zzbiblio.html#giustino2017" id="id2">[Giu17]</a></p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Work in progress, DO NOT USE THIS CODE</p>
 </div>
-<dl class="class">
-<dt id="abipy.eph.sigeph.EphSelfEnergy">
-<em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">EphSelfEnergy</code><span class="sig-paren">(</span><em>wmesh</em>, <em>qp</em>, <em>vals_e0ks</em>, <em>dvals_de0ks</em>, <em>dw_vals</em>, <em>vals_wr</em>, <em>spfunc_wr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Electron self-energy due to phonon interaction $Sigma_{nk}(omega,T)$
-Actually diagonal matrix elements in the KS basis set.</p>
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.EphSelfEnergy.latex_symbol">
-<code class="descname">latex_symbol</code><em class="property"> = {'re': '$\\Re{\\Sigma(\\omega)}$', 'im': '$\\Im{\\Sigma(\\omega)}$', 'spfunc': '$A(\\omega)}$'}</em><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy.latex_symbol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.EphSelfEnergy.plot_tdep">
-<code class="descname">plot_tdep</code><span class="sig-paren">(</span><em>itemps='all'</em>, <em>zero_energy='e0'</em>, <em>cmap='jet'</em>, <em>ax_list=None</em>, <em>what_list=('re'</em>, <em>'im'</em>, <em>'spfunc')</em>, <em>xlims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy.plot_tdep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy.plot_tdep" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the real/imaginary part of self-energy as well as the spectral function for
-the different temperatures with a color map.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">itemps:
-zero_energy:
-cmap: matplotlib color map.
-ax_list:
-what_list:
-xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></p>
-<blockquote class="last">
-<div>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used.</div></blockquote>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.EphSelfEnergy.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.eph.sigeph.QpTempList">
-<em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">QpTempList</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">list</span></code></p>
-<p>A list of quasiparticle corrections for a given spin.</p>
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempList.get_e0mesh">
-<code class="descname">get_e0mesh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.get_e0mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.get_e0mesh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the E0 energies.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempList.get_field_itemp">
-<code class="descname">get_field_itemp</code><span class="sig-paren">(</span><em>field</em>, <em>itemp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.get_field_itemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.get_field_itemp" title="Permalink to this definition">¶</a></dt>
-<dd><p><cite>ndarray</cite> containing the values of field at temperature <cite>itemp</cite></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempList.merge">
-<code class="descname">merge</code><span class="sig-paren">(</span><em>other</em>, <em>copy=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge self with other. Return new <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> object</p>
-<dl class="docutils">
-<dt>Raise:</dt>
-<dd>ValueError if merge cannot be done.</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.QpTempList.ntemp">
-<code class="descname">ntemp</code><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.ntemp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempList.plot_vs_e0">
-<code class="descname">plot_vs_e0</code><span class="sig-paren">(</span><em>with_fields='all'</em>, <em>exclude_fields=None</em>, <em>fermie=0.0</em>, <em>cmap='jet'</em>, <em>ax_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.plot_vs_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.plot_vs_e0" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the QP results as function of the initial KS energy.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>with_fields: The names of the qp attributes to plot as function of e0.</dt>
-<dd>Accepts: List of strings or string with tokens separated by blanks.
-See <code class="xref py py-class docutils literal"><span class="pre">QPState</span></code> for the list of available fields.</dd>
-</dl>
-<p class="last">exclude_fields: Similar to <cite>with_field</cite> but excludes fields.
-ax_list: List of matplotlib axes for plot. If None, new figure is produced.
-cmap: matplotlib color map.
-fermie: Value of the Fermi level used in plot. 0 for absolute e0s.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure.</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempList.sort_by_e0">
-<code class="descname">sort_by_e0</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.sort_by_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.sort_by_e0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new object with the E0 energies sorted in ascending order.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.QpTempList.tmesh">
-<code class="descname">tmesh</code><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.tmesh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Temperature mesh in K.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempList.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="class">
 <dt id="abipy.eph.sigeph.QpTempState">
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">QpTempState</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState" title="Permalink to this definition">¶</a></dt>
@@ -1152,78 +1017,6 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <p class="first admonition-title">Note</p>
 <p class="last">Energies are in eV.</p>
 </div>
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempState.get_dataframe">
-<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>index=None</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> – Optional (Ordered) dictionary with extra parameters.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.eph.sigeph.QpTempState.get_fields">
-<em class="property">classmethod </em><code class="descname">get_fields</code><span class="sig-paren">(</span><em>exclude=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.get_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.get_fields" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.QpTempState.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>with_fields='all'</em>, <em>exclude_fields=None</em>, <em>fermi=None</em>, <em>ax_list=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.plot" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the QP results as function of temperature.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>with_fields: The names of the QpTempState attributes to plot as function of e0.</dt>
-<dd>Accepts: List of strings or string with tokens separated by blanks.
-See <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="abipy.eph.sigeph.QpTempState"><code class="xref py py-class docutils literal"><span class="pre">QpTempState</span></code></a> for the list of available fields.</dd>
-</dl>
-<p class="last">exclude_fields: Similar to <cite>with_field</cite> but excludes fields.
-ax_list: List of matplotlib axes for plot. If None, new figure is produced.
-label: Label for plot.
-# FIXME
-fermi: Value of the Fermi level used in plot. None to disable plot</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure.</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="abipy.eph.sigeph.QpTempState.qpeme0">
 <code class="descname">qpeme0</code><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.qpeme0" title="Permalink to this definition">¶</a></dt>
@@ -1236,10 +1029,271 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dd><p>Tuple with (spin, kpoint, band)</p>
 </dd></dl>
 
+<dl class="classmethod">
+<dt id="abipy.eph.sigeph.QpTempState.get_fields">
+<em class="property">classmethod </em><code class="descname">get_fields</code><span class="sig-paren">(</span><em>exclude=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.get_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.get_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="abipy.eph.sigeph.QpTempState.to_string">
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation with verbosity level <cite>verbose</cite> and optional title</p>
+<dd><p>String representation with verbosity level <code class="docutils literal"><span class="pre">verbose</span></code> and optional <code class="docutils literal"><span class="pre">title</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempState.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>index=None</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> – </li>
+<li><strong>params</strong> – Optional (Ordered) dictionary with extra parameters.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempState.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>with_fields='all'</em>, <em>exclude_fields=None</em>, <em>fermi=None</em>, <em>ax_list=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempState.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempState.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the QP results as function of temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_fields</strong> – The names of the QpTempState attributes to plot as function of e0.
+Accepts: List of strings or string with tokens separated by blanks.
+See <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="abipy.eph.sigeph.QpTempState"><code class="xref py py-class docutils literal"><span class="pre">QpTempState</span></code></a> for the list of available fields.</li>
+<li><strong>exclude_fields</strong> – Similar to <cite>with_field</cite> but excludes fields.</li>
+<li><strong>fermi</strong> – </li>
+<li><strong>ax_list</strong> – List of matplotlib axes for plot. If None, new figure is produced.</li>
+<li><strong>label</strong> – Label for plot.</li>
+<li><strong>FIXME</strong> (<em>#</em>) – </li>
+<li><strong>fermi</strong> – Value of the Fermi level used in plot. None to disable plot</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.eph.sigeph.QpTempList">
+<em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">QpTempList</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">list</span></code></p>
+<p>A list of quasiparticle corrections for a given spin.</p>
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.QpTempList.tmesh">
+<code class="descname">tmesh</code><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.tmesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temperature mesh in Kelvin.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.QpTempList.ntemp">
+<code class="descname">ntemp</code><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.ntemp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of temperatures.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempList.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempList.sort_by_e0">
+<code class="descname">sort_by_e0</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.sort_by_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.sort_by_e0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> object with the E0 energies sorted in ascending order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempList.get_e0mesh">
+<code class="descname">get_e0mesh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.get_e0mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.get_e0mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the E0 energies.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempList.get_field_itemp">
+<code class="descname">get_field_itemp</code><span class="sig-paren">(</span><em>field</em>, <em>itemp</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.get_field_itemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.get_field_itemp" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> containing the values of field at temperature <code class="docutils literal"><span class="pre">itemp</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempList.merge">
+<code class="descname">merge</code><span class="sig-paren">(</span><em>other</em>, <em>copy=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge self with other. Return new <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> object</p>
+<dl class="docutils">
+<dt>Raise:</dt>
+<dd><cite>ValueError</cite> if merge cannot be done.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.QpTempList.plot_vs_e0">
+<code class="descname">plot_vs_e0</code><span class="sig-paren">(</span><em>with_fields='all'</em>, <em>exclude_fields=None</em>, <em>fermie=0.0</em>, <em>cmap='jet'</em>, <em>ax_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList.plot_vs_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList.plot_vs_e0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the QP results as function of the initial KS energy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_fields</strong> – The names of the qp attributes to plot as function of e0.
+Accepts: List of strings or string with tokens separated by blanks.
+See <code class="xref py py-class docutils literal"><span class="pre">QPState</span></code> for the list of available fields.</li>
+<li><strong>exclude_fields</strong> – Similar to <cite>with_field</cite> but excludes fields.</li>
+<li><strong>fermie</strong> – Value of the Fermi level used in plot. 0 for absolute e0s.</li>
+<li><strong>cmap</strong> – matplotlib color map.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.eph.sigeph.EphSelfEnergy">
+<em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">EphSelfEnergy</code><span class="sig-paren">(</span><em>wmesh</em>, <em>qp</em>, <em>vals_e0ks</em>, <em>dvals_de0ks</em>, <em>dw_vals</em>, <em>vals_wr</em>, <em>spfunc_wr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Electron self-energy due to phonon interaction <span class="math">\(\Sigma_{nk}(\omega,T)\)</span>
+Actually these are the diagonal matrix elements in the KS basis set.</p>
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.EphSelfEnergy.latex_symbol">
+<code class="descname">latex_symbol</code><em class="property"> = {'re': '$\\Re{\\Sigma(\\omega)}$', 'im': '$\\Im{\\Sigma(\\omega)}$', 'spfunc': '$A(\\omega)}$'}</em><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy.latex_symbol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.EphSelfEnergy.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.EphSelfEnergy.plot_tdep">
+<code class="descname">plot_tdep</code><span class="sig-paren">(</span><em>itemps='all'</em>, <em>zero_energy='e0'</em>, <em>cmap='jet'</em>, <em>ax_list=None</em>, <em>what_list=('re'</em>, <em>'im'</em>, <em>'spfunc')</em>, <em>xlims=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy.plot_tdep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy.plot_tdep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the real/imaginary part of self-energy as well as the spectral function for
+the different temperatures with a color map.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>itemps</strong> – </li>
+<li><strong>zero_energy</strong> – </li>
+<li><strong>cmap</strong> – matplotlib color map.</li>
+<li><strong>ax_list</strong> – </li>
+<li><strong>what_list</strong> – </li>
+<li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
+<li><strong>fontsize</strong> – legend and label fontsize.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -1248,7 +1302,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dt id="abipy.eph.sigeph.SigEPhFile">
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">SigEPhFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_ElectronBands" title="abipy.core.mixins.Has_ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_ElectronBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
-<p>This file contains the Fan-Migdal self-energy, the ElectronBands on the k-mesh.
+<p>This file contains the Fan-Migdal Debye-Waller self-energy, the <a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> on the k-mesh.
 Provides methods to analyze and plot results.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">SigEPhFile</span><span class="p">(</span><span class="s2">&quot;out_SIGEPH.nc&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
@@ -1256,6 +1310,49 @@ Provides methods to analyze and plot results.</p>
     <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-0c932fccca477ddc02336190ef74fc4c23b7f804.png" alt="Inheritance diagram of SigEPhFile" usemap="#inheritancec955d9a210" class="inheritance"/>
+<map id="inheritancec955d9a210" name="inheritancec955d9a210">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="29,5,227,29"/>
+<area shape="rect" id="node5" href="#abipy.eph.sigeph.SigEPhFile" target="_top" title="This file contains the Fan&#45;Migdal Debye&#45;Waller self&#45;energy, the |ElectronBands| on the k&#45;mesh." alt="" coords="298,77,489,101"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing electron data." alt="" coords="5,53,250,77"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="22,101,234,125"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="18,149,238,173"/>
+</map>
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.SigEPhFile.marker_spin">
+<code class="descname">marker_spin</code><em class="property"> = {0: '^', 1: 'v'}</em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.marker_spin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.SigEPhFile.color_spin">
+<code class="descname">color_spin</code><em class="property"> = {0: 'k', 1: 'r'}</em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.color_spin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.eph.sigeph.SigEPhFile.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the object from a netcdf file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.SigEPhFile.ebands">
+<code class="descname">ebands</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.ebands" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.SigEPhFile.structure">
+<code class="descname">structure</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.structure" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.close" title="Permalink to this definition">¶</a></dt>
@@ -1263,189 +1360,33 @@ Provides methods to analyze and plot results.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.color_spin">
-<code class="descname">color_spin</code><em class="property"> = {0: 'k', 1: 'r'}</em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.color_spin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="abipy.eph.sigeph.SigEPhFile.sigma_kpoints">
+<code class="descname">sigma_kpoints</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.sigma_kpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>The K-points where QP corrections have been calculated.</p>
+</dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.ebands">
-<code class="descname">ebands</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.ebands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.ebands" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">ElectronBands</span></code> object.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.eph.sigeph.SigEPhFile.from_file">
-<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the object from a Netcdf file.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe">
-<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns pandas dataframe with qp results for all k-points, bands and spins
-included in the calculation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>with_params</strong> – </li>
-<li><strong>ignore_imag</strong> – only real part is returned if <cite>ignore_imag</cite>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">
-<code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>index=None</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns pandas DataFrame with QP results for the given (spin, k-point).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>with_params</strong> – </li>
-<li><strong>ignore_imag</strong> – Only real part is returned if <cite>ignore_imag</cite>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="abipy.eph.sigeph.SigEPhFile.tmesh">
+<code class="descname">tmesh</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.tmesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temperature mesh in Kelvin.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.eph.sigeph.SigEPhFile.ks_dirgaps">
 <code class="descname">ks_dirgaps</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.ks_dirgaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.ks_dirgaps" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.marker_spin">
-<code class="descname">marker_spin</code><em class="property"> = {0: '^', 1: 'v'}</em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.marker_spin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.mu_e">
-<code class="descname">mu_e</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.mu_e"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.mu_e" title="Permalink to this definition">¶</a></dt>
-<dd><p>mu_e[ntemp] chemical potential (eV) of electrons for the different temperatures.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.params">
-<code class="descname">params</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>AttrDict dictionary with the convergence parameters, e.g. nbsum.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhFile.plot_qpgaps_t">
-<code class="descname">plot_qpgaps_t</code><span class="sig-paren">(</span><em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.plot_qpgaps_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.plot_qpgaps_t" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the KS and the QP(T) direct gaps for all the k-points available on file.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhFile.plot_qps_vs_e0">
-<code class="descname">plot_qps_vs_e0</code><span class="sig-paren">(</span><em>with_fields='all'</em>, <em>exclude_fields=None</em>, <em>fermi=None</em>, <em>ax_list=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.plot_qps_vs_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.plot_qps_vs_e0" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the QP results as function of the initial KS energy.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><dl class="first docutils">
-<dt>with_fields: The names of the qp attributes to plot as function of e0.</dt>
-<dd>Accepts: List of strings or string with tokens separated by blanks.
-See <code class="xref py py-class docutils literal"><span class="pre">QPState</span></code> for the list of available fields.</dd>
-</dl>
-<p class="last">exclude_fields: Similar to <cite>with_field</cite> but excludes fields.
-ax_list: List of matplotlib axes for plot. If None, new figure is produced.
-cmap: matplotlib color map.
-fermie: Value of the Fermi level used in plot. 0 for absolute e0s.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure.</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.eph.sigeph.SigEPhFile.qp_dirgaps_t">
 <code class="descname">qp_dirgaps_t</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.qp_dirgaps_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.qp_dirgaps_t" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of shape [nsppol, nkcalc, ntemp] with the QP gaps in eV ordered as kcalc.</p>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> of shape [nsppol, nkcalc, ntemp] with the QP gaps in eV ordered as kcalc.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.qplist_spin">
-<code class="descname">qplist_spin</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.qplist_spin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.qplist_spin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tuple of <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> objects indexed by spin.</p>
+<dt id="abipy.eph.sigeph.SigEPhFile.mu_e">
+<code class="descname">mu_e</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.mu_e"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.mu_e" title="Permalink to this definition">¶</a></dt>
+<dd><p>mu_e[ntemp] chemical potential (eV) of electrons for the different temperatures.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1456,33 +1397,165 @@ Used to access data in the arrays that are dimensioned with [0:nkcalc]</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.sigma_kpoints">
-<code class="descname">sigma_kpoints</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.sigma_kpoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>The K-points where QP corrections have been calculated.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.structure">
-<code class="descname">structure</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.structure" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">Structure</span></code> object.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.eph.sigeph.SigEPhFile.tmesh">
-<code class="descname">tmesh</code><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.tmesh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Temperature mesh in Kelvin.</p>
+<dt id="abipy.eph.sigeph.SigEPhFile.params">
+<code class="descname">params</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.params" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters, e.g. nbsum.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhFile.to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>String representation.</p>
+<dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe">
+<code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+included in the calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_params</strong> – </li>
+<li><strong>ignore_imag</strong> – only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">
+<code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>index=None</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> – </li>
+<li><strong>sigma_kpoint</strong> – </li>
+<li><strong>index</strong> – </li>
+<li><strong>with_params</strong> – </li>
+<li><strong>ignore_imag</strong> – Only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.plot_qpgaps_t">
+<code class="descname">plot_qpgaps_t</code><span class="sig-paren">(</span><em>ax=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.plot_qpgaps_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.plot_qpgaps_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the KS and the QP(T) direct gaps for all the k-points available on file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>fontsize</strong> – legend and title fontsize.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.eph.sigeph.SigEPhFile.qplist_spin">
+<code class="descname">qplist_spin</code><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.qplist_spin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.qplist_spin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple of <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> objects indexed by spin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhFile.plot_qps_vs_e0">
+<code class="descname">plot_qps_vs_e0</code><span class="sig-paren">(</span><em>with_fields='all'</em>, <em>exclude_fields=None</em>, <em>fermi=None</em>, <em>ax_list=None</em>, <em>label=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.plot_qps_vs_e0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.plot_qps_vs_e0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the QP results as function of the initial KS energy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>with_fields</strong> – The names of the qp attributes to plot as function of e0.
+Accepts: List of strings or string with tokens separated by blanks.
+See <code class="xref py py-class docutils literal"><span class="pre">QPState</span></code> for the list of available fields.</li>
+<li><strong>exclude_fields</strong> – Similar to <code class="docutils literal"><span class="pre">with_field</span></code> but excludes fields.</li>
+<li><strong>fermie</strong> – Value of the Fermi level used in plot. 0 for absolute e0s.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> for plot. If None, new figure is produced.</li>
+<li><strong>label</strong> – </li>
+<li><strong>cmap</strong> – matplotlib color map.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -1493,15 +1566,43 @@ working directory is created. Return path to the notebook.</p>
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">SigEPhRobot</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="abio_api.html#abipy.abio.robots.Robot" title="abipy.abio.robots.Robot"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.robots.Robot</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.RobotWithEbands</span></code></p>
 <p>This robot analyzes the results contained in multiple SIGEPH.nc files.</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-49fa34eb3ee60a7ece24dc5b577e438dc27d0a7b.png" alt="Inheritance diagram of SigEPhRobot" usemap="#inheritancecd76e18211" class="inheritance"/>
+<map id="inheritancecd76e18211" name="inheritancecd76e18211">
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="314,51,468,74"/>
+<area shape="rect" id="node4" href="#abipy.eph.sigeph.SigEPhRobot" target="_top" title="This robot analyzes the results contained in multiple SIGEPH.nc files." alt="" coords="566,28,763,51"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,51,216,74"/>
+<area shape="rect" id="node3" title="Mixin class for robots associated to files with |ElectronBands|." alt="" coords="262,5,520,28"/>
+</map>
 <dl class="attribute">
 <dt id="abipy.eph.sigeph.SigEPhRobot.EXT">
 <code class="descname">EXT</code><em class="property"> = 'SIGEPH'</em><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.EXT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk">
+<code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> – Spin index</li>
+<li><strong>sigma_kpoint</strong> – </li>
+<li><strong>with_params</strong> – </li>
+<li><strong>ignore_imag</strong> – only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return pandas dataframe with qp results for all k-points, bands and spins
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 present in the files treated by the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1509,7 +1610,7 @@ present in the files treated by the robot.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>with_params</strong> – </li>
-<li><strong>ignore_imag</strong> – only real part is returned if <cite>ignore_imag</cite>.</li>
+<li><strong>ignore_imag</strong> – only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -1518,9 +1619,9 @@ present in the files treated by the robot.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk">
-<code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns pandas dataframe with qp results for this spin, k-point</p>
+<dt id="abipy.eph.sigeph.SigEPhRobot.plot_selfenergy_conv">
+<code class="descname">plot_selfenergy_conv</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>band</em>, <em>itemp=0</em>, <em>sortby=None</em>, <em>xlims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.plot_selfenergy_conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.plot_selfenergy_conv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the convergence of the E-PH self-energy wrt to the <code class="docutils literal"><span class="pre">sortby</span></code> parameter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1528,36 +1629,24 @@ present in the files treated by the robot.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>spin</strong> – </li>
 <li><strong>sigma_kpoint</strong> – </li>
-<li><strong>with_params</strong> – </li>
-<li><strong>ignore_imag</strong> – only real part is returned if <cite>ignore_imag</cite>.</li>
+<li><strong>band</strong> – </li>
+<li><strong>itemp</strong> – </li>
+<li><strong>sortby</strong> – Define the convergence parameter, sort files and produce plot labels.
+Can be None, string or function.
+If None, no sorting is performed.
+If string and not empty it’s assumed that the ncfile has an attribute
+with the same name and <cite>getattr</cite> is invoked.
+If callable, the output of callable(ncfile) is used.</li>
+<li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
+or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
+<li><strong>cmap</strong> – matplotlib color map.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhRobot.plot_qpgaps_t">
-<code class="descname">plot_qpgaps_t</code><span class="sig-paren">(</span><em>sortby=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.plot_qpgaps_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.plot_qpgaps_t" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Compare the QP(T) direct gaps for all the k-points available on file.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">sortby: Define the convergence parameter, sort files and produce plot labels.
-Can be None, string or function.</p>
-<blockquote>
-<div>If None, no sorting is performed.
-If string and not empty it’s assumed that the ncfile has an attribute
-with the same name and <cite>getattr</cite> is invoked.
-If callable, the output of callable(ncfile) is used.</div></blockquote>
-<p class="last">ax: matplotlib <code class="xref py py-class docutils literal"><span class="pre">Axes</span></code> or None if a new figure should be created.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -1576,11 +1665,11 @@ If callable, the output of callable(ncfile) is used.</div></blockquote>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -1590,30 +1679,28 @@ example: size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.eph.sigeph.SigEPhRobot.plot_selfenergy_conv">
-<code class="descname">plot_selfenergy_conv</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>band</em>, <em>itemp=0</em>, <em>sortby=None</em>, <em>xlims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.plot_selfenergy_conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.plot_selfenergy_conv" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot the convergence of the E-PH self-energy wrt to the <cite>sortby</cite> parameter.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">sortby: Define the convergence parameter, sort files and produce plot labels.
-Can be None, string or function.</p>
-<blockquote>
-<div>If None, no sorting is performed.
+<dt id="abipy.eph.sigeph.SigEPhRobot.plot_qpgaps_t">
+<code class="descname">plot_qpgaps_t</code><span class="sig-paren">(</span><em>sortby=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.plot_qpgaps_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.plot_qpgaps_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the QP(T) direct gaps for all the k-points available on file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sortby</strong> – Define the convergence parameter, sort files and produce plot labels.
+Can be None, string or function.
+If None, no sorting is performed.
 If string and not empty it’s assumed that the ncfile has an attribute
 with the same name and <cite>getattr</cite> is invoked.
-If callable, the output of callable(ncfile) is used.</div></blockquote>
-<dl class="docutils">
-<dt>xlims: Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite></dt>
-<dd>or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used.</dd>
-</dl>
-<p class="last">cmap: matplotlib color map.</p>
-</dd>
-<dt>Returns:</dt>
-<dd><cite>matplotlib</cite> figure</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
+If callable, the output of callable(ncfile) is used.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -1632,11 +1719,11 @@ If callable, the output of callable(ncfile) is used.</div></blockquote>
 <td>True to show the figure (default: True).</td>
 </tr>
 <tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
 </tr>
 <tr class="row-odd"><td>size_kwargs</td>
 <td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
+e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 <tr class="row-even"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
@@ -1648,7 +1735,7 @@ example: size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.write_notebook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+<dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to <code class="docutils literal"><span class="pre">nbpath</span></code>. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
@@ -1659,6 +1746,16 @@ working directory is created. Return path to the notebook.</p>
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">SigmaPhReader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronsReader</span></code></p>
 <p>Reads data from file and constructs objects.</p>
+<p class="rubric">Inheritance Diagram</p>
+<img src="../_images/inheritance-5db3eb4b242662008e878bb196ffda67b382c611.png" alt="Inheritance diagram of SigmaPhReader" usemap="#inheritancee22e7005ea" class="inheritance"/>
+<map id="inheritancee22e7005ea" name="inheritancee22e7005ea">
+<area shape="rect" id="node1" title="Mixin class that provides methods for reading k&#45;point data from a netcdf" alt="" coords="326,3,459,16"/>
+<area shape="rect" id="node2" title="This object reads band structure data from a netcdf_ file." alt="" coords="484,16,622,28"/>
+<area shape="rect" id="node4" href="#abipy.eph.sigeph.SigmaPhReader" target="_top" title="Reads data from file and constructs objects." alt="" coords="647,16,765,28"/>
+<area shape="rect" id="node3" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="344,28,441,41"/>
+<area shape="rect" id="node5" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="164,28,300,41"/>
+<area shape="rect" id="node6" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="3,28,138,41"/>
+</map>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigmaPhReader.get_sigma_skb_kpoint">
 <code class="descname">get_sigma_skb_kpoint</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>band</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.get_sigma_skb_kpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.get_sigma_skb_kpoint" title="Permalink to this definition">¶</a></dt>
@@ -1666,35 +1763,26 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.eph.sigeph.SigmaPhReader.read_allqps">
-<code class="descname">read_allqps</code><span class="sig-paren">(</span><em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.read_allqps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.read_allqps" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return list with <cite>nsppol</cite> items. Each item is a <cite>QpTempList</cite> with the QP results.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore_imag</strong> – Only real part is returned if <cite>ignore_imag</cite>.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.eph.sigeph.SigmaPhReader.read_qp">
-<code class="descname">read_qp</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>band</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.read_qp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.read_qp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <cite>QpTempState</cite> for the given (spin, kpoint, band).
-Only real part is returned if <cite>ignore_imag</cite>.</p>
+<dt id="abipy.eph.sigeph.SigmaPhReader.sigkpt2index">
+<code class="descname">sigkpt2index</code><span class="sig-paren">(</span><em>sigma_kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.sigkpt2index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.sigkpt2index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the index of the self-energy k-point in sigma_kpoints
+Used to access data in the arrays that are dimensioned [0:nkcalc]</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigmaPhReader.read_qplist_sk">
 <code class="descname">read_qplist_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.read_qplist_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.read_qplist_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return <cite>QpTempList</cite> object for the given spin, kpoint.</p>
+<dd><p>Read and return <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> object for the given spin, kpoint.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore_imag</strong> – Only real part is returned if <cite>ignore_imag</cite>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spin</strong> – </li>
+<li><strong>sigma_kpoint</strong> – </li>
+<li><strong>ignore_imag</strong> – Only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1707,10 +1795,24 @@ Only real part is returned if <cite>ignore_imag</cite>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="abipy.eph.sigeph.SigmaPhReader.sigkpt2index">
-<code class="descname">sigkpt2index</code><span class="sig-paren">(</span><em>sigma_kpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.sigkpt2index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.sigkpt2index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the index of the self-energy k-point in sigma_kpoints
-Used to access data in the arrays that are dimensioned [0:nkcalc]</p>
+<dt id="abipy.eph.sigeph.SigmaPhReader.read_qp">
+<code class="descname">read_qp</code><span class="sig-paren">(</span><em>spin</em>, <em>sigma_kpoint</em>, <em>band</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.read_qp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.read_qp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return :class:<code class="docutils literal"><span class="pre">QpTempState`</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">given</span> <span class="pre">(spin,</span> <span class="pre">kpoint,</span> <span class="pre">band).</span>
+<span class="pre">Only</span> <span class="pre">real</span> <span class="pre">part</span> <span class="pre">is</span> <span class="pre">returned</span> <span class="pre">if</span> <span class="pre">``ignore_imag</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.eph.sigeph.SigmaPhReader.read_allqps">
+<code class="descname">read_allqps</code><span class="sig-paren">(</span><em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigmaPhReader.read_allqps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigmaPhReader.read_allqps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list with <code class="docutils literal"><span class="pre">nsppol</span></code> items. Each item is a <a class="reference internal" href="#abipy.eph.sigeph.QpTempList" title="abipy.eph.sigeph.QpTempList"><code class="xref py py-class docutils literal"><span class="pre">QpTempList</span></code></a> with the QP results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore_imag</strong> – Only real part is returned if <code class="docutils literal"><span class="pre">ignore_imag</span></code>.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -1731,7 +1833,7 @@ Used to access data in the arrays that are dimensioned [0:nkcalc]</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

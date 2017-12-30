@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -126,7 +130,7 @@
   <h1>Source code for abipy.core.testing</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Common test support for all abipy test scripts.</span>
+<span class="sd">Common test support for all AbiPy test scripts.</span>
 
 <span class="sd">This single module should provide all the common functionality for abipy tests</span>
 <span class="sd">in a single location, so that test scripts can just import it and work right away.</span>
@@ -141,7 +145,9 @@
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
 <span class="kn">import</span> <span class="nn">numpy.testing.utils</span> <span class="k">as</span> <span class="nn">nptu</span>
+<span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">pymatgen.util.testing</span> <span class="k">import</span> <span class="n">PymatgenTest</span>
@@ -159,8 +165,7 @@
 
 <span class="k">def</span> <span class="nf">cmp_version</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compare two version strings with the given operator `op`</span>
-
+<span class="sd">    Compare two version strings with the given operator ``op``</span>
 <span class="sd">    &gt;&gt;&gt; assert cmp_version(&quot;1.1.1&quot;, &quot;1.1.0&quot;) and not cmp_version(&quot;1.1.1&quot;, &quot;1.1.0&quot;, op=&quot;==&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
@@ -174,7 +179,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    True if abinit is in $PATH.</span>
 <span class="sd">    If version is not None, abinit version op version is evaluated and the result is returned.</span>
-<span class="sd">    False if condition is not fulfilled or the execution of `abinit -v` raised CalledProcessError</span>
+<span class="sd">    False if condition is not fulfilled or the execution of ``abinit -v`` raised CalledProcessError</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">abinit</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;abinit&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">abinit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
@@ -199,21 +204,21 @@
 
 <span class="k">def</span> <span class="nf">has_matplotlib</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    True if matplotlib is installed.</span>
+<span class="sd">    True if matplotlib_ is installed.</span>
 <span class="sd">    If version is None, the result of matplotlib.__version__ `op` version is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">matplotlib</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="c1"># have_display = &quot;DISPLAY&quot; in os.environ</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping matplotlib test&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="c1"># http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
     <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>
     <span class="c1">#matplotlib.use(&quot;Agg&quot;, force=True)  # Use non-graphical display backend during test.</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="c1"># http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
 
     <span class="n">backend</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;agg&quot;</span><span class="p">:</span>
@@ -228,9 +233,9 @@
 
 
 <span class="k">def</span> <span class="nf">has_seaborn</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;True if seaborn is installed.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;True if seaborn_ is installed.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">seaborn.apionly</span> <span class="k">as</span> <span class="nn">sns</span>
+        <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
@@ -238,7 +243,7 @@
 
 <span class="k">def</span> <span class="nf">has_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    True if phonopy is installed.</span>
+<span class="sd">    True if phonopy_ is installed.</span>
 <span class="sd">    If version is None, the result of phonopy.__version__ `op` version is returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
@@ -269,10 +274,9 @@
 
 <span class="k">def</span> <span class="nf">json_read_abinit_input_from_path</span><span class="p">(</span><span class="n">json_path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Read a json file from the absolute path `json_path`, return AbinitInput instance.</span>
+<span class="sd">    Read a json file from the absolute path ``json_path``, return |AbinitInput| instance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span>
-    <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
@@ -293,7 +297,6 @@
 <span class="sd">    we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)</span>
 <span class="sd">    or almost equal (floats)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">check_int</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span>
 
@@ -372,6 +375,35 @@
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
 
+<span class="k">def</span> <span class="nf">get_gsinput_si</span><span class="p">(</span><span class="n">usepaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_task</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># Build GS input file.</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;14si.pspnc&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">usepaw</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">data</span><span class="o">.</span><span class="n">pseudos</span><span class="p">(</span><span class="s2">&quot;Si.GGA_PBE-JTH-paw.xml&quot;</span><span class="p">)</span>
+    <span class="c1">#silicon = abilab.Structure.zincblende(5.431, [&quot;Si&quot;, &quot;Si&quot;], units=&quot;ang&quot;)</span>
+    <span class="n">silicon</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">cif_file</span><span class="p">(</span><span class="s2">&quot;si.cif&quot;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span>
+    <span class="n">scf_input</span> <span class="o">=</span> <span class="n">AbinitInput</span><span class="p">(</span><span class="n">silicon</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">)</span>
+    <span class="n">ecut</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">scf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
+        <span class="n">ecut</span><span class="o">=</span><span class="n">ecut</span><span class="p">,</span>
+        <span class="n">pawecutdg</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">nband</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">paral_kgb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">iomode</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">toldfe</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">usepaw</span><span class="p">:</span>
+        <span class="n">scf_input</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">pawecutdg</span><span class="o">=</span><span class="mi">4</span> <span class="o">*</span> <span class="n">ecut</span><span class="p">)</span>
+
+    <span class="c1"># K-point sampling (shifted)</span>
+    <span class="n">scf_input</span><span class="o">.</span><span class="n">set_autokmesh</span><span class="p">(</span><span class="n">nksmall</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_task</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">scf_input</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">abipy.flowtk.tasks</span> <span class="k">import</span> <span class="n">ScfTask</span>
+        <span class="k">return</span> <span class="n">ScfTask</span><span class="p">(</span><span class="n">scf_input</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="AbipyTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyTest</span><span class="p">(</span><span class="n">PymatgenTest</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extends PymatgenTest with Abinit-specific methods &quot;&quot;&quot;</span>
 
@@ -397,7 +429,7 @@
 
 <div class="viewcode-block" id="AbipyTest.has_ase"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_ase">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">has_ase</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;True if ASE package is available.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;True if ASE_ package is available.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">ase</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -408,7 +440,7 @@
 
 <div class="viewcode-block" id="AbipyTest.has_mayavi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_mayavi">[docs]</a>    <span class="k">def</span> <span class="nf">has_mayavi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        True if Mayavi is available. Set also offscreen to True</span>
+<span class="sd">        True if mayavi_ is available. Set also offscreen to True</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Disable mayavi for the time being.</span>
         <span class="c1">#return False</span>
@@ -430,8 +462,7 @@
 
 <div class="viewcode-block" id="AbipyTest.get_abistructure_from_abiref"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_abistructure_from_abiref">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_abistructure_from_abiref</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return an Abipy structure from the basename of one of the reference files.&quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="k">as</span> <span class="nn">abidata</span>
+        <span class="sd">&quot;&quot;&quot;Return an Abipy |Structure| from the basename of one of the reference files.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
         <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="n">basename</span><span class="p">))</span></div>
 
@@ -443,7 +474,7 @@
 <div class="viewcode-block" id="AbipyTest.tmpfileindir"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.tmpfileindir">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">tmpfileindir</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the absolute path of a temporary file with basename `basename` created in a temporary directory.</span>
+<span class="sd">        Return the absolute path of a temporary file with basename ``basename`` created in a temporary directory.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span></div>
@@ -456,7 +487,7 @@
 
 <div class="viewcode-block" id="AbipyTest.has_nbformat"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_nbformat">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">has_nbformat</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Return True if nbformat is available and we can test the generation of ipython notebooks.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return True if nbformat is available and we can test the generation of jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">nbformat</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -465,7 +496,7 @@
 
 <div class="viewcode-block" id="AbipyTest.has_ipywidgets"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_ipywidgets">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">has_ipywidgets</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Return True if ipywidgets is available.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return True if ipywidgets_ package is available.&quot;&quot;&quot;</span>
         <span class="c1"># Disable widget tests on TRAVIS</span>
         <span class="c1">#if os.environ.get(&quot;TRAVIS&quot;): return False</span>
         <span class="k">try</span><span class="p">:</span>
@@ -490,7 +521,7 @@
 
 <div class="viewcode-block" id="AbipyTest.json_read_abinit_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.json_read_abinit_input">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">json_read_abinit_input</span><span class="p">(</span><span class="n">json_basename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return an AbinitInput from the basename of the file in abipy/data/test_files.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return an |AbinitInput| from the basename of the file in abipy/data/test_files.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">json_read_abinit_input_from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;test_files&#39;</span><span class="p">,</span> <span class="n">json_basename</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AbipyTest.assert_input_equality"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.assert_input_equality">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -498,9 +529,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check equality between an input and a reference in test_files.</span>
 <span class="sd">        only input variables and structure are compared.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            ref_basename: base name of the reference file to test against in test_files</span>
-<span class="sd">            input_to_test: AbinitInput object to test</span>
+<span class="sd">            input_to_test: |AbinitInput| object to test</span>
 <span class="sd">            rtol: passed to numpy.isclose for float comparison</span>
 <span class="sd">            atol: passed to numpy.isclose for float comparison</span>
 <span class="sd">            equal_nan: passed to numpy.isclose for float comparison</span>
@@ -520,27 +552,14 @@
 <div class="viewcode-block" id="AbipyTest.skip_if_not_phonopy"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_phonopy">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">skip_if_not_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Raise SkipTest if phonopy is not installed.</span>
-<span class="sd">        Use `version` and `op` to ask for a specific version</span>
+<span class="sd">        Raise SkipTest if phonopy_ is not installed.</span>
+<span class="sd">        Use ``version`` and ``op`` to ask for a specific version</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_phonopy</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires phonopy&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires phonopy version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="AbipyTest.skip_if_not_abinit"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_abinit">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">skip_if_not_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Raise SkipTest if the specified version of abinit is not installed.</span>
-<span class="sd">        Use `version` and `op` to ask for a specific version</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_abinit</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires abinit&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This test requires abinit version </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbipyTest.skip_if_not_pseudodojo"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.skip_if_not_pseudodojo">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -560,7 +579,7 @@
 
 <div class="viewcode-block" id="AbipyTest.abivalidate_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_input">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinput</span><span class="p">,</span> <span class="n">must_fail</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Invoke Abinit to test validity of an Input object</span>
+<span class="sd">        Invoke Abinit to test validity of an |AbinitInput| object</span>
 <span class="sd">        Print info to stdout if failure before raising AssertionError.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">v</span> <span class="o">=</span> <span class="n">abinput</span><span class="o">.</span><span class="n">abivalidate</span><span class="p">()</span>
@@ -579,7 +598,7 @@
 
 <div class="viewcode-block" id="AbipyTest.abivalidate_multi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_multi">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Invoke Abinit to test validity of a `MultiDataset` or a list of input objects.</span>
+<span class="sd">        Invoke Abinit to test validity of a |MultiDataset| or a list of |AbinitInput| objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">multi</span><span class="p">,</span> <span class="s2">&quot;split_datasets&quot;</span><span class="p">):</span>
             <span class="n">inputs</span> <span class="o">=</span> <span class="n">multi</span><span class="o">.</span><span class="n">split_datasets</span><span class="p">()</span>
@@ -600,9 +619,10 @@
 
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div>
 
-<div class="viewcode-block" id="AbipyTest.abivalidate_flow"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_flow">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
+<div class="viewcode-block" id="AbipyTest.abivalidate_flow"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_flow">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">abivalidate_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Invoke Abinit to test validity of the inputs of a flow</span>
+<span class="sd">        Invoke Abinit to test validity of the inputs of a |Flow|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">isok</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">abivalidate_inputs</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">isok</span><span class="p">:</span>
@@ -614,7 +634,12 @@
                 <span class="n">i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">50</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">50</span> <span class="k">else</span> <span class="mi">0</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Last 50 line from logfile:&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;flow.abivalidate_input failed. See messages above.&quot;</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;flow.abivalidate_input failed. See messages above.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbipyTest.get_gsinput_si"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_gsinput_si">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">get_gsinput_si</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="AbipyFileTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyFileTest</span><span class="p">(</span><span class="n">AbipyTest</span><span class="p">):</span>
@@ -690,7 +715,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

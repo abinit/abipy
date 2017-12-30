@@ -93,7 +93,7 @@ See also tutorial/lesson_rf2.html
     #plotter.combiplot(title="Bands + DOS in eV with combiplot")
     plotter.gridplot(units="cm-1", tight_layout=True, title="Bands + DOS in cm-1 with gridplot")
 
-**Total running time of the script:** ( 0 minutes  5.809 seconds)
+**Total running time of the script:** ( 0 minutes  6.063 seconds)
 
 
 

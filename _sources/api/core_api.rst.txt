@@ -1,6 +1,9 @@
 core Package
 ============
 
+.. contents::
+   :backlinks: top
+
 :mod:`core` Package
 -------------------
 
@@ -29,6 +32,14 @@ core Package
 --------------------
 
 .. automodule:: abipy.core.func1d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`globals` Module
+---------------------
+
+.. automodule:: abipy.core.globals
    :members:
    :undoc-members:
    :show-inheritance:

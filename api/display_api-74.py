@@ -1,1 +1,2 @@
-ax = sns.pointplot(x="tip", y="day", data=tips, join=False)
+ax = sns.swarmplot(x="time", y="tip", data=tips,
+                   order=["Dinner", "Lunch"])

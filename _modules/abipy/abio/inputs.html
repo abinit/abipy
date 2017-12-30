@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -262,7 +266,7 @@
 
 <div class="viewcode-block" id="AbstractInput.write"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;run.abi&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write the input file to file to `filepath`.</span>
+<span class="sd">        Write the input file to file to ``filepath``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
@@ -308,7 +312,7 @@
 
 <div class="viewcode-block" id="AbstractInput.add_abiobjects"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.add_abiobjects">[docs]</a>    <span class="k">def</span> <span class="nf">add_abiobjects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">abi_objects</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function receive a list of `AbiVarable` objects and add</span>
+<span class="sd">        This function receive a list of ``AbiVarable`` objects and add</span>
 <span class="sd">        the corresponding variables to the input.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
@@ -372,10 +376,10 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            `namedtuple` with the following attributes:</span>
+<span class="sd">            ``namedtuple`` with the following attributes:</span>
 
 <span class="sd">                retcode: Return code. 0 if OK.</span>
 <span class="sd">                output_file: output file of the run.</span>
@@ -386,12 +390,15 @@
 
 
 <div class="viewcode-block" id="AbinitInputError"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInputError">[docs]</a><span class="k">class</span> <span class="nc">AbinitInputError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base error class for exceptions raised by `AbinitInput`&quot;&quot;&quot;</span></div>
+    <span class="sd">&quot;&quot;&quot;Base error class for exceptions raised by ``AbinitInput``.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="AbinitInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput">[docs]</a><span class="k">class</span> <span class="nc">AbinitInput</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">AbstractInput</span><span class="p">,</span> <span class="n">MSONable</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object stores the ABINIT variables for a single dataset.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: AbinitInput</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">AbinitInputError</span>
 
@@ -399,11 +406,11 @@
                  <span class="n">abi_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object</span>
+<span class="sd">            structure: Parameters defining the crystalline structure. Accepts |Structure| object</span>
 <span class="sd">            file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.</span>
 <span class="sd">            pseudos: Pseudopotentials to be used for the calculation. Accepts: string or list of strings</span>
-<span class="sd">                with the name of the pseudopotential files, list of :class:`Pseudo` objects</span>
-<span class="sd">                or :class:`PseudoTable` object.</span>
+<span class="sd">                with the name of the pseudopotential files, list of |Pseudo| objects</span>
+<span class="sd">                or |PseudoTable| object.</span>
 <span class="sd">            pseudo_dir: Name of the directory where the pseudopotential files are located.</span>
 <span class="sd">            ndtset: Number of datasets.</span>
 <span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
@@ -548,7 +555,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">runlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A Set of strings defining the type of run of the current input.</span>
+<span class="sd">        A set of strings defining the type of run of the current input.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">optdriver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;optdriver&quot;</span><span class="p">)</span>
 
@@ -769,6 +776,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Optional string with comment. None if comment is not set.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comment</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -780,10 +788,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The :class:`Structure` associated to this input.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The |Structure| object associated to this input.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
 <div class="viewcode-block" id="AbinitInput.set_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.set_structure">[docs]</a>    <span class="k">def</span> <span class="nf">set_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set structure.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
 
         <span class="c1"># Check volume</span>
@@ -962,7 +971,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pseudos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;List of :class:`Pseudo` objects.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;List of |Pseudo| objects.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pseudos</span>
 
     <span class="nd">@property</span>
@@ -1088,11 +1097,11 @@
 
 <div class="viewcode-block" id="AbinitInput.new_with_structure"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_structure">[docs]</a>    <span class="k">def</span> <span class="nf">new_with_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_structure</span><span class="p">,</span> <span class="n">scdims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a new :class:`AbinitInput` with different structure.</span>
+<span class="sd">        Return a new |AbinitInput| with different structure.</span>
 <span class="sd">        See notes below for the constraints that must be fulfilled by the new structure</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            new_structure: Parameters defining the crystalline structure. Accepts :class:`Structure` object</span>
+<span class="sd">            new_structure: Parameters defining the crystalline structure. Accepts |Structure| object</span>
 <span class="sd">                file with structure (CIF, netcdf file, ...) or dictionary with ABINIT geo variables.</span>
 <span class="sd">            scdims: 3 integer giving with the number of cells in the supercell along the three reduced directions.</span>
 <span class="sd">                Must be used when `new_structure` represents a supercell of the initial structure defined</span>
@@ -1101,7 +1110,7 @@
 
 <span class="sd">        .. warning::</span>
 
-<span class="sd">            If `scdims` is None (i.e. no supercell), the two structures must have the same value of</span>
+<span class="sd">            If ``scdims`` is None (i.e. no supercell), the two structures must have the same value of</span>
 <span class="sd">            `natom` and `typat`, they can only differ at the level of the lattice and of the atomic positions.</span>
 <span class="sd">            When structure represents a supercell, `scdims` must be coherent with the `new_structure` passed</span>
 <span class="sd">            as argument.</span>
@@ -1192,7 +1201,7 @@
 <div class="viewcode-block" id="AbinitInput.new_with_decorators"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.new_with_decorators">[docs]</a>    <span class="k">def</span> <span class="nf">new_with_decorators</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">decorators</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,</span>
-<span class="sd">        applies the decorators to the input and returns a new :class:`AbinitInput` object. self is not changed.</span>
+<span class="sd">        applies the decorators to the input and returns a new |AbinitInput| object. self is not changed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">decorators</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">decorators</span> <span class="o">=</span> <span class="p">[</span><span class="n">decorators</span><span class="p">]</span>
 
@@ -1240,7 +1249,7 @@
 
         <span class="k">return</span> <span class="n">tolvar</span><span class="p">,</span> <span class="n">value</span>
 
-<div class="viewcode-block" id="AbinitInput.make_ph_inputs_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">make_ph_inputs_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_ph_inputs_qpoint"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_ph_inputs_qpoint">[docs]</a>    <span class="k">def</span> <span class="nf">make_ph_inputs_qpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This functions builds and returns a list of input files</span>
 <span class="sd">        for the calculation of phonons at the given q-point `qpt`.</span>
@@ -1250,9 +1259,10 @@
 <span class="sd">            qpt: q-point in reduced coordinates.</span>
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
 <span class="sd">                Defaults to {&quot;tolvrs&quot;: 1.0e-10}.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            List of `AbinitInput` objects for DFPT runs.</span>
+<span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
 
 <span class="sd">        .. WARNING::</span>
 
@@ -1266,7 +1276,7 @@
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Invalid tolerance: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">tolerance</span><span class="p">))</span>
 
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
-        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_phperts</span><span class="p">(</span><span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">)</span>
+        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_phperts</span><span class="p">(</span><span class="n">qpt</span><span class="o">=</span><span class="n">qpt</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
         <span class="c1"># Remove iscf if any (required if we pass an input for NSCF calculation)</span>
@@ -1306,7 +1316,7 @@
 <span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            List of AbinitInput objects for DFPT runs.</span>
+<span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolwfr&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
@@ -1341,7 +1351,7 @@
 
         <span class="k">return</span> <span class="n">ddk_inputs</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_dde_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dde_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dde_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_dde_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dde_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dde_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return inputs for the calculation of the electric field perturbations.</span>
 <span class="sd">        This functions should be called with an input the represents a gs run.</span>
@@ -1351,9 +1361,10 @@
 <span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
 <span class="sd">            use_symmetries: boolean that computes the irreducible components of the perturbation.</span>
 <span class="sd">                Default to True. Should be set to False for nonlinear coefficients calculation.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            List of `AbinitInput` objects for DFPT runs.</span>
+<span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-22</span><span class="p">}</span>
@@ -1363,7 +1374,7 @@
 
         <span class="k">if</span> <span class="n">use_symmetries</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
             <span class="c1"># Call Abinit to get the list of irred perts.</span>
-            <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_ddeperts</span><span class="p">()</span>
+            <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_ddeperts</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
             <span class="c1"># Build list of datasets (one input per irreducible perturbation)</span>
             <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">perts</span><span class="p">))</span>
@@ -1403,7 +1414,7 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_dte_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dte_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dte_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_dte_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_dte_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_dte_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phonon_pert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return inputs for the DTE calculation.</span>
 <span class="sd">        This functions should be called with an input that represents a GS run.</span>
@@ -1413,9 +1424,10 @@
 <span class="sd">            skip_permutations: Since the current version of abinit always performs all the permutations</span>
 <span class="sd">                of the perturbations, even if only one is asked, if True avoids the creation of inputs that</span>
 <span class="sd">                will produce duplicated outputs.</span>
+<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
-        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_dteperts</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">phonon_pert</span><span class="p">)</span>
+        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_dteperts</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">phonon_pert</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">skip_permutations</span><span class="p">:</span>
             <span class="n">perts_to_skip</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1469,11 +1481,11 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_bec_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_bec_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_bec_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_bec_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_bec_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_bec_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return inputs for the calculation of the Born effective charges.</span>
 
-<span class="sd">        This functions should be called with an input the represents a gs run.</span>
+<span class="sd">        This functions should be called with an input the represents a GS run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
@@ -1484,7 +1496,7 @@
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
         <span class="c1"># TODO:</span>
         <span class="c1"># Check that one can use the same list of irred perts as in phonons</span>
-        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_phperts</span><span class="p">(</span><span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_phperts</span><span class="p">(</span><span class="n">qpt</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">perts</span><span class="p">))</span>
@@ -1509,13 +1521,13 @@
 
         <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="AbinitInput.make_strain_perts_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_strain_perts_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_strain_perts_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AbinitInput.make_strain_perts_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.make_strain_perts_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">make_strain_perts_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-12</span><span class="p">}</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_TOLVARS</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tolerance</span><span class="p">):</span>
             <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Invalid tolerance: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)))</span>
 
-        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_strainperts</span><span class="p">(</span><span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_strainperts</span><span class="p">(</span><span class="n">kptopt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
 
         <span class="c1"># Build list of datasets (one input per perturbation)</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">replicate_input</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">perts</span><span class="p">))</span>
@@ -1567,7 +1579,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            `namedtuple` with the following attributes:</span>
@@ -1591,10 +1603,10 @@
 <span class="sd">        Args:</span>
 <span class="sd">            tolsym: Abinit tolsym input variable. None correspondes to the default value.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            Structure object with AbinitSpaceGroup obtained from the main output file.</span>
+<span class="sd">            |Structure| object with AbinitSpaceGroup obtained from the main output file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Avoid modifications in self.</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1624,7 +1636,7 @@
 <span class="sd">            shiftk: List of shifts (default None i.e. use shiftk from self)</span>
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `namedtuple` with attributes:</span>
@@ -1717,7 +1729,7 @@
 <span class="sd">            shiftk: Shiftks (default None i.e. use shiftk from self)</span>
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
@@ -1772,15 +1784,15 @@
 <span class="sd">            shiftk: Shiftks (default None i.e. use shiftk from self)</span>
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
-<span class="sd">            Example:</span>
+
+<span class="sd">        Example:</span>
 
 <span class="sd">                [{&#39;idir&#39;: 1, &#39;ipert&#39;: 1, &#39;qpt&#39;: [0.25, 0.0, 0.0]},</span>
 <span class="sd">                 {&#39;idir&#39;: 2, &#39;ipert&#39;: 1, &#39;qpt&#39;: [0.25, 0.0, 0.0]}]</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rfphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                         <span class="c1"># Will consider phonon-type perturbation</span>
                             <span class="n">rfatpol</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)],</span> <span class="c1"># Set of atoms to displace.</span>
@@ -1800,14 +1812,15 @@
 <span class="sd">            shiftk: Shiftks (default None i.e. use shiftk from self)</span>
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
-<span class="sd">            Example:</span>
 
-<span class="sd">                [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
-<span class="sd">                 {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
+<span class="sd">        Example:</span>
+
+<span class="sd">            [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
+<span class="sd">             {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ddeperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rfphon</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># No phonon-type perturbation</span>
@@ -1829,15 +1842,16 @@
 <span class="sd">            shiftk: Shiftks (default None i.e. use shiftk from self)</span>
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">            phonon_pert: if True also the phonon perturbations will be considered. Default False.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
-<span class="sd">            Example:</span>
 
-<span class="sd">                [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
-<span class="sd">                 {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
+<span class="sd">        Example:</span>
+
+<span class="sd">            [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
+<span class="sd">             {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dteperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">d3e_pert1_phon</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">phonon_pert</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>           <span class="c1"># phonon-type perturbation</span>
@@ -1867,15 +1881,15 @@
 <span class="sd">            shiftk: Shiftks (default None i.e. use shiftk from self)</span>
 <span class="sd">            kptopt: Option for k-point generation. If None, the value in self is used.</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
-<span class="sd">            Example:</span>
+<span class="sd">            </span>
+<span class="sd">        Example:</span>
 
-<span class="sd">                [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
-<span class="sd">                 {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
-
+<span class="sd">            [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
+<span class="sd">             {&#39;idir&#39;: 2, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]}]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">strainperts_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rfphon</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>                        <span class="c1"># No phonon-type perturbation</span>
                                 <span class="n">rfatpol</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">)),</span> <span class="c1"># Perturbation of all atoms</span>
@@ -1907,7 +1921,7 @@
 
 <div class="viewcode-block" id="AbinitInput.abiget_autoparal_pconfs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_autoparal_pconfs">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_autoparal_pconfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_ncpus</span><span class="p">,</span> <span class="n">autoparal</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get all the possible configurations up to max_ncpus</span>
+<span class="sd">        Get all the possible configurations up to ``max_ncpus``.</span>
 <span class="sd">        Return list of parallel configurations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1959,11 +1973,11 @@
 
 <div class="viewcode-block" id="MultiDataset"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset">[docs]</a><span class="k">class</span> <span class="nc">MultiDataset</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object is essentially a list of :class:`AbinitInput` objects.</span>
+<span class="sd">    This object is essentially a list of |AbinitInput| objects.</span>
 <span class="sd">    that provides an easy-to-use interface to apply global changes to the</span>
 <span class="sd">    the inputs stored in the objects.</span>
 
-<span class="sd">    Let&#39;s assume for example that multi contains two `AbinitInput` objects and we</span>
+<span class="sd">    Let&#39;s assume for example that multi contains two ``AbinitInput`` objects and we</span>
 <span class="sd">    want to set `ecut` to 1 in both dictionaries. The direct approach would be:</span>
 
 <span class="sd">        for inp in multi:</span>
@@ -2015,7 +2029,7 @@
 
 <div class="viewcode-block" id="MultiDataset.replicate_input"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.replicate_input">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">replicate_input</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">ndtset</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Construct a multidataset with ndtset from the :class:`AbinitInput` input.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Construct a multidataset with ndtset from the |AbinitInput| input.&quot;&quot;&quot;</span>
         <span class="n">multi</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="nb">input</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="n">ndtset</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">multi</span><span class="p">:</span>
@@ -2027,7 +2041,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">pseudo_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            structure: file with the structure, :class:`Structure` object or dictionary with ABINIT geo variable</span>
+<span class="sd">            structure: file with the structure, |Structure| object or dictionary with ABINIT geo variable</span>
 <span class="sd">                Accepts also list of objects that can be converted to Structure object.</span>
 <span class="sd">                In this case, however, ndtset must be equal to the length of the list.</span>
 <span class="sd">            pseudos: String or list of string with the name of the pseudopotential files.</span>
@@ -2148,14 +2162,14 @@
             <span class="k">return</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Operation not supported&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiDataset.append"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinit_input</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a :class:`AbinitInput` to the list.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Add a |AbinitInput| to the list.&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">abinit_input</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p1</span> <span class="o">!=</span> <span class="n">p2</span> <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">abinit_input</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">abinit_input</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pseudos must be consistent when from_inputs is invoked.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">abinit_input</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MultiDataset.extend"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinit_inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Extends self with a list of :class:`AbinitInput` objects.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Extends self with a list of |AbinitInput| objects.&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">AbinitInput</span><span class="p">)</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">abinit_inputs</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">abinit_inputs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p1</span> <span class="o">!=</span> <span class="n">p2</span> <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)):</span>
@@ -2163,15 +2177,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">abinit_inputs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MultiDataset.addnew_from"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.addnew_from">[docs]</a>    <span class="k">def</span> <span class="nf">addnew_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtindex</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a new entry in the multidataset by copying the input with index `dtindex`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Add a new entry in the multidataset by copying the input with index ``dtindex``.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">dtindex</span><span class="p">]</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="MultiDataset.split_datasets"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.split_datasets">[docs]</a>    <span class="k">def</span> <span class="nf">split_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return list of AbinitInput files.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return list of |AbinitInput| objects..&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span></div>
 
 <div class="viewcode-block" id="MultiDataset.deepcopy"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.deepcopy">[docs]</a>    <span class="k">def</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Deep copy of the object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Deep copy of the MultiDataset.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
@@ -2187,7 +2201,7 @@
 <span class="sd">        String representation i.e. the input file read by Abinit.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            mode: Either `text` or `html` if HTML output with links is wanted.</span>
+<span class="sd">            mode: Either ``text`` or ``html`` if HTML output with links is wanted.</span>
 <span class="sd">            with_pseudos: False if JSON section with pseudo data should not be added.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span>
@@ -2257,7 +2271,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">with_pseudos</span><span class="o">=</span><span class="n">with_pseudos</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MultiDataset.filter_by_tags"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.filter_by_tags">[docs]</a>    <span class="k">def</span> <span class="nf">filter_by_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2269,7 +2283,7 @@
 <span class="sd">            exclude_tags: A single tag or list/tuple/set of tags that should be excluded</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A :class:`MultiDataset` containing the inputs containing all the requested tags</span>
+<span class="sd">            A |MultiDataset| containing the inputs containing all the requested tags.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
             <span class="n">tags</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
@@ -2315,7 +2329,7 @@
 
 <div class="viewcode-block" id="MultiDataset.filter_by_runlevel"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.filter_by_runlevel">[docs]</a>    <span class="k">def</span> <span class="nf">filter_by_runlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runlevel</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return new MultiDataset object in which only the inputs with the given runlevel are selected</span>
+<span class="sd">        Return new |MultiDataset| object in which only the inputs with the given runlevel are selected.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">runlevel</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
             <span class="n">runlevel</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">runlevel</span><span class="p">)</span>
@@ -2328,7 +2342,7 @@
 
 <div class="viewcode-block" id="MultiDataset.write"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="s2">&quot;run.abi&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write `ndset` input files to disk. The name of the file</span>
+<span class="sd">        Write ``ndset`` input files to disk. The name of the file</span>
 <span class="sd">        is constructed from the dataset index e.g. run0.abi</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">root</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -2342,13 +2356,20 @@
 
 
 <div class="viewcode-block" id="AnaddbInput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput">[docs]</a><span class="k">class</span> <span class="nc">AnaddbInput</span><span class="p">(</span><span class="n">AbstractInput</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object stores the anaddb variables.</span>
+
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: AnaddbInput</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">Error</span> <span class="o">=</span> <span class="n">AnaddbInputError</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            structure: :class:`Structure` object</span>
+<span class="sd">            structure: |Structure| object</span>
 <span class="sd">            comment: Optional string with a comment that will be placed at the beginning of the file.</span>
 <span class="sd">            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)</span>
 <span class="sd">            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)</span>
@@ -2400,7 +2421,7 @@
 <span class="sd">        Input file for the calculation of the phonon frequencies at a given q-point.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            Structure: :class:`Structure` object</span>
+<span class="sd">            structure: |Structure| object</span>
 <span class="sd">            qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted</span>
 <span class="sd">            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.</span>
 <span class="sd">            lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma</span>
@@ -2476,7 +2497,7 @@
 <span class="sd">        Build an anaddb input file for the computation of phonon bands and phonon DOS.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            structure: :class:`Structure` object</span>
+<span class="sd">            structure: |Structure| object</span>
 <span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
 <span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
 <span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
@@ -2634,7 +2655,7 @@
 <span class="sd">        Build an anaddb input file for the computation of phonon modes.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            Structure: :class:`Structure` object</span>
+<span class="sd">            Structure: |Structure| object</span>
 <span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
 <span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
 <span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
@@ -2689,7 +2710,7 @@
 <span class="sd">        Build an anaddb input file for the computation of interatomic force constants.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            structure: :class:`Structure` object</span>
+<span class="sd">            structure: |Structure| object</span>
 <span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
 <span class="sd">            ifcout: Number of neighbouring atoms for which the ifc&#39;s will be output. If None all the atoms in the big box.</span>
 <span class="sd">            q1shft: Shifts used for the coarse Q-mesh</span>
@@ -2726,6 +2747,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
 
 <div class="viewcode-block" id="AnaddbInput.to_string"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortmode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -2761,7 +2783,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AnaddbInput.set_qpath"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.set_qpath">[docs]</a>    <span class="k">def</span> <span class="nf">set_qpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2793,7 +2815,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            `namedtuple` with the following attributes:</span>
@@ -3271,7 +3293,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

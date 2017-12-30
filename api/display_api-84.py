@@ -1,2 +1,2 @@
-ax = sns.barplot(x="time", y="tip", data=tips,
-                 order=["Dinner", "Lunch"])
+ax = sns.pointplot("time", y="total_bill", data=tips,
+                   color="#bb3f3f")

@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -138,15 +142,15 @@
 
 <div class="viewcode-block" id="NLOpticalSusceptibilityTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">[docs]</a><span class="k">class</span> <span class="nc">NLOpticalSusceptibilityTensor</span><span class="p">(</span><span class="n">Tensor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Subclass of pymatgen.analysis.elasticity.tensors.Tensor containing the</span>
+<span class="sd">    Subclass of :class:`pymatgen.analysis.elasticity.tensors.Tensor` containing the</span>
 <span class="sd">    non-linear optical susceptibility tensor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="NLOpticalSusceptibilityTensor.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates the tensor from a anaddb.nc netcdf file that contains the dchide.</span>
-<span class="sd">        This requires to run anaddb with tnlflag &gt; 0</span>
+<span class="sd">        Creates the tensor from a anaddb.nc netcdf file containing ``dchide``.</span>
+<span class="sd">        This requires to run anaddb with ``tnlflag`` &gt; 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">ETSF_Reader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -161,8 +165,8 @@
 
 <div class="viewcode-block" id="DielectricTensor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.DielectricTensor">[docs]</a><span class="k">class</span> <span class="nc">DielectricTensor</span><span class="p">(</span><span class="n">SquareTensor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Subclass of pymatgen.analysis.elasticity.tensors.SquareTensor describing</span>
-<span class="sd">    a dielectric tensor.</span>
+<span class="sd">    Subclass of :class:`pymatgen.analysis.elasticity.tensors.SquareTensor`</span>
+<span class="sd">    describing a dielectric tensor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DielectricTensor.reflectivity"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.tensors.DielectricTensor.reflectivity">[docs]</a>    <span class="k">def</span> <span class="nf">reflectivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
@@ -193,7 +197,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -140,10 +144,10 @@
 <span class="sd">    The EOS is obtained by computing E(V) for several volumes around the input V0,</span>
 <span class="sd">    The initial volumes are obtained by rescaling the input lattice vectors so that</span>
 <span class="sd">    length proportions and angles are preserved.</span>
-<span class="sd">    This guess is exact for cubic/rhomboedral materials while other Bravais lattices require</span>
+<span class="sd">    This guess is exact for cubic materials while other Bravais lattices require</span>
 <span class="sd">    a constant-volume optimization of the cell geometry.</span>
 
-<span class="sd">    If lattice_type in (&quot;cubic&quot;, &quot;rhomboedral&quot;) and atomic positions are fixed by symmetry.</span>
+<span class="sd">    If lattice_type==&quot;cubic&quot; and atomic positions are fixed by symmetry.</span>
 <span class="sd">    use can use move_atoms=False to perform standard GS-SCF calculations.</span>
 <span class="sd">    In all the other cases, E(V) is obtained by relaxing the atomic positions at fixed volume.</span>
 
@@ -196,12 +200,14 @@
             <span class="c1"># Add ecutsm if not already present.</span>
             <span class="n">new_input</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">ecutsm</span><span class="o">=</span><span class="n">ecutsm</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">lattice_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;cubic&quot;</span><span class="p">,</span> <span class="s2">&quot;rhomboedral&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">move_atoms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lattice_type</span> <span class="o">==</span> <span class="s2">&quot;cubic&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">move_atoms</span><span class="p">:</span>
                 <span class="c1"># Perform GS calculations without moving atoms, cells do not need to be relaxed.</span>
                 <span class="n">new_input</span><span class="o">.</span><span class="n">pop_vars</span><span class="p">([</span><span class="s2">&quot;ionmov&quot;</span><span class="p">,</span> <span class="s2">&quot;optcell&quot;</span><span class="p">,</span> <span class="s2">&quot;ntime&quot;</span><span class="p">])</span>
                 <span class="n">new_work</span><span class="o">.</span><span class="n">register_scf_task</span><span class="p">(</span><span class="n">new_input</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Constant-volume optimization of cell geometry + atoms.</span>
+                <span class="c1"># (modify acell and rprim under constraint - normalize the vectors of rprim to generate the acell)</span>
+                <span class="c1"># In principle one could take into account the symmetry of the lattice...</span>
                 <span class="n">new_input</span><span class="o">.</span><span class="n">set_vars_ifnotin</span><span class="p">(</span><span class="n">ionmov</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ntime</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">optcell</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dilatmx</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
                 <span class="n">new_work</span><span class="o">.</span><span class="n">register_relax_task</span><span class="p">(</span><span class="n">new_input</span><span class="p">)</span>
 
@@ -261,7 +267,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

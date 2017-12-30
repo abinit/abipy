@@ -2,38 +2,37 @@
 Getting AbiPy
 =============
 
+.. contents::
+   :backlinks: top
+
 --------------
 Stable version
 --------------
 
-The version at the Python Package Index (PyPI) is always the latest stable release
-that can be installed with::
+The version at the `Python Package Index <https://pypi.python.org/pypi/abipy>`_ (PyPI) is always 
+the latest stable release that can be installed with::
 
-    $ pip install abipy
+    pip install abipy
 
-Note that you may need to install pymatgen and other critical dependencies manually.
+Note that you may need to install pymatgen_ and other critical dependencies manually.
 In this case, please consult the detailed installation instructions provided by the
 `pymatgen howto <http://pymatgen.org/index.html#standard-install>`_ to install pymatgen 
 and then follow the instructions in the :ref:`netcdf4_installation` section.
 
 The installation process is greatly simplified if you install the required 
-python packages through one of the following python distributions:
-
-  * `Anaconda <https://continuum.io/downloads>`_
-  * `Canopy <https://www.enthought.com/products/canopy>`_
-
-We routinely use ``conda`` to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (``matplotlib``, ``scipy`` ...)
-in the form of pre-compiled packages and ``netcdf4`` can be easily installed with::
+python packages through the Anaconda_ distribution.
+We routinely use conda_ to test new developments with multiple versions of Python and multiple virtual environments.
+The anaconda distribution already provides the most critical dependencies (numpy_, scipy_, matplotlib_, ...)
+in the form of pre-compiled packages and netcdf4-python_ can be easily installed with::
 
     conda install netcdf4
 
 Additional information on the steps required to install AbiPy with anaconda 
 are available in the :ref:`anaconda_howto` howto as well as in the 
 `conda-based-install <http://pymatgen.org/installation.html#conda-based-install>`_
-section of the pymatgen documentation.
+section of the pymatgen_ documentation.
 
-We are also working with the `Spack <https://github.com/LLNL/spack>`_ community
+We are also working with the spack_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
 Advanced users who need to compile a local version of the python interpreter and install the AbiPy dependencies
@@ -45,15 +44,15 @@ Optional dependencies
 
 Optional libraries that are required if you need certain features:
 
-``ipython``
+ipython_
 
     Required to interact with the AbiPy/Pymatgen objects in the ipython shell
-    (strongly recommended, already provided by ``conda``).
+    (strongly recommended, already provided by conda_).
 
-``jupyter`` and ``nbformat``
+jupyter_ and nbformat_
 
     Required to generate jupyter notebooks.
-    Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
+    Install these two packages with ``conda install jupyter nbformat`` or use ``pip_``.
     To use ``jupyter`` you will also need a web browser to open the notebook.
     (recommended)
 
@@ -73,7 +72,7 @@ By default, the installer creates the ``anaconda`` directory in your home.
 Anaconda will add one line to your ``.bashrc`` to enable access to the anaconda executables.
 Once the installation is completed, execute::
 
-    $ source ~/anaconda/bin/activate root
+    source ~/anaconda/bin/activate root
 
 to activate the ``root`` environment.
 The output of ``which python`` should show that you are using the python interpreter provided by anaconda.
@@ -81,24 +80,24 @@ The output of ``which python`` should show that you are using the python interpr
 Use the ``conda`` command-line interface to install the packages not included in the official distribution.
 For example, you can install ``pyyaml`` and ``netcdf4`` with::
 
-    $ conda install pyyaml netcdf4
+    conda install pyyaml netcdf4
 
 Remember that if a package is not available in the official conda repository, you can always
 download the package from one of the conda channels or use ``pip install`` if no conda package is available.
 
 Fortunately there are conda channels providing all dependencies needed by AbiPy.
-To install ``pymatgen`` from the ``matsci`` channel, use::
+To install the pymatgen_ package from the matsci_ channel, use::
 
-    $ conda install pymatgen --channel matsci
+    conda install pymatgen --channel matsci
 
-then install Abipy from the abinit channel with::
+then install Abipy from the abinit-channel_ with::
 
-    $ conda install pymatgen --channel abinit
+    conda install pymatgen --channel abinit
 
 Visit `materials.sh <http://materials.sh>`_ for instructions on how to use the
 matsci channel to install pymatgen and other packages.
 
-Once you have completed the installation of AbiPy and pymatgen, open the ``ipython`` shell and type::
+Once you have completed the installation of AbiPy and pymatgen, open the ipython_ shell and type::
 
     # make sure spglib library works
     import spglib
@@ -110,7 +109,7 @@ Once you have completed the installation of AbiPy and pymatgen, open the ``ipyth
 
 to check the installation.
 
-Note that one can use ``conda`` to create different environments with different
+Note that one can use conda_ to create different environments with different
 versions of the python interpreter or different libraries.
 Further information are available on the `conda official website <http://conda.pydata.org/docs/test-drive.html>`_.
 Using different environments is very useful to keep different versions and branches separate.
@@ -122,19 +121,17 @@ Developmental version
 ---------------------
 
 Getting the developmental version of AbiPy is easy.
-You can clone it from the  `github repository <https://github.com/abinit/abipy>`_ using this command:
+You can clone it from our  `github repository <https://github.com/abinit/abipy>`_ using::
 
-.. code-block:: console
-
-   $ git clone https://github.com/abinit/abipy
+   git clone https://github.com/abinit/abipy
 
 After cloning the repository, type::
 
-    $ python setup.py install
+    python setup.py install
 
 or alternately::
 
-    $ python setup.py develop
+    python setup.py develop
 
 to install the package in developmental mode 
 (Develop mode is the recommended approach if you are planning to implement new features.
@@ -144,9 +141,9 @@ This will allow you to push any changes to you own fork and also get them merged
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have ``pytest`` installed and then type::
+To run the suite of unit tests, make sure you have pytest_ installed and then type::
 
-    $ pytest
+    pytest
 
 in the AbiPy root directory.
 
@@ -155,9 +152,9 @@ In order to run the tests, you need a working set of Abinit executables and
 a ``manager.yml`` configuration file.
 For further information on the syntax of the configuration file, please consult the :ref:`taskmanager` section.
 
-A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
+A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the abinit-channel_ with::
 
-    $ conda install abinit -c abinit
+    conda install abinit -c abinit
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
@@ -187,7 +184,7 @@ First of all, you have to create a new directory containing your python interpre
 as well as as the libraries and the other executables needed by AbiPy.
 Let's assume we decided to create this directory inside ``$HOME`` and let's call it ``local``::
 
-    $ mkdir $HOME/local
+    mkdir $HOME/local
 
 Now change your ``~/.bashrc`` file and add the following three lines::
 
@@ -201,8 +198,8 @@ Get the python tarball from the `python official site <https://www.python.org>`_
 Configure the package with the ``--prefix`` option and compile the code
 (use the ``-j`` option to speedup the compilation with threads)::
 
-    $ ./configure --prefix=$HOME/local
-    $ make -j4
+    ./configure --prefix=$HOME/local
+    make -j4
 
 If you plan to use graphical tools you need to make sure that the ``Tkinter`` graphical backends 
 is installed and functional at the time of compilation of python, see below.
@@ -232,15 +229,15 @@ Then reconfigure python.
 
 Once you have solved the problem with the missing modules, you can run the tests with::
 
-    $ make test 
+    make test 
 
 and install the python interpreter with::
 
-    $ make install
+    make install
 
 Now we have our python interpreter installed in ``$HOME/local``::
 
-    $ which python 
+    which python 
     $HOME/local/bin/python
 
 but we still need to install ``easy_install`` and ``pip`` so that we can automatically 
@@ -248,30 +245,30 @@ download and install other python packages.
 
 To install ``easy_install``::
 
-    $ wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | python
 
-    $ which easy_install
+    which easy_install
     $HOME/local/bin/easy_install
 
 For more info, consult the `setuptools page <https://pypi.python.org/pypi/setuptools>`_
 
 Now use ``easy_install`` to install ``pip``::
 
-    $ easy_install pip
+    easy_install pip
 
     # Upgrade setuptools with
-    $ pip install setuptools --upgrade
+    pip install setuptools --upgrade
 
 Henceforth we can start to use ``pip`` to install the python modules.
 Start with ``cython`` and ``numpy``::
 
-    $ pip install cython 
-    $ pip install numpy
+    pip install cython 
+    pip install numpy
 
 The installation of ``scipy`` is more complicated due to the need for the BLAS and LAPACK libraries.
 Try first::
 
-    $ pip install scipy
+    pip install scipy
 
 If the installer does not find ``BLAS/LAPACK`` in your system, consult the
 `scipy documentation <http://www.scipy.org/scipylib/building/linux.html#id1>`_.
@@ -324,7 +321,7 @@ If python stops with the error message::
 
 add the following line to your ``.bashrc`` file inside your ``$HOME`` (``.profile`` if MacOSx)::
 
-    $ export LC_ALL=C
+    export LC_ALL=C
 
 reload the environment with ``source ~/.bashrc`` and rerun the code.
 
@@ -335,17 +332,17 @@ netcdf does not work
 The version of hdf5 installed by conda may not be compatible with python netcdf.
 Try the hdf5/netcdf4 libraries provided by conda forge::
 
-    $ conda uninstall hdf4 hdf5
-    $ conda config --add channels conda-forge
-    $ conda install netcdf4
+    conda uninstall hdf4 hdf5
+    conda config --add channels conda-forge
+    conda install netcdf4
 
 These packages are known to work on MacOsX::
 
-    $ conda list hdf4
+    conda list hdf4
     hdf4                      4.2.12                        0    conda-forge
-    $ conda list hdf5
+    conda list hdf5
     hdf5                      1.8.17                        9    conda-forge
-    $ conda list netcdf4
+    conda list netcdf4
     netcdf4                   1.2.7               np112py36_0    conda-forge
 
 ^^^^^^^^^^^^^^^^^^^

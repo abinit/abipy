@@ -1,1 +1,2 @@
-ax = sns.pointplot(x="day", y="tip", data=tips, ci=68)
+ax = sns.pointplot(x="time", y="total_bill", hue="smoker",
+                   data=tips)

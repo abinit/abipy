@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -96,7 +100,7 @@
 <li><a class="reference internal" href="#module-abipy.display"><code class="docutils literal"><span class="pre">display</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.display.mvtk"><code class="docutils literal"><span class="pre">mvtk</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.display.pandasw"><code class="docutils literal"><span class="pre">pandasw</span></code> Module</a></li>
-<li><a class="reference internal" href="#seabornw-module"><code class="docutils literal"><span class="pre">seabornw</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.seabornw"><code class="docutils literal"><span class="pre">seabornw</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.display.utils"><code class="docutils literal"><span class="pre">utils</span></code> Module</a></li>
 </ul>
 </li>
@@ -148,77 +152,92 @@
     <div class="col-md-12 content">
       
   <div class="section" id="display-package">
-<h1>display Package<a class="headerlink" href="#display-package" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#contents">display Package</a><a class="headerlink" href="#display-package" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#display-package" id="id1">display Package</a><ul>
+<li><a class="reference internal" href="#module-abipy.display" id="id2"><code class="xref py py-mod docutils literal"><span class="pre">display</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.mvtk" id="id3"><code class="xref py py-mod docutils literal"><span class="pre">mvtk</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.pandasw" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">pandasw</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.seabornw" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">seabornw</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.display.utils" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="module-abipy.display">
-<span id="display-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">display</span></code> Module<a class="headerlink" href="#module-abipy.display" title="Permalink to this headline">¶</a></h2>
+<span id="display-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">display</span></code> Module</a><a class="headerlink" href="#module-abipy.display" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.display.mvtk">
-<span id="mvtk-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">mvtk</span></code> Module<a class="headerlink" href="#module-abipy.display.mvtk" title="Permalink to this headline">¶</a></h2>
-<p>Mayavi toolkit.</p>
-<dl class="class">
-<dt id="abipy.display.mvtk.MayaviFieldAnimator">
-<em class="property">class </em><code class="descclassname">abipy.display.mvtk.</code><code class="descname">MayaviFieldAnimator</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="abipy.display.mvtk.MayaviFieldAnimator.volume_animate">
-<code class="descname">volume_animate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator.volume_animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator.volume_animate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<span id="mvtk-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">mvtk</span></code> Module</a><a class="headerlink" href="#module-abipy.display.mvtk" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> toolkit.</p>
 <dl class="function">
 <dt id="abipy.display.mvtk.get_fig_mlab">
 <code class="descclassname">abipy.display.mvtk.</code><code class="descname">get_fig_mlab</code><span class="sig-paren">(</span><em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#get_fig_mlab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.get_fig_mlab" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="abipy.display.mvtk.plot_labels">
-<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_labels</code><span class="sig-paren">(</span><em>labels</em>, <em>lattice=None</em>, <em>coords_are_cartesian=False</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds labels to a mayavi figure.</p>
+<dt id="abipy.display.mvtk.plot_wigner_seitz">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_wigner_seitz</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_wigner_seitz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_wigner_seitz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the skeleton of the Wigner-Seitz cell of the lattice to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>labels</strong> – dict containing the label as a key and the coordinates as value.</li>
-<li><strong>lattice</strong> – Lattice object used to convert from reciprocal to cartesian coordinates</li>
-<li><strong>coords_are_cartesian</strong> – Set to True if you are providing.
-coordinates in cartesian coordinates. Defaults to False.
-Requires lattice if False.</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
 <li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
-<li><strong>kwargs</strong> – kwargs passed to the mayavi function <cite>text3d</cite>. Color defaults to blue
-and size to 25.</li>
+<li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
+and line_width to 1.</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p>Returns: mayavi figure</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.mvtk.plot_unit_cell">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_unit_cell</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_unit_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_unit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the unit cell of the lattice to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lattice</strong> – Lattice object</li>
+<li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
+<li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
+and line_width to 1.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: mayavi figure</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.mvtk.plot_lattice_vectors">
 <code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_lattice_vectors</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_lattice_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_lattice_vectors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the basis vectors of the lattice provided to a mayavi figure.</p>
+<dd><p>Adds the basis vectors of the lattice provided to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lattice</strong> – Lattice object</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
 <li><strong>figure</strong> – mayavi figure, None if a new figure should be created.</li>
-<li><strong>kwargs</strong> – kwargs passed to the mayavi function <cite>plot3d</cite>. Color defaults to black
+<li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
-</td>
-</tr>
 </tbody>
 </table>
+<p>Returns: mayavi figure</p>
 </dd></dl>
 
 <dl class="function">
@@ -229,7 +248,7 @@ and line_width to 1.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>structure</strong> – </li>
 <li><strong>frac_coords</strong> – </li>
 <li><strong>to_unit_cell</strong> – </li>
@@ -241,67 +260,54 @@ and line_width to 1.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
-</td>
-</tr>
 </tbody>
 </table>
+<p>Returns: mayavi figure</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.display.mvtk.plot_unit_cell">
-<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_unit_cell</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_unit_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_unit_cell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the unit cell of the lattice to a mayavi figure.</p>
+<dt id="abipy.display.mvtk.plot_labels">
+<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_labels</code><span class="sig-paren">(</span><em>labels</em>, <em>lattice=None</em>, <em>coords_are_cartesian=False</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds labels to a <a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> figure.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lattice</strong> – Lattice object</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>labels</strong> – dict containing the label as a key and the coordinates as value.</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
+<li><strong>coords_are_cartesian</strong> – Set to True if you are providing.
+coordinates in cartesian coordinates. Defaults to False.
+Requires lattice if False.</li>
 <li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
-<li><strong>kwargs</strong> – kwargs passed to the mayavi function ‘plot3d’. Color defaults to black
-and line_width to 1.</li>
+<li><strong>kwargs</strong> – kwargs passed to the mayavi function <cite>text3d</cite>. Color defaults to blue and size to 25.</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p>Returns: mayavi figure</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="abipy.display.mvtk.plot_wigner_seitz">
-<code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_wigner_seitz</code><span class="sig-paren">(</span><em>lattice</em>, <em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_wigner_seitz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_wigner_seitz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the skeleton of the Wigner-Seitz cell of the lattice to a mayavi figure</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lattice</strong> – Lattice object</li>
-<li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
-<li><strong>kwargs</strong> – kwargs passed to the mayavi function <cite>plot3d</cite>. Color defaults to black
-and line_width to 1.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mayavi figure</p>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="class">
+<dt id="abipy.display.mvtk.MayaviFieldAnimator">
+<em class="property">class </em><code class="descclassname">abipy.display.mvtk.</code><code class="descname">MayaviFieldAnimator</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="abipy.display.mvtk.MayaviFieldAnimator.volume_animate">
+<code class="descname">volume_animate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator.volume_animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator.volume_animate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.display.pandasw">
-<span id="pandasw-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">pandasw</span></code> Module<a class="headerlink" href="#module-abipy.display.pandasw" title="Permalink to this headline">¶</a></h2>
+<span id="pandasw-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">pandasw</span></code> Module</a><a class="headerlink" href="#module-abipy.display.pandasw" title="Permalink to this headline">¶</a></h2>
 <p>Widgets for Pandas Dataframes.</p>
 </div>
-<div class="section" id="seabornw-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">seabornw</span></code> Module<a class="headerlink" href="#seabornw-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.display.seabornw"></span><p>Widgets for Pandas Dataframes based on seaborn API.</p>
+<div class="section" id="module-abipy.display.seabornw">
+<span id="seabornw-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">seabornw</span></code> Module</a><a class="headerlink" href="#module-abipy.display.seabornw" title="Permalink to this headline">¶</a></h2>
+<p>Widgets for Pandas Dataframes based on seaborn API.</p>
 <p>API reference</p>
 <p>Distribution plots
 jointplot(x, y[, data, kind, stat_func, …])   Draw a plot of two variables with bivariate and univariate graphs.
@@ -334,6 +340,103 @@ palplot(pal[, size])    Plot the values in a color palette as a horizontal array
 FacetGrid(data[, row, col, hue, col_wrap, …]) Subplot grid for plotting conditional relationships.
 PairGrid(data[, hue, hue_order, palette, …])  Subplot grid for plotting pairwise relationships in a dataset.
 JointGrid(x, y[, data, size, ratio, space, …])        Grid for drawing a bivariate plot with marginal univariate plots.</p>
+<dl class="function">
+<dt id="abipy.display.seabornw.jointplot">
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">jointplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data=None</em>, <em>kind='scatter'</em>, <em>stat_func=&lt;function pearsonr&gt;</em>, <em>color=None</em>, <em>size=6</em>, <em>ratio=5</em>, <em>space=0.2</em>, <em>dropna=True</em>, <em>xlim=None</em>, <em>ylim=None</em>, <em>joint_kws=None</em>, <em>marginal_kws=None</em>, <em>annot_kws=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/distributions.html#jointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.jointplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a plot of two variables with bivariate and univariate graphs.</p>
+<p>This function provides a convenient interface to the <code class="xref py py-class docutils literal"><span class="pre">JointGrid</span></code>
+class, with several canned plot kinds. This is intended to be a fairly
+lightweight wrapper; if you need more flexibility, you should use
+<code class="xref py py-class docutils literal"><span class="pre">JointGrid</span></code> directly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>y</strong> (<em>x</em><em>,</em>) – Data or names of variables in <code class="docutils literal"><span class="pre">data</span></code>.</li>
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><em>optional</em>) – DataFrame when <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are variable names.</li>
+<li><strong>kind</strong> (<em>{ &quot;scatter&quot; | &quot;reg&quot; | &quot;resid&quot; | &quot;kde&quot; | &quot;hex&quot; }</em><em>, </em><em>optional</em>) – Kind of plot to draw.</li>
+<li><strong>stat_func</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#callable" title="(in Python v2.7)"><em>callable</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Function used to calculate a statistic about the relationship and
+annotate the plot. Should map <cite>x</cite> and <cite>y</cite> either to a single value
+or to a (value, p) tuple. Set to <code class="docutils literal"><span class="pre">None</span></code> if you don’t want to
+annotate the plot.</li>
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color used for the plot elements.</li>
+<li><strong>size</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Size of the figure (it will be square).</li>
+<li><strong>ratio</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Ratio of joint axes size to marginal axes height.</li>
+<li><strong>space</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Space between the joint and marginal axes</li>
+<li><strong>dropna</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If True, remove observations that are missing from <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code>.</li>
+<li><strong>y}lim</strong> (<em>{x</em><em>,</em>) – Axis limits to set before plotting.</li>
+<li><strong>marginal</strong><strong>, </strong><strong>annot}_kws</strong> (<em>{joint</em><em>,</em>) – Additional keyword arguments for the plot components.</li>
+<li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value pairings</em>) – Additional keyword arguments are passed to the function used to
+draw the plot on the joint Axes, superseding items in the
+<code class="docutils literal"><span class="pre">joint_kws</span></code> dictionary.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>grid</strong> – <code class="xref py py-class docutils literal"><span class="pre">JointGrid</span></code> object with the plot on it.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">JointGrid</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><code class="xref py py-func docutils literal"><span class="pre">JointGrid()</span></code></dt>
+<dd>The Grid class used for drawing this plot. Use it directly if you need more flexibility.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<p>Draw a scatterplot with marginal histograms:</p>
+<p>(<a class="reference external" href="../api/display_api-1.py">Source code</a>, <a class="reference external" href="../api/display_api-1.png">png</a>, <a class="reference external" href="../api/display_api-1.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-1.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-1.png" src="../_images/display_api-1.png" />
+</div>
+<p>Add regression and kernel density fits:</p>
+<p>(<a class="reference external" href="../api/display_api-2.py">Source code</a>, <a class="reference external" href="../api/display_api-2.png">png</a>, <a class="reference external" href="../api/display_api-2.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-2.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-2.png" src="../_images/display_api-2.png" />
+</div>
+<p>Replace the scatterplot with a joint histogram using hexagonal bins:</p>
+<p>(<a class="reference external" href="../api/display_api-3.py">Source code</a>, <a class="reference external" href="../api/display_api-3.png">png</a>, <a class="reference external" href="../api/display_api-3.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-3.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-3.png" src="../_images/display_api-3.png" />
+</div>
+<p>Replace the scatterplots and histograms with density estimates and align
+the marginal Axes tightly with the joint Axes:</p>
+<p>(<a class="reference external" href="../api/display_api-4.py">Source code</a>, <a class="reference external" href="../api/display_api-4.png">png</a>, <a class="reference external" href="../api/display_api-4.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-4.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-4.png" src="../_images/display_api-4.png" />
+</div>
+<p>Use a different statistic for the annotation:</p>
+<p>(<a class="reference external" href="../api/display_api-5.py">Source code</a>, <a class="reference external" href="../api/display_api-5.png">png</a>, <a class="reference external" href="../api/display_api-5.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-5.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-5.png" src="../_images/display_api-5.png" />
+</div>
+<p>Draw a scatterplot, then add a joint density estimate:</p>
+<p>(<a class="reference external" href="../api/display_api-6.py">Source code</a>, <a class="reference external" href="../api/display_api-6.png">png</a>, <a class="reference external" href="../api/display_api-6.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-6.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-6.png" src="../_images/display_api-6.png" />
+</div>
+<p>Pass vectors in directly without using Pandas, then name the axes:</p>
+<p>(<a class="reference external" href="../api/display_api-7.py">Source code</a>, <a class="reference external" href="../api/display_api-7.png">png</a>, <a class="reference external" href="../api/display_api-7.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-7.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-7.png" src="../_images/display_api-7.png" />
+</div>
+<p>Draw a smaller figure with more space devoted to the marginal plots:</p>
+<p>(<a class="reference external" href="../api/display_api-8.py">Source code</a>, <a class="reference external" href="../api/display_api-8.png">png</a>, <a class="reference external" href="../api/display_api-8.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-8.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-8.png" src="../_images/display_api-8.png" />
+</div>
+<p>Pass keyword arguments down to the underlying plots:</p>
+<p>(<a class="reference external" href="../api/display_api-9.py">Source code</a>, <a class="reference external" href="../api/display_api-9.png">png</a>, <a class="reference external" href="../api/display_api-9.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-9.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-9.png" src="../_images/display_api-9.png" />
+</div>
+</dd></dl>
+
 <dl class="function">
 <dt id="abipy.display.seabornw.pairplot">
 <code class="descclassname">abipy.display.seabornw.</code><code class="descname">pairplot</code><span class="sig-paren">(</span><em>data</em>, <em>hue=None</em>, <em>hue_order=None</em>, <em>palette=None</em>, <em>vars=None</em>, <em>x_vars=None</em>, <em>y_vars=None</em>, <em>kind='scatter'</em>, <em>diag_kind='hist'</em>, <em>markers=None</em>, <em>size=2.5</em>, <em>aspect=1</em>, <em>dropna=True</em>, <em>plot_kws=None</em>, <em>diag_kws=None</em>, <em>grid_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/linearmodels.html#pairplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pairplot" title="Permalink to this definition">¶</a></dt>
@@ -394,56 +497,56 @@ markers.</li>
 <p class="rubric">Examples</p>
 <p>Draw scatterplots for joint relationships and histograms for univariate
 distributions:</p>
-<p>(<a class="reference external" href="../api/display_api-1.py">Source code</a>, <a class="reference external" href="../api/display_api-1.png">png</a>, <a class="reference external" href="../api/display_api-1.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-1.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-1.png" src="../_images/display_api-1.png" />
-</div>
-<p>Show different levels of a categorical variable by the color of plot
-elements:</p>
-<p>(<a class="reference external" href="../api/display_api-2.py">Source code</a>, <a class="reference external" href="../api/display_api-2.png">png</a>, <a class="reference external" href="../api/display_api-2.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-2.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-2.png" src="../_images/display_api-2.png" />
-</div>
-<p>Use a different color palette:</p>
-<p>(<a class="reference external" href="../api/display_api-3.py">Source code</a>, <a class="reference external" href="../api/display_api-3.png">png</a>, <a class="reference external" href="../api/display_api-3.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-3.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-3.png" src="../_images/display_api-3.png" />
-</div>
-<p>Use different markers for each level of the hue variable:</p>
-<p>(<a class="reference external" href="../api/display_api-4.py">Source code</a>, <a class="reference external" href="../api/display_api-4.png">png</a>, <a class="reference external" href="../api/display_api-4.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-4.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-4.png" src="../_images/display_api-4.png" />
-</div>
-<p>Plot a subset of variables:</p>
-<p>(<a class="reference external" href="../api/display_api-5.py">Source code</a>, <a class="reference external" href="../api/display_api-5.png">png</a>, <a class="reference external" href="../api/display_api-5.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-5.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-5.png" src="../_images/display_api-5.png" />
-</div>
-<p>Draw larger plots:</p>
-<p>(<a class="reference external" href="../api/display_api-6.py">Source code</a>, <a class="reference external" href="../api/display_api-6.png">png</a>, <a class="reference external" href="../api/display_api-6.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-6.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-6.png" src="../_images/display_api-6.png" />
-</div>
-<p>Plot different variables in the rows and columns:</p>
-<p>(<a class="reference external" href="../api/display_api-7.py">Source code</a>, <a class="reference external" href="../api/display_api-7.png">png</a>, <a class="reference external" href="../api/display_api-7.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-7.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-7.png" src="../_images/display_api-7.png" />
-</div>
-<p>Use kernel density estimates for univariate plots:</p>
-<p>(<a class="reference external" href="../api/display_api-8.py">Source code</a>, <a class="reference external" href="../api/display_api-8.png">png</a>, <a class="reference external" href="../api/display_api-8.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-8.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-8.png" src="../_images/display_api-8.png" />
-</div>
-<p>Fit linear regression models to the scatter plots:</p>
-<p>(<a class="reference external" href="../api/display_api-9.py">Source code</a>, <a class="reference external" href="../api/display_api-9.png">png</a>, <a class="reference external" href="../api/display_api-9.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-9.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-9.png" src="../_images/display_api-9.png" />
-</div>
-<p>Pass keyword arguments down to the underlying functions (it may be easier
-to use <code class="xref py py-class docutils literal"><span class="pre">PairGrid</span></code> directly):</p>
 <p>(<a class="reference external" href="../api/display_api-10.py">Source code</a>, <a class="reference external" href="../api/display_api-10.png">png</a>, <a class="reference external" href="../api/display_api-10.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-10.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-10.png" src="../_images/display_api-10.png" />
+</div>
+<p>Show different levels of a categorical variable by the color of plot
+elements:</p>
+<p>(<a class="reference external" href="../api/display_api-11.py">Source code</a>, <a class="reference external" href="../api/display_api-11.png">png</a>, <a class="reference external" href="../api/display_api-11.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-11.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-11.png" src="../_images/display_api-11.png" />
+</div>
+<p>Use a different color palette:</p>
+<p>(<a class="reference external" href="../api/display_api-12.py">Source code</a>, <a class="reference external" href="../api/display_api-12.png">png</a>, <a class="reference external" href="../api/display_api-12.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-12.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-12.png" src="../_images/display_api-12.png" />
+</div>
+<p>Use different markers for each level of the hue variable:</p>
+<p>(<a class="reference external" href="../api/display_api-13.py">Source code</a>, <a class="reference external" href="../api/display_api-13.png">png</a>, <a class="reference external" href="../api/display_api-13.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-13.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-13.png" src="../_images/display_api-13.png" />
+</div>
+<p>Plot a subset of variables:</p>
+<p>(<a class="reference external" href="../api/display_api-14.py">Source code</a>, <a class="reference external" href="../api/display_api-14.png">png</a>, <a class="reference external" href="../api/display_api-14.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-14.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-14.png" src="../_images/display_api-14.png" />
+</div>
+<p>Draw larger plots:</p>
+<p>(<a class="reference external" href="../api/display_api-15.py">Source code</a>, <a class="reference external" href="../api/display_api-15.png">png</a>, <a class="reference external" href="../api/display_api-15.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-15.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-15.png" src="../_images/display_api-15.png" />
+</div>
+<p>Plot different variables in the rows and columns:</p>
+<p>(<a class="reference external" href="../api/display_api-16.py">Source code</a>, <a class="reference external" href="../api/display_api-16.png">png</a>, <a class="reference external" href="../api/display_api-16.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-16.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-16.png" src="../_images/display_api-16.png" />
+</div>
+<p>Use kernel density estimates for univariate plots:</p>
+<p>(<a class="reference external" href="../api/display_api-17.py">Source code</a>, <a class="reference external" href="../api/display_api-17.png">png</a>, <a class="reference external" href="../api/display_api-17.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-17.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-17.png" src="../_images/display_api-17.png" />
+</div>
+<p>Fit linear regression models to the scatter plots:</p>
+<p>(<a class="reference external" href="../api/display_api-18.py">Source code</a>, <a class="reference external" href="../api/display_api-18.png">png</a>, <a class="reference external" href="../api/display_api-18.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-18.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-18.png" src="../_images/display_api-18.png" />
+</div>
+<p>Pass keyword arguments down to the underlying functions (it may be easier
+to use <code class="xref py py-class docutils literal"><span class="pre">PairGrid</span></code> directly):</p>
+<p>(<a class="reference external" href="../api/display_api-19.py">Source code</a>, <a class="reference external" href="../api/display_api-19.png">png</a>, <a class="reference external" href="../api/display_api-19.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-19.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-19.png" src="../_images/display_api-19.png" />
 </div>
 </dd></dl>
 
@@ -590,56 +693,56 @@ of the other options for plotting the data and models. There are also
 other examples for how to manipulate plot using the returned object on
 the <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> docs.</p>
 <p>Plot a simple linear relationship between two variables:</p>
-<p>(<a class="reference external" href="../api/display_api-11.py">Source code</a>, <a class="reference external" href="../api/display_api-11.png">png</a>, <a class="reference external" href="../api/display_api-11.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-11.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-11.png" src="../_images/display_api-11.png" />
-</div>
-<p>Condition on a third variable and plot the levels in different colors:</p>
-<p>(<a class="reference external" href="../api/display_api-12.py">Source code</a>, <a class="reference external" href="../api/display_api-12.png">png</a>, <a class="reference external" href="../api/display_api-12.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-12.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-12.png" src="../_images/display_api-12.png" />
-</div>
-<p>Use different markers as well as colors so the plot will reproduce to
-black-and-white more easily:</p>
-<p>(<a class="reference external" href="../api/display_api-13.py">Source code</a>, <a class="reference external" href="../api/display_api-13.png">png</a>, <a class="reference external" href="../api/display_api-13.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-13.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-13.png" src="../_images/display_api-13.png" />
-</div>
-<p>Use a different color palette:</p>
-<p>(<a class="reference external" href="../api/display_api-14.py">Source code</a>, <a class="reference external" href="../api/display_api-14.png">png</a>, <a class="reference external" href="../api/display_api-14.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-14.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-14.png" src="../_images/display_api-14.png" />
-</div>
-<p>Map <code class="docutils literal"><span class="pre">hue</span></code> levels to colors with a dictionary:</p>
-<p>(<a class="reference external" href="../api/display_api-15.py">Source code</a>, <a class="reference external" href="../api/display_api-15.png">png</a>, <a class="reference external" href="../api/display_api-15.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-15.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-15.png" src="../_images/display_api-15.png" />
-</div>
-<p>Plot the levels of the third variable across different columns:</p>
-<p>(<a class="reference external" href="../api/display_api-16.py">Source code</a>, <a class="reference external" href="../api/display_api-16.png">png</a>, <a class="reference external" href="../api/display_api-16.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-16.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-16.png" src="../_images/display_api-16.png" />
-</div>
-<p>Change the size and aspect ratio of the facets:</p>
-<p>(<a class="reference external" href="../api/display_api-17.py">Source code</a>, <a class="reference external" href="../api/display_api-17.png">png</a>, <a class="reference external" href="../api/display_api-17.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-17.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-17.png" src="../_images/display_api-17.png" />
-</div>
-<p>Wrap the levels of the column variable into multiple rows:</p>
-<p>(<a class="reference external" href="../api/display_api-18.py">Source code</a>, <a class="reference external" href="../api/display_api-18.png">png</a>, <a class="reference external" href="../api/display_api-18.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-18.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-18.png" src="../_images/display_api-18.png" />
-</div>
-<p>Condition on two variables to make a full grid:</p>
-<p>(<a class="reference external" href="../api/display_api-19.py">Source code</a>, <a class="reference external" href="../api/display_api-19.png">png</a>, <a class="reference external" href="../api/display_api-19.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-19.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-19.png" src="../_images/display_api-19.png" />
-</div>
-<p>Use methods on the returned <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> instance to further tweak
-the plot:</p>
 <p>(<a class="reference external" href="../api/display_api-20.py">Source code</a>, <a class="reference external" href="../api/display_api-20.png">png</a>, <a class="reference external" href="../api/display_api-20.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-20.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-20.png" src="../_images/display_api-20.png" />
+</div>
+<p>Condition on a third variable and plot the levels in different colors:</p>
+<p>(<a class="reference external" href="../api/display_api-21.py">Source code</a>, <a class="reference external" href="../api/display_api-21.png">png</a>, <a class="reference external" href="../api/display_api-21.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-21.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-21.png" src="../_images/display_api-21.png" />
+</div>
+<p>Use different markers as well as colors so the plot will reproduce to
+black-and-white more easily:</p>
+<p>(<a class="reference external" href="../api/display_api-22.py">Source code</a>, <a class="reference external" href="../api/display_api-22.png">png</a>, <a class="reference external" href="../api/display_api-22.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-22.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-22.png" src="../_images/display_api-22.png" />
+</div>
+<p>Use a different color palette:</p>
+<p>(<a class="reference external" href="../api/display_api-23.py">Source code</a>, <a class="reference external" href="../api/display_api-23.png">png</a>, <a class="reference external" href="../api/display_api-23.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-23.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-23.png" src="../_images/display_api-23.png" />
+</div>
+<p>Map <code class="docutils literal"><span class="pre">hue</span></code> levels to colors with a dictionary:</p>
+<p>(<a class="reference external" href="../api/display_api-24.py">Source code</a>, <a class="reference external" href="../api/display_api-24.png">png</a>, <a class="reference external" href="../api/display_api-24.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-24.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-24.png" src="../_images/display_api-24.png" />
+</div>
+<p>Plot the levels of the third variable across different columns:</p>
+<p>(<a class="reference external" href="../api/display_api-25.py">Source code</a>, <a class="reference external" href="../api/display_api-25.png">png</a>, <a class="reference external" href="../api/display_api-25.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-25.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-25.png" src="../_images/display_api-25.png" />
+</div>
+<p>Change the size and aspect ratio of the facets:</p>
+<p>(<a class="reference external" href="../api/display_api-26.py">Source code</a>, <a class="reference external" href="../api/display_api-26.png">png</a>, <a class="reference external" href="../api/display_api-26.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-26.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-26.png" src="../_images/display_api-26.png" />
+</div>
+<p>Wrap the levels of the column variable into multiple rows:</p>
+<p>(<a class="reference external" href="../api/display_api-27.py">Source code</a>, <a class="reference external" href="../api/display_api-27.png">png</a>, <a class="reference external" href="../api/display_api-27.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-27.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-27.png" src="../_images/display_api-27.png" />
+</div>
+<p>Condition on two variables to make a full grid:</p>
+<p>(<a class="reference external" href="../api/display_api-28.py">Source code</a>, <a class="reference external" href="../api/display_api-28.png">png</a>, <a class="reference external" href="../api/display_api-28.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-28.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-28.png" src="../_images/display_api-28.png" />
+</div>
+<p>Use methods on the returned <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> instance to further tweak
+the plot:</p>
+<p>(<a class="reference external" href="../api/display_api-29.py">Source code</a>, <a class="reference external" href="../api/display_api-29.png">png</a>, <a class="reference external" href="../api/display_api-29.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-29.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-29.png" src="../_images/display_api-29.png" />
 </div>
 </dd></dl>
 
@@ -730,39 +833,39 @@ tweaking.</p>
 </table>
 <p class="rubric">Examples</p>
 <p>Draw a single facet to use the <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> legend placement:</p>
-<p>(<a class="reference external" href="../api/display_api-21.py">Source code</a>, <a class="reference external" href="../api/display_api-21.png">png</a>, <a class="reference external" href="../api/display_api-21.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-21.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-30.py">Source code</a>, <a class="reference external" href="../api/display_api-30.png">png</a>, <a class="reference external" href="../api/display_api-30.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-30.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-21.png" src="../_images/display_api-21.png" />
+<img alt="../_images/display_api-30.png" src="../_images/display_api-30.png" />
 </div>
 <p>Use a different plot kind to visualize the same data:</p>
-<p>(<a class="reference external" href="../api/display_api-22.py">Source code</a>, <a class="reference external" href="../api/display_api-22.png">png</a>, <a class="reference external" href="../api/display_api-22.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-22.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-31.py">Source code</a>, <a class="reference external" href="../api/display_api-31.png">png</a>, <a class="reference external" href="../api/display_api-31.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-31.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-22.png" src="../_images/display_api-22.png" />
+<img alt="../_images/display_api-31.png" src="../_images/display_api-31.png" />
 </div>
 <p>Facet along the columns to show a third categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-23.py">Source code</a>, <a class="reference external" href="../api/display_api-23.png">png</a>, <a class="reference external" href="../api/display_api-23.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-23.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-32.py">Source code</a>, <a class="reference external" href="../api/display_api-32.png">png</a>, <a class="reference external" href="../api/display_api-32.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-32.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-23.png" src="../_images/display_api-23.png" />
+<img alt="../_images/display_api-32.png" src="../_images/display_api-32.png" />
 </div>
 <p>Use a different size and aspect ratio for the facets:</p>
-<p>(<a class="reference external" href="../api/display_api-24.py">Source code</a>, <a class="reference external" href="../api/display_api-24.png">png</a>, <a class="reference external" href="../api/display_api-24.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-24.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-33.py">Source code</a>, <a class="reference external" href="../api/display_api-33.png">png</a>, <a class="reference external" href="../api/display_api-33.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-33.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-24.png" src="../_images/display_api-24.png" />
+<img alt="../_images/display_api-33.png" src="../_images/display_api-33.png" />
 </div>
 <p>Make many column facets and wrap them into the rows of the grid:</p>
-<p>(<a class="reference external" href="../api/display_api-25.py">Source code</a>, <a class="reference external" href="../api/display_api-25.png">png</a>, <a class="reference external" href="../api/display_api-25.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-25.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-34.py">Source code</a>, <a class="reference external" href="../api/display_api-34.png">png</a>, <a class="reference external" href="../api/display_api-34.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-34.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-25.png" src="../_images/display_api-25.png" />
+<img alt="../_images/display_api-34.png" src="../_images/display_api-34.png" />
 </div>
 <p>Plot horizontally and pass other keyword arguments to the plot function:</p>
-<p>(<a class="reference external" href="../api/display_api-26.py">Source code</a>, <a class="reference external" href="../api/display_api-26.png">png</a>, <a class="reference external" href="../api/display_api-26.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-26.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-35.py">Source code</a>, <a class="reference external" href="../api/display_api-35.png">png</a>, <a class="reference external" href="../api/display_api-35.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-35.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-26.png" src="../_images/display_api-26.png" />
+<img alt="../_images/display_api-35.png" src="../_images/display_api-35.png" />
 </div>
 <p>Use methods on the returned <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to tweak the presentation:</p>
-<p>(<a class="reference external" href="../api/display_api-27.py">Source code</a>, <a class="reference external" href="../api/display_api-27.png">png</a>, <a class="reference external" href="../api/display_api-27.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-27.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-36.py">Source code</a>, <a class="reference external" href="../api/display_api-36.png">png</a>, <a class="reference external" href="../api/display_api-36.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-36.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-27.png" src="../_images/display_api-27.png" />
+<img alt="../_images/display_api-36.png" src="../_images/display_api-36.png" />
 </div>
 </dd></dl>
 
@@ -850,45 +953,45 @@ time.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal boxplot:</p>
-<p>(<a class="reference external" href="../api/display_api-28.py">Source code</a>, <a class="reference external" href="../api/display_api-28.png">png</a>, <a class="reference external" href="../api/display_api-28.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-28.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-37.py">Source code</a>, <a class="reference external" href="../api/display_api-37.png">png</a>, <a class="reference external" href="../api/display_api-37.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-37.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-28.png" src="../_images/display_api-28.png" />
+<img alt="../_images/display_api-37.png" src="../_images/display_api-37.png" />
 </div>
 <p>Draw a vertical boxplot grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-29.py">Source code</a>, <a class="reference external" href="../api/display_api-29.png">png</a>, <a class="reference external" href="../api/display_api-29.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-29.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-38.py">Source code</a>, <a class="reference external" href="../api/display_api-38.png">png</a>, <a class="reference external" href="../api/display_api-38.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-38.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-29.png" src="../_images/display_api-29.png" />
+<img alt="../_images/display_api-38.png" src="../_images/display_api-38.png" />
 </div>
 <p>Draw a boxplot with nested grouping by two categorical variables:</p>
-<p>(<a class="reference external" href="../api/display_api-30.py">Source code</a>, <a class="reference external" href="../api/display_api-30.png">png</a>, <a class="reference external" href="../api/display_api-30.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-30.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-39.py">Source code</a>, <a class="reference external" href="../api/display_api-39.png">png</a>, <a class="reference external" href="../api/display_api-39.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-39.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-30.png" src="../_images/display_api-30.png" />
+<img alt="../_images/display_api-39.png" src="../_images/display_api-39.png" />
 </div>
 <p>Draw a boxplot with nested grouping when some bins are empty:</p>
-<p>(<a class="reference external" href="../api/display_api-31.py">Source code</a>, <a class="reference external" href="../api/display_api-31.png">png</a>, <a class="reference external" href="../api/display_api-31.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-31.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-40.py">Source code</a>, <a class="reference external" href="../api/display_api-40.png">png</a>, <a class="reference external" href="../api/display_api-40.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-40.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-31.png" src="../_images/display_api-31.png" />
+<img alt="../_images/display_api-40.png" src="../_images/display_api-40.png" />
 </div>
 <p>Control box order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-32.py">Source code</a>, <a class="reference external" href="../api/display_api-32.png">png</a>, <a class="reference external" href="../api/display_api-32.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-32.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-41.py">Source code</a>, <a class="reference external" href="../api/display_api-41.png">png</a>, <a class="reference external" href="../api/display_api-41.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-41.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-32.png" src="../_images/display_api-32.png" />
+<img alt="../_images/display_api-41.png" src="../_images/display_api-41.png" />
 </div>
 <p>Draw a boxplot for each numeric variable in a DataFrame:</p>
-<p>(<a class="reference external" href="../api/display_api-33.py">Source code</a>, <a class="reference external" href="../api/display_api-33.png">png</a>, <a class="reference external" href="../api/display_api-33.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-33.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-42.py">Source code</a>, <a class="reference external" href="../api/display_api-42.png">png</a>, <a class="reference external" href="../api/display_api-42.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-42.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-33.png" src="../_images/display_api-33.png" />
+<img alt="../_images/display_api-42.png" src="../_images/display_api-42.png" />
 </div>
 <p>Use <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> to show the datapoints on top of the boxes:</p>
-<p>(<a class="reference external" href="../api/display_api-34.py">Source code</a>, <a class="reference external" href="../api/display_api-34.png">png</a>, <a class="reference external" href="../api/display_api-34.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-34.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-43.py">Source code</a>, <a class="reference external" href="../api/display_api-43.png">png</a>, <a class="reference external" href="../api/display_api-43.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-43.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-34.png" src="../_images/display_api-34.png" />
+<img alt="../_images/display_api-43.png" src="../_images/display_api-43.png" />
 </div>
 <p>Draw a box plot on to a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to group within an additional
 categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-35.py">Source code</a>, <a class="reference external" href="../api/display_api-35.png">png</a>, <a class="reference external" href="../api/display_api-35.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-35.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-44.py">Source code</a>, <a class="reference external" href="../api/display_api-44.png">png</a>, <a class="reference external" href="../api/display_api-44.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-44.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-35.png" src="../_images/display_api-35.png" />
+<img alt="../_images/display_api-44.png" src="../_images/display_api-44.png" />
 </div>
 </dd></dl>
 
@@ -995,65 +1098,65 @@ spec.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal violinplot:</p>
-<p>(<a class="reference external" href="../api/display_api-36.py">Source code</a>, <a class="reference external" href="../api/display_api-36.png">png</a>, <a class="reference external" href="../api/display_api-36.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-36.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-36.png" src="../_images/display_api-36.png" />
-</div>
-<p>Draw a vertical violinplot grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-37.py">Source code</a>, <a class="reference external" href="../api/display_api-37.png">png</a>, <a class="reference external" href="../api/display_api-37.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-37.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-37.png" src="../_images/display_api-37.png" />
-</div>
-<p>Draw a violinplot with nested grouping by two categorical variables:</p>
-<p>(<a class="reference external" href="../api/display_api-38.py">Source code</a>, <a class="reference external" href="../api/display_api-38.png">png</a>, <a class="reference external" href="../api/display_api-38.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-38.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-38.png" src="../_images/display_api-38.png" />
-</div>
-<p>Draw split violins to compare the across the hue variable:</p>
-<p>(<a class="reference external" href="../api/display_api-39.py">Source code</a>, <a class="reference external" href="../api/display_api-39.png">png</a>, <a class="reference external" href="../api/display_api-39.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-39.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-39.png" src="../_images/display_api-39.png" />
-</div>
-<p>Control violin order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-40.py">Source code</a>, <a class="reference external" href="../api/display_api-40.png">png</a>, <a class="reference external" href="../api/display_api-40.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-40.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-40.png" src="../_images/display_api-40.png" />
-</div>
-<p>Scale the violin width by the number of observations in each bin:</p>
-<p>(<a class="reference external" href="../api/display_api-41.py">Source code</a>, <a class="reference external" href="../api/display_api-41.png">png</a>, <a class="reference external" href="../api/display_api-41.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-41.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-41.png" src="../_images/display_api-41.png" />
-</div>
-<p>Draw the quartiles as horizontal lines instead of a mini-box:</p>
-<p>(<a class="reference external" href="../api/display_api-42.py">Source code</a>, <a class="reference external" href="../api/display_api-42.png">png</a>, <a class="reference external" href="../api/display_api-42.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-42.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-42.png" src="../_images/display_api-42.png" />
-</div>
-<p>Show each observation with a stick inside the violin:</p>
-<p>(<a class="reference external" href="../api/display_api-43.py">Source code</a>, <a class="reference external" href="../api/display_api-43.png">png</a>, <a class="reference external" href="../api/display_api-43.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-43.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-43.png" src="../_images/display_api-43.png" />
-</div>
-<p>Scale the density relative to the counts across all bins:</p>
-<p>(<a class="reference external" href="../api/display_api-44.py">Source code</a>, <a class="reference external" href="../api/display_api-44.png">png</a>, <a class="reference external" href="../api/display_api-44.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-44.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-44.png" src="../_images/display_api-44.png" />
-</div>
-<p>Use a narrow bandwidth to reduce the amount of smoothing:</p>
 <p>(<a class="reference external" href="../api/display_api-45.py">Source code</a>, <a class="reference external" href="../api/display_api-45.png">png</a>, <a class="reference external" href="../api/display_api-45.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-45.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-45.png" src="../_images/display_api-45.png" />
 </div>
-<p>Draw horizontal violins:</p>
+<p>Draw a vertical violinplot grouped by a categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-46.py">Source code</a>, <a class="reference external" href="../api/display_api-46.png">png</a>, <a class="reference external" href="../api/display_api-46.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-46.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-46.png" src="../_images/display_api-46.png" />
 </div>
-<p>Draw a violin plot on to a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to group within an additional
-categorical variable:</p>
+<p>Draw a violinplot with nested grouping by two categorical variables:</p>
 <p>(<a class="reference external" href="../api/display_api-47.py">Source code</a>, <a class="reference external" href="../api/display_api-47.png">png</a>, <a class="reference external" href="../api/display_api-47.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-47.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-47.png" src="../_images/display_api-47.png" />
+</div>
+<p>Draw split violins to compare the across the hue variable:</p>
+<p>(<a class="reference external" href="../api/display_api-48.py">Source code</a>, <a class="reference external" href="../api/display_api-48.png">png</a>, <a class="reference external" href="../api/display_api-48.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-48.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-48.png" src="../_images/display_api-48.png" />
+</div>
+<p>Control violin order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-49.py">Source code</a>, <a class="reference external" href="../api/display_api-49.png">png</a>, <a class="reference external" href="../api/display_api-49.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-49.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-49.png" src="../_images/display_api-49.png" />
+</div>
+<p>Scale the violin width by the number of observations in each bin:</p>
+<p>(<a class="reference external" href="../api/display_api-50.py">Source code</a>, <a class="reference external" href="../api/display_api-50.png">png</a>, <a class="reference external" href="../api/display_api-50.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-50.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-50.png" src="../_images/display_api-50.png" />
+</div>
+<p>Draw the quartiles as horizontal lines instead of a mini-box:</p>
+<p>(<a class="reference external" href="../api/display_api-51.py">Source code</a>, <a class="reference external" href="../api/display_api-51.png">png</a>, <a class="reference external" href="../api/display_api-51.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-51.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-51.png" src="../_images/display_api-51.png" />
+</div>
+<p>Show each observation with a stick inside the violin:</p>
+<p>(<a class="reference external" href="../api/display_api-52.py">Source code</a>, <a class="reference external" href="../api/display_api-52.png">png</a>, <a class="reference external" href="../api/display_api-52.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-52.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-52.png" src="../_images/display_api-52.png" />
+</div>
+<p>Scale the density relative to the counts across all bins:</p>
+<p>(<a class="reference external" href="../api/display_api-53.py">Source code</a>, <a class="reference external" href="../api/display_api-53.png">png</a>, <a class="reference external" href="../api/display_api-53.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-53.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-53.png" src="../_images/display_api-53.png" />
+</div>
+<p>Use a narrow bandwidth to reduce the amount of smoothing:</p>
+<p>(<a class="reference external" href="../api/display_api-54.py">Source code</a>, <a class="reference external" href="../api/display_api-54.png">png</a>, <a class="reference external" href="../api/display_api-54.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-54.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-54.png" src="../_images/display_api-54.png" />
+</div>
+<p>Draw horizontal violins:</p>
+<p>(<a class="reference external" href="../api/display_api-55.py">Source code</a>, <a class="reference external" href="../api/display_api-55.png">png</a>, <a class="reference external" href="../api/display_api-55.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-55.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-55.png" src="../_images/display_api-55.png" />
+</div>
+<p>Draw a violin plot on to a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to group within an additional
+categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-56.py">Source code</a>, <a class="reference external" href="../api/display_api-56.png">png</a>, <a class="reference external" href="../api/display_api-56.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-56.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-56.png" src="../_images/display_api-56.png" />
 </div>
 </dd></dl>
 
@@ -1137,65 +1240,65 @@ of the points.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal strip plot:</p>
-<p>(<a class="reference external" href="../api/display_api-48.py">Source code</a>, <a class="reference external" href="../api/display_api-48.png">png</a>, <a class="reference external" href="../api/display_api-48.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-48.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-48.png" src="../_images/display_api-48.png" />
-</div>
-<p>Group the strips by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-49.py">Source code</a>, <a class="reference external" href="../api/display_api-49.png">png</a>, <a class="reference external" href="../api/display_api-49.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-49.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-49.png" src="../_images/display_api-49.png" />
-</div>
-<p>Add jitter to bring out the distribution of values:</p>
-<p>(<a class="reference external" href="../api/display_api-50.py">Source code</a>, <a class="reference external" href="../api/display_api-50.png">png</a>, <a class="reference external" href="../api/display_api-50.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-50.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-50.png" src="../_images/display_api-50.png" />
-</div>
-<p>Use a smaller amount of jitter:</p>
-<p>(<a class="reference external" href="../api/display_api-51.py">Source code</a>, <a class="reference external" href="../api/display_api-51.png">png</a>, <a class="reference external" href="../api/display_api-51.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-51.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-51.png" src="../_images/display_api-51.png" />
-</div>
-<p>Draw horizontal strips:</p>
-<p>(<a class="reference external" href="../api/display_api-52.py">Source code</a>, <a class="reference external" href="../api/display_api-52.png">png</a>, <a class="reference external" href="../api/display_api-52.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-52.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-52.png" src="../_images/display_api-52.png" />
-</div>
-<p>Draw outlines around the points:</p>
-<p>(<a class="reference external" href="../api/display_api-53.py">Source code</a>, <a class="reference external" href="../api/display_api-53.png">png</a>, <a class="reference external" href="../api/display_api-53.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-53.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-53.png" src="../_images/display_api-53.png" />
-</div>
-<p>Nest the strips within a second categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-54.py">Source code</a>, <a class="reference external" href="../api/display_api-54.png">png</a>, <a class="reference external" href="../api/display_api-54.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-54.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-54.png" src="../_images/display_api-54.png" />
-</div>
-<p>Draw each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable at different locations on the
-major categorical axis:</p>
-<p>(<a class="reference external" href="../api/display_api-55.py">Source code</a>, <a class="reference external" href="../api/display_api-55.png">png</a>, <a class="reference external" href="../api/display_api-55.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-55.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-55.png" src="../_images/display_api-55.png" />
-</div>
-<p>Control strip order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-56.py">Source code</a>, <a class="reference external" href="../api/display_api-56.png">png</a>, <a class="reference external" href="../api/display_api-56.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-56.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-56.png" src="../_images/display_api-56.png" />
-</div>
-<p>Draw strips with large points and different aesthetics:</p>
 <p>(<a class="reference external" href="../api/display_api-57.py">Source code</a>, <a class="reference external" href="../api/display_api-57.png">png</a>, <a class="reference external" href="../api/display_api-57.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-57.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-57.png" src="../_images/display_api-57.png" />
 </div>
-<p>Draw strips of observations on top of a box plot:</p>
+<p>Group the strips by a categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-58.py">Source code</a>, <a class="reference external" href="../api/display_api-58.png">png</a>, <a class="reference external" href="../api/display_api-58.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-58.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-58.png" src="../_images/display_api-58.png" />
 </div>
-<p>Draw strips of observations on top of a violin plot:</p>
+<p>Add jitter to bring out the distribution of values:</p>
 <p>(<a class="reference external" href="../api/display_api-59.py">Source code</a>, <a class="reference external" href="../api/display_api-59.png">png</a>, <a class="reference external" href="../api/display_api-59.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-59.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-59.png" src="../_images/display_api-59.png" />
+</div>
+<p>Use a smaller amount of jitter:</p>
+<p>(<a class="reference external" href="../api/display_api-60.py">Source code</a>, <a class="reference external" href="../api/display_api-60.png">png</a>, <a class="reference external" href="../api/display_api-60.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-60.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-60.png" src="../_images/display_api-60.png" />
+</div>
+<p>Draw horizontal strips:</p>
+<p>(<a class="reference external" href="../api/display_api-61.py">Source code</a>, <a class="reference external" href="../api/display_api-61.png">png</a>, <a class="reference external" href="../api/display_api-61.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-61.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-61.png" src="../_images/display_api-61.png" />
+</div>
+<p>Draw outlines around the points:</p>
+<p>(<a class="reference external" href="../api/display_api-62.py">Source code</a>, <a class="reference external" href="../api/display_api-62.png">png</a>, <a class="reference external" href="../api/display_api-62.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-62.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-62.png" src="../_images/display_api-62.png" />
+</div>
+<p>Nest the strips within a second categorical variable:</p>
+<p>(<a class="reference external" href="../api/display_api-63.py">Source code</a>, <a class="reference external" href="../api/display_api-63.png">png</a>, <a class="reference external" href="../api/display_api-63.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-63.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-63.png" src="../_images/display_api-63.png" />
+</div>
+<p>Draw each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable at different locations on the
+major categorical axis:</p>
+<p>(<a class="reference external" href="../api/display_api-64.py">Source code</a>, <a class="reference external" href="../api/display_api-64.png">png</a>, <a class="reference external" href="../api/display_api-64.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-64.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-64.png" src="../_images/display_api-64.png" />
+</div>
+<p>Control strip order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-65.py">Source code</a>, <a class="reference external" href="../api/display_api-65.png">png</a>, <a class="reference external" href="../api/display_api-65.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-65.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-65.png" src="../_images/display_api-65.png" />
+</div>
+<p>Draw strips with large points and different aesthetics:</p>
+<p>(<a class="reference external" href="../api/display_api-66.py">Source code</a>, <a class="reference external" href="../api/display_api-66.png">png</a>, <a class="reference external" href="../api/display_api-66.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-66.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-66.png" src="../_images/display_api-66.png" />
+</div>
+<p>Draw strips of observations on top of a box plot:</p>
+<p>(<a class="reference external" href="../api/display_api-67.py">Source code</a>, <a class="reference external" href="../api/display_api-67.png">png</a>, <a class="reference external" href="../api/display_api-67.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-67.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-67.png" src="../_images/display_api-67.png" />
+</div>
+<p>Draw strips of observations on top of a violin plot:</p>
+<p>(<a class="reference external" href="../api/display_api-68.py">Source code</a>, <a class="reference external" href="../api/display_api-68.png">png</a>, <a class="reference external" href="../api/display_api-68.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-68.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-68.png" src="../_images/display_api-68.png" />
 </div>
 </dd></dl>
 
@@ -1285,49 +1388,49 @@ of the points.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal swarm plot:</p>
-<p>(<a class="reference external" href="../api/display_api-60.py">Source code</a>, <a class="reference external" href="../api/display_api-60.png">png</a>, <a class="reference external" href="../api/display_api-60.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-60.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-69.py">Source code</a>, <a class="reference external" href="../api/display_api-69.png">png</a>, <a class="reference external" href="../api/display_api-69.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-69.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-60.png" src="../_images/display_api-60.png" />
+<img alt="../_images/display_api-69.png" src="../_images/display_api-69.png" />
 </div>
 <p>Group the swarms by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-61.py">Source code</a>, <a class="reference external" href="../api/display_api-61.png">png</a>, <a class="reference external" href="../api/display_api-61.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-61.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-70.py">Source code</a>, <a class="reference external" href="../api/display_api-70.png">png</a>, <a class="reference external" href="../api/display_api-70.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-70.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-61.png" src="../_images/display_api-61.png" />
+<img alt="../_images/display_api-70.png" src="../_images/display_api-70.png" />
 </div>
 <p>Draw horizontal swarms:</p>
-<p>(<a class="reference external" href="../api/display_api-62.py">Source code</a>, <a class="reference external" href="../api/display_api-62.png">png</a>, <a class="reference external" href="../api/display_api-62.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-62.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-71.py">Source code</a>, <a class="reference external" href="../api/display_api-71.png">png</a>, <a class="reference external" href="../api/display_api-71.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-71.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-62.png" src="../_images/display_api-62.png" />
+<img alt="../_images/display_api-71.png" src="../_images/display_api-71.png" />
 </div>
 <p>Color the points using a second categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-63.py">Source code</a>, <a class="reference external" href="../api/display_api-63.png">png</a>, <a class="reference external" href="../api/display_api-63.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-63.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-72.py">Source code</a>, <a class="reference external" href="../api/display_api-72.png">png</a>, <a class="reference external" href="../api/display_api-72.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-72.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-63.png" src="../_images/display_api-63.png" />
+<img alt="../_images/display_api-72.png" src="../_images/display_api-72.png" />
 </div>
 <p>Split each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable along the categorical axis:</p>
-<p>(<a class="reference external" href="../api/display_api-64.py">Source code</a>, <a class="reference external" href="../api/display_api-64.png">png</a>, <a class="reference external" href="../api/display_api-64.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-64.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-73.py">Source code</a>, <a class="reference external" href="../api/display_api-73.png">png</a>, <a class="reference external" href="../api/display_api-73.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-73.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-64.png" src="../_images/display_api-64.png" />
+<img alt="../_images/display_api-73.png" src="../_images/display_api-73.png" />
 </div>
 <p>Control swarm order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-65.py">Source code</a>, <a class="reference external" href="../api/display_api-65.png">png</a>, <a class="reference external" href="../api/display_api-65.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-65.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-74.py">Source code</a>, <a class="reference external" href="../api/display_api-74.png">png</a>, <a class="reference external" href="../api/display_api-74.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-74.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-65.png" src="../_images/display_api-65.png" />
+<img alt="../_images/display_api-74.png" src="../_images/display_api-74.png" />
 </div>
 <p>Plot using larger points:</p>
-<p>(<a class="reference external" href="../api/display_api-66.py">Source code</a>, <a class="reference external" href="../api/display_api-66.png">png</a>, <a class="reference external" href="../api/display_api-66.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-66.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-75.py">Source code</a>, <a class="reference external" href="../api/display_api-75.png">png</a>, <a class="reference external" href="../api/display_api-75.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-75.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-66.png" src="../_images/display_api-66.png" />
+<img alt="../_images/display_api-75.png" src="../_images/display_api-75.png" />
 </div>
 <p>Draw swarms of observations on top of a box plot:</p>
-<p>(<a class="reference external" href="../api/display_api-67.py">Source code</a>, <a class="reference external" href="../api/display_api-67.png">png</a>, <a class="reference external" href="../api/display_api-67.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-67.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-76.py">Source code</a>, <a class="reference external" href="../api/display_api-76.png">png</a>, <a class="reference external" href="../api/display_api-76.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-76.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-67.png" src="../_images/display_api-67.png" />
+<img alt="../_images/display_api-76.png" src="../_images/display_api-76.png" />
 </div>
 <p>Draw swarms of observations on top of a violin plot:</p>
-<p>(<a class="reference external" href="../api/display_api-68.py">Source code</a>, <a class="reference external" href="../api/display_api-68.png">png</a>, <a class="reference external" href="../api/display_api-68.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-68.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-77.py">Source code</a>, <a class="reference external" href="../api/display_api-77.png">png</a>, <a class="reference external" href="../api/display_api-77.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-77.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-68.png" src="../_images/display_api-68.png" />
+<img alt="../_images/display_api-77.png" src="../_images/display_api-77.png" />
 </div>
 </dd></dl>
 
@@ -1421,64 +1524,64 @@ dictionary mapping hue levels to matplotlib colors.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a set of vertical point plots grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-69.py">Source code</a>, <a class="reference external" href="../api/display_api-69.png">png</a>, <a class="reference external" href="../api/display_api-69.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-69.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-69.png" src="../_images/display_api-69.png" />
-</div>
-<p>Draw a set of vertical points with nested grouping by a two variables:</p>
-<p>(<a class="reference external" href="../api/display_api-70.py">Source code</a>, <a class="reference external" href="../api/display_api-70.png">png</a>, <a class="reference external" href="../api/display_api-70.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-70.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-70.png" src="../_images/display_api-70.png" />
-</div>
-<p>Separate the points for different hue levels along the categorical axis:</p>
-<p>(<a class="reference external" href="../api/display_api-71.py">Source code</a>, <a class="reference external" href="../api/display_api-71.png">png</a>, <a class="reference external" href="../api/display_api-71.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-71.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-71.png" src="../_images/display_api-71.png" />
-</div>
-<p>Use a different marker and line style for the hue levels:</p>
-<p>(<a class="reference external" href="../api/display_api-72.py">Source code</a>, <a class="reference external" href="../api/display_api-72.png">png</a>, <a class="reference external" href="../api/display_api-72.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-72.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-72.png" src="../_images/display_api-72.png" />
-</div>
-<p>Draw a set of horizontal points:</p>
-<p>(<a class="reference external" href="../api/display_api-73.py">Source code</a>, <a class="reference external" href="../api/display_api-73.png">png</a>, <a class="reference external" href="../api/display_api-73.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-73.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-73.png" src="../_images/display_api-73.png" />
-</div>
-<p>Don’t draw a line connecting each point:</p>
-<p>(<a class="reference external" href="../api/display_api-74.py">Source code</a>, <a class="reference external" href="../api/display_api-74.png">png</a>, <a class="reference external" href="../api/display_api-74.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-74.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-74.png" src="../_images/display_api-74.png" />
-</div>
-<p>Use a different color for a single-layer plot:</p>
-<p>(<a class="reference external" href="../api/display_api-75.py">Source code</a>, <a class="reference external" href="../api/display_api-75.png">png</a>, <a class="reference external" href="../api/display_api-75.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-75.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-75.png" src="../_images/display_api-75.png" />
-</div>
-<p>Use a different color palette for the points:</p>
-<p>(<a class="reference external" href="../api/display_api-76.py">Source code</a>, <a class="reference external" href="../api/display_api-76.png">png</a>, <a class="reference external" href="../api/display_api-76.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-76.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-76.png" src="../_images/display_api-76.png" />
-</div>
-<p>Control point order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-77.py">Source code</a>, <a class="reference external" href="../api/display_api-77.png">png</a>, <a class="reference external" href="../api/display_api-77.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-77.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-77.png" src="../_images/display_api-77.png" />
-</div>
-<p>Use median as the estimate of central tendency:</p>
 <p>(<a class="reference external" href="../api/display_api-78.py">Source code</a>, <a class="reference external" href="../api/display_api-78.png">png</a>, <a class="reference external" href="../api/display_api-78.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-78.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-78.png" src="../_images/display_api-78.png" />
 </div>
-<p>Show the standard error of the mean with the error bars:</p>
+<p>Draw a set of vertical points with nested grouping by a two variables:</p>
 <p>(<a class="reference external" href="../api/display_api-79.py">Source code</a>, <a class="reference external" href="../api/display_api-79.png">png</a>, <a class="reference external" href="../api/display_api-79.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-79.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-79.png" src="../_images/display_api-79.png" />
 </div>
-<p>Add “caps” to the error bars:</p>
+<p>Separate the points for different hue levels along the categorical axis:</p>
 <p>(<a class="reference external" href="../api/display_api-80.py">Source code</a>, <a class="reference external" href="../api/display_api-80.png">png</a>, <a class="reference external" href="../api/display_api-80.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-80.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-80.png" src="../_images/display_api-80.png" />
+</div>
+<p>Use a different marker and line style for the hue levels:</p>
+<p>(<a class="reference external" href="../api/display_api-81.py">Source code</a>, <a class="reference external" href="../api/display_api-81.png">png</a>, <a class="reference external" href="../api/display_api-81.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-81.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-81.png" src="../_images/display_api-81.png" />
+</div>
+<p>Draw a set of horizontal points:</p>
+<p>(<a class="reference external" href="../api/display_api-82.py">Source code</a>, <a class="reference external" href="../api/display_api-82.png">png</a>, <a class="reference external" href="../api/display_api-82.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-82.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-82.png" src="../_images/display_api-82.png" />
+</div>
+<p>Don’t draw a line connecting each point:</p>
+<p>(<a class="reference external" href="../api/display_api-83.py">Source code</a>, <a class="reference external" href="../api/display_api-83.png">png</a>, <a class="reference external" href="../api/display_api-83.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-83.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-83.png" src="../_images/display_api-83.png" />
+</div>
+<p>Use a different color for a single-layer plot:</p>
+<p>(<a class="reference external" href="../api/display_api-84.py">Source code</a>, <a class="reference external" href="../api/display_api-84.png">png</a>, <a class="reference external" href="../api/display_api-84.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-84.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-84.png" src="../_images/display_api-84.png" />
+</div>
+<p>Use a different color palette for the points:</p>
+<p>(<a class="reference external" href="../api/display_api-85.py">Source code</a>, <a class="reference external" href="../api/display_api-85.png">png</a>, <a class="reference external" href="../api/display_api-85.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-85.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-85.png" src="../_images/display_api-85.png" />
+</div>
+<p>Control point order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-86.py">Source code</a>, <a class="reference external" href="../api/display_api-86.png">png</a>, <a class="reference external" href="../api/display_api-86.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-86.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-86.png" src="../_images/display_api-86.png" />
+</div>
+<p>Use median as the estimate of central tendency:</p>
+<p>(<a class="reference external" href="../api/display_api-87.py">Source code</a>, <a class="reference external" href="../api/display_api-87.png">png</a>, <a class="reference external" href="../api/display_api-87.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-87.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-87.png" src="../_images/display_api-87.png" />
+</div>
+<p>Show the standard error of the mean with the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-88.py">Source code</a>, <a class="reference external" href="../api/display_api-88.png">png</a>, <a class="reference external" href="../api/display_api-88.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-88.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-88.png" src="../_images/display_api-88.png" />
+</div>
+<p>Add “caps” to the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-89.py">Source code</a>, <a class="reference external" href="../api/display_api-89.png">png</a>, <a class="reference external" href="../api/display_api-89.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-89.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-89.png" src="../_images/display_api-89.png" />
 </div>
 </dd></dl>
 
@@ -1574,54 +1677,54 @@ time.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a set of vertical bar plots grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-81.py">Source code</a>, <a class="reference external" href="../api/display_api-81.png">png</a>, <a class="reference external" href="../api/display_api-81.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-81.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-81.png" src="../_images/display_api-81.png" />
-</div>
-<p>Draw a set of vertical bars with nested grouping by a two variables:</p>
-<p>(<a class="reference external" href="../api/display_api-82.py">Source code</a>, <a class="reference external" href="../api/display_api-82.png">png</a>, <a class="reference external" href="../api/display_api-82.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-82.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-82.png" src="../_images/display_api-82.png" />
-</div>
-<p>Draw a set of horizontal bars:</p>
-<p>(<a class="reference external" href="../api/display_api-83.py">Source code</a>, <a class="reference external" href="../api/display_api-83.png">png</a>, <a class="reference external" href="../api/display_api-83.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-83.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-83.png" src="../_images/display_api-83.png" />
-</div>
-<p>Control bar order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-84.py">Source code</a>, <a class="reference external" href="../api/display_api-84.png">png</a>, <a class="reference external" href="../api/display_api-84.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-84.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-84.png" src="../_images/display_api-84.png" />
-</div>
-<p>Use median as the estimate of central tendency:</p>
-<p>(<a class="reference external" href="../api/display_api-85.py">Source code</a>, <a class="reference external" href="../api/display_api-85.png">png</a>, <a class="reference external" href="../api/display_api-85.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-85.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-85.png" src="../_images/display_api-85.png" />
-</div>
-<p>Show the standard error of the mean with the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-86.py">Source code</a>, <a class="reference external" href="../api/display_api-86.png">png</a>, <a class="reference external" href="../api/display_api-86.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-86.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-86.png" src="../_images/display_api-86.png" />
-</div>
-<p>Add “caps” to the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-87.py">Source code</a>, <a class="reference external" href="../api/display_api-87.png">png</a>, <a class="reference external" href="../api/display_api-87.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-87.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-87.png" src="../_images/display_api-87.png" />
-</div>
-<p>Use a different color palette for the bars:</p>
-<p>(<a class="reference external" href="../api/display_api-88.py">Source code</a>, <a class="reference external" href="../api/display_api-88.png">png</a>, <a class="reference external" href="../api/display_api-88.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-88.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-88.png" src="../_images/display_api-88.png" />
-</div>
-<p>Plot all bars in a single color:</p>
-<p>(<a class="reference external" href="../api/display_api-89.py">Source code</a>, <a class="reference external" href="../api/display_api-89.png">png</a>, <a class="reference external" href="../api/display_api-89.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-89.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-89.png" src="../_images/display_api-89.png" />
-</div>
-<p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments to further change the aesthetic:</p>
 <p>(<a class="reference external" href="../api/display_api-90.py">Source code</a>, <a class="reference external" href="../api/display_api-90.png">png</a>, <a class="reference external" href="../api/display_api-90.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-90.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-90.png" src="../_images/display_api-90.png" />
+</div>
+<p>Draw a set of vertical bars with nested grouping by a two variables:</p>
+<p>(<a class="reference external" href="../api/display_api-91.py">Source code</a>, <a class="reference external" href="../api/display_api-91.png">png</a>, <a class="reference external" href="../api/display_api-91.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-91.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-91.png" src="../_images/display_api-91.png" />
+</div>
+<p>Draw a set of horizontal bars:</p>
+<p>(<a class="reference external" href="../api/display_api-92.py">Source code</a>, <a class="reference external" href="../api/display_api-92.png">png</a>, <a class="reference external" href="../api/display_api-92.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-92.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-92.png" src="../_images/display_api-92.png" />
+</div>
+<p>Control bar order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-93.py">Source code</a>, <a class="reference external" href="../api/display_api-93.png">png</a>, <a class="reference external" href="../api/display_api-93.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-93.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-93.png" src="../_images/display_api-93.png" />
+</div>
+<p>Use median as the estimate of central tendency:</p>
+<p>(<a class="reference external" href="../api/display_api-94.py">Source code</a>, <a class="reference external" href="../api/display_api-94.png">png</a>, <a class="reference external" href="../api/display_api-94.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-94.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-94.png" src="../_images/display_api-94.png" />
+</div>
+<p>Show the standard error of the mean with the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-95.py">Source code</a>, <a class="reference external" href="../api/display_api-95.png">png</a>, <a class="reference external" href="../api/display_api-95.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-95.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-95.png" src="../_images/display_api-95.png" />
+</div>
+<p>Add “caps” to the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-96.py">Source code</a>, <a class="reference external" href="../api/display_api-96.png">png</a>, <a class="reference external" href="../api/display_api-96.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-96.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-96.png" src="../_images/display_api-96.png" />
+</div>
+<p>Use a different color palette for the bars:</p>
+<p>(<a class="reference external" href="../api/display_api-97.py">Source code</a>, <a class="reference external" href="../api/display_api-97.png">png</a>, <a class="reference external" href="../api/display_api-97.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-97.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-97.png" src="../_images/display_api-97.png" />
+</div>
+<p>Plot all bars in a single color:</p>
+<p>(<a class="reference external" href="../api/display_api-98.py">Source code</a>, <a class="reference external" href="../api/display_api-98.png">png</a>, <a class="reference external" href="../api/display_api-98.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-98.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-98.png" src="../_images/display_api-98.png" />
+</div>
+<p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments to further change the aesthetic:</p>
+<p>(<a class="reference external" href="../api/display_api-99.py">Source code</a>, <a class="reference external" href="../api/display_api-99.png">png</a>, <a class="reference external" href="../api/display_api-99.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-99.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-99.png" src="../_images/display_api-99.png" />
 </div>
 </dd></dl>
 
@@ -1692,35 +1795,35 @@ spec.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Show value counts for a single categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-91.py">Source code</a>, <a class="reference external" href="../api/display_api-91.png">png</a>, <a class="reference external" href="../api/display_api-91.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-91.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-100.py">Source code</a>, <a class="reference external" href="../api/display_api-100.png">png</a>, <a class="reference external" href="../api/display_api-100.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-100.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-91.png" src="../_images/display_api-91.png" />
+<img alt="../_images/display_api-100.png" src="../_images/display_api-100.png" />
 </div>
 <p>Show value counts for two categorical variables:</p>
-<p>(<a class="reference external" href="../api/display_api-92.py">Source code</a>, <a class="reference external" href="../api/display_api-92.png">png</a>, <a class="reference external" href="../api/display_api-92.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-92.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-101.py">Source code</a>, <a class="reference external" href="../api/display_api-101.png">png</a>, <a class="reference external" href="../api/display_api-101.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-101.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-92.png" src="../_images/display_api-92.png" />
+<img alt="../_images/display_api-101.png" src="../_images/display_api-101.png" />
 </div>
 <p>Plot the bars horizontally:</p>
-<p>(<a class="reference external" href="../api/display_api-93.py">Source code</a>, <a class="reference external" href="../api/display_api-93.png">png</a>, <a class="reference external" href="../api/display_api-93.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-93.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-102.py">Source code</a>, <a class="reference external" href="../api/display_api-102.png">png</a>, <a class="reference external" href="../api/display_api-102.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-102.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-93.png" src="../_images/display_api-93.png" />
+<img alt="../_images/display_api-102.png" src="../_images/display_api-102.png" />
 </div>
 <p>Use a different color palette:</p>
-<p>(<a class="reference external" href="../api/display_api-94.py">Source code</a>, <a class="reference external" href="../api/display_api-94.png">png</a>, <a class="reference external" href="../api/display_api-94.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-94.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-103.py">Source code</a>, <a class="reference external" href="../api/display_api-103.png">png</a>, <a class="reference external" href="../api/display_api-103.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-103.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-94.png" src="../_images/display_api-94.png" />
+<img alt="../_images/display_api-103.png" src="../_images/display_api-103.png" />
 </div>
 <p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments for a different look:</p>
-<p>(<a class="reference external" href="../api/display_api-95.py">Source code</a>, <a class="reference external" href="../api/display_api-95.png">png</a>, <a class="reference external" href="../api/display_api-95.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-95.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-104.py">Source code</a>, <a class="reference external" href="../api/display_api-104.png">png</a>, <a class="reference external" href="../api/display_api-104.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-104.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-95.png" src="../_images/display_api-95.png" />
+<img alt="../_images/display_api-104.png" src="../_images/display_api-104.png" />
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.display.utils">
-<span id="utils-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module<a class="headerlink" href="#module-abipy.display.utils" title="Permalink to this headline">¶</a></h2>
+<span id="utils-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module</a><a class="headerlink" href="#module-abipy.display.utils" title="Permalink to this headline">¶</a></h2>
 <p>Tools to build ipython widgets.</p>
 <dl class="function">
 <dt id="abipy.display.utils.add_docstrings">
@@ -1734,8 +1837,18 @@ The second item is list of strings with the name of the actual arguments passed 
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.display.utils.colormap_widget">
-<code class="descclassname">abipy.display.utils.</code><code class="descname">colormap_widget</code><span class="sig-paren">(</span><em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colormap_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.colormap_widget" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.display.utils.widget2py">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">widget2py</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#widget2py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.widget2py" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.str2bool_or_none">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">str2bool_or_none</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#str2bool_or_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.str2bool_or_none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abipy.display.utils.markers_dropdown">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">markers_dropdown</code><span class="sig-paren">(</span><em>default='o'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#markers_dropdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.markers_dropdown" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1749,8 +1862,8 @@ The second item is list of strings with the name of the actual arguments passed 
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="abipy.display.utils.markers_dropdown">
-<code class="descclassname">abipy.display.utils.</code><code class="descname">markers_dropdown</code><span class="sig-paren">(</span><em>default='o'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#markers_dropdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.markers_dropdown" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.display.utils.size_slider">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">size_slider</code><span class="sig-paren">(</span><em>default=5</em>, <em>orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#size_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.size_slider" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1759,18 +1872,8 @@ The second item is list of strings with the name of the actual arguments passed 
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="abipy.display.utils.size_slider">
-<code class="descclassname">abipy.display.utils.</code><code class="descname">size_slider</code><span class="sig-paren">(</span><em>default=5</em>, <em>orientation='horizontal'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#size_slider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.size_slider" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="abipy.display.utils.str2bool_or_none">
-<code class="descclassname">abipy.display.utils.</code><code class="descname">str2bool_or_none</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#str2bool_or_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.str2bool_or_none" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="abipy.display.utils.widget2py">
-<code class="descclassname">abipy.display.utils.</code><code class="descname">widget2py</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#widget2py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.widget2py" title="Permalink to this definition">¶</a></dt>
+<dt id="abipy.display.utils.colormap_widget">
+<code class="descclassname">abipy.display.utils.</code><code class="descname">colormap_widget</code><span class="sig-paren">(</span><em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#colormap_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.colormap_widget" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -1789,7 +1892,7 @@ The second item is list of strings with the name of the actual arguments passed 
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

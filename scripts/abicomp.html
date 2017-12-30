@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -136,7 +140,7 @@
 <li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#attr">attr</a><ul>
+<li><a class="reference internal" href="#getattr">getattr</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
 </ul>
@@ -258,23 +262,23 @@
     <div class="col-md-12 content">
       
   <div class="section" id="abicomp-py">
-<span id="abicomp"></span><h1><code class="docutils literal"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h1>
-<p>This script compares results stored in multiple <code class="docutils literal"><span class="pre">netcdf</span></code> files.
+<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h1>
+<p>This script compares results stored in multiple <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files.
 For example, one can compare the crystalline structure used in different calculations
-or compare the electronic bands stored in two or more <code class="docutils literal"><span class="pre">netcdf</span></code> files (e.g. <code class="docutils literal"><span class="pre">GSR.nc</span></code> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).
+or compare the electronic bands stored in two or more <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files (e.g. <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/gsr.ipynb">GSR.nc</a> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).
 By default the script displays the results/plots directly within the shell.
 Use the command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py struct out1_GSR.nc out2_GSR.nc
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">struct</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
-<p>to compare the structures reported in two <code class="docutils literal"><span class="pre">GSR</span></code> files and print the result to screen.
-Use <code class="docutils literal"><span class="pre">--ipython</span></code> to start an <code class="docutils literal"><span class="pre">ipython</span></code> terminal or <code class="docutils literal"><span class="pre">-nb</span></code> to generate a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook, e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abicomp.py ebands out1_GSR.nc out2_GSR.nc -nb
+<p>to compare the structures reported in two <code class="docutils literal"><span class="pre">GSR.nc</span></code> files and print the result to screen.
+Use <code class="docutils literal"><span class="pre">--ipython</span></code> to start an <a class="reference external" href="https://ipython.org/index.html">ipython</a> terminal or <code class="docutils literal"><span class="pre">-nb</span></code> to generate a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">nb</span>
 </pre></div>
 </div>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abicomp.py --help
 usage: abicomp.py [-h] [-V]
-                  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,hist,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
+                  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,getattr,gsr,hist,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
                   ...
 
 optional arguments:
@@ -284,7 +288,7 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,attr,gsr,hist,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
+  {structure,mp_structure,cod_structure,xrd,ebands,edos,phbands,phdos,getattr,gsr,hist,ddb,sigres,mdf,optic,eph,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
                         sub-command help
     structure           Compare crystalline structures. Use `--group` to
                         compare for similarity.&quot;
@@ -299,9 +303,9 @@ subcommands:
     edos                Plot electron DOSes on a grid.
     phbands             Plot phonon bands on a grid.
     phdos               Compare multiple PHDOS files.
-    attr                Extract attribute from Abipy object for all files
+    getattr             Extract attribute from Abipy object for all files
                         listed on the command line and print them. Use
-                        `--show` option to list the attributes available (in
+                        `--list` option to list the attributes available (in
                         the first file).
     gsr                 Compare multiple GSR files.
     hist                Compare multiple HIST files.
@@ -328,65 +332,66 @@ Usage example:
 # Structures
 ############
 
-  abicomp.py structure */*/outdata/out_GSR.nc     =&gt; Compare structures in multiple files.
-                                                     Use `--group` to compare for similarity
-  abicomp.py hist FILE(s)                         =&gt; Compare final structures read from HIST.nc files.
-  abicomp.py mp_structure FILE(s)                 =&gt; Compare structure(s) read from FILE(s) with the one(s)
-                                                     given in the materials project database.
-  abicomp.py cod_structure FILE(s)                =&gt; Compare structure(s) read from FILE(s) with the one(s)
-                                                     given in the COD database (http://www.crystallography.net/cod).
-  abicomp.py xrd *.cif *.GSR.nc                   =&gt; Compare X-ray diffraction plots (requires FILES with structure).
+  abicomp.py structure */*/outdata/out_GSR.nc   =&gt; Compare structures in multiple files.
+                                                   Use `--group` to compare for similarity
+  abicomp.py hist FILE(s)                       =&gt; Compare final structures read from HIST.nc files.
+  abicomp.py mp_structure FILE(s)               =&gt; Compare structure(s) read from FILE(s) with the one(s)
+                                                   given in the materials project database.
+  abicomp.py cod_structure FILE(s)              =&gt; Compare structure(s) read from FILE(s) with the one(s)
+                                                   given in the COD database (http://www.crystallography.net/cod).
+  abicomp.py xrd *.cif *.GSR.nc                 =&gt; Compare X-ray diffraction plots (requires FILES with structure).
 
 ###########
 # Electrons
 ###########
 
-  abicomp.py ebands out1_GSR.nc out2_WFK.nc       =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
-  abicomp.py ebands *_GSR.nc -ipy                 =&gt; Build plotter object and start ipython console.
-  abicomp.py ebands *_GSR.nc -nb                  =&gt; Interact with the plotter in the jupyter notebook.
-  abicomp.py edos *_WFK.nc -nb                    =&gt; Compare electron DOS in the jupyter notebook.
-  abicomp.py optic DIR                            =&gt; Compare optic results in the jupyter notebook.
+  abicomp.py ebands out1_GSR.nc out2_WFK.nc     =&gt; Plot electron bands on a grid (Use `-p` to change plot mode)
+  abicomp.py ebands *_GSR.nc -ipy               =&gt; Build plotter object and start ipython console.
+  abicomp.py ebands *_GSR.nc -nb                =&gt; Interact with the plotter in the jupyter notebook.
+  abicomp.py edos *_WFK.nc -nb                  =&gt; Compare electron DOS in the jupyter notebook.
+  abicomp.py optic DIR -nb                      =&gt; Compare optic results in the jupyter notebook.
 
 #########
 # Phonons
 #########
 
-  abicomp.py phbands *_PHBST.nc -nb               =&gt; Compare phonon bands in the jupyter notebook.
-  abicomp.py phdos *_PHDOS.nc -nb                 =&gt; Compare phonon DOSes in the jupyter notebook.
-  abicomp.py ddb outdir1 outdir2 out_DDB -nb      =&gt; Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
+  abicomp.py phbands *_PHBST.nc -nb             =&gt; Compare phonon bands in the jupyter notebook.
+  abicomp.py phdos *_PHDOS.nc -nb               =&gt; Compare phonon DOSes in the jupyter notebook.
+  abicomp.py ddb outdir1 outdir2 out_DDB -nb    =&gt; Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
 
 #########
 # E-PH
 #########
 
-  abicomp.py eph *_EPH.nc -nb                  =&gt; Compare EPH results in the jupyter notebook.
-  abicomp.py sigeph *_SIGEPH.nc -nb            =&gt; Compare Fan-Migdal self-energy in the jupyter notebook.
+  abicomp.py eph *_EPH.nc -nb                   =&gt; Compare EPH results in the jupyter notebook.
+  abicomp.py sigeph *_SIGEPH.nc -nb             =&gt; Compare Fan-Migdal self-energy in the jupyter notebook.
 
 ########
 # GW/BSE
 ########
 
-  abicomp.py sigres *_SIGRES.nc                   =&gt; Compare multiple SIGRES files.
-  abicomp.py mdf *_MDF.nc --seaborn               =&gt; Compare macroscopic dielectric functions. Use seaborn settings.
+  abicomp.py sigres *_SIGRES.nc                 =&gt; Compare multiple SIGRES files.
+  abicomp.py mdf *_MDF.nc --seaborn             =&gt; Compare macroscopic dielectric functions.
+                                                   Use seaborn settings.
 
 ###############
 # Miscelleanous
 ###############
 
-  abicomp.py attr energy *_GSR.nc                 =&gt; Extract the `energy` attribute from a list of GSR files
-                                                     and print results. Use `--show` to get list of possible names.
+  abicomp.py getattr energy *_GSR.nc              =&gt; Extract the `energy` attribute from a list of GSR files
+                                                     and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 =&gt; Compare pseudopotential files.
 
 ############
 # Text files
 ############
 
-  abicomp.py text run1.abo run2.abo               =&gt; Compare 2+ output files in the browser.
   abicomp.py gs_scf run1.abo run2.abo             =&gt; Compare the SCF cycles in two output files.
   abicomp.py dfpt2_scf run1.abo run2.abo          =&gt; Compare the DFPT SCF cycles in two output files.
   abicomp.py.py time [OUT_FILES]                  =&gt; Parse timing data in files and plot results
   abicomp.py.py time . --ext=abo                  =&gt; Scan directory tree from `.`, look for files with extension `abo`
                                                      parse timing data and plot results.
+  abicomp.py text run1.abo run2.abo               =&gt; Produce diff of 2+ text files in the browser.
 
 TIP: Use Unix find to select all files with the a given extension and pass them to abicomp.py:
 For instance:
@@ -410,7 +415,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </div>
 <p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">mp_structure</span><span class="p">,</span><span class="n">cod_structure</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">edos</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">gsr</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">sigres</span><span class="p">,</span><span class="n">mdf</span><span class="p">,</span><span class="n">optic</span><span class="p">,</span><span class="n">eph</span><span class="p">,</span><span class="n">sigeph</span><span class="p">,</span><span class="n">pseudos</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">gs_scf</span><span class="p">,</span><span class="n">dfpt2_scf</span><span class="p">,</span><span class="n">text</span><span class="p">}</span>
+                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">mp_structure</span><span class="p">,</span><span class="n">cod_structure</span><span class="p">,</span><span class="n">xrd</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">edos</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="nb">getattr</span><span class="p">,</span><span class="n">gsr</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">sigres</span><span class="p">,</span><span class="n">mdf</span><span class="p">,</span><span class="n">optic</span><span class="p">,</span><span class="n">eph</span><span class="p">,</span><span class="n">sigeph</span><span class="p">,</span><span class="n">pseudos</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">gs_scf</span><span class="p">,</span><span class="n">dfpt2_scf</span><span class="p">,</span><span class="n">text</span><span class="p">}</span>
                   <span class="o">...</span>
 </pre></div>
 </div>
@@ -435,7 +440,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: structure, mp_structure, cod_structure, xrd, ebands, edos, phbands, phdos, attr, gsr, hist, ddb, sigres, mdf, optic, eph, sigeph, pseudos, time, gs_scf, dfpt2_scf, text</p>
+<td><p class="first">Possible choices: structure, mp_structure, cod_structure, xrd, ebands, edos, phbands, phdos, getattr, gsr, hist, ddb, sigres, mdf, optic, eph, sigeph, pseudos, time, gs_scf, dfpt2_scf, text</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -477,7 +482,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -523,7 +528,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <div>Compare the crystalline structure(s) read from FILE with the one(s)
 reported in the materials project database.</div></blockquote>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span>
-                        <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">same</span><span class="o">-</span><span class="n">spgnum</span><span class="p">]</span>
                         <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -552,7 +557,7 @@ reported in the materials project database.</div></blockquote>
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -569,6 +574,11 @@ reported in the materials project database.</div></blockquote>
 <tr><td class="option-group">
 <kbd>--foreground</kbd></td>
 <td><p class="first">Run jupyter notebook in the foreground.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--same-spgnum</kbd></td>
+<td><p class="first">Select only MP structures with same space group number as input structure.</p>
 <p class="last">Default: False</p>
 </td></tr>
 </tbody>
@@ -610,7 +620,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -666,7 +676,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -737,7 +747,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -814,7 +824,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -891,7 +901,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -961,7 +971,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -997,13 +1007,14 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 </table>
 </div>
 </div>
-<div class="section" id="attr">
-<h3>attr<a class="headerlink" href="#attr" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="getattr">
+<h3>getattr<a class="headerlink" href="#getattr" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>Extract attribute from Abipy object for all files listed on the command line and print them.
-Use <cite>–show</cite> option to list the attributes available (in the first file).</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">attr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">plot</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">show</span><span class="p">]</span>
-                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+Use <cite>–list</cite> option to list the attributes available (in the first file).</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="nb">getattr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">plot</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="nb">list</span><span class="p">]</span>
+                   <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat8">
@@ -1031,7 +1042,7 @@ Use <cite>–show</cite> option to list the attributes available (in the first f
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1045,7 +1056,7 @@ Use <cite>–show</cite> option to list the attributes available (in the first f
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
-<kbd>--show</kbd></td>
+<kbd>--list</kbd></td>
 <td><p class="first">Print attributes available in file</p>
 <p class="last">Default: False</p>
 </td></tr>
@@ -1087,7 +1098,7 @@ Use <cite>–show</cite> option to list the attributes available (in the first f
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1155,7 +1166,7 @@ Use <cite>–show</cite> option to list the attributes available (in the first f
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1224,7 +1235,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1292,7 +1303,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1360,7 +1371,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1428,7 +1439,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1496,7 +1507,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1564,7 +1575,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1630,7 +1641,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1676,7 +1687,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1743,7 +1754,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1788,7 +1799,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1833,7 +1844,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
 </td></tr>
 <tr><td class="option-group">
 <kbd>--seaborn</kbd></td>
-<td><p class="first">Use seaborn settings.</p>
+<td><p class="first">Use seaborn settings for plots.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
@@ -1866,7 +1877,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

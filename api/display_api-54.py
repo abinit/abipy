@@ -1,2 +1,4 @@
-ax = sns.stripplot(x="sex", y="total_bill", hue="day",
-                   data=tips, jitter=True)
+ax = sns.violinplot(x="day", y="total_bill", hue="sex",
+                    data=tips, palette="Set2", split=True,
+                    scale="count", inner="stick",
+                    scale_hue=False, bw=.2)

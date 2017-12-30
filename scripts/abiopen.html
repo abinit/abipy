@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -145,27 +149,27 @@
     <div class="col-md-12 content">
       
   <div class="section" id="abiopen-py">
-<span id="abiopen"></span><h1><code class="docutils literal"><span class="pre">abiopen.py</span></code><a class="headerlink" href="#abiopen-py" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abiopen.py</span></code><a class="headerlink" href="#abiopen-py" title="Permalink to this headline">¶</a></h1>
 <p>AbiPy provides python objects associated to several Abinit output files.
 These objects implement methods to analyze and plot the results.
-The examples in our <span class="xref std std-doc">gallery ../gallery&gt;</span> use this API to plot data with <code class="docutils literal"><span class="pre">matplotlib</span></code>.</p>
+The examples in our <a class="reference internal" href="../gallery/index.html#plot-gallery"><span class="std std-ref">AbiPy Gallery</span></a> use this API to plot data with <a class="reference external" href="http://matplotlib.org">matplotlib</a>.</p>
 <p>The <code class="docutils literal"><span class="pre">abiopen.py</span></code> script provides a handy interface to the AbiPy objects.
-It can be used to open Abinit files directly in the <code class="docutils literal"><span class="pre">ipython</span></code> shell or inside a <code class="docutils literal"><span class="pre">jupyter</span></code>
+It can be used to open Abinit files directly in the <a class="reference external" href="https://ipython.org/index.html">ipython</a> shell or inside a <a class="reference external" href="http://jupyter.org/">jupyter</a>
 notebook and interact with the associated object (called <code class="docutils literal"><span class="pre">abifile</span></code> in the <code class="docutils literal"><span class="pre">ipython</span></code> terminal).
 The syntax of the script is:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py FILE [options]
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">FILE</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal"><span class="pre">FILE</span></code> is one of the files supported by AbiPy (usually in <code class="docutils literal"><span class="pre">netcdf</span></code> format but other
+<p>where <code class="docutils literal"><span class="pre">FILE</span></code> is one of the files supported by AbiPy (usually in <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> format but other
 files are supported as well e.g. Abinit input and output files in text format).
 By default <code class="docutils literal"><span class="pre">abiopen</span></code> starts the <code class="docutils literal"><span class="pre">ipython</span></code> terminal.
-Alternatively, it is possible to generate automatically a <code class="docutils literal"><span class="pre">jupyter</span></code> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_FATBANDS.nc -nb
+Alternatively, it is possible to generate automatically a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">out_FATBANDS</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">nb</span>
 </pre></div>
 </div>
 <p>will produce a notebook to visualize the electronic fatbands inside your default web browser.</p>
 <p>Use the <code class="docutils literal"><span class="pre">-p</span></code> option if you just want to get information on the file without opening it, e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abiopen.py out_GSR.nc -p
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">out_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">p</span>
 </pre></div>
 </div>
 <p>The script uses the file extension to decide what to do with the file and the type
@@ -320,7 +324,7 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

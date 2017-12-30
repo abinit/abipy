@@ -1,6 +1,8 @@
 abio Package
 ============
 
+.. contents::
+   :backlinks: top
 
 :mod:`abio` Package
 -------------------

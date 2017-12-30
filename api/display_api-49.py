@@ -1,1 +1,2 @@
-ax = sns.stripplot(x="day", y="total_bill", data=tips)
+ax = sns.violinplot(x="time", y="tip", data=tips,
+                    order=["Dinner", "Lunch"])

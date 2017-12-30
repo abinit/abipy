@@ -60,7 +60,7 @@ See also PhysRevLett.86.4656
     Name: mgb2_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 149.01 kb
-    Access Time: Tue Dec 12 23:14:51 2017
+    Access Time: Tue Dec 26 15:14:01 2017
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -124,7 +124,7 @@ See also PhysRevLett.86.4656
     Name: mgb2_kmesh181818_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 480.70 kb
-    Access Time: Tue Dec 12 23:14:54 2017
+    Access Time: Tue Dec 26 15:14:03 2017
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -231,7 +231,7 @@ See also PhysRevLett.86.4656
     fbnc_kpath.close()
     fbnc_kmesh.close()
 
-**Total running time of the script:** ( 0 minutes  8.654 seconds)
+**Total running time of the script:** ( 0 minutes  5.902 seconds)
 
 
 

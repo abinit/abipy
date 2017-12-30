@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -97,15 +101,20 @@
 <li><a class="reference internal" href="#module-abipy.flowtk.abiinspect"><code class="docutils literal"><span class="pre">abiinspect</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.abiobjects"><code class="docutils literal"><span class="pre">abiobjects</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.abiphonopy"><code class="docutils literal"><span class="pre">abiphonopy</span></code> Module</a></li>
-<li><a class="reference internal" href="#dfpt-works-module"><code class="docutils literal"><span class="pre">dfpt_works</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.dfpt_works"><code class="docutils literal"><span class="pre">dfpt_works</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.events"><code class="docutils literal"><span class="pre">events</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.flows"><code class="docutils literal"><span class="pre">flows</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.gruneisen"><code class="docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.gs_works"><code class="docutils literal"><span class="pre">gs_works</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.mocks"><code class="docutils literal"><span class="pre">mocks</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.netcdf"><code class="docutils literal"><span class="pre">netcdf</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.pseudos"><code class="docutils literal"><span class="pre">pseudos</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.qha"><code class="docutils literal"><span class="pre">qha</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.qutils"><code class="docutils literal"><span class="pre">qutils</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.tasks"><code class="docutils literal"><span class="pre">tasks</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.utils"><code class="docutils literal"><span class="pre">utils</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.flowtk.works"><code class="docutils literal"><span class="pre">works</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.wrappers"><code class="docutils literal"><span class="pre">wrappers</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -156,16 +165,36 @@
     <div class="col-md-12 content">
       
   <div class="section" id="flowtk-package">
-<h1>flowtk Package<a class="headerlink" href="#flowtk-package" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#contents">flowtk Package</a><a class="headerlink" href="#flowtk-package" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#flowtk-package" id="id2">flowtk Package</a><ul>
+<li><a class="reference internal" href="#id1" id="id3"><code class="xref py py-mod docutils literal"><span class="pre">flowtk</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.abiinspect" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">abiinspect</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.abiobjects" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">abiobjects</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.abiphonopy" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">abiphonopy</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.dfpt_works" id="id7"><code class="xref py py-mod docutils literal"><span class="pre">dfpt_works</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.events" id="id8"><code class="xref py py-mod docutils literal"><span class="pre">events</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.flows" id="id9"><code class="xref py py-mod docutils literal"><span class="pre">flows</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.gruneisen" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.gs_works" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">gs_works</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.mocks" id="id12"><code class="xref py py-mod docutils literal"><span class="pre">mocks</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.netcdf" id="id13"><code class="xref py py-mod docutils literal"><span class="pre">netcdf</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.pseudos" id="id14"><code class="xref py py-mod docutils literal"><span class="pre">pseudos</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.qha" id="id15"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.qutils" id="id16"><code class="xref py py-mod docutils literal"><span class="pre">qutils</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.tasks" id="id17"><code class="xref py py-mod docutils literal"><span class="pre">tasks</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.utils" id="id18"><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.works" id="id19"><code class="xref py py-mod docutils literal"><span class="pre">works</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.flowtk.wrappers" id="id20"><code class="xref py py-mod docutils literal"><span class="pre">wrappers</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="id1">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">flowtk</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">flowtk</span></code> Package</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-abipy.flowtk"></span><dl class="function">
-<dt id="abipy.flowtk.build_flow_main_parser">
-<code class="descclassname">abipy.flowtk.</code><code class="descname">build_flow_main_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk.html#build_flow_main_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.build_flow_main_parser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return the parser used in the abipy/data/runs scripts.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="abipy.flowtk.flow_main">
 <code class="descclassname">abipy.flowtk.</code><code class="descname">flow_main</code><span class="sig-paren">(</span><em>main</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk.html#flow_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.flow_main" title="Permalink to this definition">¶</a></dt>
 <dd><p>This decorator is used to decorate main functions producing <cite>Flows</cite>.
@@ -185,15 +214,21 @@ The main function shall have the signature:</p>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="abipy.flowtk.build_flow_main_parser">
+<code class="descclassname">abipy.flowtk.</code><code class="descname">build_flow_main_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk.html#build_flow_main_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.build_flow_main_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build and return the parser used in the abipy/data/runs scripts.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-abipy.flowtk.abiinspect">
-<span id="abiinspect-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abiinspect</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.abiinspect" title="Permalink to this headline">¶</a></h2>
+<span id="abiinspect-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">abiinspect</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.abiinspect" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.flowtk.abiobjects">
-<span id="abiobjects-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abiobjects</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.abiobjects" title="Permalink to this headline">¶</a></h2>
+<span id="abiobjects-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">abiobjects</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.abiobjects" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.flowtk.abiphonopy">
-<span id="abiphonopy-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">abiphonopy</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.abiphonopy" title="Permalink to this headline">¶</a></h2>
+<span id="abiphonopy-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">abiphonopy</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.abiphonopy" title="Permalink to this headline">¶</a></h2>
 <p>Interface between phonopy and abipy workflow model.</p>
 <dl class="function">
 <dt id="abipy.flowtk.abiphonopy.atoms_from_structure">
@@ -210,7 +245,7 @@ The main function shall have the signature:</p>
 <dl class="class">
 <dt id="abipy.flowtk.abiphonopy.PhonopyWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.abiphonopy.</code><code class="descname">PhonopyWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work computes the inter-atomic force constants with phonopy.</p>
 <dl class="attribute">
 <dt id="abipy.flowtk.abiphonopy.PhonopyWork.scdims">
@@ -278,7 +313,7 @@ we call phonopy to compute the inter-atomic force constants.</p>
 <dl class="class">
 <dt id="abipy.flowtk.abiphonopy.PhonopyGruneisenWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.abiphonopy.</code><code class="descname">PhonopyGruneisenWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyGruneisenWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyGruneisenWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work computes the Grüneisen parameters with phonopy. The workflow is as follows:</p>
 <p>It is necessary to run three phonon calculations.
 One is calculated at the equilibrium volume and the remaining two are calculated
@@ -288,13 +323,6 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
 <dt id="abipy.flowtk.abiphonopy.PhonopyGruneisenWork.scdims">
 <code class="descname">scdims</code><span class="sig-paren">(</span><em>3</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.scdims" title="Permalink to this definition">¶</a></dt>
 <dd><p>numpy arrays with the number of cells in the supercell along the three reduced directions.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.flowtk.abiphonopy.PhonopyGruneisenWork.add_phonopy_works_and_build">
-<code class="descname">add_phonopy_works_and_build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyGruneisenWork.add_phonopy_works_and_build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.add_phonopy_works_and_build" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get relaxed structures from the tasks, build Phonopy works with supercells
-constructed from the new structures, add them to the flow and build new directories.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -332,16 +360,23 @@ constructed from the new structures, add them to the flow and build new director
 have reached status S_OK.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.flowtk.abiphonopy.PhonopyGruneisenWork.add_phonopy_works_and_build">
+<code class="descname">add_phonopy_works_and_build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyGruneisenWork.add_phonopy_works_and_build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyGruneisenWork.add_phonopy_works_and_build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get relaxed structures from the tasks, build Phonopy works with supercells
+constructed from the new structures, add them to the flow and build new directories.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
-<div class="section" id="dfpt-works-module">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">dfpt_works</span></code> Module<a class="headerlink" href="#dfpt-works-module" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-abipy.flowtk.dfpt_works"></span><p>Work subclasses related to DFTP.</p>
+<div class="section" id="module-abipy.flowtk.dfpt_works">
+<span id="dfpt-works-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">dfpt_works</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.dfpt_works" title="Permalink to this headline">¶</a></h2>
+<p>Work subclasses related to DFTP.</p>
 <dl class="class">
 <dt id="abipy.flowtk.dfpt_works.NscfDdksWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.dfpt_works.</code><code class="descname">NscfDdksWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#NscfDdksWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.NscfDdksWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work requires a DEN file and computes the KS energies with a non self-consistent task
 with a dense k-mesh and empty states.
 This task is then followed by the computation of the DDK matrix elements with nstep = 1
@@ -350,7 +385,8 @@ Mainly used to prepare optic calculations or other post-processing steps requiri
 <dl class="classmethod">
 <dt id="abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task">
 <em class="property">classmethod </em><code class="descname">from_scf_task</code><span class="sig-paren">(</span><em>scf_task</em>, <em>ddk_ngkpt</em>, <em>ddk_shiftk</em>, <em>ddk_nband</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#NscfDdksWork.from_scf_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.NscfDdksWork.from_scf_task" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Build NscfDdksWork from a scf_task.</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -371,17 +407,20 @@ Mainly used to prepare optic calculations or other post-processing steps requiri
 </dd></dl>
 
 </div>
+<div class="section" id="module-abipy.flowtk.events">
+<span id="events-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">events</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.events" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-abipy.flowtk.flows">
-<span id="flows-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">flows</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.flows" title="Permalink to this headline">¶</a></h2>
+<span id="flows-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">flows</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.flows" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.flowtk.gruneisen">
-<span id="gruneisen-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.gruneisen" title="Permalink to this headline">¶</a></h2>
+<span id="gruneisen-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.gruneisen" title="Permalink to this headline">¶</a></h2>
 <p>Flow for the computation of Grunesein parameters with Abinit DFPT and finite differences.</p>
 <p>WARNING: This code must be tested more carefully.</p>
 <dl class="class">
 <dt id="abipy.flowtk.gruneisen.GruneseinenFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gruneisen.</code><code class="descname">GruneseinenFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <p>This work compute the Grüneisen parameters with the DFPT part of Abinit and
 finite differences in anaddb.</p>
 <p>It is necessary to run three phonon calculations with DFPT.
@@ -416,14 +455,7 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
 <dl class="class">
 <dt id="abipy.flowtk.gruneisen.GruneseinenWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gruneisen.</code><code class="descname">GruneseinenWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
-<dl class="method">
-<dt id="abipy.flowtk.gruneisen.GruneseinenWork.add_phonopy_works_and_build">
-<code class="descname">add_phonopy_works_and_build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork.add_phonopy_works_and_build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork.add_phonopy_works_and_build" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get relaxed structures from the tasks, build Phonopy works with supercells
-constructed from the new structures, add them to the flow and build new directories.</p>
-</dd></dl>
-
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <dl class="method">
 <dt id="abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok">
 <code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
@@ -431,23 +463,30 @@ constructed from the new structures, add them to the flow and build new director
 have reached status S_OK.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.flowtk.gruneisen.GruneseinenWork.add_phonopy_works_and_build">
+<code class="descname">add_phonopy_works_and_build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork.add_phonopy_works_and_build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork.add_phonopy_works_and_build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get relaxed structures from the tasks, build Phonopy works with supercells
+constructed from the new structures, add them to the flow and build new directories.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.flowtk.gs_works">
-<span id="gs-works-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">gs_works</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.gs_works" title="Permalink to this headline">¶</a></h2>
+<span id="gs-works-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">gs_works</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.gs_works" title="Permalink to this headline">¶</a></h2>
 <p>Work subclasses related to GS calculations.</p>
 <dl class="class">
 <dt id="abipy.flowtk.gs_works.EosWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gs_works.</code><code class="descname">EosWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>Work for the computation of the Equation of State
 The EOS is obtained by computing E(V) for several volumes around the input V0,
 The initial volumes are obtained by rescaling the input lattice vectors so that
 length proportions and angles are preserved.
-This guess is exact for cubic/rhomboedral materials while other Bravais lattices require
+This guess is exact for cubic materials while other Bravais lattices require
 a constant-volume optimization of the cell geometry.</p>
-<p>If lattice_type in (“cubic”, “rhomboedral”) and atomic positions are fixed by symmetry.
+<p>If lattice_type==”cubic” and atomic positions are fixed by symmetry.
 use can use move_atoms=False to perform standard GS-SCF calculations.
 In all the other cases, E(V) is obtained by relaxing the atomic positions at fixed volume.</p>
 <p>The E(V) points are fitted at the end of the work and the results are saved in the
@@ -501,12 +540,18 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 
 </div>
 <div class="section" id="module-abipy.flowtk.mocks">
-<span id="mocks-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">mocks</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.mocks" title="Permalink to this headline">¶</a></h2>
+<span id="mocks-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">mocks</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.mocks" title="Permalink to this headline">¶</a></h2>
 <p>Mock objects for unit tests.</p>
+<dl class="function">
+<dt id="abipy.flowtk.mocks.change_task_start">
+<code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">change_task_start</code><span class="sig-paren">(</span><em>task</em>, <em>mocked_status='Error'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#change_task_start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.change_task_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a AbinitTaskMockedStart object.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="abipy.flowtk.mocks.AbinitTaskMockedStart">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">AbinitTaskMockedStart</code><span class="sig-paren">(</span><em>input</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>deps=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#AbinitTaskMockedStart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.AbinitTaskMockedStart" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.AbinitTask" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.AbinitTask</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.AbinitTask" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.AbinitTask</span></code></a></p>
 <p>A Task whose status is always self.mocked_status.</p>
 <dl class="method">
 <dt id="abipy.flowtk.mocks.AbinitTaskMockedStart.start">
@@ -515,10 +560,16 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="abipy.flowtk.mocks.infinite_flow">
+<code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">infinite_flow</code><span class="sig-paren">(</span><em>flow</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#infinite_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.infinite_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an InfiniteFlow.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="abipy.flowtk.mocks.InfiniteFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">InfiniteFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#InfiniteFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.InfiniteFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <p>A Flow that will never reach <cite>all_ok</cite></p>
 <dl class="method">
 <dt id="abipy.flowtk.mocks.InfiniteFlow.check_status">
@@ -527,38 +578,51 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="abipy.flowtk.mocks.change_task_start">
-<code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">change_task_start</code><span class="sig-paren">(</span><em>task</em>, <em>mocked_status='Error'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#change_task_start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.change_task_start" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a AbinitTaskMockedStart object.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.flowtk.mocks.infinite_flow">
-<code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">infinite_flow</code><span class="sig-paren">(</span><em>flow</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#infinite_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.infinite_flow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an InfiniteFlow.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="module-abipy.flowtk.netcdf">
-<span id="netcdf-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">netcdf</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.netcdf" title="Permalink to this headline">¶</a></h2>
+<span id="netcdf-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">netcdf</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.netcdf" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abipy.flowtk.pseudos">
+<span id="pseudos-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">pseudos</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.pseudos" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.flowtk.qha">
-<span id="qha-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.qha" title="Permalink to this headline">¶</a></h2>
+<span id="qha-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.qha" title="Permalink to this headline">¶</a></h2>
 <p>Tools and workflows for calculations within the quasi-harmonic approximation.</p>
 <p>WARNING: This code is still under development.</p>
 <dl class="class">
-<dt id="abipy.flowtk.qha.QhaFlow">
-<em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">QhaFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dt id="abipy.flowtk.qha.RelaxAndPhononWork">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">RelaxAndPhononWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
+<p>This work perform a structural relaxation and use the relaxed structure to
+compute phonon frequencies with DFPT.</p>
+<dl class="classmethod">
+<dt id="abipy.flowtk.qha.RelaxAndPhononWork.from_gsinp">
+<em class="property">classmethod </em><code class="descname">from_gsinp</code><span class="sig-paren">(</span><em>gsinp</em>, <em>ngqpt</em>, <em>optcell</em>, <em>ionmov</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.from_gsinp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.from_gsinp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
-<dt id="abipy.flowtk.qha.QhaFlow.finalize">
-<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow.finalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is called when the flow is completed.
-It transfer the most important results to flow/outdir and perform
-some basic post-processing of the results to facilitate further analysis.</p>
+<dt id="abipy.flowtk.qha.RelaxAndPhononWork.add_phonon_tasks_and_build">
+<code class="descname">add_phonon_tasks_and_build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.add_phonon_tasks_and_build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.add_phonon_tasks_and_build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by on_all_ok when the structural relaxation is completed.
+Here the phonon tasks with the relaxed structure and constructed
+and added to the work.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="abipy.flowtk.qha.RelaxAndPhononWork.on_all_ok">
+<code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when all the task reach S_OK.
+The first time we enter here, we construct the phonon tasks.
+The second call runs <cite>mrgddb</cite> in sequential on the local machine to produce
+the final DDB file in the outdir of the <cite>Work</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.flowtk.qha.QhaFlow">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">QhaFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <dl class="classmethod">
 <dt id="abipy.flowtk.qha.QhaFlow.from_gsinp">
 <em class="property">classmethod </em><code class="descname">from_gsinp</code><span class="sig-paren">(</span><em>workdir</em>, <em>gsinp</em>, <em>volumes</em>, <em>ngqpt</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow.from_gsinp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow.from_gsinp" title="Permalink to this definition">¶</a></dt>
@@ -579,44 +643,31 @@ some basic post-processing of the results to facilitate further analysis.</p>
 </table>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.flowtk.qha.RelaxAndPhononWork">
-<em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">RelaxAndPhononWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
-<p>This work perform a structural relaxation and use the relaxed structure to
-compute phonon frequencies with DFPT.</p>
 <dl class="method">
-<dt id="abipy.flowtk.qha.RelaxAndPhononWork.add_phonon_tasks_and_build">
-<code class="descname">add_phonon_tasks_and_build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.add_phonon_tasks_and_build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.add_phonon_tasks_and_build" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by on_all_ok when the structural relaxation is completed.
-Here the phonon tasks with the relaxed structure and constructed
-and added to the work.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.flowtk.qha.RelaxAndPhononWork.from_gsinp">
-<em class="property">classmethod </em><code class="descname">from_gsinp</code><span class="sig-paren">(</span><em>gsinp</em>, <em>ngqpt</em>, <em>optcell</em>, <em>ionmov</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.from_gsinp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.from_gsinp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.flowtk.qha.RelaxAndPhononWork.on_all_ok">
-<code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is called when all the task reach S_OK.
-The first time we enter here, we construct the phonon tasks.
-The second call runs <cite>mrgddb</cite> in sequential on the local machine to produce
-the final DDB file in the outdir of the <cite>Work</cite>.</p>
+<dt id="abipy.flowtk.qha.QhaFlow.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when the flow is completed.
+It transfer the most important results to flow/outdir and perform
+some basic post-processing of the results to facilitate further analysis.</p>
 </dd></dl>
 
 </dd></dl>
 
+</div>
+<div class="section" id="module-abipy.flowtk.qutils">
+<span id="qutils-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">qutils</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.qutils" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.flowtk.tasks">
-<span id="tasks-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">tasks</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.tasks" title="Permalink to this headline">¶</a></h2>
+<span id="tasks-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tasks</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.tasks" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abipy.flowtk.utils">
+<span id="utils-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.utils" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.flowtk.works">
-<span id="works-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">works</span></code> Module<a class="headerlink" href="#module-abipy.flowtk.works" title="Permalink to this headline">¶</a></h2>
+<span id="works-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">works</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.works" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abipy.flowtk.wrappers">
+<span id="wrappers-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">wrappers</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.wrappers" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -633,7 +684,7 @@ the final DDB file in the outdir of the <cite>Work</cite>.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

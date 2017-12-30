@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -288,35 +292,35 @@
     <div class="col-md-12 content">
       
   <div class="section" id="abistruct-py">
-<span id="abistruct"></span><h1><code class="docutils literal"><span class="pre">abistruct.py</span></code><a class="headerlink" href="#abistruct-py" title="Permalink to this headline">¶</a></h1>
-<p>This script reads a <code class="docutils literal"><span class="pre">Structure</span></code> object from file and performs predefined operations
-depending on the <code class="docutils literal"><span class="pre">command</span></code> and the <code class="docutils literal"><span class="pre">options</span></code> specified on the command line.
+<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abistruct.py</span></code><a class="headerlink" href="#abistruct-py" title="Permalink to this headline">¶</a></h1>
+<p>This script reads a <a class="reference internal" href="../api/core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object from file and performs predefined operations
+depending on the <code class="docutils literal"><span class="pre">COMMAND</span></code> and the <code class="docutils literal"><span class="pre">options</span></code> specified on the command line.
 The syntax of the command is:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py command FILE [options]
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">COMMAND</span> <span class="n">FILE</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal"><span class="pre">FILE</span></code> is any file from which AbiPy can extract a Structure object (this includes
 the majority of the nectdf output files, Abinit input and output files in text format
-as well as other formats supported by pymatgen e.g. <code class="docutils literal"><span class="pre">cif</span></code> files, <code class="docutils literal"><span class="pre">POSCAR</span></code> etc.</p>
-<p>The documentation for a given <code class="docutils literal"><span class="pre">command</span></code> is accessible with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py command --help
+as well as other formats supported by <a class="reference external" href="http://www.pymatgen.org">pymatgen</a> e.g. <a class="reference external" href="http://www.iucr.org/resources/cif">CIF</a> files, <a class="reference external" href="http://cms.mpi.univie.ac.at/vasp/guide/node59.html">POSCAR</a> etc.</p>
+<p>The documentation for a given <code class="docutils literal"><span class="pre">COMMAND</span></code> is accessible with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">command</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
 <p>Use e.g.:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py spglib --help
 </pre></div>
 </div>
-<p>to get the list of options supported by the <code class="docutils literal"><span class="pre">spglib</span></code> command.</p>
+<p>to get the list of options supported by the <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> COMMAND.</p>
 <p>The <code class="docutils literal"><span class="pre">convert</span></code> command is quite useful if you need to convert the crystalline structure
 from one format to another one.
-For example, one can read a cif file and print the corresponding Abinit variables with:</p>
+For example, one can read a <a class="reference external" href="http://www.iucr.org/resources/cif">CIF</a> file and print the corresponding Abinit variables with:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py convert si.cif
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The script can fetch data from the materials project database and
-the <a href="#id1"><span class="problematic" id="id2">`COD database http://www.crystallography.net/cod`_</span></a>
+the <a class="reference external" href="http://www.crystallography.net/cod/">COD</a> database <a class="reference external" href="http://www.crystallography.net">http://www.crystallography.net</a>/cod`_
 To access the materials project database, please register on
 &lt;<a class="reference external" href="https://www.materialsproject.org">https://www.materialsproject.org</a>&gt; to get your personal access token.
 Then create a <cite>.pymrc.yaml</cite> configuration file inside your $HOME and add your token with the line:</p>
@@ -324,12 +328,12 @@ Then create a <cite>.pymrc.yaml</cite> configuration file inside your $HOME and 
 </pre></div>
 </div>
 </div>
-<p>It is possible to analyze the structure object either a <code class="docutils literal"><span class="pre">jupter</span></code> notebook with e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py jupter si.cif
+<p>It is possible to analyze the structure object either a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook with e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">jupter</span> <span class="n">si</span><span class="o">.</span><span class="n">cif</span>
 </pre></div>
 </div>
-<p>or directly inside the <code class="docutils literal"><span class="pre">ipython</span></code> shell with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abistruct.py notebook si.cif
+<p>or directly inside the <a class="reference external" href="https://ipython.org/index.html">ipython</a> shell with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">notebook</span> <span class="n">si</span><span class="o">.</span><span class="n">cif</span>
 </pre></div>
 </div>
 <p>Several other options are available. To get the full list, use</p>
@@ -385,8 +389,9 @@ subcommands:
     lgk                 Read structure from file, find little group of
                         k-point, print Bilbao character table.
     kstar               Read structure from file, print star of k-point.
-    visualize           Visualize the structure with the specified visualizer.
-                        Requires external app or optional python modules.
+    visualize           Visualize the structure with the specified
+                        application. Requires external app or optional python
+                        modules (mayavi, vtk).
     mp_id               Get structure from the pymatgen database. Export to
                         format. Requires internet connection and MAPI_KEY.
     mp_match            Get structure from the pymatgen database. Requires
@@ -454,8 +459,8 @@ Usage example:
 # Visualization
 ###############
 
-  abistruct.py visualize FILE vesta        =&gt; Visualize the structure with vesta (default if not given)
-                                              Supports also xcrysden, vtk, mayavi. See --help
+  abistruct.py visualize FILE -a vesta     =&gt; Visualize the structure with vesta (default if -a is not given)
+                                              Supports also ovito, xcrysden, vtk, mayavi. See --help
   abistruct.py ipython FILE                =&gt; Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE               =&gt; Read structure from FILE and generate jupyter notebook.
 
@@ -470,12 +475,14 @@ Usage example:
   abistruct.py mp_match FILE               =&gt; Read structure from FILE and find matching structures on the
                                               Materials Project site. Use e.g. `-f cif` to change output format.
   abistruct.py mp_search LiF               =&gt; Connect to the materials project database. Get structures corresponding
-                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O`
-                                              Print info and Abinit input files. Use e.g. `-f POSCAR` to change output format.
+                                              to a chemical system or formula e.g. `Fe2O3` or `Li-Fe-O` or
+                                              `Ir-O-*` for wildcard pattern matching.
+                                              Print info and Abinit input files. Use e.g. `-f POSCAR`
+                                              to change output format. `-f None` to disable structure output.
   abistruct.py mp_pd FILE-or-elements      =&gt; Generate phase diagram with entries from the Materials Project.
                                               Accept FILE with structure or list of elements e.g `Li-Fe-O`
 
-`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
+`FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input/output, POSCAR, xsf ...
 Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </pre></div>
@@ -669,7 +676,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
 </td></tr>
 </tbody>
@@ -730,7 +737,7 @@ have dimensions 2a x b x c.</li>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1069,7 +1076,7 @@ closest points in this particular structure. This is usually what you want in a 
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1611,8 +1618,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </div>
 <div class="section" id="visualize">
 <h3>visualize<a class="headerlink" href="#visualize" title="Permalink to this headline">¶</a></h3>
-<p>Visualize the structure with the specified visualizer. Requires external app or optional python modules.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">visualize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span> <span class="p">[</span><span class="n">visualizer</span><span class="p">]</span>
+<p>Visualize the structure with the specified application. Requires external app or optional python modules (mayavi, vtk).</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">visualize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">APPNAME</span><span class="p">]</span> <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat20">
@@ -1624,11 +1631,6 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <tr><td class="option-group">
 <kbd>filepath</kbd></td>
 <td>File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR …)</td></tr>
-<tr><td class="option-group">
-<kbd>visualizer</kbd></td>
-<td><p class="first">Visualizer name. Possible options: <cite>v_sim, vesta, xcrysden</cite>, <cite>mayavi</cite>, <cite>vtk</cite></p>
-<p class="last">Default: “vesta”</p>
-</td></tr>
 </tbody>
 </table>
 </div>
@@ -1647,6 +1649,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <kbd>--loglevel</kbd></td>
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-a, --appname</kbd></td>
+<td><p class="first">Application name. Possible options: avogadro, ovito, v_sim, vesta, xcrysden, mayavi, vtk</p>
+<p class="last">Default: “vesta”</p>
 </td></tr>
 </tbody>
 </table>
@@ -1698,7 +1705,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
 </td></tr>
 </tbody>
@@ -1762,7 +1769,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1832,7 +1839,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <tr><td>&#160;</td><td>Select structures with this space group number.</td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1954,7 +1961,7 @@ ehull &lt; show_unstable will be shown.</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -2003,7 +2010,7 @@ ehull &lt; show_unstable will be shown.</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -2064,7 +2071,7 @@ ehull &lt; show_unstable will be shown.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

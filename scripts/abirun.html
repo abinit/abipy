@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -326,7 +330,7 @@
     <div class="col-md-12 content">
       
   <div class="section" id="abirun-py">
-<span id="abirun"></span><h1><code class="docutils literal"><span class="pre">abirun.py</span></code><a class="headerlink" href="#abirun-py" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abirun.py</span></code><a class="headerlink" href="#abirun-py" title="Permalink to this headline">¶</a></h1>
 <p>This script allows the user to submit the calculations contained in the AbiPy Flow
 (for further detail, consult the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> documentation).</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abirun.py --help
@@ -634,20 +638,18 @@ qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Dec 12, 2017), AbiPy supports the following resource managers:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">bluegene</span></code></li>
-<li><code class="docutils literal"><span class="pre">moab</span></code></li>
-<li><code class="docutils literal"><span class="pre">pbspro</span></code></li>
-<li><code class="docutils literal"><span class="pre">sge</span></code></li>
+<p>At the time of writing (Dec 29, 2017), AbiPy supports the following resource managers:</p>
+<ul class="simple">
 <li><code class="docutils literal"><span class="pre">shell</span></code></li>
-<li><code class="docutils literal"><span class="pre">slurm</span></code></li>
-<li><code class="docutils literal"><span class="pre">torque</span></code></li>
+<li><a class="reference external" href="http://pbspro.org/">pbspro</a></li>
+<li><a class="reference external" href="https://slurm.schedmd.com/">slurm</a></li>
+<li>IBM <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/en/SSFJTW">loadleveler</a></li>
+<li><a class="reference external" href="http://www.adaptivecomputing.com/products/hpc-products/moab-hpc-basic-edition/">moab</a></li>
+<li><a class="reference external" href="http://gridscheduler.sourceforge.net/howto/GridEngineHowto.html">sge</a></li>
+<li><a class="reference external" href="http://www.adaptivecomputing.com/products/open-source/torque/">torque</a></li>
 </ul>
-</div></blockquote>
 <p>To obtain the list of options supported by a particular resource manager e.g. <code class="docutils literal"><span class="pre">slurm</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ abirun.py . doc_manager slurm
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="o">.</span> <span class="n">doc_manager</span> <span class="n">slurm</span>
 </pre></div>
 </div>
 <p>Complete command line reference</p>
@@ -1814,7 +1816,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">cycles</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span>
                  <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NIDS</span> <span class="o">|</span> <span class="o">-</span><span class="n">w</span> <span class="n">WSLICE</span> <span class="o">|</span> <span class="o">-</span><span class="n">S</span> <span class="n">TASK_STATUS</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span> <span class="n">TASK_CLASS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">wok</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">combiplot</span><span class="p">,</span><span class="n">gallery</span><span class="p">}]]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="p">[{</span><span class="n">combiplot</span><span class="p">,</span><span class="n">slideshow</span><span class="p">}]]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat19">
@@ -1873,8 +1875,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <tr><td class="option-group" colspan="2">
 <kbd>-p, --plot-mode</kbd></td>
 </tr>
-<tr><td>&#160;</td><td><p class="first">Possible choices: combiplot, gallery</p>
-<p class="last">Plot multiple cycles on the same figure if arg is specified. Use <cite>-p</cite> for gridplot. Use <cite>-p gallery</cite> to iterate.</p>
+<tr><td>&#160;</td><td><p class="first">Possible choices: combiplot, slideshow</p>
+<p class="last">Plot multiple cycles on the same figure if arg is specified. Use <cite>-p</cite> for gridplot. Use <cite>-p slideshow</cite> to iterate.</p>
 </td></tr>
 </tbody>
 </table>
@@ -3252,7 +3254,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

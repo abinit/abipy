@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -125,7 +129,7 @@
       
   <h1>Source code for abipy.electrons.gsr</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;GSR file.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;GSR.nc_ file.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -166,10 +170,13 @@
 <span class="sd">        with GsrFile(&quot;foo_GSR.nc&quot;) as gsr:</span>
 <span class="sd">            print(&quot;energy: &quot;, gsr.energy)</span>
 <span class="sd">            gsr.ebands.plot()</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: GsrFile</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="GsrFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a netcdf_ file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
@@ -212,7 +219,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|ElectronBands| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span>
 
     <span class="nd">@property</span>
@@ -240,12 +247,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
 
 <div class="viewcode-block" id="GsrFile.energy"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.energy">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Total energy in eV&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Total energy in eV.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;etotal&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;eV&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GsrFile.energy_per_atom"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.energy_per_atom">[docs]</a>    <span class="nd">@lazy_property</span>
@@ -307,7 +314,10 @@
 
 <div class="viewcode-block" id="GsrFile.xc"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.xc">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">xc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`XcFunc object with info on the exchange-correlation functional.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :class:`XcFunc` object with info on the exchange-correlation functional.</span>
+<span class="sd">        Use libxc convention :cite:`Marques2012`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_xcfunc</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="GsrFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -369,7 +379,7 @@
 
 <div class="viewcode-block" id="GsrFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -456,10 +466,13 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object reads the results stored in the _GSR (Ground-State Results) file produced by ABINIT.</span>
 <span class="sd">    It provides helper function to access the most important quantities.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: GsrReader</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">read_cart_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV ang^-1&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read and return a numpy array with the cartesian forces in unit `unit`.</span>
+<span class="sd">        Read and return a |numpy-array| with the cartesian forces in unit ``unit``.</span>
 <span class="sd">        Shape (natom, 3)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ArrayWithUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;cartesian_forces&quot;</span><span class="p">),</span> <span class="s2">&quot;Ha bohr^-1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
@@ -472,16 +485,16 @@
         <span class="c1"># Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;cartesian_stress_tensor&quot;</span><span class="p">)</span>
         <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">))):</span>
-            <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="p">]</span>
-            <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))):</span>
+            <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
+            <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">tensor</span>
 
     <span class="k">def</span> <span class="nf">read_energy_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a dictionary of `Energies` with the different contributions to the total electronic energy.</span>
+<span class="sd">        Return a dictionary with the different contributions to the total electronic energy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">convert</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">units</span><span class="o">.</span><span class="n">Energy</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">EnergyTerms</span><span class="o">.</span><span class="n">ALL_KEYS</span><span class="p">}</span>
@@ -490,13 +503,16 @@
 
 <span class="k">class</span> <span class="nc">GsrRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This robot analyzes the results contained in multiple GSR files.</span>
+<span class="sd">    This robot analyzes the results contained in multiple GSR.nc_ files.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: GsrRobot</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;GSR&quot;</span>
 
     <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a pandas DataFrame with the most important GS results.</span>
+<span class="sd">        Return a |pandas-DataFrame| with the most important GS results.</span>
 <span class="sd">        and the filenames as index.</span>
 
 <span class="sd">        Args:</span>
@@ -505,10 +521,9 @@
 
 <span class="sd">        kwargs:</span>
 <span class="sd">            attrs:</span>
-<span class="sd">                List of additional attributes of the :class:`GsrFile` to add to</span>
-<span class="sd">                the pandas :class:`DataFrame`</span>
+<span class="sd">                List of additional attributes of the |GsrFile| to add to the DataFrame.</span>
 <span class="sd">            funcs: Function or list of functions to execute to add more data to the DataFrame.</span>
-<span class="sd">                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)</span>
+<span class="sd">                Each function receives a |GsrFile| object and returns a tuple (key, value)</span>
 <span class="sd">                where key is a string with the name of column and value is the value to be inserted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Add attributes specified by the users</span>
@@ -555,8 +570,8 @@
 
 <span class="sd">        Return:</span>
 <span class="sd">            (fits, dataframe) namedtuple.</span>
-<span class="sd">                fits is a list of `EOSFit object`</span>
-<span class="sd">                dataframe is a pandas Dataframe with the final results.</span>
+<span class="sd">                fits is a list of ``EOSFit object``</span>
+<span class="sd">                dataframe is a |pandas-DataFrame| with the final results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Read volumes and energies from the GSR files.</span>
         <span class="n">energies</span><span class="p">,</span> <span class="n">volumes</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -606,8 +621,7 @@
 <span class="sd">            eos_names: String or list of strings with EOS names. See pymatgen.analysis.EOS</span>
 <span class="sd">            fontsize: Fontsize used for caption text.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_eos_fits_dataframe</span><span class="p">(</span><span class="n">eos_names</span><span class="o">=</span><span class="n">eos_names</span><span class="p">)</span>
 
@@ -640,7 +654,7 @@
 
     <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -677,7 +691,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -135,6 +139,8 @@
 
 <span class="kn">from</span> <span class="nn">monty.os.path</span> <span class="k">import</span> <span class="n">which</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;Visualizer&quot;</span><span class="p">,</span>
@@ -147,14 +153,16 @@
 
 
 <span class="k">def</span> <span class="nf">find_loc</span><span class="p">(</span><span class="n">app_name</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns the location of the application from its name.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the location of the application from its name. None if not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">_find_loc</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">path</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">_find_loc</span><span class="p">(</span><span class="n">app_name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
-<span class="k">def</span> <span class="nf">_find_loc</span><span class="p">(</span><span class="n">app_name</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_find_loc</span><span class="p">(</span><span class="n">app_name</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="c1"># Try command line version</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">path</span>
@@ -214,19 +222,18 @@
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, is_macosx_app </span><span class="si">%s</span><span class="s2">, filepath: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_macosx_app</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">binpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_macosx_app</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call the visualizer in a subprocess.</span>
 
 <span class="sd">        Returns: exit status of the subprocess.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_macosx_app</span><span class="p">:</span>
-            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Executing: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdarg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">call</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">bin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdarg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">])</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Executing: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdarg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">),</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">call</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">binpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdarg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">])</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Mac-OSx applications can be launched with `open -a Vesta --args si.cif`</span>
@@ -245,10 +252,15 @@
                 <span class="k">return</span> <span class="n">args</span>
         <span class="k">return</span> <span class="s2">&quot; &quot;</span>
 
+<div class="viewcode-block" id="Visualizer.binpath"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.visualizer.Visualizer.binpath">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">binpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Absolute path of the binary. None if app is not found&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">find_loc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_available</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;True is the visualizer is available on the local machine.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">binpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Visualizer.get_available"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.visualizer.Visualizer.get_available">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_available</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -293,13 +305,13 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXTS</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Visualizer.from_name"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.visualizer.Visualizer.from_name">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">visu_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">appname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the visualizer class from the name of the application.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">visu</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">visu</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">visu_name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">visu</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">appname</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">visu</span>
 
-        <span class="k">raise</span> <span class="bp">cls</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;visu_name is not among the list of supported visualizers </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="bp">cls</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;appname is not among the list of supported visualizers </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">appname</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Visualizer.all_visunames"><a class="viewcode-back" href="../../../api/iotools_api.html#abipy.iotools.visualizer.Visualizer.all_visunames">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">all_visunames</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
@@ -311,20 +323,17 @@
 <span class="c1"># Concrete classes #</span>
 <span class="c1">####################</span>
 
-
 <span class="k">class</span> <span class="nc">Xcrysden</span><span class="p">(</span><span class="n">Visualizer</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;xcrysden&quot;</span>
-    <span class="nb">bin</span> <span class="o">=</span> <span class="n">find_loc</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="n">EXTS</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s2">&quot;xsf&quot;</span><span class="p">,</span> <span class="s2">&quot;--xsf&quot;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;bxsf&quot;</span><span class="p">,</span> <span class="s2">&quot;--bxsf&quot;</span><span class="p">)</span>
+        <span class="p">(</span><span class="s2">&quot;bxsf&quot;</span><span class="p">,</span> <span class="s2">&quot;--bxsf&quot;</span><span class="p">),</span>
     <span class="p">]</span>
 
 
 <span class="k">class</span> <span class="nc">V_Sim</span><span class="p">(</span><span class="n">Visualizer</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;v_sim&quot;</span>
-    <span class="nb">bin</span> <span class="o">=</span> <span class="n">find_loc</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="n">EXTS</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s2">&quot;xsf&quot;</span><span class="p">,</span> <span class="s2">&quot;--xsf&quot;</span><span class="p">),</span>
@@ -335,20 +344,30 @@
     <span class="n">is_macosx_app</span> <span class="o">=</span> <span class="n">is_macosx</span><span class="p">()</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;vesta&quot;</span>
-    <span class="nb">bin</span> <span class="o">=</span> <span class="n">find_loc</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="n">EXTS</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s2">&quot;xsf&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
     <span class="p">]</span>
 
-<span class="c1">#class Avogadro(Visualizer):</span>
-<span class="c1">#    is_macosx_app = is_macosx()</span>
-<span class="c1">#</span>
-<span class="c1">#    name = &quot;avogadro&quot;</span>
-<span class="c1">#    bin = find_loc(name)</span>
-<span class="c1">#</span>
-<span class="c1">#    EXTS = [</span>
-<span class="c1">#    ]</span>
+
+<span class="k">class</span> <span class="nc">Ovito</span><span class="p">(</span><span class="n">Visualizer</span><span class="p">):</span>
+    <span class="n">is_macosx_app</span> <span class="o">=</span> <span class="n">is_macosx</span><span class="p">()</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ovito&quot;</span>
+
+    <span class="n">EXTS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">Avogadro</span><span class="p">(</span><span class="n">Visualizer</span><span class="p">):</span>
+    <span class="n">is_macosx_app</span> <span class="o">=</span> <span class="n">is_macosx</span><span class="p">()</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;avogadro&quot;</span>
+
+    <span class="n">EXTS</span> <span class="o">=</span> <span class="p">[</span>
+       <span class="p">(</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
 </pre></div>
 
     </div>
@@ -363,7 +382,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -1,6 +1,9 @@
 display Package
 ===============
 
+.. contents::
+   :backlinks: top
+
 :mod:`display` Module
 ---------------------
 

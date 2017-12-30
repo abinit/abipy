@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -156,7 +160,7 @@
 
 <div class="viewcode-block" id="GrunsNcFile"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile">[docs]</a><span class="k">class</span> <span class="nc">GrunsNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object provides an interface to the `GRUNS.nc` file produced by abinit.</span>
+<span class="sd">    This object provides an interface to the ``GRUNS.nc`` file produced by abinit.</span>
 <span class="sd">    This file contains Grunesein parameters computed via finite difference.</span>
 
 <span class="sd">    Usage example:</span>
@@ -165,10 +169,13 @@
 
 <span class="sd">        with GrunsNcFile(&quot;foo_GRUNS.nc&quot;) as ncfile:</span>
 <span class="sd">            print(ncfile)</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: GrunsNcFile</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="GrunsNcFile.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a netcdf_ file&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
@@ -200,7 +207,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Crystalline structure corresponding to the central point V0.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| corresponding to the central point V0.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">structure</span>
 
     <span class="c1">#@property</span>
@@ -219,12 +226,12 @@
 
 <div class="viewcode-block" id="GrunsNcFile.phbands_qpath_vol"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.phbands_qpath_vol">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">phbands_qpath_vol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;List of :class:`PhononBands objects corresponding to the different volumes.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;List of |PhononBands| objects corresponding to the different volumes.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_phbands_on_qpath</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="GrunsNcFile.to_dataframe"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a pandas DataFrame with the following columns:</span>
+<span class="sd">        Return a |pandas-DataFrame| with the following columns:</span>
 
 <span class="sd">            [&#39;qidx&#39;, &#39;mode&#39;, &#39;freq&#39;, &#39;qpoint&#39;]</span>
 
@@ -269,16 +276,15 @@
 <div class="viewcode-block" id="GrunsNcFile.plot_doses"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_doses">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_doses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_names</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">with_idos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the different doses stored in the GRUNS file.</span>
+<span class="sd">        Plot the different doses stored in the GRUNS.nc file.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                or scalar e.g. `left`. If left (right) is None, default values are used</span>
-<span class="sd">            dos_names: List of strings defining the DOSes to plot. Use `all` to plot all DOSes available.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                or scalar e.g. ``left``. If left (right) is None, default values are used</span>
+<span class="sd">            dos_names: List of strings defining the DOSes to plot. Use &quot;all&quot; to plot all DOSes available.</span>
 <span class="sd">            with_idos: True to display integrated doses.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure.</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -306,13 +312,13 @@
 
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
-            <span class="c1">#ax.legend(loc=&quot;best&quot;)</span>
+            <span class="c1">#ax.legend(loc=&quot;best&quot;, fontsize=fontsize, shadow=True)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="GrunsNcFile.get_plotter"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.get_plotter">[docs]</a>    <span class="k">def</span> <span class="nf">get_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return an instance of :class:`PhononBandsPlotter` that can be use to plot</span>
+<span class="sd">        Return an instance of |PhononBandsPlotter| that can be use to plot</span>
 <span class="sd">        multiple phonon bands or animate the bands</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">plotter</span> <span class="o">=</span> <span class="n">PhononBandsPlotter</span><span class="p">()</span>
@@ -326,7 +332,7 @@
     <span class="k">def</span> <span class="nf">plot_phbands_with_gruns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill_with</span><span class="o">=</span><span class="s2">&quot;gruns&quot;</span><span class="p">,</span> <span class="n">gamma_fact</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">with_doses</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span>
                                 <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot the phonon bands corresponding to V0 (the central point) with markers</span>
+<span class="sd">        Plot the phonon bands corresponding to ``V0`` (the central point) with markers</span>
 <span class="sd">        showing the value and the sign of the Grunesein parameters.</span>
 
 <span class="sd">        Args:</span>
@@ -334,16 +340,15 @@
 <span class="sd">                &quot;groupv&quot; for phonon group velocities.</span>
 <span class="sd">            gamma_fact: Scaling factor for Grunesein parameters.</span>
 <span class="sd">                Up triangle for positive values, down triangles for negative values.</span>
-<span class="sd">            alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque)</span>
-<span class="sd">            with_doses: &quot;all&quot; to plot all DOSes available, `None` to disable DOS plotting,</span>
+<span class="sd">            alpha: The alpha blending value for the markers between 0 (transparent) and 1 (opaque).</span>
+<span class="sd">            with_doses: &quot;all&quot; to plot all DOSes available, ``None`` to disable DOS plotting,</span>
 <span class="sd">                else list of strings with the name of the DOSes to plot.</span>
 <span class="sd">            units: Units for phonon plots. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;). Case-insensitive.</span>
-<span class="sd">            ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
         <span class="n">phbands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span>
@@ -422,7 +427,7 @@
 
 <div class="viewcode-block" id="GrunsNcFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -451,8 +456,11 @@
 
 <div class="viewcode-block" id="GrunsReader"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader">[docs]</a><span class="k">class</span> <span class="nc">GrunsReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object reads the results stored in the GRUNS file produced by ABINIT.</span>
+<span class="sd">    This object reads the results stored in the GRUNS.nc file produced by ABINIT.</span>
 <span class="sd">    It provides helper functions to access the most important quantities.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: GrunsReader</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Fortran arrays (remember to transpose dimensions!)</span>
     <span class="c1"># Remember: Atomic units are used everywhere in this file.</span>
@@ -489,7 +497,7 @@
 
 <div class="viewcode-block" id="GrunsReader.read_doses"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_doses">[docs]</a>    <span class="k">def</span> <span class="nf">read_doses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a :class:`AttrDict` with the DOSes available in the file. Empty dict if</span>
+<span class="sd">        Return a |AttrDict| with the DOSes available in the file. Empty dict if</span>
 <span class="sd">        DOSes are not available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;gruns_nomega&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
@@ -518,9 +526,9 @@
 
 <div class="viewcode-block" id="GrunsReader.read_phbands_on_qpath"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_phbands_on_qpath">[docs]</a>    <span class="k">def</span> <span class="nf">read_phbands_on_qpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a list of :class:`PhononBands` computed at the different volumes.</span>
-<span class="sd">        The `iv0` entry corresponds to the central point used to compute Grunesein parameters</span>
-<span class="sd">        with finite differences. This object stores the Grunesein parameters in `grun_vals`.</span>
+<span class="sd">        Return a list of |PhononBands| computed at the different volumes.</span>
+<span class="sd">        The ``iv0`` entry corresponds to the central point used to compute Grunesein parameters</span>
+<span class="sd">        with finite differences. This object stores the Grunesein parameters in ``grun_vals``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;gruns_qpath&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
             <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;File `</span><span class="si">%s</span><span class="s2">` does not contain phonon bands, returning empty list.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
@@ -567,8 +575,8 @@
 
 <div class="viewcode-block" id="GrunsReader.read_amuz_dict"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader.read_amuz_dict">[docs]</a>    <span class="k">def</span> <span class="nf">read_amuz_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        dictionary that associates the atomic number to the values of the atomic</span>
-<span class="sd">        mass units used for the calculation</span>
+<span class="sd">        Dictionary that associates the atomic number to the values of the atomic</span>
+<span class="sd">        mass units used for the calculation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">amu_typat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;atomic_mass_units&quot;</span><span class="p">)</span>
         <span class="n">znucl_typat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;atomic_numbers&quot;</span><span class="p">)</span>
@@ -593,7 +601,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

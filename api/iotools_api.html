@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -146,25 +150,38 @@
     <div class="col-md-12 content">
       
   <div class="section" id="iotools-package">
-<h1>iotools Package<a class="headerlink" href="#iotools-package" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#contents">iotools Package</a><a class="headerlink" href="#iotools-package" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#iotools-package" id="id3">iotools Package</a><ul>
+<li><a class="reference internal" href="#id1" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Package</a></li>
+<li><a class="reference internal" href="#module-abipy.iotools.visualizer" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">visualizer</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.iotools.xsf" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">xsf</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="id1">
-<h2><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Package</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-abipy.iotools"></span><dl class="class">
 <dt id="abipy.iotools.ETSF_Reader">
 <em class="property">class </em><code class="descclassname">abipy.iotools.</code><code class="descname">ETSF_Reader</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v2017.12.8)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
-<p>Overrides the read_structure method so that we always return
-an instance of our Structure object</p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.netcdf.html#pymatgen.io.abinit.netcdf.ETSF_Reader" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.netcdf.ETSF_Reader</span></code></a></p>
+<p>Provides high-level API to read data from netcdf files written
+folloing the ETSF-IO specifications described in <a class="reference internal" href="../zzbiblio.html#caliste2008" id="id2">[CPV+08]</a></p>
 <dl class="method">
 <dt id="abipy.iotools.ETSF_Reader.read_structure">
 <code class="descname">read_structure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools.html#ETSF_Reader.read_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.ETSF_Reader.read_structure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Overrides the <code class="docutils literal"><span class="pre">read_structure</span></code> method so that we always return
+an instance of AbiPy <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object</p>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.iotools.visualizer">
-<span id="visualizer-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">visualizer</span></code> Module<a class="headerlink" href="#module-abipy.iotools.visualizer" title="Permalink to this headline">¶</a></h2>
+<span id="visualizer-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">visualizer</span></code> Module</a><a class="headerlink" href="#module-abipy.iotools.visualizer" title="Permalink to this headline">¶</a></h2>
 <p>Define a class used to execute a visualizer within the Python interpreter.</p>
 <dl class="class">
 <dt id="abipy.iotools.visualizer.Visualizer">
@@ -172,21 +189,45 @@ an instance of our Structure object</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Handle the visualization of data.</p>
 <dl class="attribute">
+<dt id="abipy.iotools.visualizer.Visualizer.is_macosx_app">
+<code class="descname">is_macosx_app</code><em class="property"> = False</em><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.is_macosx_app" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="abipy.iotools.visualizer.Visualizer.Error">
 <code class="descname">Error</code><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.Error" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">VisualizerError</span></code></p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.iotools.visualizer.Visualizer.all_visunames">
-<em class="property">classmethod </em><code class="descname">all_visunames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.all_visunames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.all_visunames" title="Permalink to this definition">¶</a></dt>
-<dd><p>List with the names of the visualizers supported.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="abipy.iotools.visualizer.Visualizer.cmdarg">
 <code class="descname">cmdarg</code><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.cmdarg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Arguments that must be used to visualize the file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.iotools.visualizer.Visualizer.binpath">
+<code class="descname">binpath</code><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.binpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.binpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Absolute path of the binary. None if app is not found</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.iotools.visualizer.Visualizer.is_available">
+<code class="descname">is_available</code><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.is_available" title="Permalink to this definition">¶</a></dt>
+<dd><p>True is the visualizer is available on the local machine.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.iotools.visualizer.Visualizer.get_available">
+<em class="property">classmethod </em><code class="descname">get_available</code><span class="sig-paren">(</span><em>ext=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.get_available"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.get_available" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of visualizers available on the local host.
+If ext is not None, only the visualizers supporting this extension are returned.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.iotools.visualizer.Visualizer.support_ext">
+<em class="property">classmethod </em><code class="descname">support_ext</code><span class="sig-paren">(</span><em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.support_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.support_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if visualizer supports the extension ext.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -201,46 +242,28 @@ is chosen automatically depending on the file extension.</p>
 </dd></dl>
 
 <dl class="classmethod">
+<dt id="abipy.iotools.visualizer.Visualizer.supported_extensions">
+<em class="property">classmethod </em><code class="descname">supported_extensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.supported_extensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.supported_extensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of file extensions supported by the visualizer.</p>
+</dd></dl>
+
+<dl class="classmethod">
 <dt id="abipy.iotools.visualizer.Visualizer.from_name">
-<em class="property">classmethod </em><code class="descname">from_name</code><span class="sig-paren">(</span><em>visu_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.from_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.from_name" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">from_name</code><span class="sig-paren">(</span><em>appname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.from_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.from_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the visualizer class from the name of the application.</p>
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="abipy.iotools.visualizer.Visualizer.get_available">
-<em class="property">classmethod </em><code class="descname">get_available</code><span class="sig-paren">(</span><em>ext=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.get_available"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.get_available" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of visualizers available on the local host.
-If ext is not None, only the visualizers supporting this extension are returned.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.iotools.visualizer.Visualizer.is_available">
-<code class="descname">is_available</code><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.is_available" title="Permalink to this definition">¶</a></dt>
-<dd><p>True is the visualizer is available on the local machine.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="abipy.iotools.visualizer.Visualizer.is_macosx_app">
-<code class="descname">is_macosx_app</code><em class="property"> = False</em><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.is_macosx_app" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.iotools.visualizer.Visualizer.support_ext">
-<em class="property">classmethod </em><code class="descname">support_ext</code><span class="sig-paren">(</span><em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.support_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.support_ext" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if visualizer supports the extension ext.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="abipy.iotools.visualizer.Visualizer.supported_extensions">
-<em class="property">classmethod </em><code class="descname">supported_extensions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.supported_extensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.supported_extensions" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of file extensions supported by the visualizer.</p>
+<dt id="abipy.iotools.visualizer.Visualizer.all_visunames">
+<em class="property">classmethod </em><code class="descname">all_visunames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/iotools/visualizer.html#Visualizer.all_visunames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.iotools.visualizer.Visualizer.all_visunames" title="Permalink to this definition">¶</a></dt>
+<dd><p>List with the names of the visualizers supported.</p>
 </dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.iotools.xsf">
-<span id="xsf-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">xsf</span></code> Module<a class="headerlink" href="#module-abipy.iotools.xsf" title="Permalink to this headline">¶</a></h2>
+<span id="xsf-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">xsf</span></code> Module</a><a class="headerlink" href="#module-abipy.iotools.xsf" title="Permalink to this headline">¶</a></h2>
 <p>Tools for writing Xcrysden files.</p>
 <dl class="function">
 <dt id="abipy.iotools.xsf.xsf_write_structure">
@@ -342,7 +365,7 @@ in the unic cell mesh in unit <cite>unit</cite>.</li>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

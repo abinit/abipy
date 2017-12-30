@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="G0W0 convergence study" href="run_gwconv_ecuteps.html" />
-    <link rel="prev" title="Relaxation of GaN with different K-meshes" href="run_relax_vs_kpts_tsmear.html" />
+    <link rel="prev" title="Relaxation Flow" href="run_relax.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -102,7 +106,7 @@
               
                 
   <li>
-    <a href="run_relax_vs_kpts_tsmear.html" title="Previous Chapter: Relaxation of GaN with different K-meshes"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation of...</span>
+    <a href="run_relax.html" title="Previous Chapter: Relaxation Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation Flow</span>
     </a>
   </li>
   <li>
@@ -247,7 +251,7 @@ with PAW for several values of U-J.</p>
 
 <span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
@@ -323,7 +327,7 @@ and we can compare the results of these two task by specifying the node identifi
 <blockquote>
 <div>abirun.py flow_ldaus/ ebands -p –nids=241314,241318</div></blockquote>
 <img alt="Band structure of Si in the IBZ and along a k-path" src="https://github.com/abinit/abipy_assets/blob/master/run_ldaus.png?raw=true" />
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.280 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.292 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_ldaus.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_ldaus.py</span></code></a></div>
@@ -346,7 +350,7 @@ and we can compare the results of these two task by specifying the node identifi
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

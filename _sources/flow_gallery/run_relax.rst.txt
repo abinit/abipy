@@ -113,7 +113,7 @@ This script shows how to perform a structural relaxation in two steps:
 
     # This block generates the thumbnails in the Abipy gallery.
     # You can safely REMOVE this part if you are using this script for production runs.
-    if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
@@ -128,7 +128,7 @@ This script shows how to perform a structural relaxation in two steps:
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.126 seconds)
+**Total running time of the script:** ( 0 minutes  0.112 seconds)
 
 
 

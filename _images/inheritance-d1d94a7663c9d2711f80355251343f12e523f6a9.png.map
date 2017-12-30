@@ -1,0 +1,6 @@
+<map id="inheritance83fb40235f" name="inheritance83fb40235f">
+<area shape="rect" id="node1" href="#abipy.electrons.bse.MdfReader" target="_top" title="This object reads data from the MDF.nc file produced by ABINIT." alt="" coords="615,4,764,21"/>
+<area shape="rect" id="node2" href="iotools_api.html#abipy.iotools.ETSF_Reader" target="_top" title="Provides high&#45;level API to read data from netcdf files written" alt="" coords="447,4,580,21"/>
+<area shape="rect" id="node3" title="This object reads data from a file written according to the ETSF&#45;IO specifications." alt="" coords="224,4,412,21"/>
+<area shape="rect" id="node4" title="Wraps and extends netCDF4.Dataset. Read only mode. Supports with statements." alt="" coords="4,4,190,21"/>
+</map>

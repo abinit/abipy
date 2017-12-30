@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -161,6 +165,8 @@
     <span class="s2">&quot;scf_phonons_inputs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;piezo_elastic_inputs_from_gsinput&quot;</span><span class="p">,</span>
     <span class="s2">&quot;scf_piezo_elastic_inputs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;scf_for_phonons&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dte_from_gsinput&quot;</span>
 <span class="p">]</span>
 
 
@@ -249,7 +255,7 @@
 
 
 <span class="k">def</span> <span class="nf">_find_ecut_pawecutdg</span><span class="p">(</span><span class="n">ecut</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return a :class:`AttrDict` with the value of ecut and pawecutdg&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``.&quot;&quot;&quot;</span>
     <span class="c1"># Get ecut and pawecutdg from the pseudo hints.</span>
     <span class="k">if</span> <span class="n">ecut</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">pawecutdg</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">ispaw</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">)):</span>
         <span class="n">has_hints</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">has_hints</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pseudos</span><span class="p">)</span>
@@ -271,7 +277,7 @@
 
 
 <span class="k">def</span> <span class="nf">_find_scf_nband</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">electrons</span><span class="p">,</span> <span class="n">spinat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Find the value of nband.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Find the value of ``nband``.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">electrons</span><span class="o">.</span><span class="n">nband</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="n">electrons</span><span class="o">.</span><span class="n">nband</span>
 
     <span class="n">nsppol</span><span class="p">,</span> <span class="n">smearing</span> <span class="o">=</span> <span class="n">electrons</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">electrons</span><span class="o">.</span><span class="n">smearing</span>
@@ -312,7 +318,7 @@
 <span class="sd">        centered otherwise.</span>
 
 <span class="sd">    Note: for some cases (e.g. body centered tetragonal), both the Symmetric and OneSymmetric may fail to satisfy the</span>
-<span class="sd">        `chksymbreak` condition (Abinit input variable).</span>
+<span class="sd">        ``chksymbreak`` condition (Abinit input variable).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">shift_mode</span> <span class="o">==</span> <span class="n">ShiftMode</span><span class="o">.</span><span class="n">GammaCentered</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
@@ -336,11 +342,11 @@
              <span class="n">kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
              <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`AbinitInput` for ground-state calculation.</span>
+<span class="sd">    Returns a |AbinitInput| for ground-state calculation.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.</span>
 <span class="sd">        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</span>
 <span class="sd">        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos</span>
@@ -366,11 +372,11 @@
                  <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scf_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                  <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` for band structure calculations.</span>
+<span class="sd">    Returns a |MultiDataset| object for band structure calculations.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the SCF run. Defaults to 1000 if not given.</span>
 <span class="sd">        nscf_nband: Number of bands included in the NSCF run. Set to scf_nband + 10 if None.</span>
 <span class="sd">        ndivsm: Number of divisions used to sample the smallest segment of the k-path.</span>
@@ -445,12 +451,12 @@
                             <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                             <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shift_mode</span><span class="o">=</span><span class="s1">&#39;Monkhorst-pack&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` for a structural relaxation. The first dataset optmizes the</span>
+<span class="sd">    Returns a |MultiDataset| for a structural relaxation. The first dataset optmizes the</span>
 <span class="sd">    atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the Brillouin zone.</span>
 <span class="sd">        nband: Number of bands included in the SCF run.</span>
 <span class="sd">        accuracy: Accuracy of the calculation.</span>
@@ -500,7 +506,7 @@
                                        <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                                        <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` for a structural relaxation followed by a band structure run.</span>
+<span class="sd">    Returns a |MultiDataset| for a structural relaxation followed by a band structure run.</span>
 <span class="sd">    The first dataset optimizes the atomic positions at fixed unit cell.</span>
 <span class="sd">    The second datasets optimizes both ions and unit cell parameters.</span>
 <span class="sd">    The other datasets perform a band structure calculation.</span>
@@ -511,8 +517,8 @@
 <span class="sd">        second dataset to the inputs used for the band structure calculation.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the Brillouin zone.</span>
 <span class="sd">        nband: Number of bands included in the SCF run.</span>
 <span class="sd">        accuracy: Accuracy of the calculation.</span>
@@ -521,8 +527,7 @@
 <span class="sd">        charge: Electronic charge added to the unit cell.</span>
 <span class="sd">        scf_algorithm: Algorithm used for solving of the SCF cycle.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        :class:`MultiDataset` object</span>
+<span class="sd">    Returns: |MultiDataset| object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
 
@@ -541,16 +546,16 @@
 
 <div class="viewcode-block" id="g0w0_with_ppmodel_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.g0w0_with_ppmodel_inputs">[docs]</a><span class="k">def</span> <span class="nf">g0w0_with_ppmodel_inputs</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span>
                              <span class="n">kppa</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="n">ecutsigx</span><span class="p">,</span>
-                             <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+                             <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
                              <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span>
                              <span class="n">ppmodel</span><span class="o">=</span><span class="s2">&quot;godby&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclvkb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">scr_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                              <span class="n">sigma_nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gw_qprange</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` object that performs G0W0 calculations with the plasmon pole approximation.</span>
+<span class="sd">    Returns a |MultiDataset| object that performs G0W0 calculations with the plasmon pole approximation.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: Pymatgen structure.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the SCF run.</span>
 <span class="sd">        nscf_nband: Number of bands included in the NSCF run.</span>
 <span class="sd">        ecuteps: Cutoff energy [Ha] for the screening matrix.</span>
@@ -558,6 +563,7 @@
 <span class="sd">        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</span>
 <span class="sd">        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized</span>
 <span class="sd">            from the pseudos according to accuracy)</span>
+<span class="sd">        shifts: Shifts for k-mesh.</span>
 <span class="sd">        accuracy: Accuracy of the calculation.</span>
 <span class="sd">        spin_mode: Spin polarization.</span>
 <span class="sd">        smearing: Smearing technique.</span>
@@ -570,6 +576,10 @@
 <span class="sd">        gw_qprange: Option for the automatic selection of k-points and bands for GW corrections.</span>
 <span class="sd">            See Abinit docs for more detail. The default value makes the code compute the</span>
 <span class="sd">            QP energies for all the point in the IBZ and one band above and one band below the Fermi level.</span>
+
+<span class="sd">    .. versionchanged: 0.3</span>
+
+<span class="sd">        The default value of ``shifts`` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
@@ -629,12 +639,13 @@
                             <span class="n">response_models</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inclvkb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                             <span class="n">gw_qprange</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nksmall</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_abivars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` object to generate a G0W0 work for the given the material.</span>
+<span class="sd">    Returns a |MultiDataset| object to generate a G0W0 work for the given the material.</span>
+<span class="sd">    See also :cite:`Setten2017`.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: Pymatgen structure.</span>
-<span class="sd">        pseudos: List of `Pseudo` objects.</span>
-<span class="sd">        kppa: k poits per reciprocal atom</span>
+<span class="sd">        structure: |Structure| object</span>
+<span class="sd">        pseudos: List of |Pseudo| objects.</span>
+<span class="sd">        kppa: k points per reciprocal atom.</span>
 <span class="sd">        scf_nband: number of scf bands</span>
 <span class="sd">        ecut: ecut for all calcs that that are not ecut convergence  cals at scf level</span>
 <span class="sd">        scf_ Defines the sampling used for the SCF run.</span>
@@ -727,7 +738,7 @@
             <span class="n">scf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
             <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># this is the original behaviour before the devellopment of the gwwrapper</span>
+        <span class="c1"># this is the original behaviour before the development of the gwwrapper</span>
         <span class="n">scf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">nscf_ksampling</span> <span class="o">=</span> <span class="n">aobj</span><span class="o">.</span><span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="p">,</span> <span class="n">chksymbreak</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
@@ -737,7 +748,6 @@
                                     <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">nscf_nband</span><span class="p">),</span> <span class="n">fband</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="n">multi_scf</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">ndtset</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">scf_diffs</span><span class="p">)))</span>
-    <span class="c1">#print(len(scf_diffs))</span>
 
     <span class="n">multi_scf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">scf_ksampling</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
     <span class="n">multi_scf</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">scf_electrons</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
@@ -784,8 +794,7 @@
                                         <span class="n">freqremin</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">scr_inputs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sigma_inputs</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ecuteps&quot;</span><span class="p">,</span> <span class="n">ecuteps</span><span class="p">,</span> <span class="s2">&quot;nscf_nband&quot;</span><span class="p">,</span> <span class="n">nscf_nband</span><span class="p">)</span>
+    <span class="c1">#print(&quot;ecuteps&quot;, ecuteps, &quot;nscf_nband&quot;, nscf_nband)</span>
 
     <span class="k">for</span> <span class="n">response_model</span> <span class="ow">in</span> <span class="n">response_models</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">ecuteps_v</span> <span class="ow">in</span> <span class="n">ecuteps</span><span class="p">:</span>
@@ -826,13 +835,13 @@
                         <span class="n">exc_type</span><span class="o">=</span><span class="s2">&quot;TDA&quot;</span><span class="p">,</span> <span class="n">bs_algo</span><span class="o">=</span><span class="s2">&quot;haydock&quot;</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span>
                         <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` object that performs a GS + NSCF + Bethe-Salpeter calculation.</span>
+<span class="sd">    Returns a |MultiDataset| object that performs a GS + NSCF + Bethe-Salpeter calculation.</span>
 <span class="sd">    The self-energy corrections are approximated with the scissors operator.</span>
 <span class="sd">    The screening is modeled with the model dielectric function.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        scf_kppa: Defines the sampling used for the SCF run.</span>
 <span class="sd">        nscf_nband: Number of bands included in the NSCF run.</span>
 <span class="sd">        nscf_ngkpt: Divisions of the k-mesh used for the NSCF and the BSE run.</span>
@@ -910,8 +919,8 @@
 <span class="sd">    GS input + the input files for the phonon calculation.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the SCF run.</span>
 <span class="sd">        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</span>
 <span class="sd">        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the</span>
@@ -936,7 +945,7 @@
 
     <span class="c1"># Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)</span>
     <span class="c1"># i.e. the same parameters used for the k-mesh in gs_inp.</span>
-    <span class="n">qpoints</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">points</span>
+    <span class="n">qpoints</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">points</span>
     <span class="c1">#print(&quot;get_ibz qpoints:&quot;, qpoints)</span>
 
     <span class="c1"># Build the input files for the q-points in the IBZ.</span>
@@ -980,16 +989,16 @@
 
 
 <div class="viewcode-block" id="phonons_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.phonons_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">phonons_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ph_ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpoints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_ddk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_dde</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_bec</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                         <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wfq_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpoints_to_skip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                         <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wfq_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qpoints_to_skip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on</span>
-<span class="sd">    a ground state AbinitInput.</span>
+<span class="sd">    a ground state |AbinitInput|.</span>
 <span class="sd">    It will determine if WFQ files should be calculated for some q points and add the NSCF AbinitInputs to the set.</span>
 <span class="sd">    The inputs have the following tags, according to their function: &quot;ddk&quot;, &quot;dde&quot;, &quot;nscf&quot;, &quot;ph_q_pert&quot;.</span>
 <span class="sd">    All of them have the tag &quot;phonon&quot;.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.</span>
+<span class="sd">        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.</span>
 <span class="sd">        ph_ngqpt: a list of three integers representing the gamma centered q-point grid used for the calculation.</span>
 <span class="sd">            If None and qpoint==None the ngkpt value present in the gs_input will be used.</span>
 <span class="sd">            Incompatible with qpoints.</span>
@@ -1013,6 +1022,7 @@
 <span class="sd">        qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.</span>
 <span class="sd">            Useful when calculating multiple grids for the same system to avoid duplicate calculations.</span>
 <span class="sd">            If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().</span>
+<span class="sd">        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
     <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_irdvars</span><span class="p">()</span>
@@ -1047,7 +1057,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ph_ngqpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ph_ngqpt</span><span class="p">)</span>
 
-        <span class="n">qpoints</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ph_ngqpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">points</span>
+        <span class="n">qpoints</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">ngkpt</span><span class="o">=</span><span class="n">ph_ngqpt</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="n">points</span>
 
     <span class="k">if</span> <span class="n">qpoints_to_skip</span><span class="p">:</span>
         <span class="n">preserved_qpoints</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1058,7 +1068,7 @@
 
     <span class="k">if</span> <span class="n">ph_ngqpt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">%</span> <span class="n">ph_ngqpt</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
         <span class="c1"># find which q points are needed and build nscf inputs to calculate the WFQ</span>
-        <span class="n">kpts</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">kpts</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">abiget_ibz</span><span class="p">(</span><span class="n">shiftk</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">kptopt</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="n">nscf_qpt</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qpoints</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kpts</span><span class="p">:</span>
@@ -1104,9 +1114,10 @@
 
     <span class="k">return</span> <span class="n">multi</span></div>
 
-<div class="viewcode-block" id="piezo_elastic_inputs_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.piezo_elastic_inputs_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">piezo_elastic_inputs_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rf_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rf_split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="piezo_elastic_inputs_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.piezo_elastic_inputs_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">piezo_elastic_inputs_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rf_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rf_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                      <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.</span>
+<span class="sd">    Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.</span>
 <span class="sd">    GS input + the input files for the elastic and piezoelectric constants calculation.</span>
 
 <span class="sd">    Args:</span>
@@ -1115,6 +1126,7 @@
 <span class="sd">        rf_tol: Tolerance for the Strain RF calculations (i.e. {&quot;tolvrs&quot;: 1.0e-12}).</span>
 <span class="sd">        ddk_split: Whether to split the DDK calculations.</span>
 <span class="sd">        rf_split: whether to split the RF calculations.</span>
+<span class="sd">        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Ddk input(s)</span>
     <span class="k">if</span> <span class="n">ddk_split</span><span class="p">:</span>
@@ -1148,7 +1160,7 @@
 
     <span class="c1"># Response Function input(s)</span>
     <span class="k">if</span> <span class="n">rf_split</span><span class="p">:</span>
-        <span class="n">multi_rf</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_strain_perts_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">rf_tol</span><span class="p">)</span>
+        <span class="n">multi_rf</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_strain_perts_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">rf_tol</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">rf_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
 
@@ -1194,12 +1206,12 @@
                              <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rf_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rf_split</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a :class:`MultiDataset` for performing elastic and piezoelectric constants calculations.</span>
+<span class="sd">    Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.</span>
 <span class="sd">    GS input + the input files for the elastic and piezoelectric constants calculation.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        structure: :class:`Structure` object.</span>
-<span class="sd">        pseudos: List of filenames or list of :class:`Pseudo` objects or :class:`PseudoTable` object.</span>
+<span class="sd">        structure: |Structure| object.</span>
+<span class="sd">        pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.</span>
 <span class="sd">        kppa: Defines the sampling used for the SCF run.</span>
 <span class="sd">        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)</span>
 <span class="sd">        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the</span>
@@ -1238,7 +1250,7 @@
               <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">shift_mode</span><span class="o">=</span><span class="s2">&quot;Monkhorst-Pack&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns an :class:`AbinitInput` for standard GS calculations.</span>
+<span class="sd">    Returns an |AbinitInput| object for standard GS calculations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
 
@@ -1271,7 +1283,7 @@
 
 <span class="k">def</span> <span class="nf">ebands_from_gsinput</span><span class="p">(</span><span class="n">gsinput</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return an :class:`AbinitInput` object to compute a band structure from a GS SCF input.</span>
+<span class="sd">    Return an |AbinitInput| object to compute a band structure from a GS SCF input.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        gsinput:</span>
@@ -1279,7 +1291,7 @@
 <span class="sd">        ndivsm:</span>
 <span class="sd">        accuracy:</span>
 
-<span class="sd">    Return: :class:`AbinitInput`</span>
+<span class="sd">    Return: |AbinitInput|</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># create a copy to avoid messing with the previous input</span>
     <span class="n">bands_input</span> <span class="o">=</span> <span class="n">gsinput</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1366,7 +1378,7 @@
     <span class="k">return</span> <span class="n">hybrid_input</span>
 
 
-<span class="k">def</span> <span class="nf">scf_for_phonons</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+<div class="viewcode-block" id="scf_for_phonons"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.scf_for_phonons">[docs]</a><span class="k">def</span> <span class="nf">scf_for_phonons</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ecut</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pawecutdg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
                     <span class="n">spin_mode</span><span class="o">=</span><span class="s2">&quot;polarized&quot;</span><span class="p">,</span> <span class="n">smearing</span><span class="o">=</span><span class="s2">&quot;fermi_dirac:0.1 eV&quot;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">scf_algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">shift_mode</span><span class="o">=</span><span class="s2">&quot;Symmetric&quot;</span><span class="p">):</span>
 
@@ -1385,20 +1397,20 @@
     <span class="c1"># enforce symmetries and add a buffer of bands to ease convergence with tolwfr</span>
     <span class="n">abiinput</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">chksymbreak</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nbdbuf</span><span class="o">=</span><span class="n">nbdbuf</span><span class="p">,</span> <span class="n">tolwfr</span><span class="o">=</span><span class="mf">1.e-22</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">abiinput</span>
+    <span class="k">return</span> <span class="n">abiinput</span></div>
 
 
-<span class="k">def</span> <span class="nf">dte_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">use_phonons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dte_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                     <span class="n">skip_dte_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="dte_from_gsinput"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.factories.dte_from_gsinput">[docs]</a><span class="k">def</span> <span class="nf">dte_from_gsinput</span><span class="p">(</span><span class="n">gs_inp</span><span class="p">,</span> <span class="n">use_phonons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ph_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddk_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dde_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dte_tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">skip_dte_permutations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a list of inputs in the form of a MultiDataset to perform calculations of non-linear properties, based on</span>
+<span class="sd">    Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on</span>
 <span class="sd">    a ground state AbinitInput.</span>
 
 <span class="sd">    The inputs have the following tags, according to their function: &quot;ddk&quot;, &quot;dde&quot;, &quot;ph_q_pert&quot; and &quot;dte&quot;.</span>
 <span class="sd">    All of them have the tag &quot;dfpt&quot;.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        gs_inp: an AbinitInput representing a ground state calculation, likely the SCF performed to get the WFK.</span>
+<span class="sd">        gs_inp: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.</span>
 <span class="sd">        use_phonons: determine wether the phonon perturbations at gamma should be included or not</span>
 <span class="sd">        ph_tol: a dictionary with a single key defining the type of tolarence used for the phonon calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolvrs&quot;: 1.0e-22}.</span>
@@ -1409,6 +1421,7 @@
 <span class="sd">        dte_tol: a dictionary with a single key defining the type of tolarence used for the DTE calculations and</span>
 <span class="sd">            its value. Default: {&quot;tolwfr&quot;: 1.0e-20}.</span>
 <span class="sd">        skip_dte_permutations:</span>
+<span class="sd">        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">gs_inp</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
     <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop_irdvars</span><span class="p">()</span>
@@ -1430,12 +1443,12 @@
     <span class="n">multi_ddk</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_ddk_inputs</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="n">ddk_tol</span><span class="p">)</span>
     <span class="n">multi_ddk</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDK</span><span class="p">)</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ddk</span><span class="p">)</span>
-    <span class="n">multi_dde</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">dde_tol</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">multi_dde</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dde_inputs</span><span class="p">(</span><span class="n">dde_tol</span><span class="p">,</span> <span class="n">use_symmetries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
     <span class="n">multi_dde</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DDE</span><span class="p">)</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dde</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">use_phonons</span><span class="p">:</span>
-        <span class="n">multi_ph</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_ph_inputs_qpoint</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ph_tol</span><span class="p">)</span>
+        <span class="n">multi_ph</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_ph_inputs_qpoint</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ph_tol</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
         <span class="n">multi_ph</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">PH_Q_PERT</span><span class="p">)</span>
         <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_ph</span><span class="p">)</span>
 
@@ -1446,14 +1459,15 @@
     <span class="n">nband</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nval</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">gs_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">nband</span><span class="o">=</span><span class="n">nband</span><span class="p">)</span>
     <span class="n">gs_inp</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;nbdbuf&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">multi_dte</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dte_inputs</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">use_phonons</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="n">skip_dte_permutations</span><span class="p">)</span>
+    <span class="n">multi_dte</span> <span class="o">=</span> <span class="n">gs_inp</span><span class="o">.</span><span class="n">make_dte_inputs</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">use_phonons</span><span class="p">,</span> <span class="n">skip_permutations</span><span class="o">=</span><span class="n">skip_dte_permutations</span><span class="p">,</span>
+                                       <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
     <span class="n">multi_dte</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DTE</span><span class="p">)</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">multi_dte</span><span class="p">)</span>
 
     <span class="n">multi</span> <span class="o">=</span> <span class="n">MultiDataset</span><span class="o">.</span><span class="n">from_inputs</span><span class="p">(</span><span class="n">multi</span><span class="p">)</span>
     <span class="n">multi</span><span class="o">.</span><span class="n">add_tags</span><span class="p">(</span><span class="n">DFPT</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">multi</span>
+    <span class="k">return</span> <span class="n">multi</span></div>
 
 
 <span class="c1">#FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,</span>
@@ -1551,7 +1565,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -1,3 +1,5 @@
-ax = sns.violinplot(x="day", y="total_bill", hue="sex",
-                    data=tips, palette="Set2", split=True,
-                    scale="count", inner="stick", scale_hue=False)
+g = sns.FacetGrid(tips, col="time", size=4, aspect=.7)
+(g.map(sns.boxplot, "sex", "total_bill", "smoker")
+  .despine(left=True)
+  .add_legend(title="smoker"))  #doctest: +ELLIPSIS
+# <seaborn.axisgrid.FacetGrid object at 0x...>

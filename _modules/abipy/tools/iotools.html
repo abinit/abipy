@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -136,7 +140,7 @@
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span>
 
 
-<div class="viewcode-block" id="ask_yes_no"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.iotools.ask_yes_no">[docs]</a><span class="k">def</span> <span class="nf">ask_yes_no</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ask_yes_no"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.iotools.ask_yes_no">[docs]</a><span class="k">def</span> <span class="nf">ask_yes_no</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Ask a question and return a boolean (y/n) answer.</span>
 
@@ -174,7 +178,7 @@
     <span class="k">return</span> <span class="n">answers</span><span class="p">[</span><span class="n">ans</span><span class="p">]</span></div>
 
 
-<span class="k">def</span> <span class="nf">_user_wants_to_exit</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">_user_wants_to_exit</span><span class="p">():</span> <span class="c1"># pragma: no cover</span>
     <span class="c1"># Fixes py2.x</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">my_input</span> <span class="o">=</span> <span class="n">raw_input</span>
@@ -194,7 +198,7 @@
     <span class="sd">&quot;&quot;&quot;Base class for exceptions raised by `Editor`&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="Editor"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.iotools.Editor">[docs]</a><span class="k">class</span> <span class="nc">Editor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Editor"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.iotools.Editor">[docs]</a><span class="k">class</span> <span class="nc">Editor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">DEFAULT_EDITOR</span> <span class="o">=</span> <span class="s2">&quot;vi&quot;</span>
 
     <span class="n">Error</span> <span class="o">=</span> <span class="n">EditorError</span>
@@ -224,7 +228,7 @@
         <span class="k">return</span> <span class="mi">0</span></div></div>
 
 
-<div class="viewcode-block" id="input_from_editor"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.iotools.input_from_editor">[docs]</a><span class="k">def</span> <span class="nf">input_from_editor</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="input_from_editor"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.iotools.input_from_editor">[docs]</a><span class="k">def</span> <span class="nf">input_from_editor</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
@@ -248,7 +252,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

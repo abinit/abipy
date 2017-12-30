@@ -1,1 +1,1 @@
-g = sns.lmplot(x="total_bill", y="tip", hue="smoker", data=tips)
+g = sns.pairplot(iris, hue="species", palette="husl")

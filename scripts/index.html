@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="abicheck.py" href="abicheck.html" />
-    <link rel="prev" title="What’s new in abipy" href="../whats_new.html" />
+    <link rel="prev" title="Bibliography" href="../zzbiblio.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -102,7 +106,7 @@
               
                 
   <li>
-    <a href="../whats_new.html" title="Previous Chapter: What’s new in abipy"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; What’s new in abipy</span>
+    <a href="../zzbiblio.html" title="Previous Chapter: Bibliography"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Bibliography</span>
     </a>
   </li>
   <li>
@@ -148,10 +152,12 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Release:</th><td class="field-body">0.2.0</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">Dec 12, 2017</td>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">Dec 29, 2017</td>
 </tr>
 </tbody>
 </table>
+<p>This page documents the usage of the AbiPy scripts,
+the subcommands available and the options supported by each subcommand.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="abicheck.html"><code class="docutils literal"><span class="pre">abicheck.py</span></code></a><ul>
@@ -170,7 +176,7 @@
 <li class="toctree-l3"><a class="reference internal" href="abicomp.html#edos">edos</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abicomp.html#phbands">phbands</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abicomp.html#phdos">phdos</a></li>
-<li class="toctree-l3"><a class="reference internal" href="abicomp.html#attr">attr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abicomp.html#getattr">getattr</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abicomp.html#gsr">gsr</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abicomp.html#hist">hist</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abicomp.html#ddb">ddb</a></li>
@@ -319,11 +325,17 @@
 <li class="toctree-l2"><a class="reference internal" href="abiview.html#Named Arguments">Named Arguments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="abiview.html#subcommands">subcommands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="abiview.html#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#structure">structure</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abiview.html#hist">hist</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abiview.html#abo">abo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#log">log</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abiview.html#ebands">ebands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#fatbands">fatbands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#ddb">ddb</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abiview.html#phbands">phbands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="abiview.html#fields">fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#phdos">phdos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#gruns">gruns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abiview.html#mdf">mdf</a></li>
 </ul>
 </li>
 </ul>
@@ -345,7 +357,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

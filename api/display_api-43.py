@@ -1,3 +1,2 @@
-ax = sns.violinplot(x="day", y="total_bill", hue="sex",
-                    data=tips, palette="Set2", split=True,
-                    scale="count", inner="stick")
+ax = sns.boxplot(x="day", y="total_bill", data=tips)
+ax = sns.swarmplot(x="day", y="total_bill", data=tips, color=".25")

@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -125,7 +129,9 @@
       
   <h1>Source code for abipy.core.structure</h1><div class="highlight"><pre>
 <span></span><span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;This module defines basic objects representing the crystalline structure.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines basic objects representing the crystalline structure.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -171,9 +177,8 @@
 <span class="sd">    Finds matching structures on the Materials Project database.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        obj: filename or Structure object.</span>
-<span class="sd">        api_key (str): A String API key for accessing the MaterialsProject</span>
-<span class="sd">            REST interface.</span>
+<span class="sd">        obj: filename or |Structure| object.</span>
+<span class="sd">        api_key (str): A String API key for accessing the MaterialsProject REST interface.</span>
 <span class="sd">        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
 <span class="sd">        final (bool): Whether to get the final structure, or the initial</span>
 <span class="sd">            (pre-relaxation) structure. Defaults to True.</span>
@@ -245,12 +250,11 @@
 
 <div class="viewcode-block" id="cod_search"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.cod_search">[docs]</a><span class="k">def</span> <span class="nf">cod_search</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Connect to the COD database (http://www.crystallography.net/)</span>
-<span class="sd">    Get a list of structures corresponding to a chemical formula</span>
+<span class="sd">    Connect to the COD_ database. Get a list of structures corresponding to a chemical formula</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        formula (str): Chemical formula (e.g., Fe2O3)</span>
-<span class="sd">        primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
+<span class="sd">        primitive (bool): True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        :class:`CodStructures` object with</span>
@@ -274,18 +278,25 @@
 
 <div class="viewcode-block" id="Structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure">[docs]</a><span class="k">class</span> <span class="nc">Structure</span><span class="p">(</span><span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extends :class:`pymatgen.Structure` with Abinit-specific methods.</span>
+<span class="sd">    Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.</span>
 
+<span class="sd">    A jupyter_ notebook documenting the usage of this object is available at</span>
+<span class="sd">    &lt;https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb&gt;</span>
+
+<span class="sd">    For the pymatgen project see :cite:`Ong2013`.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: Structure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Structure.as_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.as_structure">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">as_structure</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert obj into a structure. Accepts:</span>
+<span class="sd">        Convert obj into a |Structure|. Accepts:</span>
 
-<span class="sd">            - Structure instances</span>
-<span class="sd">            - Filenames</span>
-<span class="sd">            - Dictionaries (JSON format or dictionaries with abinit variables).</span>
-<span class="sd">            - Objects with a `structure` attribute.</span>
+<span class="sd">            - Structure object.</span>
+<span class="sd">            - Filename</span>
+<span class="sd">            - Dictionaries (JSON_ format or dictionaries with abinit variables).</span>
+<span class="sd">            - Objects with a ``structure`` attribute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span> <span class="k">return</span> <span class="n">obj</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
@@ -317,12 +328,12 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads a structure from a file. For example, anything ending in</span>
 <span class="sd">        a &quot;cif&quot; is assumed to be a Crystallographic Information Format file.</span>
-<span class="sd">        Supported formats include CIF, POSCAR/CONTCAR, CHGCAR, LOCPOT,</span>
+<span class="sd">        Supported formats include CIF_, POSCAR/CONTCAR, CHGCAR, LOCPOT,</span>
 <span class="sd">        vasprun.xml, CSSR, Netcdf and pymatgen&#39;s JSON serialized structures.</span>
 
 <span class="sd">        Netcdf files supported:</span>
 <span class="sd">            All files produced by ABINIT with info of the crystalline geometry</span>
-<span class="sd">            HIST_FILEs, in this case the last structure of the history is returned.</span>
+<span class="sd">            HIST.nc, in this case the last structure of the history is returned.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            filename (str): The filename to read from.</span>
@@ -331,8 +342,7 @@
 <span class="sd">                Defaults to True.</span>
 <span class="sd">            sort (bool): Whether to sort sites. Default to False.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            :class:`Structure` object</span>
+<span class="sd">        Returns: |Structure| object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_HIST&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_HIST.nc&quot;</span><span class="p">):</span>
             <span class="c1"># Abinit history file. In this case we return the last structure!</span>
@@ -406,7 +416,7 @@
 <span class="sd">                (pre-relaxation) structure. Defaults to True.</span>
 <span class="sd">            api_key (str): A String API key for accessing the MaterialsProject</span>
 <span class="sd">                REST interface. Please apply on the Materials Project website for one.</span>
-<span class="sd">                If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.</span>
+<span class="sd">                If this is None, the code will check if there is a ``PMG_MAPI_KEY`` in your .pmgrc.yaml.</span>
 <span class="sd">                If so, it will use that environment</span>
 <span class="sd">                This makes easier for heavy users to simply add this environment variable</span>
 <span class="sd">                to their setups and MPRester can then be called without any arguments.</span>
@@ -414,8 +424,7 @@
 <span class="sd">                Defaults to the standard Materials Project REST address, but</span>
 <span class="sd">                can be changed to other urls implementing a similar interface.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            Structure object.</span>
+<span class="sd">        Returns: |Structure| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get pytmatgen structure and convert it to abipy structure</span>
         <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
@@ -426,15 +435,14 @@
 <div class="viewcode-block" id="Structure.from_cod_id"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_cod_id">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_cod_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cod_id</span><span class="p">,</span> <span class="n">primitive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Queries the COD for a structure by id. Returns Structure object.</span>
+<span class="sd">        Queries the COD_ for a structure by id. Returns |Structure| object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            cod_id (int): COD id.</span>
-<span class="sd">            primitive: True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
-<span class="sd">            kwargs: Arguments passed to `get_structure_by_id`</span>
+<span class="sd">            primitive (bool): True if primitive structures are wanted. Note that many COD structures are not primitive.</span>
+<span class="sd">            kwargs: Arguments passed to ``get_structure_by_id``</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            A Structure.</span>
+<span class="sd">        Returns: |Structure| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.ext.cod</span> <span class="k">import</span> <span class="n">COD</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">COD</span><span class="p">()</span><span class="o">.</span><span class="n">get_structure_by_id</span><span class="p">(</span><span class="n">cod_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -457,10 +465,7 @@
 
 <div class="viewcode-block" id="Structure.to_ase_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.to_ase_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">to_ase_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns ASE Atoms object from structure.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            ASE Atoms object</span>
+<span class="sd">        Returns ASE_ Atoms object from structure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">pymatgen.io.ase</span> <span class="k">as</span> <span class="nn">aio</span>
         <span class="k">return</span> <span class="n">aio</span><span class="o">.</span><span class="n">AseAtomsAdaptor</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
@@ -501,10 +506,10 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            a: Lattice parameter (Angstrom if units is not given)</span>
-<span class="sd">            species: Chemical species. See __init__ method of :class:`pymatgen.Structue`</span>
+<span class="sd">            species: Chemical species. See __init__ method of |pymatgen-Structure|</span>
 <span class="sd">            primitive: if True a primitive cell will be produced, otherwise a conventional one</span>
 <span class="sd">            units: Units of input lattice parameters e.g. &quot;bohr&quot;, &quot;pm&quot;</span>
-<span class="sd">            kwargs: All keyword arguments accepted by :class:`pymatgen.Structue`</span>
+<span class="sd">            kwargs: All keyword arguments accepted by |pymatgen-Structure|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">pmg_units</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;ang&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">primitive</span><span class="p">:</span>
@@ -628,7 +633,7 @@
 <div class="viewcode-block" id="Structure.from_abivars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_abivars">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_abivars</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build a :class:`Structure` object from a dictionary with ABINIT variables.</span>
+<span class="sd">        Build a |Structure| object from a dictionary with ABINIT variables.</span>
 
 <span class="sd">        Example::</span>
 
@@ -643,7 +648,7 @@
 <span class="sd">                znucl=13,</span>
 <span class="sd">            )</span>
 
-<span class="sd">        `xred` can be replaced with `xcart` or `xangst`.</span>
+<span class="sd">        ``xred`` can be replaced with ``xcart`` or ``xangst``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">structure_from_abivars</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -713,12 +718,8 @@
                                             <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gives a structure with a conventional cell according to certain</span>
-<span class="sd">        standards. The standards are defined in Setyawan, W., &amp; Curtarolo,</span>
-<span class="sd">        S. (2010). High-throughput electronic band structure calculations:</span>
-<span class="sd">        Challenges and tools. Computational Materials Science,</span>
-<span class="sd">        49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010</span>
-<span class="sd">        They basically enforce as much as possible</span>
-<span class="sd">        norm(a1)&lt;norm(a2)&lt;norm(a3)</span>
+<span class="sd">	standards. The standards are defined in :cite:`Setyawan2010`</span>
+<span class="sd">        They basically enforce as much as possible norm(a1)&lt;norm(a2)&lt;norm(a3)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The structure in a conventional standardized cell</span>
@@ -756,12 +757,11 @@
 <span class="sd">            * Lattice vectors are exchanged if the triple product is negative</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            symprec: Symmetry precision used to refine the structure.</span>
-<span class="sd">            angle_tolerance: Tolerance on angles.</span>
-<span class="sd">                if `symprec` is None and `angle_tolerance` is None, no structure refinement is peformed.</span>
-<span class="sd">            primitive (bool): Whether to convert to a primitive cell following</span>
-<span class="sd">                Setyawan, W., &amp; Curtarolo, S. (2010). doi:10.1016/j.commatsci.2010.05.010</span>
-<span class="sd">            primitive_standard: Returns most primitive structure found.</span>
+<span class="sd">            symprec (float): Symmetry precision used to refine the structure.</span>
+<span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
+<span class="sd">                if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.</span>
+<span class="sd">            primitive (bool): Whether to convert to a primitive cell following :cite:`Setyawan2010`</span>
+<span class="sd">            primitive_standard (bool): Returns most primitive structure found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.transformations.standard_transformations</span> <span class="k">import</span> <span class="n">PrimitiveCellTransformation</span><span class="p">,</span> <span class="n">SupercellTransformation</span>
         <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -796,7 +796,7 @@
 
 <div class="viewcode-block" id="Structure.get_oxi_state_decorated"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_oxi_state_decorated">[docs]</a>    <span class="k">def</span> <span class="nf">get_oxi_state_decorated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Use :class:`BVAnalyzer` to estimate oxidation states</span>
+<span class="sd">        Use :class:`pymatgen.analysis.bond_valence.BVAnalyzer` to estimate oxidation states</span>
 <span class="sd">        Return oxidation state decorated structure.</span>
 <span class="sd">        This currently works only for ordered structures only.</span>
 
@@ -811,7 +811,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">nbjsmol</span> <span class="k">import</span> <span class="n">nbjsmol_display</span>
             <span class="k">return</span> <span class="n">nbjsmol_display</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">),</span> <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.cif&quot;</span><span class="p">,</span> <span class="n">html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -855,8 +855,8 @@
 <span class="sd">        crystal system with the exception of the hexagonal/rhombohedral lattice</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            symprec: Symmetry precision for distance</span>
-<span class="sd">            angle_tolerance: Tolerance on angles.</span>
+<span class="sd">            symprec (float): Symmetry precision for distance</span>
+<span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            (str): Lattice type for structure or None if type cannot be detected.</span>
@@ -866,19 +866,20 @@
 
 <div class="viewcode-block" id="Structure.spget_equivalent_atoms"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spget_equivalent_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">spget_equivalent_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">printout</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Call spglib to find the inequivalent atoms and build symmetry tables.</span>
+<span class="sd">        Call spglib_ to find the inequivalent atoms and build symmetry tables.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            symprec: Symmetry precision for distance.</span>
-<span class="sd">            angle_tolerance: Tolerance on angles.</span>
-<span class="sd">            printout: True to print symmetry tables.</span>
+<span class="sd">            symprec (float): Symmetry precision for distance.</span>
+<span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
+<span class="sd">            printout (bool): True to print symmetry tables.</span>
 
-<span class="sd">        Returns: (irred_pos, eqmap, spgdata)</span>
-<span class="sd">            `namedtuple` with the following attributes:</span>
-<span class="sd">                irred_pos: array giving the position of the i-th irred atom in the structure.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ``namedtuple`` (irred_pos, eqmap, spgdata) with the following attributes::</span>
+
+<span class="sd">                * irred_pos: array giving the position of the i-th irred atom in the structure.</span>
 <span class="sd">                    The number of irred atoms is len(irred_pos)</span>
-<span class="sd">                eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
-<span class="sd">                spgdata: spglib dataset with additional data reported by spglib.</span>
+<span class="sd">                *   eqmap: Mapping irred atom position --&gt; list with positions of symmetrical atoms</span>
+<span class="sd">                *   spgdata: spglib dataset with additional data reported by spglib_.</span>
 
 <span class="sd">         :Example:</span>
 
@@ -916,9 +917,9 @@
 <span class="sd">        space group, point group, wyckoff positions, equivalent sites.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            symprec: Symmetry precision for distance</span>
-<span class="sd">            angle_tolerance: Tolerance on angles</span>
-<span class="sd">            verbose: Verbosity level.</span>
+<span class="sd">            symprec (float): Symmetry precision for distance.</span>
+<span class="sd">            angle_tolerance (float): Tolerance on angles.</span>
+<span class="sd">            verbose (int): Verbosity level.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spgan</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="n">angle_tolerance</span><span class="p">)</span>
         <span class="n">spgdata</span> <span class="o">=</span> <span class="n">spgan</span><span class="o">.</span><span class="n">get_symmetry_dataset</span><span class="p">()</span>
@@ -980,7 +981,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Structure.set_abi_spacegroup"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.set_abi_spacegroup">[docs]</a>    <span class="k">def</span> <span class="nf">set_abi_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spacegroup</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;`AbinitSpaceGroup` setter.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;``AbinitSpaceGroup`` setter.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_abi_spacegroup</span> <span class="o">=</span> <span class="n">spacegroup</span></div>
 
     <span class="nd">@property</span>
@@ -991,15 +992,15 @@
 <div class="viewcode-block" id="Structure.spgset_abi_spacegroup"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.spgset_abi_spacegroup">[docs]</a>    <span class="k">def</span> <span class="nf">spgset_abi_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call spglib to find the spacegroup of the crystal, create new</span>
-<span class="sd">        `AbinitSpaceGroup` object and store it in `self.abi_spacegroup`.</span>
+<span class="sd">	:class:`AbinitSpaceGroup` object and store it in ``self.abi_spacegroup``.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            has_timerev: True if time-reversal can be used.</span>
-<span class="sd">            overwrite: By default, the method raises `ValueError` if the object</span>
+<span class="sd">            has_timerev (bool): True if time-reversal can be used.</span>
+<span class="sd">            overwrite (bool): By default, the method raises `ValueError` if the object</span>
 <span class="sd">                already has the list of symmetries found by Abinit.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            `AbinitSpaceGroup`</span>
+<span class="sd">	    :class:`AbinitSpaceGroup`</span>
 
 <span class="sd">        .. warning:</span>
 
@@ -1027,7 +1028,7 @@
 
 <div class="viewcode-block" id="Structure.print_neighbors"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.print_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">print_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get neighbors for each atom in the unit cell, out to a distance `radius` in Angstrom</span>
+<span class="sd">        Get neighbors for each atom in the unit cell, out to a distance ``radius`` in Angstrom</span>
 <span class="sd">        Print results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
@@ -1044,7 +1045,7 @@
 <div class="viewcode-block" id="Structure.hsym_kpath"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.hsym_kpath">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">hsym_kpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns an instance of :class:`HighSymmKpath`.</span>
+<span class="sd">        Returns an instance of :class:`pymatgen.symmetry.bandstructure.HighSymmKpath`.</span>
 <span class="sd">        (Database of high symmetry k-points and high symmetry lines).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.symmetry.bandstructure</span> <span class="k">import</span> <span class="n">HighSymmKpath</span>
@@ -1052,7 +1053,7 @@
 
 <div class="viewcode-block" id="Structure.hsym_kpoints"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.hsym_kpoints">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">hsym_kpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`KpointList` object with the high-symmetry K-points.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|KpointList| object with the high-symmetry K-points.&quot;&quot;&quot;</span>
         <span class="c1"># Get mapping name --&gt; frac_coords for the special k-points in the database.</span>
         <span class="n">name2frac_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span>
         <span class="n">kpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span>
@@ -1071,8 +1072,8 @@
 <div class="viewcode-block" id="Structure.hsym_stars"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.hsym_stars">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">hsym_stars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        List of :class:`Star` objects. Each star is associated to one of the special k-points</span>
-<span class="sd">        present in the `pymatgen` database.</span>
+<span class="sd">        List of |KpointStar| objects. Each star is associated to one of the special k-points</span>
+<span class="sd">        present in the pymatgen database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Construct the stars.</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">kpoint</span><span class="o">.</span><span class="n">compute_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">)</span> <span class="k">for</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span></div>
@@ -1147,12 +1148,17 @@
 <span class="sd">        Useful to construct pandas DataFrames</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            with_spglib: If True, spglib is invoked to get the spacegroup symbol and number</span>
+<span class="sd">            with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">abc</span><span class="p">,</span> <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span>
         <span class="c1"># Get spacegroup info from spglib.</span>
         <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">with_spglib</span><span class="p">:</span> <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_space_group_info</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">with_spglib</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">spglib_symbol</span><span class="p">,</span> <span class="n">spglib_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_space_group_info</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Spglib couldn&#39;t find space group symbol and number for composition </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">composition</span><span class="p">),</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exception:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
         <span class="c1"># Get spacegroup number computed by Abinit if available.</span>
         <span class="n">abispg_number</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">spgid</span>
 
@@ -1175,10 +1181,10 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-<span class="sd">            pmg_path: True if the default path used in pymatgen should be show.</span>
-<span class="sd">            with_labels: True to plot k-point labels.</span>
+<span class="sd">            pmg_path (bool): True if the default path used in pymatgen should be show.</span>
+<span class="sd">            with_labels (bool): True to plot k-point labels.</span>
 
-<span class="sd">        Returns: `matplotlib` figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_brillouin_zone</span><span class="p">,</span> <span class="n">plot_brillouin_zone_from_kpath</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">with_labels</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpath</span><span class="o">.</span><span class="n">kpath</span><span class="p">[</span><span class="s2">&quot;kpoints&quot;</span><span class="p">]</span>
@@ -1208,15 +1214,18 @@
 <span class="sd">                angstroms. Defaults to &quot;CuKa&quot;, i.e, Cu K_alpha radiation.</span>
 <span class="sd">            symprec (float): Symmetry precision for structure refinement. If</span>
 <span class="sd">                set to 0, no refinement is done. Otherwise, refinement is</span>
-<span class="sd">                performed using spglib with provided precision.</span>
-<span class="sd">            debye_waller_factors `({element symbol: float})`: Allows the</span>
+<span class="sd">                performed using spglib_ with provided precision.</span>
+<span class="sd">            debye_waller_factors ({element symbol: float}): Allows the</span>
 <span class="sd">                specification of Debye-Waller factors. Note that these</span>
 <span class="sd">                factors are temperature dependent.</span>
 <span class="sd">            two_theta_range ([float of length 2]): Tuple for range of</span>
 <span class="sd">                two_thetas to calculate in degrees. Defaults to (0, 90). Set to</span>
 <span class="sd">                None if you want all diffracted beams within the limiting</span>
 <span class="sd">                sphere of radius 2 / wavelength.</span>
-<span class="sd">            annotate_peaks: Whether to annotate the peaks with plane information.</span>
+<span class="sd">            annotate_peaks (bool): Whether to annotate the peaks with plane information.</span>
+<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">pymatgen.analysis.diffraction.xrd</span> <span class="k">import</span> <span class="n">XRDCalculator</span>
@@ -1224,35 +1233,46 @@
         <span class="n">xrd</span><span class="o">.</span><span class="n">get_xrd_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_theta_range</span><span class="o">=</span><span class="n">two_theta_range</span><span class="p">,</span> <span class="n">annotate_peaks</span><span class="o">=</span><span class="n">annotate_peaks</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="Structure.export"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.export"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Export the crystalline structure on file filename.</span>
+<span class="sd">        Export the crystalline structure to file ``filename``.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            filename: String specifying the file path and the file format.</span>
+<span class="sd">            filename (str): String specifying the file path and the file format.</span>
 <span class="sd">                The format is defined by the file extension. filename=&quot;prefix.xsf&quot;, for example,</span>
 <span class="sd">                will produce a file in XSF format. An *empty* prefix, e.g. &quot;.xsf&quot; makes the code use a temporary file.</span>
-<span class="sd">            visu: `Visualizer` subclass. By default, this method returns the first available</span>
+<span class="sd">            visu: |Visualizer| subclass. By default, this method returns the first available</span>
 <span class="sd">                visualizer that supports the given file format. If visu is not None, an</span>
-<span class="sd">                instance of visu is returned. See :class:`Visualizer` for the list of applications and formats supported.</span>
+<span class="sd">                instance of visu is returned. See |Visualizer| for the list of applications and formats supported.</span>
+<span class="sd">            verbose: Verbosity level</span>
 
-<span class="sd">        Returns: Instance of :class:`Visualizer`</span>
+<span class="sd">        Returns: ``Visulizer`` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot detect extension in filename </span><span class="si">%s</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
 
         <span class="n">tokens</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1">#print(&quot;tokens&quot;, tokens, &quot;ext&quot;, ext)</span>
+        <span class="c1">#if ext == &quot;POSCAR&quot;:</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="c1"># filename == &quot;.ext&quot; ==&gt; Create temporary file.</span>
-            <span class="c1"># dir=os.getcwd() is needed when we invoke the method from a notebook.</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># nbworkdir in cwd is needed when we invoke the method from a notebook.</span>
+            <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="k">import</span> <span class="n">abinb_mkstemp</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">rpath</span> <span class="o">=</span> <span class="n">abinb_mkstemp</span><span class="p">(</span><span class="n">force_abinb_workdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_relpath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                     <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1">#if abilab.in_notebook():</span>
+            <span class="c1">#    _, filename = tempfile.mkstemp(suffix=&quot;.&quot; + ext, dir=abilab.get_abipy_nbworkdir(), text=True)</span>
+            <span class="c1">#else:</span>
+            <span class="c1">#    _, filename = tempfile.mkstemp(suffix=&quot;.&quot; + ext, text=True)</span>
 
-        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;xsf&quot;</span><span class="p">:</span>
-            <span class="c1"># xcrysden</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing data to:&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;xsf&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;xsf&quot;</span><span class="p">,</span> <span class="s2">&quot;poscar&quot;</span><span class="p">,</span> <span class="s2">&quot;cif&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing data to:&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;with fmt:&quot;</span><span class="p">,</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">visu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
@@ -1261,7 +1281,7 @@
 
 <div class="viewcode-block" id="Structure.chemview"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.chemview">[docs]</a>    <span class="k">def</span> <span class="nf">chemview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Visualize Structure in jupyter notebook using chemview package.</span>
+<span class="sd">        Visualize structure in jupyter notebook using chemview package.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_chemview</span> <span class="k">import</span> <span class="n">quick_view</span>
         <span class="k">return</span> <span class="n">quick_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -1288,16 +1308,16 @@
         <span class="kn">from</span> <span class="nn">abipy.display</span> <span class="k">import</span> <span class="n">mvtk</span>
         <span class="k">return</span> <span class="n">mvtk</span><span class="o">.</span><span class="n">plot_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Structure.visualize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visu_name</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.visualize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.visualize">[docs]</a>    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s2">&quot;vesta&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize the crystalline structure with visualizer.</span>
-<span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
+<span class="sd">        See |Visualizer| for the list of applications and formats supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">visu_name</span> <span class="o">==</span> <span class="s2">&quot;vtk&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vtkview</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">visu_name</span> <span class="o">==</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mayaview</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">appname</span> <span class="o">==</span> <span class="s2">&quot;vtk&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vtkview</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">appname</span> <span class="o">==</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mayaview</span><span class="p">()</span>
 
         <span class="c1"># Get the Visualizer subclass from the string.</span>
-        <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">visu_name</span><span class="p">)</span>
+        <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
 
         <span class="c1"># Try to export data to one of the formats supported by the visualizer</span>
         <span class="c1"># Use a temporary file (note &quot;.&quot; + ext)</span>
@@ -1305,10 +1325,11 @@
             <span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="n">visu</span><span class="p">)()</span>
-            <span class="k">except</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
                 <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">visu_name</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">appname</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.convert"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1568,14 +1589,10 @@
 <span class="sd">        Compute the supercell needed for a given qpoint and add the displacement.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            qpoint:</span>
-<span class="sd">                q vector in reduced coordinate in reciprocal space.</span>
-<span class="sd">            displ:</span>
-<span class="sd">                displacement in real space of the atoms, will be normalized to 1 Angstrom.</span>
-<span class="sd">            eta:</span>
-<span class="sd">                pre-factor multiplying the displacement.</span>
-<span class="sd">            do_real:</span>
-<span class="sd">                true if we want only the real part of the displacement.</span>
+<span class="sd">            qpoint: q vector in reduced coordinate in reciprocal space.</span>
+<span class="sd">            displ: displacement in real space of the atoms, will be normalized to 1 Angstrom.</span>
+<span class="sd">            eta: pre-factor multiplying the displacement.</span>
+<span class="sd">            do_real: true if we want only the real part of the displacement.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># I&#39;ve copied code from make_supercell since the loop over supercell images</span>
         <span class="c1"># is inside make_supercell and I don&#39;t want to create a mapping</span>
@@ -1680,7 +1697,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span> <span class="o">=</span> <span class="n">new_lattice</span></div>
 
 <div class="viewcode-block" id="Structure.calc_kptbounds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_kptbounds">[docs]</a>    <span class="k">def</span> <span class="nf">calc_kptbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the suggested value for the ABINIT variable `kptbounds`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns the suggested value for the ABINIT variable ``kptbounds``.&quot;&quot;&quot;</span>
         <span class="n">kptbounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kptbounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
 
@@ -1712,7 +1729,7 @@
 
 <div class="viewcode-block" id="Structure.calc_ksampling"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_ksampling">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ksampling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the k-point sampling from the number of divisions to be used for</span>
+<span class="sd">        Return the k-point sampling from the number of divisions ``nksmall`` to be used for</span>
 <span class="sd">        the smallest reciprocal lattice vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ngkpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nksmall</span><span class="p">)</span>
@@ -1722,10 +1739,10 @@
 
 <div class="viewcode-block" id="Structure.calc_ngkpt"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_ngkpt">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ngkpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nksmall</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute the ABINIT variable `ngkpt` from the number of divisions used for the smallest lattice vector.</span>
+<span class="sd">        Compute the ABINIT variable ``ngkpt`` from the number of divisions used for the smallest lattice vector.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            nksmall: Number of division for the smallest lattice vector.</span>
+<span class="sd">            nksmall (int): Number of division for the smallest lattice vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">abc</span>
         <span class="n">lmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
@@ -1740,7 +1757,7 @@
 
 <div class="viewcode-block" id="Structure.calc_shiftk"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_shiftk">[docs]</a>    <span class="k">def</span> <span class="nf">calc_shiftk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Find the values of `shiftk` and `nshiftk` appropriated for the sampling of the Brillouin zone.</span>
+<span class="sd">        Find the values of ``shiftk`` and ``nshiftk`` appropriated for the sampling of the Brillouin zone.</span>
 
 <span class="sd">        When the primitive vectors of the lattice do NOT form a FCC or a BCC lattice,</span>
 <span class="sd">        the usual (shifted) Monkhorst-Pack grids are formed by using nshiftk=1 and shiftk 0.5 0.5 0.5 .</span>
@@ -1842,7 +1859,7 @@
 <span class="sd">        Returns the number of valence electrons.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            pseudos: List of :class:`Pseudo` objects or list of filenames.</span>
+<span class="sd">            pseudos: List of |Pseudo| objects or list of filenames.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nval</span><span class="p">,</span> <span class="n">table</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="o">.</span><span class="n">as_table</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
@@ -1856,7 +1873,7 @@
 <span class="sd">        Returns the number of valence electrons for each atom in the structure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            pseudos: List of :class:`Pseudo` objects or list of filenames.</span>
+<span class="sd">            pseudos: List of |Pseudo| objects or list of filenames.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">PseudoTable</span><span class="o">.</span><span class="n">as_table</span><span class="p">(</span><span class="n">pseudos</span><span class="p">)</span>
         <span class="n">psp_valences</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1868,7 +1885,7 @@
 
 <div class="viewcode-block" id="Structure.write_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -1899,35 +1916,30 @@
 
 <div class="viewcode-block" id="dataframes_from_structures"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.dataframes_from_structures">[docs]</a><span class="k">def</span> <span class="nf">dataframes_from_structures</span><span class="p">(</span><span class="n">struct_objects</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_spglib</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Build two pandas dataframes with the most important geometrical parameters associated to</span>
+<span class="sd">    Build two pandas Dataframes_ with the most important geometrical parameters associated to</span>
 <span class="sd">    a list of structures or a list of objects that can be converted into structures.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        struct_objects: List of objects that can be converted to structure.</span>
 <span class="sd">            Support filenames, structure objects, Abinit input files, dicts and many more types.</span>
-<span class="sd">            See `Structure.as_structure` for the complete list.</span>
-<span class="sd">        index: Index of the dataframe.</span>
-<span class="sd">        with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.</span>
-<span class="sd">        cart_coords: True if the `coords` dataframe should contain Cartesian cordinates</span>
+<span class="sd">            See ``Structure.as_structure`` for the complete list.</span>
+<span class="sd">        index: Index of the |pandas-DataFrame|.</span>
+<span class="sd">        with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.</span>
+<span class="sd">        cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates</span>
 <span class="sd">            instead of Reduced coordinates.</span>
 
-<span class="sd">    Return: (lattice, coords)</span>
+<span class="sd">    Return:</span>
+<span class="sd">        namedtuple with two |pandas-DataFrames| named ``lattice`` and ``coords``</span>
+<span class="sd">        ``lattice`` contains the lattice parameters. ``coords`` the atomic positions..</span>
+<span class="sd">        The list of structures is available in the ``structures`` entry.</span>
 
-<span class="sd">        namedtuple with two pandas :class:`DataFrame`:</span>
-
-<span class="sd">            `lattice` contains the lattice parameters,</span>
-<span class="sd">            `coords` the atomic positions.</span>
-
-<span class="sd">        The list of structures is available in the `structures` entry.</span>
-
-<span class="sd">    :Example:</span>
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">        dfs = dataframes_from_structures(files)</span>
 <span class="sd">        dfs.lattice</span>
 <span class="sd">        dfs.coords</span>
 <span class="sd">        for structure in dfs.structures:</span>
 <span class="sd">            print(structure)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">as_structure</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">struct_objects</span><span class="p">]</span>
     <span class="c1"># Build Frame with lattice parameters.</span>
@@ -2114,7 +2126,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

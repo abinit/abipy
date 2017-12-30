@@ -122,7 +122,7 @@ excitonic effects included with the BSE formalism.
 
     # This block generates the thumbnails in the Abipy gallery.
     # You can safely REMOVE this part if you are using this script for production runs.
-    if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
@@ -175,7 +175,7 @@ to compare the real and imaginary part of the macroscopic dielectric function fo
 
 
 
-**Total running time of the script:** ( 0 minutes  0.147 seconds)
+**Total running time of the script:** ( 0 minutes  0.149 seconds)
 
 
 

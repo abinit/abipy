@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -144,10 +148,10 @@
     <div class="col-md-12 content">
       
   <div class="section" id="abicheck-py">
-<span id="abicheck"></span><h1><code class="docutils literal"><span class="pre">abicheck.py</span></code><a class="headerlink" href="#abicheck-py" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abicheck.py</span></code><a class="headerlink" href="#abicheck-py" title="Permalink to this headline">¶</a></h1>
 <p>This script checks that the options specified in <code class="docutils literal"><span class="pre">manager.yml</span></code>, <code class="docutils literal"><span class="pre">scheduler.yml</span></code>,
 and the environment on the local machine are properly configured.
-Please consult the documentation on the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> for a more detailed description of these YAML files.</p>
+Please consult the documentation on the <a class="reference internal" href="../workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> for a more detailed description of these <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> files.</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abicheck.py --no-colors
 AbiPy Manager:
 [Qadapter 0]
@@ -163,12 +167,12 @@ Abinit Build Information:
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 54247
+PyFlowScheduler, Pid: 59107
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 10}
 
 Installed packages:
 Package         Version
---------------  ---------
+--------------  ----------
 system          Darwin
 python_version  3.6.1
 numpy           1.13.3
@@ -177,7 +181,7 @@ netCDF4         1.2.7
 apscheduler     2.1.0
 pydispatch      2.0.5
 yaml            3.12
-pymatgen        2017.12.8
+pymatgen        2017.12.16
 
 
 Abipy requirements are properly configured
@@ -243,7 +247,7 @@ check the interface with the Abinit executables.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

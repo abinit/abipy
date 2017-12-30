@@ -27,8 +27,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Flow for LDA+U calculations" href="run_ldaus.html" />
-    <link rel="prev" title="Relaxation Flow" href="run_relax.html" />
+    <link rel="next" title="Flow for Relaxation + Bands" href="run_relax_and_ebands.html" />
+    <link rel="prev" title="Raman Flow with BSE and frozen phonon" href="run_raman_bse.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -102,11 +106,11 @@
               
                 
   <li>
-    <a href="run_relax.html" title="Previous Chapter: Relaxation Flow"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Relaxation Flow</span>
+    <a href="run_raman_bse.html" title="Previous Chapter: Raman Flow with BSE and frozen phonon"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Raman Flow wi...</span>
     </a>
   </li>
   <li>
-    <a href="run_ldaus.html" title="Next Chapter: Flow for LDA+U calculations"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Flow for LDA+... &raquo;</span>
+    <a href="run_relax_and_ebands.html" title="Next Chapter: Flow for Relaxation + Bands"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Flow for Rela... &raquo;</span>
     </a>
   </li>
               
@@ -226,7 +230,7 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 
 <span class="c1"># This block generates the thumbnails in the Abipy gallery.</span>
 <span class="c1"># You can safely REMOVE this part if you are using this script for production runs.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GENERATE_SPHINX_GALLERY&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
@@ -255,24 +259,47 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
 <p>then use:</p>
 <blockquote>
 <div>abirun.py flow_relax_vs_kpts_tsmear hist -p</div></blockquote>
-<p>to print (and plot) the relaxed parameters at the end of the run.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>
+<p>to print (and plot) the structural relaxation for all the tasks:</p>
+<img alt="Commbiplot of the HIST files for the different (nkpt, tsmear) params" src="https://github.com/abinit/abipy_assets/blob/master/run_relax_vs_kpts_tsmear_hist.png?raw=true" />
+<p>To analyze the convergence of the relaxed lattice parameters, use:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>abirun.py flow_relax_vs_kpts_tsmear robot GSR
 </pre></div>
 </div>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="go"> In [1]: %matplotlib</span>
-<span class="go"> In [2]: df = robot.get_dataframe()</span>
-<span class="go"> # Let&#39;s do some math with pandas to retrieve the Abinit acell from the a lattice parameter given in Ang.</span>
-<span class="go"> In [3]: import math</span>
-<span class="go"> In [4]: from abipy import abilab</span>
-<span class="go"> In [5]: df[&quot;acell&quot;] = df[&quot;a&quot;] * math.sqrt(2) * abilab.units.ang_to_bohr</span>
-<span class="go"># and then use</span>
-<span class="go"> In [6]: robot.plot_xy_with_hue(df, &quot;nkpt&quot;, &quot;acell&quot;, hue=&quot;tsmear&quot;)</span>
-<span class="go"># to plot the optimized acell vs nkpt for the different values of tsmear.</span>
+<p>to create a GSR robot for all the tasks in the flow and open an ipyton shell.</p>
+<p>Then, inside ipython, type:</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="o">%</span><span class="k">matplotlib</span>
+<span class="gp">In [2]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">robot</span><span class="o">.</span><span class="n">get_dataframe</span><span class="p">()</span>
+<span class="go"># Let&#39;s do some math with pandas to retrieve the Abinit acell from the a lattice parameter given in Ang.</span>
+<span class="gp">In [3]: </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">In [4]: </span><span class="kn">from</span> <span class="nn">abipy</span> <span class="kn">import</span> <span class="n">abilab</span>
+<span class="gp">In [5]: </span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;acell&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">abilab</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">ang_to_bohr</span>
 </pre></div>
 </div>
-<img alt="optimized acell as function of nkpt and tsmear" src="https://github.com/abinit/abipy_assets/blob/master/run_relax_vs_kpts_tsmear.png?raw=true" />
 </div></blockquote>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.948 seconds)</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#        In [7]: df[&quot;acell&quot;]</span>
+<span class="c1">#        Out[7]:</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t0/outdata/out_GSR.nc     7.558770</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t1/outdata/out_GSR.nc     7.505486</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t2/outdata/out_GSR.nc     7.496158</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t3/outdata/out_GSR.nc     7.558770</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t4/outdata/out_GSR.nc     7.505643</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t5/outdata/out_GSR.nc     7.495546</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t6/outdata/out_GSR.nc     7.558770</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t7/outdata/out_GSR.nc     7.501756</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t8/outdata/out_GSR.nc     7.496770</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t9/outdata/out_GSR.nc     7.558771</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t10/outdata/out_GSR.nc    7.504096</span>
+<span class="c1">#        flow_relax_vs_kpts_tsmear/w0/t11/outdata/out_GSR.nc    7.499134</span>
+<span class="c1">#        Name: acell, dtype: float64</span>
+<span class="c1">#</span>
+<span class="c1">#        # to plot the optimized acell vs nkpt for the different values of tsmear, use:</span>
+<span class="c1">#    In [6]: robot.plot_xy_with_hue(df, &quot;nkpt&quot;, &quot;acell&quot;, hue=&quot;tsmear&quot;)</span>
+<span class="c1">#</span>
+<span class="c1"># .. image:: https://github.com/abinit/abipy_assets/blob/master/run_relax_vs_kpts_tsmear.png?raw=true</span>
+<span class="c1">#    :alt: optimized acell as function of nkpt and tsmear</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.686 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_relax_vs_kpts_tsmear.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_relax_vs_kpts_tsmear.py</span></code></a></div>
@@ -295,7 +322,7 @@ If you replace GGA with LDA, you will observe that LDA tends to underestimate th
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -1,2 +1,2 @@
-ax = sns.swarmplot(x="time", y="tip", data=tips,
+ax = sns.stripplot(x="time", y="tip", data=tips,
                    order=["Dinner", "Lunch"])

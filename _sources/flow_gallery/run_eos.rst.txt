@@ -60,7 +60,7 @@ Flow to compute the equation of state by fitting E(V) at T = 0.
 
     # This block generates the thumbnails in the Abipy gallery.
     # You can safely REMOVE this part if you are using this script for production runs.
-    if os.getenv("GENERATE_SPHINX_GALLERY", False):
+    if os.getenv("READTHEDOCS", False):
         __name__ = None
         import tempfile
         options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
@@ -175,7 +175,7 @@ to produce
 
 
 
-**Total running time of the script:** ( 0 minutes  1.446 seconds)
+**Total running time of the script:** ( 0 minutes  0.212 seconds)
 
 
 

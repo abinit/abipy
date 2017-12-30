@@ -1,2 +1,4 @@
-from numpy import median
-ax = sns.pointplot(x="day", y="tip", data=tips, estimator=median)
+import seaborn as sns
+sns.set_style("darkgrid")
+tips = sns.load_dataset("tips")
+ax = sns.pointplot(x="time", y="total_bill", data=tips)

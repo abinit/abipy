@@ -1,6 +1,9 @@
 iotools Package
 ===============
 
+.. contents::
+   :backlinks: top
+
 :mod:`iotools` Package
 ----------------------
 

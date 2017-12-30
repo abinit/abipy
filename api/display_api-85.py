@@ -1,2 +1,2 @@
-from numpy import median
-ax = sns.barplot(x="day", y="tip", data=tips, estimator=median)
+ax = sns.pointplot(x="time", y="total_bill", hue="smoker",
+                   data=tips, palette="Set2")

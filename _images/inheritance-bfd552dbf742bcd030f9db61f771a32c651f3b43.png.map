@@ -1,0 +1,5 @@
+<map id="inheritance0460c10005" name="inheritance0460c10005">
+<area shape="rect" id="node1" href="abio_api.html#abipy.abio.robots.Robot" target="_top" title="This is the base class from which all Robot subclasses should derive." alt="" coords="273,5,434,29"/>
+<area shape="rect" id="node3" href="#abipy.dfpt.ddb.DdbRobot" target="_top" title="This robot analyzes the results contained in multiple DDB_ files." alt="" coords="482,5,650,29"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,5,225,29"/>
+</map>

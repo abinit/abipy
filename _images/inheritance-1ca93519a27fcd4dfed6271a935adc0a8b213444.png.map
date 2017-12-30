@@ -1,0 +1,5 @@
+<map id="inheritance9680d46815" name="inheritance9680d46815">
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="16,5,214,29"/>
+<area shape="rect" id="node3" href="#abipy.dynamics.hist.HistFile" target="_top" title="File with the history of a structural relaxation or molecular dynamics calculation." alt="" coords="273,29,458,53"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,53,225,77"/>
+</map>

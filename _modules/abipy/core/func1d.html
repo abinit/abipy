@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -150,7 +154,7 @@
 
 <div class="viewcode-block" id="Function1D.from_constant"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.from_constant">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_constant</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">const</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a constant function from the mesh and the scalart `const`&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Build a constant function from the mesh and the scalar ``const``&quot;&quot;&quot;</span>
         <span class="n">mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">const</span><span class="p">)</span></div>
 
@@ -167,7 +171,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array with the mesh points&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|numpy-array| with the mesh points&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
 
     <span class="nd">@property</span>
@@ -246,7 +250,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">**</span><span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -264,7 +268,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">conjugate</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Function1D.abs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.abs">[docs]</a>    <span class="k">def</span> <span class="nf">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the absolute value.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return :class:`Function1D` with the absolute value.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Function1D.from_func"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.from_func">[docs]</a>    <span class="nd">@classmethod</span>
@@ -272,7 +276,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the object from a callable.</span>
 
-<span class="sd">        example:</span>
+<span class="sd">        :example:</span>
 
 <span class="sd">           Function1D.from_func(np.sin, mesh=np.arange(1,10))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -297,7 +301,7 @@
 
 <div class="viewcode-block" id="Function1D.to_file"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.to_file">[docs]</a>    <span class="k">def</span> <span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.18e</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Save data in a text file. Use format fmr. A header is added at the beggining.</span>
+<span class="sd">        Save data in a text file. Use format fmr. A header is added at the beginning.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">fmt</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
@@ -350,7 +354,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if values is array of complex numbers.</span>
 <span class="sd">        The type of the input is checked, not the value. Even if the input</span>
-<span class="sd">        has an imaginary part equal to zero, `iscomplexobj` evaluates to True.</span>
+<span class="sd">        has an imaginary part equal to zero, `np.iscomplexobj` evaluates to True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
@@ -362,7 +366,7 @@
 <div class="viewcode-block" id="Function1D.dx"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.dx">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">dx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        ndarray of len(self)-1 elements giving the distance between two</span>
+<span class="sd">        |numpy-array| of len(self) - 1 elements giving the distance between two</span>
 <span class="sd">        consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -389,7 +393,7 @@
 <span class="sd">            acc: Accuracy. 4 is fine in many cases.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            new :class:`Function1D` instance with the derivative.</span>
+<span class="sd">            :class:`Function1D` instance with the derivative.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Finite differences with inhomogeneous meshes are not supported&quot;</span><span class="p">)</span>
@@ -517,7 +521,7 @@
 <span class="sd">                If False, the divergence is ignored, results are less accurate</span>
 <span class="sd">                but the calculation is faster.</span>
 
-<span class="sd">        See: https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations</span>
+<span class="sd">        .. seealso:: &lt;https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">cumtrapz</span><span class="p">,</span> <span class="n">quad</span>
         <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="k">import</span> <span class="n">UnivariateSpline</span>
@@ -557,7 +561,7 @@
 <span class="sd">                If False, the divergence is ignored, results are less accurate</span>
 <span class="sd">                but the calculation is faster.</span>
 
-<span class="sd">        See: https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations</span>
+<span class="sd">        .. seealso:: &lt;https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations&gt;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">cumtrapz</span><span class="p">,</span> <span class="n">quad</span>
         <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="k">import</span> <span class="n">UnivariateSpline</span>
@@ -591,11 +595,11 @@
 <span class="sd">        Helper function to plot self on axis ax.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ax: `matplotlib` axis.</span>
-<span class="sd">            exchange_xy: True to exchange the axis in the plot</span>
+<span class="sd">            ax: |matplotlib-Axes|.</span>
+<span class="sd">            exchange_xy: True to exchange the axis in the plot.</span>
 <span class="sd">            args: Positional arguments passed to ax.plot</span>
-<span class="sd">            kwargs: Keyword arguments passed to `matplotlib`.  Accepts also:</span>
 <span class="sd">            xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.</span>
+<span class="sd">            kwargs: Keyword arguments passed to ``matplotlib``. Accepts</span>
 
 <span class="sd">        ==============  ===============================================================</span>
 <span class="sd">        kwargs          Meaning</span>
@@ -634,7 +638,7 @@
 <span class="sd">        Plot the function.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 
 <span class="sd">        ==============  ===============================================================</span>
 <span class="sd">        kwargs          Meaning</span>
@@ -642,8 +646,7 @@
 <span class="sd">        exchange_xy     True to exchange x- and y-axis (default: False)</span>
 <span class="sd">        ==============  ===============================================================</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
 
@@ -666,7 +669,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

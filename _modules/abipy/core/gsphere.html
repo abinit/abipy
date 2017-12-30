@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -165,7 +169,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">gvecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;ndarray with the G-vectors in reduced coordinates.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|numpy-array| with the G-vectors in reduced coordinates.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gvecs</span>
 
     <span class="c1">#@property</span>
@@ -190,8 +194,8 @@
 
 <div class="viewcode-block" id="GSphere.index"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        return the index of the G-vector gvec in self.</span>
-<span class="sd">        Raises ValueError if the value is not present.</span>
+<span class="sd">        return the index of the G-vector ``gvec`` in self.</span>
+<span class="sd">        Raises: `ValueError` if the value is not present.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -219,7 +223,7 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
 
 <div class="viewcode-block" id="GSphere.copy"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Deep copy.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;shallow copy.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ecut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvecs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">istwfk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">istwfk</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GSphere.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -229,7 +233,7 @@
         <span class="k">return</span> <span class="n">s</span></div>
 
     <span class="c1"># TODO: Alias To be removed in 0.4</span>
-    <span class="n">tostring</span> <span class="o">=</span> <span class="n">to_string</span>
+    <span class="c1">#tostring = to_string</span>
 
     <span class="k">def</span> <span class="nf">_new_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Returns a numpy array defined on the sphere.&quot;&quot;&quot;</span>
@@ -247,7 +251,7 @@
 
 <div class="viewcode-block" id="GSphere.zeros"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.zeros">[docs]</a>    <span class="k">def</span> <span class="nf">zeros</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns new zeroed 1D array.</span>
+<span class="sd">        Returns new zeroed 1D |numpy-array|.</span>
 
 <span class="sd">        The type can be set with the ``dtype`` keyword.</span>
 <span class="sd">        Extra dimensions can be added with ``extra_dims``.</span>
@@ -255,12 +259,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GSphere.czeros"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.czeros">[docs]</a>    <span class="k">def</span> <span class="nf">czeros</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;New zeroed 1D complex array.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;New zeroed 1D complex |numpy-array|.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GSphere.empty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.empty">[docs]</a>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns new uninitialized 1D array.</span>
+<span class="sd">        Returns new uninitialized 1D |numpy-array|.</span>
 
 <span class="sd">        The type can be set with the ``dtype`` keyword.</span>
 <span class="sd">        Extra dimensions can be added with ``extra_dims``.</span>
@@ -268,7 +272,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GSphere.cempty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.cempty">[docs]</a>    <span class="k">def</span> <span class="nf">cempty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;Returns New uninitialized 1D complex array.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns new uninitialized 1D complex |numpy-array|.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span></div>
 
     <span class="c1">#def build_fftbox(self, boxsph_ratio=1.05):</span>
@@ -277,7 +281,7 @@
 
 <div class="viewcode-block" id="GSphere.tofftmesh"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.tofftmesh">[docs]</a>    <span class="k">def</span> <span class="nf">tofftmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">arr_on_sphere</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Insert the array arr_on_sphere given on the sphere inside the FFT mesh.</span>
+<span class="sd">        Insert the array ``arr_on_sphere`` given on the sphere inside the FFT mesh.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            mesh:</span>
@@ -318,7 +322,7 @@
 
 <div class="viewcode-block" id="GSphere.fromfftmesh"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.gsphere.GSphere.fromfftmesh">[docs]</a>    <span class="k">def</span> <span class="nf">fromfftmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">arr_on_mesh</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Transfer arr_on_mesh given on the FFT mesh to the G-sphere.</span>
+<span class="sd">        Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">indim</span> <span class="o">=</span>  <span class="n">arr_on_mesh</span><span class="o">.</span><span class="n">ndim</span>
         <span class="n">arr_on_mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">arr_on_mesh</span><span class="p">)</span>
@@ -447,7 +451,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

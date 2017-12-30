@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -144,7 +148,7 @@
 
 <div class="viewcode-block" id="s2itup"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.s2itup">[docs]</a><span class="k">def</span> <span class="nf">s2itup</span><span class="p">(</span><span class="n">comp</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Convert string in the form `xx`, `xyz` into tuple of two (three) indices</span>
+<span class="sd">    Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices</span>
 <span class="sd">    that can be used to slice susceptibility tensors (numpy array).</span>
 
 <span class="sd">    &gt;&gt;&gt; assert s2itup(&quot;yy&quot;) == (1, 1)</span>
@@ -162,7 +166,7 @@
 
 <div class="viewcode-block" id="itup2s"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.itup2s">[docs]</a><span class="k">def</span> <span class="nf">itup2s</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Convert tuple of 2 (3) integers into string in the form `xx` (`xyz`).</span>
+<span class="sd">    Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).</span>
 <span class="sd">    Assume C-indexing e.g. 0 --&gt; x</span>
 
 <span class="sd">    &gt;&gt;&gt; assert itup2s((0, 1)) == &quot;xy&quot;</span>
@@ -256,7 +260,7 @@
 <div class="viewcode-block" id="OpticNcFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile">[docs]</a><span class="k">class</span> <span class="nc">OpticNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This file contains the results produced by optic. Provides methods to plot optical</span>
-<span class="sd">    properties and susceptibilty tensors. Used by OpticRobot to analyze multiple files.</span>
+<span class="sd">    properties and susceptibilty tensors. Used by :class:`OpticRobot` to analyze multiple files.</span>
 
 <span class="sd">    Usage example:</span>
 
@@ -265,11 +269,14 @@
 <span class="sd">        with OpticNcFile(&quot;out_optic.nc&quot;) as optic:</span>
 <span class="sd">            optic.ebands.plot()</span>
 <span class="sd">            optic.plot()</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: OpticNcFile</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="OpticNcFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize the object from a Netcdf file.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the object from a netcdf file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
@@ -332,12 +339,12 @@
 
 <div class="viewcode-block" id="OpticNcFile.ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile.ebands">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`ElectronBands` object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|ElectronBands| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_ebands</span><span class="p">()</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`Structure` object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
 
     <span class="c1">#@lazy_property</span>
@@ -378,7 +385,7 @@
 
 <div class="viewcode-block" id="OpticNcFile.plot_linear_epsilon"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile.plot_linear_epsilon">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_linear_epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;im&quot;</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                            <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                            <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot components of the linear dielectric function.</span>
 
@@ -387,14 +394,14 @@
 <span class="sd">                &quot;all&quot; if all components available on file should be plotted on the same ax.</span>
 <span class="sd">            what: quantity to plot. &quot;re&quot; for real part, &quot;im&quot; for imaginary. Accepts also &quot;abs&quot;, &quot;angle&quot;.</span>
 <span class="sd">            itemp: Temperature index.</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used.</span>
 <span class="sd">            with_xlabel: True if x-label should be added.</span>
 <span class="sd">            label: True to add legend label to each curve.</span>
+<span class="sd">            fontsize: Legend and label fontsize.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">comp2eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_lineps</span><span class="p">(</span><span class="n">components</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="n">itemp</span><span class="p">)</span>
 
@@ -409,23 +416,22 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Photon Energy [eV]&#39;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="OpticNcFile.plot_linopt"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile.plot_linopt">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_linopt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Subplots with all linear optic quantities selected by `select` at temperature `itemp`</span>
+<span class="sd">        Subplots with all linear optic quantities selected by ``select`` at temperature ``itemp``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            select:</span>
 <span class="sd">            itemp: Temperature index.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                or scalar e.g. ``left``. If left (right) is None, default values are used.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;linopt&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">computed_components</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span> <span class="k">return</span> <span class="kc">None</span>
@@ -444,7 +450,7 @@
 
 <div class="viewcode-block" id="OpticNcFile.plot_chi2"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile.plot_chi2">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_chi2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">components</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">decompose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Low-level function to plot chi2 tensor.</span>
 
@@ -455,14 +461,14 @@
 <span class="sd">            what: quantity to plot. &quot;re&quot; for real part, &quot;im&quot; for imaginary, Accepts also &quot;abs&quot;, &quot;angle&quot;.</span>
 <span class="sd">            itemp: Temperature index.</span>
 <span class="sd">            decompose: True to plot individual contributions.</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used.</span>
 <span class="sd">            with_xlabel: True to add x-label.</span>
 <span class="sd">            label: True to add legend label to each curve.</span>
+<span class="sd">            fontsize: Legend and label fontsize.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">computed_components</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span> <span class="k">return</span> <span class="kc">None</span>
         <span class="n">comp2terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_tensor3_terms</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="n">itemp</span><span class="p">)</span>
@@ -479,7 +485,7 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Photon Energy [eV]&#39;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
@@ -495,7 +501,7 @@
 
 <div class="viewcode-block" id="OpticNcFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -521,6 +527,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This object reads the results stored in the optic.nc file</span>
 <span class="sd">    It provides helper function to access the most important quantities.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: OpticReader</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OpticReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -578,7 +587,7 @@
 <span class="sd">            itemp: Temperature index.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            OrderedDict mapping cartesian components e.g. &quot;xyz&quot; to data dictionary.</span>
+<span class="sd">            :class:`OrderedDict` mapping cartesian components e.g. &quot;xyz&quot; to data dictionary.</span>
 <span class="sd">            Individual entries are listed in ALL_CHIS[key][&quot;terms&quot;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># arrays have Fortran shape [two, nomega, num_comp, ntemp]</span>
@@ -604,6 +613,9 @@
 <div class="viewcode-block" id="OpticRobot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticRobot">[docs]</a><span class="k">class</span> <span class="nc">OpticRobot</span><span class="p">(</span><span class="n">Robot</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This robot analyzes the results contained in multiple optic.nc files.</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: OpticRobot</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">&quot;OPTIC&quot;</span>
 
@@ -629,7 +641,7 @@
                                 <span class="n">sortby</span><span class="o">=</span><span class="s2">&quot;nkpt&quot;</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the convergence of the dielectric function tensor with respect to</span>
-<span class="sd">        parameter defined by `sortby`.</span>
+<span class="sd">        parameter defined by ``sortby``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            components: List of cartesian tensor components to plot e.g. [&quot;xx&quot;, &quot;xy&quot;].</span>
@@ -641,11 +653,10 @@
 <span class="sd">                If string, it&#39;s assumed that the ncfile has an attribute with the same name and getattr is invoked.</span>
 <span class="sd">                If callable, the output of callable(ncfile) is used.</span>
 <span class="sd">            itemp: Temperature index.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build grid plot: computed tensors along the rows, what_list along columns.</span>
         <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;linopt&quot;</span>
@@ -700,14 +711,13 @@
 <span class="sd">                Accepts also &quot;abs&quot;, &quot;angle&quot;.</span>
 <span class="sd">            sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.</span>
 <span class="sd">                If None, no sorting is performed.</span>
-<span class="sd">                If string, it&#39;s assumed that the ncfile has an attribute with the same name and getattr is invoked.</span>
+<span class="sd">                If string, it&#39;s assumed that the ncfile has an attribute with the same name and ``getattr`` is invoked.</span>
 <span class="sd">                If callable, the output of callable(ncfile) is used.</span>
 <span class="sd">            decompose: True to plot individual contributions.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                or scalar e.g. ``left``. If left (right) is None, default values are used.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build grid plot: computed tensors along the rows, what_list along columns.</span>
         <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">computed_components_intersection</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -736,7 +746,7 @@
 
 <div class="viewcode-block" id="OpticRobot.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.optic.OpticRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -773,7 +783,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

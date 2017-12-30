@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
@@ -142,17 +146,16 @@
       
   <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
-<p>AbiPy is a Python package to analyze the results produced by <a class="reference external" href="http://www.abinit.org">ABINIT</a>,
+<p>AbiPy is a <a class="reference external" href="http://www.python.org/">Python</a> package to analyze the results produced by <a class="reference external" href="https://www.abinit.org">Abinit</a>
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Many-Body perturbation theory.
 AbiPy also provides tools to generate input files and workflows to automate
 ab-initio calculations and typical convergence studies.
-AbiPy is interfaced with <a class="reference external" href="http://www.pymatgen.org">Pymatgen</a> thus allowing users to
+AbiPy is interfaced with <a class="reference external" href="http://www.pymatgen.org">pymatgen</a> thus allowing users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.</p>
-<p>AbiPy can be used in conjunction with  <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <a class="reference external" href="http://pandas.pydata.org">pandas</a>,
-<a class="reference external" href="https://ipython.org/index.html">ipython</a> and <a class="reference external" href="http://jupyter.org/">jupyter</a>
-thus providing a powerful and user-friendly environment for data analysis and visualization.
-Check out the list of plotting scripts available in our <a class="reference internal" href="gallery/index.html"><span class="doc">AbiPy Gallery</span></a>.
+<p>AbiPy can be used in conjunction with  <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <a class="reference external" href="http://pandas.pydata.org">pandas</a>, <a class="reference external" href="https://seaborn.pydata.org/">seaborn</a>,
+<a class="reference external" href="https://ipython.org/index.html">ipython</a> and <a class="reference external" href="http://jupyter.org/">jupyter</a> thus providing a powerful and user-friendly environment for data analysis and visualization.
+Check out the list of plotting scripts available in our <a class="reference internal" href="gallery/index.html#plot-gallery"><span class="std std-ref">AbiPy Gallery</span></a>.
 To learn more about the integration between jupyter and AbiPy, visit our collection of <a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb">notebooks</a>
 and the
 <a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb">AbiPy lessons</a>.</p>
@@ -160,10 +163,10 @@ and the
 Note however that Python 2.7 is more intensively tested than py3k, especially at the level of workflows.
 We hence still recommend py2.7 if you plan to run automatic calculations with AbiPy.</p>
 <p>Note also that the majority of the post-processing tools available in AbiPy require Abinit output files in
-<code class="docutils literal"><span class="pre">netcdf</span></code> format so we strongly suggest to compile Abinit with netcdf support
+<a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> format so we strongly suggest to compile Abinit with netcdf support
 (use <code class="docutils literal"><span class="pre">--with_trio_flavor=&quot;netcdf-fallback&quot;</span></code> at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples
-provided by the <a class="reference external" href="https://github.com/abinit/abiconfig">abiconfig package</a>.</p>
+provided by the <a class="reference external" href="https://github.com/abinit/abiconfig">abiconfig</a> package.</p>
 <p>AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy’s <a class="reference external" href="https://github.com/abinit/abipy">Github page</a>.</p>
 </div>
@@ -181,7 +184,7 @@ Please report any bugs and issues at AbiPy’s <a class="reference external" hre
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

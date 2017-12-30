@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -170,12 +174,12 @@ This file determines what goes into the source distribution of the build.</li>
 <h2>Style guide<a class="headerlink" href="#style-guide" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="importing-and-name-spaces">
 <h3>Importing and name spaces<a class="headerlink" href="#importing-and-name-spaces" title="Permalink to this headline">¶</a></h3>
-<p>For <a class="reference external" href="http://www.numpy.org">numpy</a>, use:</p>
+<p>For <a class="reference external" href="http://www.numpy.org/">numpy</a>, use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>For <a class="reference external" href="http://matplotlib.org/">matplotlib</a>, use:</p>
+<p>For <a class="reference external" href="http://matplotlib.org">matplotlib</a>, use:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;xtick.major.pad&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>
 
@@ -216,8 +220,8 @@ Thus any example data that is required for the example should be added to the <c
 </div>
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
-<p>Abipy has a testing infrastructure based on <a class="reference external" href="https://docs.python.org/2/library/unittest.html#module-unittest" title="(in Python v2.7)"><code class="xref py py-mod docutils literal"><span class="pre">unittest</span></code></a>.
-The tests are in <code class="xref py py-mod docutils literal"><span class="pre">abipy.tests</span></code>, data files are strore in <code class="file docutils literal"><span class="pre">abipy/tests/data</span></code>.</p>
+<p>Abipy has a testing infrastructure based on <a class="reference external" href="https://docs.python.org/2/library/unittest.html#module-unittest" title="(in Python v2.7)"><code class="xref py py-mod docutils literal"><span class="pre">unittest</span></code></a> and <a class="reference external" href="https://docs.pytest.org/en/latest/contents.html">pytest</a>.
+The tests are in <a class="reference internal" href="../api/core_api.html#module-abipy.core.testing" title="abipy.core.testing"><code class="xref py py-mod docutils literal"><span class="pre">abipy.core.testing</span></code></a>, data files are strore in <code class="file docutils literal"><span class="pre">abipy/tests/data</span></code>.</p>
 </div>
 </div>
 
@@ -234,7 +238,7 @@ The tests are in <code class="xref py py-mod docutils literal"><span class="pre"
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

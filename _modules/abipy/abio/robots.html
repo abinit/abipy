@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -301,15 +305,15 @@
 <div class="viewcode-block" id="Robot.from_flow"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.from_flow">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_flow</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">outdirs</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build a robot from a Flow object.</span>
+<span class="sd">        Build a robot from a |Flow| object.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            flow: :class:`Flow` object</span>
+<span class="sd">            flow: |Flow| object</span>
 <span class="sd">            outdirs: String used to select/ignore the files in the output directory of flow, works and tasks</span>
 <span class="sd">                outdirs=&quot;work&quot; selects only the outdir of the Works,</span>
 <span class="sd">                outdirs=&quot;flow+task&quot; selects the outdir of the Flow and the outdirs of the tasks</span>
 <span class="sd">                outdirs=&quot;-work&quot; excludes the outdir of the Works.</span>
-<span class="sd">                Cannot use `+` and `-` flags in the same string.</span>
+<span class="sd">                Cannot use ``+`` and ``-`` flags in the same string.</span>
 <span class="sd">                Default: `all` that is equivalent to &quot;flow+work+task&quot;</span>
 <span class="sd">            nids: List of node identifiers used to select particular nodes. Not used if None</span>
 <span class="sd">            ext: File extension associated to the robot. Mainly used if method is invoked with the BaseClass</span>
@@ -328,7 +332,7 @@
 <span class="sd">                print(robot)</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            `Robot` subclass.</span>
+<span class="sd">            ``Robot`` subclass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">robot</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span><span class="o">.</span><span class="n">class_for_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)()</span>
         <span class="n">all_opts</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">)</span>
@@ -365,9 +369,9 @@
 <span class="sd">        Add the file produced by this node to the robot.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            node: Flow/Work/Task object.</span>
+<span class="sd">            node: |Flow| or |Work| or |Task| object.</span>
 <span class="sd">            nids: List of node identifiers used to select particular nodes. Not used if None</span>
-<span class="sd">            task_class: Task class or string wtih class name used to select the tasks in the flow.</span>
+<span class="sd">            task_class: Task class or string with class name used to select the tasks in the flow.</span>
 <span class="sd">                None implies no filtering.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">nids</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">node_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nids</span><span class="p">:</span> <span class="k">return</span>
@@ -391,11 +395,11 @@
 
 <div class="viewcode-block" id="Robot.scan_dir"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.scan_dir">[docs]</a>    <span class="k">def</span> <span class="nf">scan_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Scan directory tree starting from `top`. Add files to the robot instance.</span>
+<span class="sd">        Scan directory tree starting from ``top``. Add files to the robot instance.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            top (str): Root directory</span>
-<span class="sd">            walk: if True, directories inside `top` are included as well.</span>
+<span class="sd">            walk: if True, directories inside ``top`` are included as well.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            Number of files found.</span>
@@ -415,7 +419,7 @@
 <span class="sd">            label: String used to identify the file (must be unique, ax exceptions is</span>
 <span class="sd">                raised if label is already present.</span>
 <span class="sd">            abifile: Specify the file to be added. Accepts strings (filepath) or abipy file-like objects.</span>
-<span class="sd">            filter_abifile: Function that receives an `abifile` object and returns</span>
+<span class="sd">            filter_abifile: Function that receives an ``abifile`` object and returns</span>
 <span class="sd">                True if the file should be added to the plotter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">abifile</span><span class="p">):</span>
@@ -470,7 +474,7 @@
 
 <div class="viewcode-block" id="Robot.pop_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.pop_label">[docs]</a>    <span class="k">def</span> <span class="nf">pop_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Remove file with the given `label` and close it.</span>
+<span class="sd">        Remove file with the given ``label`` and close it.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abifiles</span><span class="p">:</span>
             <span class="n">abifile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abifiles</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
@@ -503,8 +507,8 @@
 
 <div class="viewcode-block" id="Robot.trim_paths"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.trim_paths">[docs]</a>    <span class="k">def</span> <span class="nf">trim_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Replace absolute filepaths in the robot with relative paths wrt to `start` directory.</span>
-<span class="sd">        If start is None, os.getcwd() is used. Set `self.start` attribute, return self.start.</span>
+<span class="sd">        Replace absolute filepaths in the robot with relative paths wrt to ``start`` directory.</span>
+<span class="sd">        If start is None, os.getcwd() is used. Set ``self.start`` attribute, return ``self.start``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
         <span class="n">old_paths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_abifiles</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -570,7 +574,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Integration with jupyter notebooks.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;ol&gt;</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&lt;/ol&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;&lt;li&gt;</span><span class="si">%s</span><span class="s2">&lt;/li&gt;&quot;</span> <span class="o">%</span> <span class="n">label</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">abifile</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">))</span>
 
     <span class="nd">@property</span>
@@ -580,7 +584,7 @@
 
 <div class="viewcode-block" id="Robot.is_sortable"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.is_sortable">[docs]</a>    <span class="k">def</span> <span class="nf">is_sortable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aname</span><span class="p">,</span> <span class="n">raise_exc</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return True if `aname` is an attribute of the netcdf file</span>
+<span class="sd">        Return True if ``aname`` is an attribute of the netcdf file</span>
 <span class="sd">        If raise_exc is True, AttributeError with an explicit message is raised.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -605,8 +609,8 @@
 
 <div class="viewcode-block" id="Robot.sortby"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.sortby">[docs]</a>    <span class="k">def</span> <span class="nf">sortby</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func_or_string</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sort files in the robot by `func_or_string`</span>
-<span class="sd">        Return list of (label, abifile, param) tuples where param is obtained via `func_or_string`.</span>
+<span class="sd">        Sort files in the robot by ``func_or_string``.</span>
+<span class="sd">        Return list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            func_or_string: Either None, string, callable defining the quantity to be used for sorting.</span>
@@ -638,35 +642,35 @@
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exception while closing: &quot;</span><span class="p">,</span> <span class="n">abifile</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Robot.open"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.open">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.</span>
-<span class="sd">        `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">has_dirpath</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Flow</span>
-                <span class="n">obj</span> <span class="o">=</span> <span class="n">Flow</span><span class="o">.</span><span class="n">pickle_load</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="n">has_dirpath</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1">#@classmethod</span>
+    <span class="c1">#def open(cls, obj, nids=None, **kwargs):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.</span>
+    <span class="c1">#    `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    has_dirpath = False</span>
+    <span class="c1">#    if is_string(obj):</span>
+    <span class="c1">#        try:</span>
+    <span class="c1">#            from abipy.flowtk import Flow</span>
+    <span class="c1">#            obj = Flow.pickle_load(obj)</span>
+    <span class="c1">#        except:</span>
+    <span class="c1">#            has_dirpath = True</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_dirpath</span><span class="p">:</span>
-            <span class="c1"># We have a Flow. smeth is the name of the Task method used to open the file.</span>
-            <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">smeth</span> <span class="o">=</span> <span class="s2">&quot;open_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">iflat_tasks</span><span class="p">(</span><span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">):</span> <span class="c1">#, status=obj.S_OK):</span>
-                <span class="n">open_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">smeth</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">open_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">continue</span>
-                <span class="n">abifile</span> <span class="o">=</span> <span class="n">open_method</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">abifile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">task</span><span class="o">.</span><span class="n">pos_str</span><span class="p">,</span> <span class="n">abifile</span><span class="p">))</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">items</span><span class="p">)</span>
+    <span class="c1">#    if not has_dirpath:</span>
+    <span class="c1">#        # We have a Flow. smeth is the name of the Task method used to open the file.</span>
+    <span class="c1">#        items = []</span>
+    <span class="c1">#        smeth = &quot;open_&quot; + cls.EXT.lower()</span>
+    <span class="c1">#        for task in obj.iflat_tasks(nids=nids): #, status=obj.S_OK):</span>
+    <span class="c1">#            open_method = getattr(task, smeth, None)</span>
+    <span class="c1">#            if open_method is None: continue</span>
+    <span class="c1">#            abifile = open_method()</span>
+    <span class="c1">#            if abifile is not None: items.append((task.pos_str, abifile))</span>
+    <span class="c1">#        return cls(*items)</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># directory --&gt; search for files with the appropriate extension and open it with abiopen.</span>
-            <span class="k">if</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;nids cannot be used when obj is a directory.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dir</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        # directory --&gt; search for files with the appropriate extension and open it with abiopen.</span>
+    <span class="c1">#        if nids is not None: raise ValueError(&quot;nids cannot be used when obj is a directory.&quot;)</span>
+    <span class="c1">#        return cls.from_dir(obj)</span>
 
     <span class="c1">#def get_attributes(self, attr_name, obj=None, retdict=False):</span>
     <span class="c1">#    od = OrderedDict()</span>
@@ -695,7 +699,7 @@
 
 <div class="viewcode-block" id="Robot.sortby_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.sortby_label">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">sortby_label</span><span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the label to be used when files are sorted with `sortby`.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return the label to be used when files are sorted with ``sortby``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">sortby</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Robot.get_structure_dataframes"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_structure_dataframes">[docs]</a>    <span class="k">def</span> <span class="nf">get_structure_dataframes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_abifile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -704,7 +708,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to getcwd().</span>
-<span class="sd">            filter_abifile: Function that receives an `abifile` object and returns</span>
+<span class="sd">            filter_abifile: Function that receives an ``abifile`` object and returns</span>
 <span class="sd">                True if the file should be added to the plotter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">dataframes_from_structures</span>
@@ -717,12 +721,12 @@
         <span class="k">return</span> <span class="n">dataframes_from_structures</span><span class="p">(</span><span class="n">struct_objects</span><span class="o">=</span><span class="n">abifiles</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Robot.get_lattice_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_lattice_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_lattice_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return pandas DataFrame with lattice parameters.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return |pandas-DataFrame| with lattice parameters.&quot;&quot;&quot;</span>
         <span class="n">dfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structure_dataframes</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dfs</span><span class="o">.</span><span class="n">lattice</span></div>
 
 <div class="viewcode-block" id="Robot.get_coords_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_coords_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return pandas DataFrame with atomic positions.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return |pandas-DataFrame| with atomic positions.&quot;&quot;&quot;</span>
         <span class="n">dfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_structure_dataframes</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dfs</span><span class="o">.</span><span class="n">coords</span></div>
 
@@ -737,7 +741,7 @@
 
 <div class="viewcode-block" id="Robot.get_baserobot_code_cells"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_baserobot_code_cells">[docs]</a>    <span class="k">def</span> <span class="nf">get_baserobot_code_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return list of notebook cells with calls to methods provides by the baseclass.</span>
+<span class="sd">        Return list of notebook_ cells with calls to methods provides by the baseclass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Try not pollute namespace with lots of variables.</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv</span><span class="p">()</span>
@@ -761,7 +765,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

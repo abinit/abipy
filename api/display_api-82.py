@@ -1,1 +1,1 @@
-ax = sns.barplot(x="day", y="total_bill", hue="sex", data=tips)
+ax = sns.pointplot(x="tip", y="day", data=tips)

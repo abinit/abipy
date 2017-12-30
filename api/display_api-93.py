@@ -1,1 +1,2 @@
-ax = sns.countplot(y="class", hue="who", data=titanic)
+ax = sns.barplot(x="time", y="tip", data=tips,
+                 order=["Dinner", "Lunch"])

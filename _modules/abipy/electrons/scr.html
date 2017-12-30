@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -156,7 +160,7 @@
 
 
 <span class="k">def</span> <span class="nf">_latex_symbol_cplxmode</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Latex label to be used to plot `symbol` in `cplx_mode`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Latex label to be used to plot ``symbol`` in ``cplx_mode``.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;re&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\Re(&quot;</span> <span class="o">+</span> <span class="n">symbol</span> <span class="o">+</span> <span class="s2">&quot;)$&quot;</span><span class="p">,</span>
             <span class="s2">&quot;im&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$\Im(&quot;</span> <span class="o">+</span> <span class="n">symbol</span> <span class="o">+</span> <span class="s2">&quot;)$&quot;</span><span class="p">,</span>
             <span class="s2">&quot;abs&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;$||&quot;</span> <span class="o">+</span> <span class="n">symbol</span> <span class="o">+</span> <span class="s2">&quot;||$&quot;</span><span class="p">,</span>
@@ -165,7 +169,7 @@
 
 <div class="viewcode-block" id="ScrFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile">[docs]</a><span class="k">class</span> <span class="nc">ScrFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object provides an interface to the `SCR.nc` file produced by the GW code.</span>
+<span class="sd">    This object provides an interface to the ``SCR.nc`` file produced by the GW code.</span>
 
 <span class="sd">    Usage example:</span>
 
@@ -174,6 +178,9 @@
 <span class="sd">        with ScrFile(&quot;foo_SCR.nc&quot;) as ncfile:</span>
 <span class="sd">            print(ncfile)</span>
 <span class="sd">            ncfile.plot_emacro()</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: ScrFile</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="ScrFile.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
@@ -185,7 +192,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">ScrReader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ScrFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Close file.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Close the file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -218,7 +225,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Crystalline structure.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">structure</span>
 
     <span class="nd">@property</span>
@@ -229,7 +236,7 @@
 <div class="viewcode-block" id="ScrFile.ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.ebands">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :class:`ElectronBands` object with the single-particle energies used to compute the screening.</span>
+<span class="sd">        |ElectronBands| object with the single-particle energies used to compute the screening.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ebands</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
         <span class="c1"># FIXME</span>
@@ -245,7 +252,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">wpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Array of complex numbers with the frequencies of the dielectric function in Ha.</span>
+<span class="sd">        Array of complex numbers with the frequencies of the dielectric function in Hartree.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">wpoints</span>
 
@@ -266,34 +273,36 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">netcdf_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The etsf-io name associated to the data on disk.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The netcdf_ name associated to the data on disk.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">netcdf_name</span>
 
 <div class="viewcode-block" id="ScrFile.params"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.params">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :class:`AttrDict` with the most important parameters used to compute the screening</span>
-<span class="sd">        keys can be accessed with the dot notation i.e. `params.zcut`.</span>
+<span class="sd">        |AttrDict| with the most important parameters used to compute the screening</span>
+<span class="sd">        keys can be accessed with the dot notation i.e. ``params.zcut``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_params</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ScrFile.plot_emacro"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_emacro">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_emacro</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_emacro</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the macroscopic dielectric function with local-field effects.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            cplx_mode: string defining the data to print.</span>
-<span class="sd">                Possible choices are (case-insensitive): `re` for the real part</span>
-<span class="sd">                &quot;im&quot; for the imaginary part, &quot;abs&quot; for the absolute value.</span>
+<span class="sd">                Possible choices are (case-insensitive):</span>
+<span class="sd">                &quot;re&quot; for the real part. &quot;im&quot; for the imaginary part.</span>
+<span class="sd">                &quot;abs&quot; for the absolute value.</span>
 <span class="sd">                &quot;angle&quot; will display the phase of the complex number in radians.</span>
-<span class="sd">                Options can be concatenated with &quot;-&quot; e.g. &quot;re-im&quot;</span>
-<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                or scalar e.g. `left`. If left (right) is None, default values are used</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">                Options can be concatenated with ``-`` e.g. ``re-im``.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. (left, right)</span>
+<span class="sd">                or scalar e.g. left. If left (right) is None, default values are used.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            fontsize: Legend and title fontsize.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure.</span>
+<span class="sd">            |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">emlf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_emacro_lf</span><span class="p">()</span>
         <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">emlf</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">pmgu</span><span class="o">.</span><span class="n">Ha_to_eV</span><span class="p">,</span> <span class="n">emlf</span><span class="o">.</span><span class="n">values</span>
@@ -308,22 +317,22 @@
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="ScrFile.plot_eelf"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.plot_eelf">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_eelf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_eelf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot electron energy loss function.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                   or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. ``(left, right)``</span>
+<span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
+<span class="sd">            fontsize: Legend and label fontsize:</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">eelf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_eelf</span><span class="p">()</span>
         <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">eelf</span><span class="o">.</span><span class="n">mesh</span> <span class="o">*</span> <span class="n">pmgu</span><span class="o">.</span><span class="n">Ha_to_eV</span><span class="p">,</span> <span class="n">eelf</span><span class="o">.</span><span class="n">values</span>
@@ -335,13 +344,13 @@
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="ScrFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a jupyter notebook to nbpath. If nbpath is None, a temporay file in the current</span>
+<span class="sd">        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current</span>
 <span class="sd">        working directory is created. Return path to the notebook.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -372,6 +381,9 @@
 <span class="sd">    double inverse_dielectric_function(number_of_qpoints_dielectric_function,</span>
 <span class="sd">    number_of_frequencies_dielectric_function, number_of_spins, number_of_spins,</span>
 <span class="sd">    number_of_coefficients_dielectric_function, number_of_coefficients_dielectric_function, complex)</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: ScrReader</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ScrReader</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -416,8 +428,7 @@
 <span class="sd">        the parameters that may be subject to convergence studies.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            :class:`AttrDict` a dictionary whose keys can be accessed</span>
-<span class="sd">            with the dot notation i.e. d.key.</span>
+<span class="sd">            |AttrDict| a dictionary whose keys can be accessed with the dot notation i.e. ``d.key``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: ecuteps is missing!</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ikxc&quot;</span><span class="p">,</span> <span class="s2">&quot;inclvkb&quot;</span><span class="p">,</span> <span class="s2">&quot;gwcalctyp&quot;</span><span class="p">,</span> <span class="s2">&quot;nbands_used&quot;</span><span class="p">,</span> <span class="s2">&quot;npwwfn_used&quot;</span><span class="p">,</span>
@@ -434,7 +445,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read the macroscopic dielectric function *with* local field effects 1 / em1_{0,0)(kpoint, omega).</span>
 
-<span class="sd">        Return: :class:`Function1D` object.</span>
+<span class="sd">        Return: |Function1D| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">netcdf_name</span> <span class="o">==</span> <span class="s2">&quot;inverse_dielectric_function&quot;</span><span class="p">:</span>
             <span class="n">em1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_wslice</span><span class="p">(</span><span class="n">kpoint</span><span class="p">,</span> <span class="n">ig1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ig2</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -448,7 +459,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read the macroscopic dielectric function *without* local field effects e_{0,0)(kpoint, omega).</span>
 
-<span class="sd">        Return: :class:`Function1D`</span>
+<span class="sd">        Return: |Function1D|</span>
 
 <span class="sd">        .. warning::</span>
 
@@ -469,7 +480,7 @@
 
 <span class="sd">            - Im(1/ emacro)</span>
 
-<span class="sd">        Return: :class:`Function1D` object.</span>
+<span class="sd">        Return: |Function1D| object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># eelf = -Im(1 / eM)</span>
         <span class="n">emacro_lf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_emacro_lf</span><span class="p">(</span><span class="n">kpoint</span><span class="o">=</span><span class="n">kpoint</span><span class="p">)</span>
@@ -480,8 +491,8 @@
 
 <div class="viewcode-block" id="ScrReader.read_wggmat"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.read_wggmat">[docs]</a>    <span class="k">def</span> <span class="nf">read_wggmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">spin1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read data at the given k-point and return an instance of `cls` where</span>
-<span class="sd">        `cls` is a subclass of `_AwggMatrix`</span>
+<span class="sd">        Read data at the given k-point and return an instance of ``cls`` where</span>
+<span class="sd">        ``cls`` is a subclass of :class:`_AwggMatrix`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="n">_AwggMatrix</span><span class="o">.</span><span class="n">class_from_netcdf_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">netcdf_name</span><span class="p">)</span> <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">cls</span>
 
@@ -507,7 +518,7 @@
 <div class="viewcode-block" id="ScrReader.find_kpoint_fileindex"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.ScrReader.find_kpoint_fileindex">[docs]</a>    <span class="k">def</span> <span class="nf">find_kpoint_fileindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the k-point and the index of the k-point in the netcdf file.</span>
-<span class="sd">        Accepts :class:`Kpoint` or integer</span>
+<span class="sd">        Accepts |Kpoint| instance or integer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">kpoint</span><span class="p">):</span>
             <span class="n">ik</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
@@ -546,11 +557,11 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wpoints</span><span class="p">,</span> <span class="n">gsphere</span><span class="p">,</span> <span class="n">wggmat</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            gsphere: :class:`GSphere` with G-vectors and k-point object.</span>
+<span class="sd">            gsphere: |GSphere| with G-vectors and k-point object.</span>
 <span class="sd">            wpoints: Complex frequency points in Hartree.</span>
 <span class="sd">            wggmat: [nw, ng, ng] complex array.</span>
-<span class="sd">            inord: storage order of `wggmat`. If inord == &quot;F&quot;, `wggmat` is in</span>
-<span class="sd">                in Fortran column-major order. Default: &quot;C&quot; i.e. C row-major order</span>
+<span class="sd">            inord: storage order of ``wggmat``. If inord == &quot;F&quot;, ``wggmat`` is in</span>
+<span class="sd">                in Fortran column-major order. Default: &quot;C&quot; i.e. C row-major order.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wpoints</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span> <span class="o">=</span> <span class="n">gsphere</span>
@@ -615,7 +626,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">kpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:class:`Kpoint` object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;|Kpoint| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">kpoint</span>
 
     <span class="nd">@property</span>
@@ -658,7 +669,7 @@
 
     <span class="k">def</span> <span class="nf">windex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Find the index of the **closest** frequency in `wpoints`.</span>
+<span class="sd">        Find the index of the **closest** frequency in ``wpoints``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplex</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
             <span class="n">iw</span> <span class="o">=</span> <span class="n">bs_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imag_wpoints</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">)</span>
@@ -670,8 +681,9 @@
 
     <span class="k">def</span> <span class="nf">gindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Find the index of gvec. If `gvec` is an integer, gvec is returned.</span>
-<span class="sd">        Raises `ValueError` if gvec is not found.</span>
+<span class="sd">        Find the index of gvec. If ``gvec`` is an integer, gvec is returned.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            `ValueError` if gvec is not found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_intlike</span><span class="p">(</span><span class="n">gvec</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gsphere</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">gvec</span><span class="p">)</span>
@@ -681,22 +693,22 @@
         <span class="k">return</span> <span class="n">_latex_symbol_cplxmode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">latex_name</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="p">)</span>
 
     <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gvec1</span><span class="p">,</span> <span class="n">gvec2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">waxis</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;re-im&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            gvec1, gvec2:</span>
-<span class="sd">            waxis: &quot;real&quot; to plot along the real axis, &quot;imag&quot; for the imaginary axis.</span>
+<span class="sd">            waxis: ``real`` to plot along the real axis, ``imag`` for the imaginary axis.</span>
 <span class="sd">            cplx_mode: string defining the data to print.</span>
-<span class="sd">                Possible choices are (case-insensitive): `re` for the real part</span>
-<span class="sd">                &quot;im&quot; for the imaginary part, &quot;abs&quot; for the absolute value.</span>
-<span class="sd">                &quot;angle&quot; will display the phase of the complex number in radians.</span>
-<span class="sd">                Options can be concatenated with &quot;-&quot; e.g. &quot;re-im&quot;</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">                Possible choices are (case-insensitive): ``re`` for the real part</span>
+<span class="sd">                ``im`` for the imaginary part, ``abs`` for the absolute value.</span>
+<span class="sd">                ``angle`` will display the phase of the complex number in radians.</span>
+<span class="sd">                Options can be concatenated with ``-`` e.g. ``re-im``.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            fontsize: legend and label fontsize.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Select data to plot</span>
         <span class="n">ig1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gindex</span><span class="p">(</span><span class="n">gvec1</span><span class="p">)</span>
@@ -728,8 +740,8 @@
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, kpoint: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">netcdf_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">))</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, kpoint: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">netcdf_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span>
 
@@ -740,16 +752,15 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            cplx_mode: string defining the data to print.</span>
-<span class="sd">                Possible choices are (case-insensitive): `re` for the real part</span>
-<span class="sd">                &quot;im&quot; for the imaginary part, &quot;abs&quot; for the absolute value.</span>
-<span class="sd">                &quot;angle&quot; will display the phase of the complex number in radians.</span>
+<span class="sd">                Possible choices are (case-insensitive): ``re`` for the real part</span>
+<span class="sd">                ``im`` for the imaginary part, ``abs`` for the absolute value.</span>
+<span class="sd">                ``angle`` will display the phase of the complex number in radians.</span>
 <span class="sd">            wpos: List of frequency indices to plot. If None, the first frequency is used (usually w=0).</span>
 <span class="sd">                If wpos == &quot;all&quot; all frequencies are shown (use it carefully)</span>
 <span class="sd">                Other possible values: &quot;real&quot; if only real frequencies are wanted.</span>
 <span class="sd">                &quot;imag&quot; for imaginary frequencies only.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            `matplotlib` figure.</span>
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Get wpos indices.</span>
         <span class="n">choice_wpos</span> <span class="o">=</span> <span class="p">{</span><span class="kc">None</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nw</span><span class="p">),</span>
@@ -772,16 +783,28 @@
 
 
 <div class="viewcode-block" id="Polarizability"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.Polarizability">[docs]</a><span class="k">class</span> <span class="nc">Polarizability</span><span class="p">(</span><span class="n">_AwggMatrix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: Polarizability</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">netcdf_name</span> <span class="o">=</span> <span class="s2">&quot;polarizability&quot;</span>
     <span class="n">latex_name</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\tilde chi&quot;</span></div>
 
 
 <div class="viewcode-block" id="DielectricFunction"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.DielectricFunction">[docs]</a><span class="k">class</span> <span class="nc">DielectricFunction</span><span class="p">(</span><span class="n">_AwggMatrix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: DielectricFunction</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">netcdf_name</span> <span class="o">=</span> <span class="s2">&quot;dielectric_function&quot;</span>
     <span class="n">latex_name</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\epsilon&quot;</span></div>
 
 
 <div class="viewcode-block" id="InverseDielectricFunction"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scr.InverseDielectricFunction">[docs]</a><span class="k">class</span> <span class="nc">InverseDielectricFunction</span><span class="p">(</span><span class="n">_AwggMatrix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: InverseDielectricFunction</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">netcdf_name</span> <span class="o">=</span> <span class="s2">&quot;inverse_dielectric_function&quot;</span>
     <span class="n">latex_name</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\epsilon^{-1}&quot;</span></div>
 
@@ -946,7 +969,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

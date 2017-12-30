@@ -1,1 +1,3 @@
-g = sns.pairplot(iris, vars=["sepal_width", "sepal_length"])
+from scipy.stats import spearmanr
+g = sns.jointplot("size", "total_bill", data=tips,
+                  stat_func=spearmanr, color="m")

@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
@@ -154,25 +158,44 @@
     <div class="col-md-12 content">
       
   <div class="section" id="tools-package">
-<h1>tools Package<a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#contents">tools Package</a><a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#tools-package" id="id1">tools Package</a><ul>
+<li><a class="reference internal" href="#module-abipy.tools" id="id2"><code class="xref py py-mod docutils literal"><span class="pre">tools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.bessel" id="id3"><code class="xref py py-mod docutils literal"><span class="pre">bessel</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.decorators" id="id4"><code class="xref py py-mod docutils literal"><span class="pre">decorators</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.derivatives" id="id5"><code class="xref py py-mod docutils literal"><span class="pre">derivatives</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.devtools" id="id6"><code class="xref py py-mod docutils literal"><span class="pre">devtools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.duck" id="id7"><code class="xref py py-mod docutils literal"><span class="pre">duck</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.iotools" id="id8"><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.notebooks" id="id9"><code class="xref py py-mod docutils literal"><span class="pre">notebooks</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.numtools" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">numtools</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.plotting" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">plotting</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.tools.text" id="id12"><code class="xref py py-mod docutils literal"><span class="pre">text</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="module-abipy.tools">
-<span id="tools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">tools</span></code> Module<a class="headerlink" href="#module-abipy.tools" title="Permalink to this headline">¶</a></h2>
+<span id="tools-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tools</span></code> Module</a><a class="headerlink" href="#module-abipy.tools" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-abipy.tools.bessel">
-<span id="bessel-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">bessel</span></code> Module<a class="headerlink" href="#module-abipy.tools.bessel" title="Permalink to this headline">¶</a></h2>
+<span id="bessel-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">bessel</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.bessel" title="Permalink to this headline">¶</a></h2>
 <p>This module provides functions to compute integrals of Bessel functions.</p>
 <dl class="function">
 <dt id="abipy.tools.bessel.spline_int_jlqr">
 <code class="descclassname">abipy.tools.bessel.</code><code class="descname">spline_int_jlqr</code><span class="sig-paren">(</span><em>l</em>, <em>qmax</em>, <em>rcut</em>, <em>numq=None</em>, <em>numr=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/bessel.html#spline_int_jlqr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.bessel.spline_int_jlqr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute <img src="../_images/mathmpl/math-e6ff1ca209.png" style="position: relative; bottom: -22px"/>
-where <img src="../_images/mathmpl/math-04518ae605.png" style="position: relative; bottom: -7px"/> is the Spherical Bessel function.</p>
+<dd><p>Compute <span class="math">\(j_n(z) = \int_0^{rcut} r^2 j_l(qr) dr\)</span>
+where <span class="math">\(j_l\)</span> is the Spherical Bessel function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>l</strong> – Angular momentum</li>
-<li><strong>qmax</strong> – Max <img src="../_images/mathmpl/math-49e9b62f77.png" style="position: relative; bottom: -7px"/> in integral in Ang-1</li>
+<li><strong>qmax</strong> – Max <span class="math">\(|q|\)</span> in integral in Ang-1</li>
 <li><strong>rcut</strong> – Sphere radius in Angstrom.</li>
 <li><strong>numq</strong> – Number of q-points in qmesh.</li>
 <li><strong>numr</strong> – Number of r-points for integration.</li>
@@ -188,7 +211,7 @@ where <img src="../_images/mathmpl/math-04518ae605.png" style="position: relativ
 
 </div>
 <div class="section" id="module-abipy.tools.decorators">
-<span id="decorators-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">decorators</span></code> Module<a class="headerlink" href="#module-abipy.tools.decorators" title="Permalink to this headline">¶</a></h2>
+<span id="decorators-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">decorators</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.decorators" title="Permalink to this headline">¶</a></h2>
 <p>Decorators.</p>
 <dl class="function">
 <dt id="abipy.tools.decorators.return_straceback_ifexc">
@@ -200,7 +223,7 @@ traceback so that execution can continue.</p>
 
 </div>
 <div class="section" id="module-abipy.tools.derivatives">
-<span id="derivatives-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">derivatives</span></code> Module<a class="headerlink" href="#module-abipy.tools.derivatives" title="Permalink to this headline">¶</a></h2>
+<span id="derivatives-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">derivatives</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.derivatives" title="Permalink to this headline">¶</a></h2>
 <p>Tools for computing derivatives by finite differences.</p>
 <dl class="function">
 <dt id="abipy.tools.derivatives.finite_diff">
@@ -231,38 +254,7 @@ are available in <cite>arr</cite>.</p>
 
 </div>
 <div class="section" id="module-abipy.tools.devtools">
-<span id="devtools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">devtools</span></code> Module<a class="headerlink" href="#module-abipy.tools.devtools" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="abipy.tools.devtools.HtmlDiff">
-<em class="property">class </em><code class="descclassname">abipy.tools.devtools.</code><code class="descname">HtmlDiff</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>This object produces diff files in HTML format and displays them in the browser.</p>
-<p>Usage example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">HtmlDiff</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span><span class="o">.</span><span class="n">open_browser</span><span class="p">()</span>
-</pre></div>
-</div>
-<dl class="method">
-<dt id="abipy.tools.devtools.HtmlDiff.difflib">
-<code class="descname">difflib</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.difflib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.difflib" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use difflib to generate a HTML file with the diff.
-Open file in the browser.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.devtools.HtmlDiff.open_browser">
-<code class="descname">open_browser</code><span class="sig-paren">(</span><em>diffmode='difflib'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.open_browser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.open_browser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate diff with <cite>diffmode</cite>, open browser, return exit code.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.devtools.HtmlDiff.pygmentize">
-<code class="descname">pygmentize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.pygmentize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.pygmentize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execut <cite>diff</cite> and <cite>pygmentize</cite> in a subprocess to generate a HTML file with the diff.
-Open file in the browser.</p>
-</dd></dl>
-
-</dd></dl>
-
+<span id="devtools-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">devtools</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.devtools" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="abipy.tools.devtools.profile">
 <code class="descclassname">abipy.tools.devtools.</code><code class="descname">profile</code><span class="sig-paren">(</span><em>statement</em>, <em>global_vars</em>, <em>local_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.profile" title="Permalink to this definition">¶</a></dt>
@@ -273,19 +265,45 @@ Open file in the browser.</p>
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="module-abipy.tools.duck">
-<span id="duck-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">duck</span></code> Module<a class="headerlink" href="#module-abipy.tools.duck" title="Permalink to this headline">¶</a></h2>
-<p>Duck-typing tests</p>
-<dl class="function">
-<dt id="abipy.tools.duck.as_slice">
-<code class="descclassname">abipy.tools.duck.</code><code class="descname">as_slice</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#as_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.as_slice" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert an integer, a string or a slice object into slice.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="s2">&quot;[1:4]&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="s2">&quot;1::2&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<dl class="class">
+<dt id="abipy.tools.devtools.HtmlDiff">
+<em class="property">class </em><code class="descclassname">abipy.tools.devtools.</code><code class="descname">HtmlDiff</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This object produces diff files in HTML format and displays them in the browser.</p>
+<p>Usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">HtmlDiff</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span><span class="o">.</span><span class="n">open_browser</span><span class="p">()</span>
 </pre></div>
 </div>
+<dl class="method">
+<dt id="abipy.tools.devtools.HtmlDiff.open_browser">
+<code class="descname">open_browser</code><span class="sig-paren">(</span><em>diffmode='difflib'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.open_browser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.open_browser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate diff with <cite>diffmode</cite>, open browser, return exit code.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.devtools.HtmlDiff.difflib">
+<code class="descname">difflib</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.difflib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.difflib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use difflib to generate a HTML file with the diff.
+Open file in the browser.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.devtools.HtmlDiff.pygmentize">
+<code class="descname">pygmentize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff.pygmentize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff.pygmentize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute <code class="docutils literal"><span class="pre">diff</span></code> and <code class="docutils literal"><span class="pre">pygmentize</span></code> in a subprocess to generate a HTML file with the diff.
+Open file in the browser.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abipy.tools.duck">
+<span id="duck-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">duck</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.duck" title="Permalink to this headline">¶</a></h2>
+<p>Duck-typing tests</p>
+<dl class="function">
+<dt id="abipy.tools.duck.is_string">
+<code class="descclassname">abipy.tools.duck.</code><code class="descname">is_string</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#is_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.is_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if s behaves like a string (duck typing test).</p>
 </dd></dl>
 
 <dl class="function">
@@ -295,21 +313,15 @@ Open file in the browser.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.tools.duck.is_listlike">
-<code class="descclassname">abipy.tools.duck.</code><code class="descname">is_listlike</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#is_listlike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.is_listlike" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="abipy.tools.duck.is_number_like">
 <code class="descclassname">abipy.tools.duck.</code><code class="descname">is_number_like</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#is_number_like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.is_number_like" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if obj represents a number.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.tools.duck.is_string">
-<code class="descclassname">abipy.tools.duck.</code><code class="descname">is_string</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#is_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.is_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if s behaves like a string (duck typing test).</p>
-</dd></dl>
+<dt id="abipy.tools.duck.is_listlike">
+<code class="descclassname">abipy.tools.duck.</code><code class="descname">is_listlike</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#is_listlike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.is_listlike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="abipy.tools.duck.torange">
@@ -326,10 +338,39 @@ with an __iter__ method. Note that an integer is converted into range(int, int+1
 </div>
 </dd></dl>
 
+<dl class="function">
+<dt id="abipy.tools.duck.as_slice">
+<code class="descclassname">abipy.tools.duck.</code><code class="descname">as_slice</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/duck.html#as_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.duck.as_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an integer, a string or a slice object into slice.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="s2">&quot;[1:4]&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">as_slice</span><span class="p">(</span><span class="s2">&quot;1::2&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="module-abipy.tools.iotools">
-<span id="iotools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Module<a class="headerlink" href="#module-abipy.tools.iotools" title="Permalink to this headline">¶</a></h2>
+<span id="iotools-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">iotools</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.iotools" title="Permalink to this headline">¶</a></h2>
 <p>IO related utilities.</p>
+<dl class="function">
+<dt id="abipy.tools.iotools.ask_yes_no">
+<code class="descclassname">abipy.tools.iotools.</code><code class="descname">ask_yes_no</code><span class="sig-paren">(</span><em>prompt</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#ask_yes_no"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.ask_yes_no" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask a question and return a boolean (y/n) answer.</p>
+<p>If default is given (one of ‘y’,’n’), it is used if the user input is
+empty. Otherwise the question is repeated until an answer is given.</p>
+<p>An EOF is treated as the default answer.  If there is no default, an
+exception is raised to prevent infinite loops.</p>
+<p>Valid answers are: y/yes/n/no (match is not case sensitive).</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="abipy.tools.iotools.EditorError">
+<em class="property">exception </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">EditorError</code><a class="reference internal" href="../_modules/abipy/tools/iotools.html#EditorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.EditorError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<p>Base class for exceptions raised by <cite>Editor</cite></p>
+</dd></dl>
+
 <dl class="class">
 <dt id="abipy.tools.iotools.Editor">
 <em class="property">class </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">Editor</code><span class="sig-paren">(</span><em>editor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#Editor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.Editor" title="Permalink to this definition">¶</a></dt>
@@ -357,24 +398,6 @@ with an __iter__ method. Note that an integer is converted into range(int, int+1
 
 </dd></dl>
 
-<dl class="exception">
-<dt id="abipy.tools.iotools.EditorError">
-<em class="property">exception </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">EditorError</code><a class="reference internal" href="../_modules/abipy/tools/iotools.html#EditorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.EditorError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
-<p>Base class for exceptions raised by <cite>Editor</cite></p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.iotools.ask_yes_no">
-<code class="descclassname">abipy.tools.iotools.</code><code class="descname">ask_yes_no</code><span class="sig-paren">(</span><em>prompt</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#ask_yes_no"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.ask_yes_no" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ask a question and return a boolean (y/n) answer.</p>
-<p>If default is given (one of ‘y’,’n’), it is used if the user input is
-empty. Otherwise the question is repeated until an answer is given.</p>
-<p>An EOF is treated as the default answer.  If there is no default, an
-exception is raised to prevent infinite loops.</p>
-<p>Valid answers are: y/yes/n/no (match is not case sensitive).</p>
-</dd></dl>
-
 <dl class="function">
 <dt id="abipy.tools.iotools.input_from_editor">
 <code class="descclassname">abipy.tools.iotools.</code><code class="descname">input_from_editor</code><span class="sig-paren">(</span><em>message=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#input_from_editor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.input_from_editor" title="Permalink to this definition">¶</a></dt>
@@ -382,34 +405,21 @@ exception is raised to prevent infinite loops.</p>
 
 </div>
 <div class="section" id="module-abipy.tools.notebooks">
-<span id="notebooks-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">notebooks</span></code> Module<a class="headerlink" href="#module-abipy.tools.notebooks" title="Permalink to this headline">¶</a></h2>
+<span id="notebooks-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">notebooks</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.notebooks" title="Permalink to this headline">¶</a></h2>
 <p>Tools for ipython notebooks.</p>
 <dl class="function">
-<dt id="abipy.tools.notebooks.ipw_listdir">
-<code class="descclassname">abipy.tools.notebooks.</code><code class="descname">ipw_listdir</code><span class="sig-paren">(</span><em>top='.'</em>, <em>recurse=True</em>, <em>widget_type='dropdown'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#ipw_listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.ipw_listdir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an ipython widget listing all the files located within the directory <cite>top</cite>
-that can be inspected with <cite>abiopen</cite>. The user can select the file in the widget
-and print info on the corresponding file inside the notebook.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>top</strong> – Initial directory.</li>
-<li><strong>recurse</strong> – False to ignore directories within <cite>top</cite>.</li>
-<li><strong>widget_type</strong> – Specify the widget to create. Possible values in:
-[“tooglebuttons”, “dropdown”, “radiobuttons”]</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="abipy.tools.notebooks.print_source_in_module">
+<code class="descclassname">abipy.tools.notebooks.</code><code class="descname">print_source_in_module</code><span class="sig-paren">(</span><em>function</em>, <em>module</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#print_source_in_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.print_source_in_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>For use inside an <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook: given a module and a function, print the source code.</p>
+<p>Based on:</p>
+<blockquote>
+<div><a class="reference external" href="http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook">http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook</a></div></blockquote>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.tools.notebooks.print_source">
 <code class="descclassname">abipy.tools.notebooks.</code><code class="descname">print_source</code><span class="sig-paren">(</span><em>function</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#print_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.print_source" title="Permalink to this definition">¶</a></dt>
-<dd><p>For use inside an IPython notebook: given a function, print the source code.</p>
+<dd><p>For use inside a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook: given a function, print the source code.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -423,18 +433,158 @@ and print info on the corresponding file inside the notebook.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="abipy.tools.notebooks.print_source_in_module">
-<code class="descclassname">abipy.tools.notebooks.</code><code class="descname">print_source_in_module</code><span class="sig-paren">(</span><em>function</em>, <em>module</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#print_source_in_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.print_source_in_module" title="Permalink to this definition">¶</a></dt>
-<dd><p>For use inside an IPython notebook: given a module and a function, print the source code.</p>
-<p>Based on:</p>
-<blockquote>
-<div><a class="reference external" href="http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook">http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook</a></div></blockquote>
+<dt id="abipy.tools.notebooks.ipw_listdir">
+<code class="descclassname">abipy.tools.notebooks.</code><code class="descname">ipw_listdir</code><span class="sig-paren">(</span><em>top='.'</em>, <em>recurse=True</em>, <em>widget_type='dropdown'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/notebooks.html#ipw_listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.notebooks.ipw_listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an ipython widget listing all the files located within the directory <code class="docutils literal"><span class="pre">top</span></code>
+that can be inspected with <a class="reference internal" href="../scripts/abiopen.html#abiopen-py"><span class="std std-ref">abiopen.py</span></a>. The user can select the file in the widget
+and print info on the corresponding file inside the notebook.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>top</strong> – Initial directory.</li>
+<li><strong>recurse</strong> – False to ignore directories within <code class="docutils literal"><span class="pre">top</span></code>.</li>
+<li><strong>widget_type</strong> – Specify the widget to create. Possible values in:
+[“tooglebuttons”, “dropdown”, “radiobuttons”]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
 <div class="section" id="module-abipy.tools.numtools">
-<span id="numtools-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">numtools</span></code> Module<a class="headerlink" href="#module-abipy.tools.numtools" title="Permalink to this headline">¶</a></h2>
+<span id="numtools-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">numtools</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.numtools" title="Permalink to this headline">¶</a></h2>
 <p>Numeric tools.</p>
+<dl class="function">
+<dt id="abipy.tools.numtools.transpose_last3dims">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">transpose_last3dims</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#transpose_last3dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.transpose_last3dims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transpose the last three dimensions of arr: (…,x,y,z) –&gt; (…,z,y,x).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.add_periodic_replicas">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">add_periodic_replicas</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#add_periodic_replicas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.add_periodic_replicas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new array of shape=(…, nx+1,ny+1,nz+1) with redundant data points.</p>
+<p>Periodicity in enforced only on the last three dimensions.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.alternate">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">alternate</code><span class="sig-paren">(</span><em>*iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#alternate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.alternate" title="Permalink to this definition">¶</a></dt>
+<dd><p>[a[0], b[0], … , a[1], b[1], …, a[n], b[n] …]
+&gt;&gt;&gt; alternate([1,4], [2,5], [3,6])
+[1, 2, 3, 4, 5, 6]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.iflat">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">iflat</code><span class="sig-paren">(</span><em>iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#iflat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.iflat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterator over all elements of a nested iterable. It’s recursive!</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">iflat</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]]]))</span>
+<span class="go">[0, 1, 2, 3, 4]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.grouper">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">grouper</code><span class="sig-paren">(</span><em>n</em>, <em>iterable</em>, <em>fillvalue=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#grouper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.grouper" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">grouper</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;ABCDEFG&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">[(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">grouper</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span> <span class="o">==</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.prune_ord">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">prune_ord</code><span class="sig-paren">(</span><em>alist</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#prune_ord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.prune_ord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return new list where all duplicated items in alist are removed</p>
+<ol class="arabic simple">
+<li>The order of items in alist is preserved.</li>
+<li>items in alist MUST be hashable.</li>
+</ol>
+<p>Taken from <a class="reference external" href="http://code.activestate.com/recipes/52560/">http://code.activestate.com/recipes/52560/</a>
+&gt;&gt;&gt; prune_ord([1, 1, 2, 3, 3])
+[1, 2, 3]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.gaussian">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">gaussian</code><span class="sig-paren">(</span><em>x</em>, <em>width</em>, <em>center=0.0</em>, <em>height=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the values of gaussian(x) where x is array-like.</p>
+<p>If height is None, a normalized gaussian is returned.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.smooth">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">smooth</code><span class="sig-paren">(</span><em>x</em>, <em>window_len=11</em>, <em>window='hanning'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>smooth the data using a window with requested size.</p>
+<p>This method is based on the convolution of a scaled window with the signal.
+The signal is prepared by introducing reflected copies of the signal
+(with the window size) in both ends so that transient parts are minimized
+in the begining and end part of the output signal.
+Taken from <a class="reference external" href="http://www.scipy.org/Cookbook/SignalSmooth">http://www.scipy.org/Cookbook/SignalSmooth</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> – the input signal</li>
+<li><strong>window_len</strong> – the dimension of the smoothing window. it should be an odd integer</li>
+<li><strong>window</strong> – the type of window from ‘flat’, ‘hanning’, ‘hamming’, ‘bartlett’, ‘blackman’.
+‘flat’ window will produce a moving average smoothing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the smoothed signal.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">+</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">*</span><span class="mf">0.1</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>see also:</p>
+<p>numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve scipy.signal.lfilter</p>
+<p>TODO: the window parameter could be the window itself if an array instead of a string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.numtools.find_convindex">
+<code class="descclassname">abipy.tools.numtools.</code><code class="descname">find_convindex</code><span class="sig-paren">(</span><em>values</em>, <em>tol</em>, <em>min_numpts=1</em>, <em>mode='abs'</em>, <em>vinf=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#find_convindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.find_convindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of values and a tolerance tol, returns the leftmost index for which</p>
+<blockquote>
+<div>abs(value[i] - vinf) &lt; tol if mode == “abs”</div></blockquote>
+<dl class="docutils">
+<dt>or</dt>
+<dd>abs(value[i] - vinf) / vinf &lt; tol if mode == “rel”</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tol</strong> – Tolerance</li>
+<li><strong>min_numpts</strong> – Minimum number of points that must be converged.</li>
+<li><strong>mode</strong> – “abs” for absolute convergence, “rel” for relative convergence.</li>
+<li><strong>vinf</strong> – Used to specify an alternative value instead of values[-1].
+By default, vinf = values[-1]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">-1 if convergence is not achieved else the index in values.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="class">
 <dt id="abipy.tools.numtools.BlochRegularGridInterpolator">
 <em class="property">class </em><code class="descclassname">abipy.tools.numtools.</code><code class="descname">BlochRegularGridInterpolator</code><span class="sig-paren">(</span><em>structure</em>, <em>datar</em>, <em>add_replicas=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#BlochRegularGridInterpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.BlochRegularGridInterpolator" title="Permalink to this definition">¶</a></dt>
@@ -497,136 +647,9 @@ values: numpy array of shape [ndt, num] with interpolated values.</dd>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="abipy.tools.numtools.add_periodic_replicas">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">add_periodic_replicas</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#add_periodic_replicas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.add_periodic_replicas" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new array of shape=(…, nx+1,ny+1,nz+1) with redundant data points.</p>
-<p>Periodicity in enforced only on the last three dimensions.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.alternate">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">alternate</code><span class="sig-paren">(</span><em>*iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#alternate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.alternate" title="Permalink to this definition">¶</a></dt>
-<dd><p>[a[0], b[0], … , a[1], b[1], …, a[n], b[n] …]
-&gt;&gt;&gt; alternate([1,4], [2,5], [3,6])
-[1, 2, 3, 4, 5, 6]</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.find_convindex">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">find_convindex</code><span class="sig-paren">(</span><em>values</em>, <em>tol</em>, <em>min_numpts=1</em>, <em>mode='abs'</em>, <em>vinf=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#find_convindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.find_convindex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a list of values and a tolerance tol, returns the leftmost index for which</p>
-<blockquote>
-<div>abs(value[i] - vinf) &lt; tol if mode == “abs”</div></blockquote>
-<dl class="docutils">
-<dt>or</dt>
-<dd>abs(value[i] - vinf) / vinf &lt; tol if mode == “rel”</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tol</strong> – Tolerance</li>
-<li><strong>min_numpts</strong> – Minimum number of points that must be converged.</li>
-<li><strong>mode</strong> – “abs” for absolute convergence, “rel” for relative convergence.</li>
-<li><strong>vinf</strong> – Used to specify an alternative value instead of values[-1].
-By default, vinf = values[-1]</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">-1 if convergence is not achieved else the index in values.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.gaussian">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">gaussian</code><span class="sig-paren">(</span><em>x</em>, <em>width</em>, <em>center=0.0</em>, <em>height=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.gaussian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the values of gaussian(x) where x is array-like.</p>
-<p>If height is None, a normalized gaussian is returned.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.grouper">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">grouper</code><span class="sig-paren">(</span><em>n</em>, <em>iterable</em>, <em>fillvalue=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#grouper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.grouper" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">grouper</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;ABCDEFG&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">[(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">grouper</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span> <span class="o">==</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.iflat">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">iflat</code><span class="sig-paren">(</span><em>iterables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#iflat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.iflat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterator over all elements of a nested iterable. It’s recursive!</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">iflat</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]]]))</span>
-<span class="go">[0, 1, 2, 3, 4]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.prune_ord">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">prune_ord</code><span class="sig-paren">(</span><em>alist</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#prune_ord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.prune_ord" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return new list where all duplicated items in alist are removed</p>
-<ol class="arabic simple">
-<li>The order of items in alist is preserved.</li>
-<li>items in alist MUST be hashable.</li>
-</ol>
-<p>Taken from <a class="reference external" href="http://code.activestate.com/recipes/52560/">http://code.activestate.com/recipes/52560/</a>
-&gt;&gt;&gt; prune_ord([1, 1, 2, 3, 3])
-[1, 2, 3]</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.smooth">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">smooth</code><span class="sig-paren">(</span><em>x</em>, <em>window_len=11</em>, <em>window='hanning'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.smooth" title="Permalink to this definition">¶</a></dt>
-<dd><p>smooth the data using a window with requested size.</p>
-<p>This method is based on the convolution of a scaled window with the signal.
-The signal is prepared by introducing reflected copies of the signal
-(with the window size) in both ends so that transient parts are minimized
-in the begining and end part of the output signal.
-Taken from <a class="reference external" href="http://www.scipy.org/Cookbook/SignalSmooth">http://www.scipy.org/Cookbook/SignalSmooth</a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> – the input signal</li>
-<li><strong>window_len</strong> – the dimension of the smoothing window. it should be an odd integer</li>
-<li><strong>window</strong> – the type of window from ‘flat’, ‘hanning’, ‘hamming’, ‘bartlett’, ‘blackman’.
-‘flat’ window will produce a moving average smoothing.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the smoothed signal.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">+</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">*</span><span class="mf">0.1</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>see also:</p>
-<p>numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve scipy.signal.lfilter</p>
-<p>TODO: the window parameter could be the window itself if an array instead of a string</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.numtools.transpose_last3dims">
-<code class="descclassname">abipy.tools.numtools.</code><code class="descname">transpose_last3dims</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#transpose_last3dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.transpose_last3dims" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transpose the last three dimensions of arr: (…,x,y,z) –&gt; (…,z,y,x).</p>
-</dd></dl>
-
 </div>
 <div class="section" id="module-abipy.tools.plotting">
-<span id="plotting-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">plotting</span></code> Module<a class="headerlink" href="#module-abipy.tools.plotting" title="Permalink to this headline">¶</a></h2>
+<span id="plotting-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">plotting</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.plotting" title="Permalink to this headline">¶</a></h2>
 <p>Utilities for generating matplotlib plots.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -649,6 +672,201 @@ Taken from <a class="reference external" href="http://www.scipy.org/Cookbook/Sig
 </tbody>
 </table>
 <p>Return: (left, right)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.plotting.data_from_cplx_mode">
+<code class="descclassname">abipy.tools.plotting.</code><code class="descname">data_from_cplx_mode</code><span class="sig-paren">(</span><em>cplx_mode</em>, <em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#data_from_cplx_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.data_from_cplx_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the data from the numpy array <cite>arr</cite> depending on the values of <cite>cplx_mode</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cplx_mode</strong> – Possible values in (“re”, “im”, “abs”, “angle”)
+“re” for the real part,
+“im” for the imaginary part.
+“abs” means that the absolute value of the complex number is shown.
+“angle” will display the phase of the complex number in radians.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.plotting.plot_array">
+<code class="descclassname">abipy.tools.plotting.</code><code class="descname">plot_array</code><span class="sig-paren">(</span><em>array</em>, <em>color_map=None</em>, <em>cplx_mode='abs'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#plot_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.plot_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use imshow for plotting 2D or 1D arrays.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>See &lt;<a class="reference external" href="http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python">http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python</a>&gt;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>array</strong> – Array-like object (1D or 2D).</li>
+<li><strong>color_map</strong> – color map.</li>
+<li><strong>cplx_mode</strong> – Flag defining how to handle complex arrays. Possible values in (“re”, “im”, “abs”, “angle”)
+“re” for the real part, “im” for the imaginary part.
+“abs” means that the absolute value of the complex number is shown.
+“angle” will display the phase of the complex number in radians.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p><cite>matplotlib</cite> figure.</p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>”abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.plotting.ArrayPlotter">
+<em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">ArrayPlotter</code><span class="sig-paren">(</span><em>*labels_and_arrays</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="abipy.tools.plotting.ArrayPlotter.keys">
+<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.ArrayPlotter.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.ArrayPlotter.add_array">
+<code class="descname">add_array</code><span class="sig-paren">(</span><em>label</em>, <em>array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.add_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.add_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add array with the given name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.ArrayPlotter.add_arrays">
+<code class="descname">add_arrays</code><span class="sig-paren">(</span><em>labels</em>, <em>arr_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.add_arrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.add_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a list of arrays</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>labels</strong> – List of labels.</li>
+<li><strong>arr_list</strong> – List of arrays.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.ArrayPlotter.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>cplx_mode='abs'</em>, <em>color_map='jet'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cplx_mode</strong> – “abs” for absolute value, “re”, “im”, “angle”</li>
+<li><strong>color_map</strong> – matplotlib colormap</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.plotting.Marker">
+<em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">Marker</code><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abipy.tools.plotting.Marker" title="abipy.tools.plotting.Marker"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.plotting.Marker</span></code></a></p>
+<p>Stores the position and the size of the marker.
+A marker is a list of tuple(x, y, s) where x, and y are the position
+in the graph and s is the size of the marker.
+Used for plotting purpose e.g. QP data, energy derivatives…</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">]</span>
+<span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="n">marker</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="abipy.tools.plotting.Marker.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>xys</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend the marker values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.Marker.posneg_marker">
+<code class="descname">posneg_marker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker.posneg_marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker.posneg_marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split data into two sets: the first one contains all the points with positive size.
+the first set contains all the points with negative size.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -691,209 +909,20 @@ plt: matplotlib pyplot module.</td>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="abipy.tools.plotting.plot_array">
-<code class="descclassname">abipy.tools.plotting.</code><code class="descname">plot_array</code><span class="sig-paren">(</span><em>array</em>, <em>color_map=None</em>, <em>cplx_mode='abs'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#plot_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.plot_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use imshow for plotting 2D or 1D arrays.</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>See &lt;<a class="reference external" href="http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python">http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python</a>&gt;</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>array</strong> – Array-like object (1D or 2D).</li>
-<li><strong>color_map</strong> – color map.</li>
-<li><strong>cplx_mode</strong> – Flag defining how to handle complex arrays. Possible values in (“re”, “im”, “abs”, “angle”)
-“re” for the real part, “im” for the imaginary part.
-“abs” means that the absolute value of the complex number is shown.
-“angle” will display the phase of the complex number in radians.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><cite>matplotlib</cite> figure.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.tools.plotting.ArrayPlotter">
-<em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">ArrayPlotter</code><span class="sig-paren">(</span><em>*labels_and_arrays</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="abipy.tools.plotting.ArrayPlotter.add_array">
-<code class="descname">add_array</code><span class="sig-paren">(</span><em>label</em>, <em>array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.add_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.add_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add array with the given name.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.plotting.ArrayPlotter.add_arrays">
-<code class="descname">add_arrays</code><span class="sig-paren">(</span><em>labels</em>, <em>arr_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.add_arrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.add_arrays" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a list of arrays</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>labels</strong> – List of labels.</li>
-<li><strong>arr_list</strong> – List of arrays.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.plotting.ArrayPlotter.items">
-<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.items" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.plotting.ArrayPlotter.keys">
-<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.keys" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.plotting.ArrayPlotter.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>cplx_mode='abs'</em>, <em>color_map='jet'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.plot" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><dl class="docutils">
-<dt>Args:</dt>
-<dd>cplx_mode: “abs” for absolute value, “re”, “im”, “angle”
-color_map: matplotlib colormap</dd>
-</dl>
-</div></blockquote>
-<p>keyword arguments controlling the display of the figure:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="23%" />
-<col width="77%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">kwargs</th>
-<th class="head">Meaning</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>title</td>
-<td>Title of the plot (Default: None).</td>
-</tr>
-<tr class="row-odd"><td>show</td>
-<td>True to show the figure (default: True).</td>
-</tr>
-<tr class="row-even"><td>savefig</td>
-<td>‘abc.png’ or ‘abc.eps’ to save the figure to a file.</td>
-</tr>
-<tr class="row-odd"><td>size_kwargs</td>
-<td>Dictionary with options passed to fig.set_size_inches
-example: size_kwargs=dict(w=3, h=4)</td>
-</tr>
-<tr class="row-even"><td>tight_layout</td>
-<td>True to call fig.tight_layout (default: False)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="abipy.tools.plotting.data_from_cplx_mode">
-<code class="descclassname">abipy.tools.plotting.</code><code class="descname">data_from_cplx_mode</code><span class="sig-paren">(</span><em>cplx_mode</em>, <em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#data_from_cplx_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.data_from_cplx_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract the data from the numpy array <cite>arr</cite> depending on the values of <cite>cplx_mode</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cplx_mode</strong> – Possible values in (“re”, “im”, “abs”, “angle”)
-“re” for the real part,
-“im” for the imaginary part.
-“abs” means that the absolute value of the complex number is shown.
-“angle” will display the phase of the complex number in radians.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="abipy.tools.plotting.Marker">
-<em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">Marker</code><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#abipy.tools.plotting.Marker" title="abipy.tools.plotting.Marker"><code class="xref py py-class docutils literal"><span class="pre">abipy.tools.plotting.Marker</span></code></a></p>
-<p>Stores the position and the size of the marker.
-A marker is a list of tuple(x, y, s) where x, and y are the position
-in the graph and s is the size of the marker.
-Used for plotting purpose e.g. QP data, energy derivatives…</p>
-<p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">]</span>
-<span class="n">marker</span> <span class="o">=</span> <span class="n">Marker</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-<span class="n">marker</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
-</pre></div>
-</div>
-<dl class="method">
-<dt id="abipy.tools.plotting.Marker.extend">
-<code class="descname">extend</code><span class="sig-paren">(</span><em>xys</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker.extend" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extend the marker values.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="abipy.tools.plotting.Marker.posneg_marker">
-<code class="descname">posneg_marker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker.posneg_marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker.posneg_marker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Split data into two sets: the first one contains all the points with positive size.
-the first set contains all the points with negative size.</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="module-abipy.tools.text">
-<span id="text-module"></span><h2><code class="xref py py-mod docutils literal"><span class="pre">text</span></code> Module<a class="headerlink" href="#module-abipy.tools.text" title="Permalink to this headline">¶</a></h2>
+<span id="text-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">text</span></code> Module</a><a class="headerlink" href="#module-abipy.tools.text" title="Permalink to this headline">¶</a></h2>
 <p>Utilities for working with strings and text.</p>
-<dl class="function">
-<dt id="abipy.tools.text.nums_and_text">
-<code class="descclassname">abipy.tools.text.</code><code class="descname">nums_and_text</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/text.html#nums_and_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.text.nums_and_text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Split line into (numbers, text).</p>
-</dd></dl>
-
 <dl class="function">
 <dt id="abipy.tools.text.tonumber">
 <code class="descclassname">abipy.tools.text.</code><code class="descname">tonumber</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/text.html#tonumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.text.tonumber" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert string to number, raise ValueError if s cannot be converted.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abipy.tools.text.nums_and_text">
+<code class="descclassname">abipy.tools.text.</code><code class="descname">nums_and_text</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/text.html#nums_and_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.text.nums_and_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split line into (numbers, text).</p>
 </dd></dl>
 
 </div>
@@ -912,7 +941,7 @@ the first set contains all the points with negative size.</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

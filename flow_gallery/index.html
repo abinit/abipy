@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>AbiPy Flow Gallery &#8212; abipy 0.2.0 documentation</title>
+    <title>Flow Gallery &#8212; abipy 0.2.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -28,7 +28,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="AbiPy Flow Gallery" href="__init__.html" />
-    <link rel="prev" title="TaskManager" href="../workflows/taskmanager.html" />
+    <link rel="prev" title="Manager Examples" href="../workflows/manager_examples.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -92,7 +96,7 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">AbiPy Flow Gallery</a><ul>
+<li><a class="reference internal" href="#">Flow Gallery</a><ul>
 </ul>
 </li>
 </ul>
@@ -104,7 +108,7 @@
               
                 
   <li>
-    <a href="../workflows/taskmanager.html" title="Previous Chapter: TaskManager"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; TaskManager</span>
+    <a href="../workflows/manager_examples.html" title="Previous Chapter: Manager Examples"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Manager Examples</span>
     </a>
   </li>
   <li>
@@ -142,19 +146,19 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="abipy-flow-gallery">
-<span id="id1"></span><h1>AbiPy Flow Gallery<a class="headerlink" href="#abipy-flow-gallery" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="flow-gallery">
+<span id="id1"></span><h1>Flow Gallery<a class="headerlink" href="#flow-gallery" title="Permalink to this headline">¶</a></h1>
 <p>This gallery contains python scripts to generate AbiPy flows from the command line.</p>
-<p>Run the scripts to generate the directory with the flow and then
-use <code class="docutils literal"><span class="pre">abirun.py</span></code> to execute the flow.
+<p>Run the scripts to generate the directory with the flow and then use <a class="reference internal" href="../scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a> to execute the flow.
 Alternatively, one can use the <cite>-s</cite> option to generate the flow and run it immediately with the scheduler.
-Use <cite>–help</cite> for available options.</p>
-<p>WARNING:</p>
-<blockquote>
-<div>The following examples show how to use python and the AbiPy API to generate and run
+Use <cite>–help</cite> to further information on the available options.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The following examples show how to use python and the AbiPy API to generate and run
 Abinit calculations in a semi-automatic way.
 These examples are not supposed to produce physically meaningful results
-as input parameters are usually underconverged.</div></blockquote>
+as input parameters are usually underconverged.</p>
+</div>
 <div class="sphx-glr-thumbcontainer" tooltip="This gallery contains python scripts to generate AbiPy flows from the command line. "><div class="figure" id="id2">
 <img alt="../_images/sphx_glr___init___thumb.png" src="../_images/sphx_glr___init___thumb.png" />
 <p class="caption"><span class="caption-text"><a class="reference internal" href="__init__.html#sphx-glr-flow-gallery-init-py"><span class="std std-ref">AbiPy Flow Gallery</span></a></span></p>
@@ -251,39 +255,39 @@ as input parameters are usually underconverged.</div></blockquote>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op..."><div class="figure" id="id18">
-<img alt="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" />
-<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span></p>
-</div>
-</div><div class="toctree-wrapper compound">
-</div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure" id="id19">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the LDA+U band structure of NiO with PAW for several values o..."><div class="figure" id="id18">
 <img alt="../_images/sphx_glr_run_ldaus_thumb.png" src="../_images/sphx_glr_run_ldaus_thumb.png" />
 <p class="caption"><span class="caption-text"><a class="reference internal" href="run_ldaus.html#sphx-glr-flow-gallery-run-ldaus-py"><span class="std std-ref">Flow for LDA+U calculations</span></a></span></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W. "><div class="figure" id="id20">
+<div class="sphx-glr-thumbcontainer" tooltip="G0W0 convergence study wrt ecuteps and the number of bands in W. "><div class="figure" id="id19">
 <img alt="../_images/sphx_glr_run_gwconv_ecuteps_thumb.png" src="../_images/sphx_glr_run_gwconv_ecuteps_thumb.png" />
 <p class="caption"><span class="caption-text"><a class="reference internal" href="run_gwconv_ecuteps.html#sphx-glr-flow-gallery-run-gwconv-ecuteps-py"><span class="std std-ref">G0W0 convergence study</span></a></span></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a..."><div class="figure" id="id21">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to compute the G0W0 corrections in silicon. More specifically, we build a..."><div class="figure" id="id20">
 <img alt="../_images/sphx_glr_run_si_g0w0_thumb.png" src="../_images/sphx_glr_run_si_g0w0_thumb.png" />
 <p class="caption"><span class="caption-text"><a class="reference internal" href="run_si_g0w0.html#sphx-glr-flow-gallery-run-si-g0w0-py"><span class="std std-ref">G0W0 Flow with convergence study wrt nband</span></a></span></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure" id="id22">
+<div class="sphx-glr-thumbcontainer" tooltip="This example shows how to create a flow to compute optical spectra with Optic (independent part..."><div class="figure" id="id21">
 <img alt="../_images/sphx_glr_run_optic_thumb.png" src="../_images/sphx_glr_run_optic_thumb.png" />
 <p class="caption"><span class="caption-text"><a class="reference internal" href="run_optic.html#sphx-glr-flow-gallery-run-optic-py"><span class="std std-ref">Optic Flow</span></a></span></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
-<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure" id="id23">
+<div class="sphx-glr-thumbcontainer" tooltip="This script shows how to perform a Raman calculation with excitonic effects included with the B..."><div class="figure" id="id22">
 <img alt="../_images/sphx_glr_run_raman_bse_thumb.png" src="../_images/sphx_glr_run_raman_bse_thumb.png" />
 <p class="caption"><span class="caption-text"><a class="reference internal" href="run_raman_bse.html#sphx-glr-flow-gallery-run-raman-bse-py"><span class="std std-ref">Raman Flow with BSE and frozen phonon</span></a></span></p>
+</div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="sphx-glr-thumbcontainer" tooltip="In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``op..."><div class="figure" id="id23">
+<img alt="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" src="../_images/sphx_glr_run_relax_vs_kpts_tsmear_thumb.png" />
+<p class="caption"><span class="caption-text"><a class="reference internal" href="run_relax_vs_kpts_tsmear.html#sphx-glr-flow-gallery-run-relax-vs-kpts-tsmear-py"><span class="std std-ref">Relaxation of GaN with different K-meshes</span></a></span></p>
 </div>
 </div><div class="toctree-wrapper compound">
 </div>
@@ -321,7 +325,7 @@ as input parameters are usually underconverged.</div></blockquote>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

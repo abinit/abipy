@@ -27,7 +27,7 @@
     <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="What’s new in abipy" href="whats_new.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
     <link rel="prev" title="Overview" href="features.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="features.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
@@ -120,7 +124,7 @@
     </a>
   </li>
   <li>
-    <a href="whats_new.html" title="Next Chapter: What’s new in abipy"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">What’s new in abipy &raquo;</span>
+    <a href="changelog.html" title="Next Chapter: Changelog"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Changelog &raquo;</span>
     </a>
   </li>
               
@@ -155,57 +159,71 @@
     <div class="col-md-12 content">
       
   <div class="section" id="getting-abipy">
-<h1>Getting AbiPy<a class="headerlink" href="#getting-abipy" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#contents">Getting AbiPy</a><a class="headerlink" href="#getting-abipy" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#getting-abipy" id="id3">Getting AbiPy</a><ul>
+<li><a class="reference internal" href="#stable-version" id="id4">Stable version</a></li>
+<li><a class="reference internal" href="#optional-dependencies" id="id5">Optional dependencies</a></li>
+<li><a class="reference internal" href="#anaconda-howto" id="id6">Anaconda Howto</a></li>
+<li><a class="reference internal" href="#developmental-version" id="id7">Developmental version</a></li>
+<li><a class="reference internal" href="#how-to-compile-the-python-interpreter" id="id8">How to compile the Python interpreter</a></li>
+<li><a class="reference internal" href="#how-to-install-hdf5-netcdf4-and-the-python-bindings" id="id9">How to install HDF5/Netcdf4 and the python bindings</a></li>
+<li><a class="reference internal" href="#troubleshooting" id="id10">Troubleshooting</a><ul>
+<li><a class="reference internal" href="#unknown-locale-utf-8" id="id11">unknown locale: UTF-8</a></li>
+<li><a class="reference internal" href="#netcdf-does-not-work" id="id12">netcdf does not work</a></li>
+<li><a class="reference internal" href="#unicodedecodeerror" id="id13">UnicodeDecodeError</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="stable-version">
-<h2>Stable version<a class="headerlink" href="#stable-version" title="Permalink to this headline">¶</a></h2>
-<p>The version at the Python Package Index (PyPI) is always the latest stable release
-that can be installed with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install abipy
+<h2><a class="toc-backref" href="#contents">Stable version</a><a class="headerlink" href="#stable-version" title="Permalink to this headline">¶</a></h2>
+<p>The version at the <a class="reference external" href="https://pypi.python.org/pypi/abipy">Python Package Index</a> (PyPI) is always
+the latest stable release that can be installed with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">abipy</span>
 </pre></div>
 </div>
-<p>Note that you may need to install pymatgen and other critical dependencies manually.
+<p>Note that you may need to install <a class="reference external" href="http://www.pymatgen.org">pymatgen</a> and other critical dependencies manually.
 In this case, please consult the detailed installation instructions provided by the
 <a class="reference external" href="http://pymatgen.org/index.html#standard-install">pymatgen howto</a> to install pymatgen
 and then follow the instructions in the <a class="reference internal" href="#netcdf4-installation"><span class="std std-ref">How to install HDF5/Netcdf4 and the python bindings</span></a> section.</p>
 <p>The installation process is greatly simplified if you install the required
-python packages through one of the following python distributions:</p>
-<blockquote>
-<div><ul class="simple">
-<li><a class="reference external" href="https://continuum.io/downloads">Anaconda</a></li>
-<li><a class="reference external" href="https://www.enthought.com/products/canopy">Canopy</a></li>
-</ul>
-</div></blockquote>
-<p>We routinely use <code class="docutils literal"><span class="pre">conda</span></code> to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (<code class="docutils literal"><span class="pre">matplotlib</span></code>, <code class="docutils literal"><span class="pre">scipy</span></code> …)
-in the form of pre-compiled packages and <code class="docutils literal"><span class="pre">netcdf4</span></code> can be easily installed with:</p>
+python packages through the <a class="reference external" href="https://continuum.io/downloads">Anaconda</a> distribution.
+We routinely use <a class="reference external" href="https://conda.io/docs/">conda</a> to test new developments with multiple versions of Python and multiple virtual environments.
+The anaconda distribution already provides the most critical dependencies (<a class="reference external" href="http://www.numpy.org/">numpy</a>, <a class="reference external" href="https://www.scipy.org/">scipy</a>, <a class="reference external" href="http://matplotlib.org">matplotlib</a>, …)
+in the form of pre-compiled packages and <a class="reference external" href="http://unidata.github.io/netcdf4-python/">netcdf4-python</a> can be easily installed with:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">netcdf4</span>
 </pre></div>
 </div>
 <p>Additional information on the steps required to install AbiPy with anaconda
 are available in the <a class="reference internal" href="#anaconda-howto"><span class="std std-ref">Anaconda Howto</span></a> howto as well as in the
 <a class="reference external" href="http://pymatgen.org/installation.html#conda-based-install">conda-based-install</a>
-section of the pymatgen documentation.</p>
-<p>We are also working with the <a class="reference external" href="https://github.com/LLNL/spack">Spack</a> community
+section of the <a class="reference external" href="http://www.pymatgen.org">pymatgen</a> documentation.</p>
+<p>We are also working with the <a class="reference external" href="https://github.com/LLNL/spack">spack</a> community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.</p>
 <p>Advanced users who need to compile a local version of the python interpreter and install the AbiPy dependencies
 manually can consult the <a class="reference internal" href="#howto-compile-python-and-bootstrap-pip"><span class="std std-ref">How to compile the Python interpreter</span></a> document.</p>
 </div>
 <div class="section" id="optional-dependencies">
-<h2>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#contents">Optional dependencies</a><a class="headerlink" href="#optional-dependencies" title="Permalink to this headline">¶</a></h2>
 <p>Optional libraries that are required if you need certain features:</p>
-<p><code class="docutils literal"><span class="pre">ipython</span></code></p>
+<p><a class="reference external" href="https://ipython.org/index.html">ipython</a></p>
 <blockquote>
 <div>Required to interact with the AbiPy/Pymatgen objects in the ipython shell
-(strongly recommended, already provided by <code class="docutils literal"><span class="pre">conda</span></code>).</div></blockquote>
-<p><code class="docutils literal"><span class="pre">jupyter</span></code> and <code class="docutils literal"><span class="pre">nbformat</span></code></p>
+(strongly recommended, already provided by <a class="reference external" href="https://conda.io/docs/">conda</a>).</div></blockquote>
+<p><a class="reference external" href="http://jupyter.org/">jupyter</a> and <a class="reference external" href="https://github.com/jupyter/nbformat">nbformat</a></p>
 <blockquote>
 <div>Required to generate jupyter notebooks.
-Install these two packages with <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyter</span> <span class="pre">nbformat</span></code> or use <code class="docutils literal"><span class="pre">pip</span></code>.
+Install these two packages with <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyter</span> <span class="pre">nbformat</span></code> or use <code class="docutils literal"><span class="pre">pip_</span></code>.
 To use <code class="docutils literal"><span class="pre">jupyter</span></code> you will also need a web browser to open the notebook.
 (recommended)</div></blockquote>
 </div>
 <div class="section" id="anaconda-howto">
-<span id="id1"></span><h2>Anaconda Howto<a class="headerlink" href="#anaconda-howto" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2><a class="toc-backref" href="#contents">Anaconda Howto</a><a class="headerlink" href="#anaconda-howto" title="Permalink to this headline">¶</a></h2>
 <p>Download the anaconda installer from the <a class="reference external" href="https://www.continuum.io/downloads">official web-site</a>.
 Choose the version that matches your OS and select python2.7.
 You may want to use the <code class="docutils literal"><span class="pre">wget</span></code> utility to download the anaconda script directly from the terminal
@@ -214,30 +232,30 @@ You may want to use the <code class="docutils literal"><span class="pre">wget</s
 By default, the installer creates the <code class="docutils literal"><span class="pre">anaconda</span></code> directory in your home.
 Anaconda will add one line to your <code class="docutils literal"><span class="pre">.bashrc</span></code> to enable access to the anaconda executables.
 Once the installation is completed, execute:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ source ~/anaconda/bin/activate root
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">~/</span><span class="n">anaconda</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span> <span class="n">root</span>
 </pre></div>
 </div>
 <p>to activate the <code class="docutils literal"><span class="pre">root</span></code> environment.
 The output of <code class="docutils literal"><span class="pre">which</span> <span class="pre">python</span></code> should show that you are using the python interpreter provided by anaconda.</p>
 <p>Use the <code class="docutils literal"><span class="pre">conda</span></code> command-line interface to install the packages not included in the official distribution.
 For example, you can install <code class="docutils literal"><span class="pre">pyyaml</span></code> and <code class="docutils literal"><span class="pre">netcdf4</span></code> with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install pyyaml netcdf4
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pyyaml</span> <span class="n">netcdf4</span>
 </pre></div>
 </div>
 <p>Remember that if a package is not available in the official conda repository, you can always
 download the package from one of the conda channels or use <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span></code> if no conda package is available.</p>
 <p>Fortunately there are conda channels providing all dependencies needed by AbiPy.
-To install <code class="docutils literal"><span class="pre">pymatgen</span></code> from the <code class="docutils literal"><span class="pre">matsci</span></code> channel, use:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install pymatgen --channel matsci
+To install the <a class="reference external" href="http://www.pymatgen.org">pymatgen</a> package from the <a class="reference external" href="http://materials.sh/">matsci</a> channel, use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pymatgen</span> <span class="o">--</span><span class="n">channel</span> <span class="n">matsci</span>
 </pre></div>
 </div>
-<p>then install Abipy from the abinit channel with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install pymatgen --channel abinit
+<p>then install Abipy from the <a class="reference external" href="https://anaconda.org/abinit">abinit-channel</a> with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pymatgen</span> <span class="o">--</span><span class="n">channel</span> <span class="n">abinit</span>
 </pre></div>
 </div>
 <p>Visit <a class="reference external" href="http://materials.sh">materials.sh</a> for instructions on how to use the
 matsci channel to install pymatgen and other packages.</p>
-<p>Once you have completed the installation of AbiPy and pymatgen, open the <code class="docutils literal"><span class="pre">ipython</span></code> shell and type:</p>
+<p>Once you have completed the installation of AbiPy and pymatgen, open the <a class="reference external" href="https://ipython.org/index.html">ipython</a> shell and type:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># make sure spglib library works</span>
 <span class="kn">import</span> <span class="nn">spglib</span>
 
@@ -248,24 +266,24 @@ matsci channel to install pymatgen and other packages.</p>
 </pre></div>
 </div>
 <p>to check the installation.</p>
-<p>Note that one can use <code class="docutils literal"><span class="pre">conda</span></code> to create different environments with different
+<p>Note that one can use <a class="reference external" href="https://conda.io/docs/">conda</a> to create different environments with different
 versions of the python interpreter or different libraries.
 Further information are available on the <a class="reference external" href="http://conda.pydata.org/docs/test-drive.html">conda official website</a>.
 Using different environments is very useful to keep different versions and branches separate.</p>
 </div>
 <div class="section" id="developmental-version">
-<span id="id2"></span><h2>Developmental version<a class="headerlink" href="#developmental-version" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2><a class="toc-backref" href="#contents">Developmental version</a><a class="headerlink" href="#developmental-version" title="Permalink to this headline">¶</a></h2>
 <p>Getting the developmental version of AbiPy is easy.
-You can clone it from the  <a class="reference external" href="https://github.com/abinit/abipy">github repository</a> using this command:</p>
-<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">$</span> git clone https://github.com/abinit/abipy
+You can clone it from our  <a class="reference external" href="https://github.com/abinit/abipy">github repository</a> using:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">abinit</span><span class="o">/</span><span class="n">abipy</span>
 </pre></div>
 </div>
 <p>After cloning the repository, type:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py install
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
 <p>or alternately:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py develop
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
 </pre></div>
 </div>
 <p>to install the package in developmental mode
@@ -274,8 +292,8 @@ In this case you may also opt to first fork AbiPy on Git and then clone your own
 This will allow you to push any changes to you own fork and also get them merged in the main branch).</p>
 <p>The documentation of the <strong>developmental</strong> version is hosted on <a class="reference external" href="http://abinit.github.io/abipy">github pages</a>.</p>
 <p>The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have <code class="docutils literal"><span class="pre">pytest</span></code> installed and then type:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ pytest
+To run the suite of unit tests, make sure you have <a class="reference external" href="https://docs.pytest.org/en/latest/contents.html">pytest</a> installed and then type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pytest</span>
 </pre></div>
 </div>
 <p>in the AbiPy root directory.</p>
@@ -283,8 +301,8 @@ To run the suite of unit tests, make sure you have <code class="docutils literal
 In order to run the tests, you need a working set of Abinit executables and
 a <code class="docutils literal"><span class="pre">manager.yml</span></code> configuration file.
 For further information on the syntax of the configuration file, please consult the <a class="reference internal" href="workflows/taskmanager.html#taskmanager"><span class="std std-ref">TaskManager</span></a> section.</p>
-<p>A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install abinit -c abinit
+<p>A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the <a class="reference external" href="https://anaconda.org/abinit">abinit-channel</a> with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">abinit</span> <span class="o">-</span><span class="n">c</span> <span class="n">abinit</span>
 </pre></div>
 </div>
 <p>Contributing to AbiPy is relatively easy.
@@ -297,7 +315,7 @@ to the latest stable release.</p>
 basic functionalities of your code</p>
 </div>
 <div class="section" id="how-to-compile-the-python-interpreter">
-<span id="howto-compile-python-and-bootstrap-pip"></span><h2>How to compile the Python interpreter<a class="headerlink" href="#how-to-compile-the-python-interpreter" title="Permalink to this headline">¶</a></h2>
+<span id="howto-compile-python-and-bootstrap-pip"></span><h2><a class="toc-backref" href="#contents">How to compile the Python interpreter</a><a class="headerlink" href="#how-to-compile-the-python-interpreter" title="Permalink to this headline">¶</a></h2>
 <p>This section discusses how to install a local version of the python interpreter as well
 as the most important dependencies needed by AbiPy.
 This approach may be needed if you want to use AbiPy on a machine (e.g. a cluster)
@@ -308,7 +326,7 @@ on top of the preexisting python library.</p>
 <p>First of all, you have to create a new directory containing your python interpreter
 as well as as the libraries and the other executables needed by AbiPy.
 Let’s assume we decided to create this directory inside <code class="docutils literal"><span class="pre">$HOME</span></code> and let’s call it <code class="docutils literal"><span class="pre">local</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ mkdir $HOME/local
+<div class="highlight-default"><div class="highlight"><pre><span></span>mkdir $HOME/local
 </pre></div>
 </div>
 <p>Now change your <code class="docutils literal"><span class="pre">~/.bashrc</span></code> file and add the following three lines:</p>
@@ -321,8 +339,8 @@ export C_INCLUDE_PATH=$HOME/include/:$C_INCLUDE_PATH
 <p>Get the python tarball from the <a class="reference external" href="https://www.python.org">python official site</a> and unpack it.
 Configure the package with the <code class="docutils literal"><span class="pre">--prefix</span></code> option and compile the code
 (use the <code class="docutils literal"><span class="pre">-j</span></code> option to speedup the compilation with threads):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./configure --prefix=$HOME/local
-$ make -j4
+<div class="highlight-default"><div class="highlight"><pre><span></span>./configure --prefix=$HOME/local
+make -j4
 </pre></div>
 </div>
 <p>If you plan to use graphical tools you need to make sure that the <code class="docutils literal"><span class="pre">Tkinter</span></code> graphical backends
@@ -348,51 +366,51 @@ Get the tarball from the <a class="reference external" href="www.tcl.tk/software
 with <code class="docutils literal"><span class="pre">--prefix</span></code> and <code class="docutils literal"><span class="pre">make</span> <span class="pre">&amp;&amp;</span> <span class="pre">make</span> <span class="pre">install</span></code> as usual.
 Then reconfigure python.</p>
 <p>Once you have solved the problem with the missing modules, you can run the tests with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ make test
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">test</span>
 </pre></div>
 </div>
 <p>and install the python interpreter with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ make install
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">install</span>
 </pre></div>
 </div>
 <p>Now we have our python interpreter installed in <code class="docutils literal"><span class="pre">$HOME/local</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ which python
+<div class="highlight-default"><div class="highlight"><pre><span></span>which python
 $HOME/local/bin/python
 </pre></div>
 </div>
 <p>but we still need to install <code class="docutils literal"><span class="pre">easy_install</span></code> and <code class="docutils literal"><span class="pre">pip</span></code> so that we can automatically
 download and install other python packages.</p>
 <p>To install <code class="docutils literal"><span class="pre">easy_install</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+<div class="highlight-default"><div class="highlight"><pre><span></span>wget https://bootstrap.pypa.io/ez_setup.py -O - | python
 
-$ which easy_install
+which easy_install
 $HOME/local/bin/easy_install
 </pre></div>
 </div>
 <p>For more info, consult the <a class="reference external" href="https://pypi.python.org/pypi/setuptools">setuptools page</a></p>
 <p>Now use <code class="docutils literal"><span class="pre">easy_install</span></code> to install <code class="docutils literal"><span class="pre">pip</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ easy_install pip
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">easy_install</span> <span class="n">pip</span>
 
-# Upgrade setuptools with
-$ pip install setuptools --upgrade
+<span class="c1"># Upgrade setuptools with</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">setuptools</span> <span class="o">--</span><span class="n">upgrade</span>
 </pre></div>
 </div>
 <p>Henceforth we can start to use <code class="docutils literal"><span class="pre">pip</span></code> to install the python modules.
 Start with <code class="docutils literal"><span class="pre">cython</span></code> and <code class="docutils literal"><span class="pre">numpy</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install cython
-$ pip install numpy
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cython</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">numpy</span>
 </pre></div>
 </div>
 <p>The installation of <code class="docutils literal"><span class="pre">scipy</span></code> is more complicated due to the need for the BLAS and LAPACK libraries.
 Try first:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install scipy
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">scipy</span>
 </pre></div>
 </div>
 <p>If the installer does not find <code class="docutils literal"><span class="pre">BLAS/LAPACK</span></code> in your system, consult the
 <a class="reference external" href="http://www.scipy.org/scipylib/building/linux.html#id1">scipy documentation</a>.</p>
 </div>
 <div class="section" id="how-to-install-hdf5-netcdf4-and-the-python-bindings">
-<span id="netcdf4-installation"></span><h2>How to install HDF5/Netcdf4 and the python bindings<a class="headerlink" href="#how-to-install-hdf5-netcdf4-and-the-python-bindings" title="Permalink to this headline">¶</a></h2>
+<span id="netcdf4-installation"></span><h2><a class="toc-backref" href="#contents">How to install HDF5/Netcdf4 and the python bindings</a><a class="headerlink" href="#how-to-install-hdf5-netcdf4-and-the-python-bindings" title="Permalink to this headline">¶</a></h2>
 <p>Obtain the latest <code class="docutils literal"><span class="pre">HDF5</span></code> software from the <a class="reference external" href="http://www.hdfgroup.org/HDF5/release/obtain5.html">official hd5 web-site</a>.
 Configure the package with <code class="docutils literal"><span class="pre">--enable-hl</span> <span class="pre">--enable-shared</span></code> and the <code class="docutils literal"><span class="pre">--prefix</span></code> option as usual.
 Build and install with:</p>
@@ -422,40 +440,40 @@ Define the environment variable <code class="docutils literal"><span class="pre"
 <p>You may want to consult the official <a class="reference external" href="http://unidata.github.io/netcdf4-python">netcdf4-python documentation</a>.</p>
 </div>
 <div class="section" id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#contents">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="unknown-locale-utf-8">
-<h3>unknown locale: UTF-8<a class="headerlink" href="#unknown-locale-utf-8" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#contents">unknown locale: UTF-8</a><a class="headerlink" href="#unknown-locale-utf-8" title="Permalink to this headline">¶</a></h3>
 <p>If python stops with the error message:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;ValueError: unknown locale: UTF-8&quot;</span>
 </pre></div>
 </div>
 <p>add the following line to your <code class="docutils literal"><span class="pre">.bashrc</span></code> file inside your <code class="docutils literal"><span class="pre">$HOME</span></code> (<code class="docutils literal"><span class="pre">.profile</span></code> if MacOSx):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ export LC_ALL=C
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">LC_ALL</span><span class="o">=</span><span class="n">C</span>
 </pre></div>
 </div>
 <p>reload the environment with <code class="docutils literal"><span class="pre">source</span> <span class="pre">~/.bashrc</span></code> and rerun the code.</p>
 </div>
 <div class="section" id="netcdf-does-not-work">
-<h3>netcdf does not work<a class="headerlink" href="#netcdf-does-not-work" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#contents">netcdf does not work</a><a class="headerlink" href="#netcdf-does-not-work" title="Permalink to this headline">¶</a></h3>
 <p>The version of hdf5 installed by conda may not be compatible with python netcdf.
 Try the hdf5/netcdf4 libraries provided by conda forge:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda uninstall hdf4 hdf5
-$ conda config --add channels conda-forge
-$ conda install netcdf4
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">uninstall</span> <span class="n">hdf4</span> <span class="n">hdf5</span>
+<span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">netcdf4</span>
 </pre></div>
 </div>
 <p>These packages are known to work on MacOsX:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda list hdf4
-hdf4                      4.2.12                        0    conda-forge
-$ conda list hdf5
-hdf5                      1.8.17                        9    conda-forge
-$ conda list netcdf4
-netcdf4                   1.2.7               np112py36_0    conda-forge
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="nb">list</span> <span class="n">hdf4</span>
+<span class="n">hdf4</span>                      <span class="mf">4.2</span><span class="o">.</span><span class="mi">12</span>                        <span class="mi">0</span>    <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="nb">list</span> <span class="n">hdf5</span>
+<span class="n">hdf5</span>                      <span class="mf">1.8</span><span class="o">.</span><span class="mi">17</span>                        <span class="mi">9</span>    <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="nb">list</span> <span class="n">netcdf4</span>
+<span class="n">netcdf4</span>                   <span class="mf">1.2</span><span class="o">.</span><span class="mi">7</span>               <span class="n">np112py36_0</span>    <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="unicodedecodeerror">
-<h3>UnicodeDecodeError<a class="headerlink" href="#unicodedecodeerror" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#contents">UnicodeDecodeError</a><a class="headerlink" href="#unicodedecodeerror" title="Permalink to this headline">¶</a></h3>
 <p>Python2.7 raises an <cite>UnicodeDecodeError: ‘ascii’ codec can’t decode byte …</cite>
 when trying to open files with abiopen. Add</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
@@ -481,7 +499,7 @@ when trying to open files with abiopen. Add</p>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

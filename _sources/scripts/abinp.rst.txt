@@ -1,4 +1,4 @@
-.. _abinp:
+.. _abinp.py:
 
 ^^^^^^^^^^^^
 ``abinp.py``

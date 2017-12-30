@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.core.globals &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.core.globals</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global variables used to initialize AbiPy environment in notebooks.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span>
+
+<span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+
+<span class="n">__IN_NOTEBOOK</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="in_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.globals.in_notebook">[docs]</a><span class="k">def</span> <span class="nf">in_notebook</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;True if we are running inside a jupyter notebook (and enable_notebook has been called).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">__IN_NOTEBOOK</span></div>
+
+
+<div class="viewcode-block" id="disable_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.globals.disable_notebook">[docs]</a><span class="k">def</span> <span class="nf">disable_notebook</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Set ``in_notebook`` flag to False.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__IN_NOTEBOOK</span>
+    <span class="n">__IN_NOTEBOOK</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="enable_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.globals.enable_notebook">[docs]</a><span class="k">def</span> <span class="nf">enable_notebook</span><span class="p">(</span><span class="n">with_seaborn</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__IN_NOTEBOOK</span>
+    <span class="n">__IN_NOTEBOOK</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Use seaborn settings for plots (optional)</span>
+    <span class="k">if</span> <span class="n">with_seaborn</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="s1">&#39;notebook&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;darkgrid&#39;</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="s1">&#39;deep&#39;</span><span class="p">,</span>
+                <span class="n">font</span><span class="o">=</span><span class="s1">&#39;sans-serif&#39;</span><span class="p">,</span> <span class="n">font_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color_codes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_abinb_workdir"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.globals.get_abinb_workdir">[docs]</a><span class="k">def</span> <span class="nf">get_abinb_workdir</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the absolute path of the scratch directory used to produce</span>
+<span class="sd">    and save temporary files when we are runnning inside a jupyter_ notebook.</span>
+
+<span class="sd">    .. note:</span>
+
+<span class="sd">        Due to web-browser policy, files used in the notebook must be within the current working directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;__abinb_workdir__&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">wdir</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">wdir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wdir</span></div>
+
+
+<div class="viewcode-block" id="abinb_mkstemp"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.globals.abinb_mkstemp">[docs]</a><span class="k">def</span> <span class="nf">abinb_mkstemp</span><span class="p">(</span><span class="n">force_abinb_workdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_relpath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invoke mkstep with kwargs, return the (fd, name) of the temporary file.</span>
+<span class="sd">    kwargs are passed to ``mkstemp`` except for ``dir`` if we are inside a jupyter notebook.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        use_abipy_nbworkdir:</span>
+<span class="sd">        use_relpath: Return relative path (os.path.relpath) if True else absolute (default)</span>
+<span class="sd">            Relative paths are required if we are gonna use the temporary file in</span>
+<span class="sd">            notebooks or in web browers.</span>
+<span class="sd">            In this case, the caller is responsbile for calling the function with the correct flag.</span>
+
+<span class="sd">    .. example:</span>
+
+<span class="sd">        _, filename = abinb_mkstep(suffix=&quot;.&quot; + ext, text=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">in_notebook</span><span class="p">()</span> <span class="ow">or</span> <span class="n">force_abinb_workdir</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dir&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Files should be created inside abipy_nbworkdir if we are inside jupyter or force_abinb_workdir&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">get_abinb_workdir</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">use_relpath</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fd</span><span class="p">,</span> <span class="n">path</span></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 30, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

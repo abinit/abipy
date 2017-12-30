@@ -1,2 +1,1 @@
-ax = sns.pointplot(x="time", y="total_bill", hue="smoker",
-                   data=tips, dodge=True)
+ax = sns.swarmplot(x="total_bill", y="day", data=tips)

@@ -1,1 +1,1 @@
-g = sns.pairplot(iris, hue="species", palette="husl")
+g = sns.jointplot("total_bill", "tip", data=tips, kind="hex")

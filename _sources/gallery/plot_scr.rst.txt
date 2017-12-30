@@ -39,7 +39,7 @@ computed in the GW code (optdriver 3)
     Name: sio2_SCR.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/sio2_screening
     Size: 426.16 kb
-    Access Time: Tue Dec 12 23:13:31 2017
+    Access Time: Tue Dec 26 15:12:41 2017
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -63,6 +63,7 @@ computed in the GW code (optdriver 3)
 
     Abinit Spacegroup: spgid: 0, num_spatial_symmetries: 6, has_timerev: True, symmorphic: True
 
+    ====================== K-points for screening function ======================
     0) [+0.000, +0.000, +0.000], weight: 0.000
     1) [+0.250, +0.000, +0.000], weight: 0.000
     2) [+0.500, +0.000, +0.000], weight: 0.000
@@ -101,7 +102,7 @@ computed in the GW code (optdriver 3)
 
         ncfile.plot_eelf(title="Electron Energy Loss Function of $SiO_2$")
 
-**Total running time of the script:** ( 0 minutes  0.479 seconds)
+**Total running time of the script:** ( 0 minutes  0.521 seconds)
 
 
 

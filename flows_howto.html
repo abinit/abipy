@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Flows How-To &#8212; abipy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API documentation" href="api/index.html" />
+    <link rel="prev" title="Raman Flow with independent-particle approximation (optic)" href="flow_gallery/run_raman_optic.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Flows How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Flows How-To</a><ul>
+<li><a class="reference internal" href="#get-all-the-taskmanager-options">Get all the TaskManager options</a></li>
+<li><a class="reference internal" href="#reduce-the-number-of-files-produced-by-the-flow">Reduce the number of files produced by the Flow</a></li>
+<li><a class="reference internal" href="#extend-tasks-works-with-specialized-code">Extend tasks/works with specialized code</a></li>
+<li><a class="reference internal" href="#kill-a-scheduler-running-in-background">Kill a scheduler running in background</a></li>
+<li><a class="reference internal" href="#compare-multiple-output-files">Compare multiple output files</a></li>
+<li><a class="reference internal" href="#try-to-understand-why-a-task-failed">Try to understand why a task failed</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="flow_gallery/run_raman_optic.html" title="Previous Chapter: Raman Flow with independent-particle approximation (optic)"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Raman Flow wi...</span>
+    </a>
+  </li>
+  <li>
+    <a href="api/index.html" title="Next Chapter: API documentation"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API documentation &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/flows_howto.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="flows-how-to">
+<span id="flows-howto"></span><h1><a class="toc-backref" href="#contents">Flows How-To</a><a class="headerlink" href="#flows-how-to" title="Permalink to this headline">¶</a></h1>
+<p>This is a list of Frequently Asked Questions about the AbiPy flows and the <a class="reference internal" href="scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a> script.
+Feel free to suggest new entries!</p>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">The execution of the flows require the proper configuration of <code class="docutils literal"><span class="pre">manager.yml</span></code> and,
+optionally, <code class="docutils literal"><span class="pre">scheduler.yml</span></code>.
+Please consult the documentation at ….</p>
+</div>
+<p>Suggestions:</p>
+<ul class="simple">
+<li>Start with the examples available in examples/flows before embarking on large scale calculations.</li>
+<li>Make sure the Abinit executable compiled on the machine can be executed both on the frontend
+and the compute node (ask your sysadmin)</li>
+<li>If you are running on clusters in which the architecture of the compute node is completely different
+from the one available on the frontend, use <code class="docutils literal"><span class="pre">shell_runner</span></code></li>
+<li>Use the <code class="docutils literal"><span class="pre">debug</span></code> command</li>
+</ul>
+<p>Do not:</p>
+<ul class="simple">
+<li>Change manually the input files and the submission scripts</li>
+<li>Submit jobs manually when the scheduler is running</li>
+<li>Use a too small delay for the scheduler</li>
+</ul>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#flows-how-to" id="id1">Flows How-To</a><ul>
+<li><a class="reference internal" href="#get-all-the-taskmanager-options" id="id2">Get all the TaskManager options</a></li>
+<li><a class="reference internal" href="#reduce-the-number-of-files-produced-by-the-flow" id="id3">Reduce the number of files produced by the Flow</a></li>
+<li><a class="reference internal" href="#extend-tasks-works-with-specialized-code" id="id4">Extend tasks/works with specialized code</a></li>
+<li><a class="reference internal" href="#kill-a-scheduler-running-in-background" id="id5">Kill a scheduler running in background</a></li>
+<li><a class="reference internal" href="#compare-multiple-output-files" id="id6">Compare multiple output files</a></li>
+<li><a class="reference internal" href="#try-to-understand-why-a-task-failed" id="id7">Try to understand why a task failed</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="get-all-the-taskmanager-options">
+<h2><a class="toc-backref" href="#contents">Get all the TaskManager options</a><a class="headerlink" href="#get-all-the-taskmanager-options" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="scripts/abidoc.html#abidoc-py"><span class="std std-ref">abidoc.py</span></a> script provides three commands to get the documentation
+for the options supported in <code class="docutils literal"><span class="pre">manager.yml</span></code> and <code class="docutils literal"><span class="pre">scheduler.yml</span></code>.</p>
+<p>Use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">manager</span>
+</pre></div>
+</div>
+<p>to document all the options supported by TaskManager and:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span>
+</pre></div>
+</div>
+<p>for the scheduler options.</p>
+<p>If your environment is properly configured, you should be able to get
+information about the Abinit version used by the AbiPy with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">abibuild</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Abinit Build Information:
+Abinit version: <span class="m">8</span>.7.2
+MPI: True, MPI-IO: True, OpenMP: False
+Netcdf: True
+
+Use --verbose <span class="k">for</span> additional info
+</pre></div>
+</div>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">Netcdf support must be activated in Abinit as AbiPy might use
+these files to extract data and/or fix runtime errors.</p>
+</div>
+<p>At this point, you can try to run a small flow for testing purpose with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicheck</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">flow</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reduce-the-number-of-files-produced-by-the-flow">
+<h2><a class="toc-backref" href="#contents">Reduce the number of files produced by the Flow</a><a class="headerlink" href="#reduce-the-number-of-files-produced-by-the-flow" title="Permalink to this headline">¶</a></h2>
+<p>When running many calculations,
+Use <code class="docutils literal"><span class="pre">prtwf</span> <span class="pre">-1</span></code> to tell Abinit to produce the wavefunction file, only
+if the calculation is not converged.</p>
+<p>Note that it’s possibile to use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flow</span><span class="o">.</span><span class="n">use_smartio</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>to activate  this mode for all tasks who are  not supposed to produce WFK files
+for their children.</p>
+</div>
+<div class="section" id="extend-tasks-works-with-specialized-code">
+<h2><a class="toc-backref" href="#contents">Extend tasks/works with specialized code</a><a class="headerlink" href="#extend-tasks-works-with-specialized-code" title="Permalink to this headline">¶</a></h2>
+<p>Remember that pickle does not support classes defined inside scripts.
+If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass
+in a separated python module and import the module inside your script.</p>
+</div>
+<div class="section" id="kill-a-scheduler-running-in-background">
+<h2><a class="toc-backref" href="#contents">Kill a scheduler running in background</a><a class="headerlink" href="#kill-a-scheduler-running-in-background" title="Permalink to this headline">¶</a></h2>
+<p>Use the official API:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">FLOWDIR</span> <span class="n">cancel</span>
+</pre></div>
+</div>
+<p>to cancel all jobs of the flow that are in queue and kill the scheduler.</p>
+</div>
+<div class="section" id="compare-multiple-output-files">
+<h2><a class="toc-backref" href="#contents">Compare multiple output files</a><a class="headerlink" href="#compare-multiple-output-files" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">abicomp.py</span></code></p>
+</div>
+<div class="section" id="try-to-understand-why-a-task-failed">
+<h2><a class="toc-backref" href="#contents">Try to understand why a task failed</a><a class="headerlink" href="#try-to-understand-why-a-task-failed" title="Permalink to this headline">¶</a></h2>
+<p>There are several reasons why a task could fail.
+Some of these reasons could be related to hardaware failure, disk quota,
+OS or resource manager errors.
+others are related to Abinit-specific errors.</p>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2017, The AbiPy group.<br/>
+      Last updated on Dec 29, 2017.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

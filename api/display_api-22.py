@@ -1,2 +1,2 @@
-g = sns.factorplot(x="time", y="pulse", hue="kind",
-                   data=exercise, kind="violin")
+g = sns.lmplot(x="total_bill", y="tip", hue="smoker", data=tips,
+               markers=["o", "x"])

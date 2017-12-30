@@ -1,3 +1,2 @@
-g = sns.factorplot(x="time", y="pulse", hue="kind",
-                   col="diet", data=exercise,
-                   size=5, aspect=.8)
+g = sns.lmplot(x="total_bill", y="tip", hue="smoker", data=tips,
+               palette=dict(Yes="g", No="m"))

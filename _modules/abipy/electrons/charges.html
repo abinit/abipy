@@ -64,15 +64,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
@@ -152,16 +156,19 @@
 
 <span class="k">class</span> <span class="nc">Charges</span><span class="p">(</span><span class="n">Has_Structure</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base charges class, describing the atomic chrages in a DFT calculation.</span>
+<span class="sd">    Base charges class, describing the atomic charges in a DFT calculation.</span>
 <span class="sd">    The charges refer to the total charges for each atom (i.e. Z-n_electrons).</span>
 <span class="sd">    An eccess of electron has a negative charge</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: Charges</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">electron_charges</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">reference_charges</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            electron_charges: Charges coming from the electron for each element of the structure (with negative sign)</span>
-<span class="sd">            structure: The crystal structure</span>
+<span class="sd">            structure: |Structure| object.</span>
 <span class="sd">            reference_charges: Reference charges associated to each atom of the structure, considered as isolated</span>
 <span class="sd">                (with negative sign). Should represent either all the electrons or just the valence, depending on the</span>
 <span class="sd">                charge density used to perform the analysis.</span>
@@ -190,6 +197,9 @@
 <span class="sd">    Class representing the charges obtained from the Hirshfeld analysis.</span>
 <span class="sd">    The charges refer to the total charges for each atom (i.e. Z-n_electrons).</span>
 <span class="sd">    An eccess of electron has a negative charge</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: HirshfeldCharges</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="HirshfeldCharges.from_cut3d_outfile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.HirshfeldCharges.from_cut3d_outfile">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_cut3d_outfile</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
@@ -224,6 +234,9 @@
 <span class="sd">    Class representing the charges obtained from the Bader analysis.</span>
 <span class="sd">    TThe charges refer to the total charges for each atom (i.e. Z-n_electrons).</span>
 <span class="sd">    An eccess of electron has a negative charge</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: BaderCharges</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaderCharges.from_files"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.charges.BaderCharges.from_files">[docs]</a>    <span class="nd">@classmethod</span>
@@ -231,9 +244,9 @@
               <span class="s2">&quot;BaderCharges.from_files requires the executable bader to be in the path.&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">from_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">density_path</span><span class="p">,</span> <span class="n">pseudopotential_paths</span><span class="p">,</span> <span class="n">with_core</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Uses the abinit density files and the bader executable from Henkelmann et al. to calculate</span>
+<span class="sd">        Uses the abinit density files and the bader_ executable from Henkelmann et al. to calculate</span>
 <span class="sd">        the bader charges of the system. If pseudopotentials are given, the atomic charges will be</span>
-<span class="sd">        extracted as well.</span>
+<span class="sd">        extracted as well. See also :cite:`Henkelman2006`.</span>
 
 <span class="sd">        The extraction of the core charges may be a time consuming calculation, depending on the</span>
 <span class="sd">        size of the system. A tuning of the parameters may be required (see Density.ae_core_density_on_mesh).</span>
@@ -246,10 +259,10 @@
 <span class="sd">            with_core: Core charges will be extracted from the pseudopotentials with the</span>
 <span class="sd">                Density.ae_core_density_on_mesh method. Requires pseudopotential_paths.</span>
 <span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
-<span class="sd">            **kwargs: arguments passed to the method Density.ae_core_density_on_mesh</span>
+<span class="sd">            kwargs: arguments passed to the method ``Density.ae_core_density_on_mesh``</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            An instance of BaderCharges</span>
+<span class="sd">            An instance of :class:`BaderCharges`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># read the valence density</span>
         <span class="c1"># if density is not a netcdf file, convert with cut3d</span>
@@ -313,7 +326,7 @@
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 13, 2017.<br/>
+      Last updated on Dec 30, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

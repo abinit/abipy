@@ -1,2 +1,1 @@
-g = sns.lmplot(x="total_bill", y="tip", hue="smoker", data=tips,
-               markers=["o", "x"])
+g = sns.pairplot(iris, hue="species", markers=["o", "s", "D"])

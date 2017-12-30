@@ -1,6 +1,9 @@
 waves Package
 =============
 
+.. contents::
+   :backlinks: top
+
 :mod:`waves` Package
 --------------------
 

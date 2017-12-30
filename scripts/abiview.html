@@ -66,15 +66,19 @@
       aria-labelledby="dLabelGlobalToc"><ul>
 <li class="toctree-l1"><a class="reference internal" href="../features.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Getting AbiPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../whats_new.html">What’s new in abipy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzbiblio.html">Bibliography</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">AbiPy Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
@@ -96,26 +100,59 @@
 <li><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
 <li><a class="reference internal" href="#subcommands">subcommands</a></li>
 <li><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
-<li><a class="reference internal" href="#hist">hist</a><ul>
+<li><a class="reference internal" href="#structure">structure</a><ul>
 <li><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#abo">abo</a><ul>
+<li><a class="reference internal" href="#hist">hist</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abo">abo</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#log">log</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#ebands">ebands</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fatbands">fatbands</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ddb">ddb</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#phbands">phbands</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#fields">fields</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
-<li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
+<li><a class="reference internal" href="#phdos">phdos</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gruns">gruns</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mdf">mdf</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -170,16 +207,68 @@
     <div class="col-md-12 content">
       
   <div class="section" id="abiview-py">
-<span id="abiview"></span><h1><code class="docutils literal"><span class="pre">abiview.py</span></code><a class="headerlink" href="#abiview-py" title="Permalink to this headline">¶</a></h1>
-<p>This script visualizes data with external graphical applications.
-It’s also possible to generate movies from Abinit output files.</p>
+<span id="id1"></span><h1><code class="docutils literal"><span class="pre">abiview.py</span></code><a class="headerlink" href="#abiview-py" title="Permalink to this headline">¶</a></h1>
+<p>This script visualizes provides a simplified interface to the AbiPy post-processing tools
+It can also visualize data (structures, densities)  with external graphical applications.</p>
 <p>Complete command line reference</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
-                  <span class="p">{</span><span class="n">hist</span><span class="p">,</span><span class="n">abo</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">fields</span><span class="p">}</span> <span class="o">...</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
+                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">abo</span><span class="p">,</span><span class="n">log</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">fatbands</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">gruns</span><span class="p">,</span><span class="n">mdf</span><span class="p">}</span>
+                  <span class="o">...</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments">
 <h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h2>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-V, --version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="subcommands">
+<h2>subcommands<a class="headerlink" href="#subcommands" title="Permalink to this headline">¶</a></h2>
+<p>Valid subcommands</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>command</kbd></td>
+<td><p class="first">Possible choices: structure, hist, abo, log, ebands, fatbands, ddb, phbands, phdos, gruns, mdf</p>
+<p class="last">sub-command help</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Sub-commands:">
+<h2>Sub-commands:<a class="headerlink" href="#Sub-commands:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="structure">
+<h3>structure<a class="headerlink" href="#structure" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Visualize the structure with the specified visualizer. Requires external app
+or optional python modules (mayavi, vtk)</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span>
+                     <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat1">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
@@ -190,8 +279,110 @@ It’s also possible to generate movies from Abinit output files.</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
 <tr><td class="option-group">
-<kbd>-V, --version</kbd></td>
-<td>show program’s version number and exit</td></tr>
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-a, --appname</kbd></td>
+<td><p class="first">Application name. Default: vesta. Possible options: avogadro, ovito, v_sim, vesta, xcrysden, mayavi, vtk</p>
+<p class="last">Default: “vesta”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="hist">
+<h3>hist<a class="headerlink" href="#hist" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Visualize structural relaxation/molecular-dynamics run
+from data stored in the HIST.nc file. Requires mayavi.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">xdatcar</span><span class="p">]</span>
+                <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat1">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat2">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-a, --appname</kbd></td>
+<td>Application name. Default: ovito. Possible options: <cite>avogadro, ovito, v_sim, vesta, xcrysden</cite>, <cite>mayavi</cite>, <cite>vtk</cite></td></tr>
+<tr><td class="option-group">
+<kbd>--xdatcar</kbd></td>
+<td><p class="first">Convert HIST file into XDATCAR format.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="abo">
+<h3>abo<a class="headerlink" href="#abo" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot self-consistent iterations extracted from Abinit output file
+as well as timer data (if present)</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">abo</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat2">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat3">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
 <tr><td class="option-group">
 <kbd>-v, --verbose</kbd></td>
 <td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
@@ -205,103 +396,12 @@ It’s also possible to generate movies from Abinit output files.</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="subcommands">
-<h2>subcommands<a class="headerlink" href="#subcommands" title="Permalink to this headline">¶</a></h2>
-<p>Valid subcommands</p>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>command</kbd></td>
-<td><p class="first">Possible choices: hist, abo, ebands, phbands, fields</p>
-<p class="last">sub-command help</p>
-</td></tr>
-</tbody>
-</table>
 </div>
-<div class="section" id="Sub-commands:">
-<h2>Sub-commands:<a class="headerlink" href="#Sub-commands:" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="hist">
-<h3>hist<a class="headerlink" href="#hist" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="log">
+<h3>log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Visualize structural relaxation/molecular-dynamics run
-from data stored in the HIST.nc file. Requires mayavi.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span><span class="p">]</span> <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="Positional Arguments">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>paths</kbd></td>
-<td>List of files to analyze.</td></tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="Named Arguments_repeat1">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group" colspan="2">
-<kbd>-t, --trajectories</kbd></td>
-</tr>
-<tr><td>&#160;</td><td><p class="first">Plot trajectories.</p>
-<p class="last">Default: False</p>
-</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="section" id="abo">
-<h3>abo<a class="headerlink" href="#abo" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>Plot SCF iterations extracted from Abinit output file
-as well as timer data (if present)</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">abo</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="Positional Arguments_repeat1">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>paths</kbd></td>
-<td>List of files to analyze.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="section" id="ebands">
-<h3>ebands<a class="headerlink" href="#ebands" title="Permalink to this headline">¶</a></h3>
-<p>Animate electron bands. Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="Positional Arguments_repeat2">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>paths</kbd></td>
-<td>List of files to analyze.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="section" id="phbands">
-<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
-<p>Animate phonon bands. Accept any file with PhononBands e.g. PHBST.nc, …</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div>Print WARNINGS/COMMENTS/ERRORS found in Abinit log file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">log</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat3">
@@ -311,16 +411,44 @@ as well as timer data (if present)</div></blockquote>
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
-<kbd>paths</kbd></td>
-<td>List of files to analyze.</td></tr>
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat4">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="fields">
-<h3>fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h3>
-<p>Animate fields with Mayavi. Accept any file with density or potential …</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">fields</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">sort</span><span class="p">]</span> <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+<div class="section" id="ebands">
+<h3>ebands<a class="headerlink" href="#ebands" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot electronic bands if file contains high-symmetry k-path or DOS if k-sampling.
+Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">bxsf</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+                  <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat4">
@@ -330,20 +458,353 @@ as well as timer data (if present)</div></blockquote>
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
-<kbd>paths</kbd></td>
-<td>List of files to analyze.</td></tr>
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
 </tbody>
 </table>
 </div>
-<div class="section" id="Named Arguments_repeat2">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat5">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
 <table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
-<kbd>--no-sort</kbd></td>
-<td><p class="first">Disable automatic sorting of filepaths.</p>
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--xmgrace</kbd></td>
+<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--bxsf</kbd></td>
+<td><dl class="first docutils">
+<dt>Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden(xcrysden –bxsf FILE).</dt>
+<dd>Requires k-points in IBZ. Print to stdout and exit.</dd>
+</dl>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --force</kbd></td>
+<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="fatbands">
+<h3>fatbands<a class="headerlink" href="#fatbands" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot electronic fatbands bands if file contains high-symmetry k-path
+or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">fatbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat6">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ddb">
+<h3>ddb<a class="headerlink" href="#ddb" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+               <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat7">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--xmgrace</kbd></td>
+<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-web, --phononwebsite</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Visualize phonon band structure on the phononwebsite. <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">http://henriquemiranda.github.io/phononwebsite/</a></p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td>Define browser used by python webbrowser. See <a class="reference external" href="https://docs.python.org/2/library/webbrowser.html#webbrowser.register">https://docs.python.org/2/library/webbrowser.html#webbrowser.register</a></td></tr>
+<tr><td class="option-group">
+<kbd>-f, --force</kbd></td>
+<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="phbands">
+<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
+<p>Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, …</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+                   <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat7">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat8">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--xmgrace</kbd></td>
+<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-web, --phononwebsite</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Visualize phonon band structure on the phononwebsite. <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">http://henriquemiranda.github.io/phononwebsite/</a></p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td>Define browser used by python webbrowser. See <a class="reference external" href="https://docs.python.org/2/library/webbrowser.html#webbrowser.register">https://docs.python.org/2/library/webbrowser.html#webbrowser.register</a></td></tr>
+<tr><td class="option-group">
+<kbd>-f, --force</kbd></td>
+<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="phdos">
+<h3>phdos<a class="headerlink" href="#phdos" title="Permalink to this headline">¶</a></h3>
+<p>Plot phonon DOS. Require PHDOS.nc file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat8">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat9">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="gruns">
+<h3>gruns<a class="headerlink" href="#gruns" title="Permalink to this headline">¶</a></h3>
+<p>Plot Grunesein parameters. Requires GRUNS.nc file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">gruns</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat9">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat9" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat10">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mdf">
+<h3>mdf<a class="headerlink" href="#mdf" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot the macroscopic dielectric functions computed by the Bethe-Salpeter code.
+Requires MDF.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat10">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat11">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
 </tbody>
@@ -366,7 +827,7 @@ as well as timer data (if present)</div></blockquote>
     </p>
     <p>
         &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 12, 2017.<br/>
+      Last updated on Dec 29, 2017.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

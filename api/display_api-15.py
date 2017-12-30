@@ -1,2 +1,2 @@
-g = sns.lmplot(x="total_bill", y="tip", hue="smoker", data=tips,
-               palette=dict(Yes="g", No="m"))
+g = sns.pairplot(iris, size=3,
+                 vars=["sepal_width", "sepal_length"])

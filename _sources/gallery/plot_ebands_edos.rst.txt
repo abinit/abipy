@@ -54,7 +54,7 @@ band structure with DOS using two GSR files.
     print("nscf_ebands.efermi", nscf_ebands.fermie)
     print("gs_ebands.efermi", gs_ebands.fermie)
 
-**Total running time of the script:** ( 0 minutes  1.438 seconds)
+**Total running time of the script:** ( 0 minutes  1.316 seconds)
 
 
 

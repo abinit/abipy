@@ -1,5 +1,5 @@
-g = sns.FacetGrid(tips, col="time", size=4, aspect=.7)
-(g.map(sns.boxplot, "sex", "total_bill", "smoker")
-  .despine(left=True)
-  .add_legend(title="smoker"))  #doctest: +ELLIPSIS
-# <seaborn.axisgrid.FacetGrid object at 0x...>
+g = sns.factorplot(x="age", y="embark_town",
+                   hue="sex", row="class",
+                   data=titanic[titanic.embark_town.notnull()],
+                   orient="h", size=2, aspect=3.5, palette="Set3",
+                   kind="violin", split=True, cut=0, bw=.2)

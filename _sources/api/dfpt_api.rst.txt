@@ -1,6 +1,9 @@
 dfpt Package
 ============
 
+.. contents::
+   :backlinks: top
+
 :mod:`dpft` Package
 ----------------------
 
