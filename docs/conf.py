@@ -95,7 +95,7 @@ sphinx_gallery_conf = {
         'repo': 'https://github.com/abinit/abipy',
         'url': 'https://mybinder.org', # URL serving binders (e.g. mybinder.org)
         'branch': 'develop',  # Can also be a tag or commit hash
-        'dependencies': '../environment.yml' # list_of_paths_to_dependency_files>'
+        'dependencies': '../binder/environment.yml' # list_of_paths_to_dependency_files>'
      },
 }
 

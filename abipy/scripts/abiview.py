@@ -319,10 +319,14 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('filepath', type=str, help="File to visualize.")
 
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                         help='verbose, can be supplied multiple times to increase verbosity.')
+        help='verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
+    copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
+        help=("Set matplotlib interactive backend. "
+              "Possible values: GTKAgg GTK3Agg GTK GTKCairo GTK3Cairo WXAgg WX TkAgg Qt4Agg Qt5Agg macosx. "
+              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -365,8 +369,8 @@ def get_parser(with_epilog=False):
     # Subparser for hist command.
     p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)
     p_hist.add_argument("-a", "--appname", nargs="?", default=None, const="ovito",
-            help=("Application name. Default: ovito. "
-                  "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+        help=("Application name. Default: ovito. "
+              "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
     p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
 
     # Subparser for abo command.
@@ -448,14 +452,18 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
+    if options.verbose > 2:
+        print(options)
+
+    if options.mpl_backend is not None:
+        import matplotlib
+        matplotlib.use(options.mpl_backend)
+
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
         sns.set(context='article', style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
-
-    if options.verbose > 2:
-        print(options)
 
     # Dispatch
     return globals()["abiview_" + options.command](options)

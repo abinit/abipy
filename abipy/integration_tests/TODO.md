@@ -21,7 +21,7 @@ TODO list:
 
 * Try to reintegrate AbiPy with new abivars
 
-* Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
+* Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
 * Rename EPH.nc
 
@@ -69,6 +69,8 @@ TODO list:
 * Add memory error to Abinit errors
 
 * Remove Old workflow model. 
+
+* Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
 ## Low priority
 

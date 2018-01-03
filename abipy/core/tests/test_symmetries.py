@@ -15,9 +15,9 @@ class TestSymmetries(AbipyTest):
 
     def test_mati3inv(self):
         """Testing mati3inv."""
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             mati3inv(np.zeros((3, 3)))
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             mati3inv(np.zeros(3))
         with self.assertRaises(ValueError):
             mati3inv(np.zeros((3, 3), dtype=np.int))

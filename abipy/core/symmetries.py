@@ -67,11 +67,11 @@ def mati3inv(mat3, trans=True):
        Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.
        Since these form a group, inverses are also integer arrays.
     """
-    mat3 = np.array(mat3, dtype=np.int)
+    mat3 = np.reshape(np.array(mat3, dtype=np.int), (3, 3))
     #if mat3.dtype not in (np.int, np.int8, np.int16, np.int32, np.int64):
     #    raise TypeError("Expecting integer matrix but received dtype %s" % mat3.dtype)
-    if mat3.shape != (3, 3):
-        raise TypeError("Expecting (3, 3) matrix but received shape %s" % str(mat3.shape))
+    #if mat3.shape != (3, 3):
+    #    raise TypeError("Expecting (3, 3) matrix but received shape %s" % str(mat3.shape))
 
     mit = np.empty((3, 3), dtype=np.int)
     mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]

@@ -18,7 +18,7 @@
 About
 =====
 
-AbiPy is a Python library to analyze the results produced by Abinit_,
+AbiPy is a Python_ library to analyze the results produced by Abinit_,
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Many-Body perturbation theory.
 It also provides tools to generate input files and workflows to automate
@@ -28,7 +28,7 @@ benefit from the different tools and python objects available in the pymatgen ec
 
 Official documentation of the stable version available at the `abipy docpage`_.
 
-AbiPy can be used in conjunction with matplotlib_, pandas_, ipython_ and jupyter_ notebooks
+AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ gallery.
@@ -44,8 +44,7 @@ so we still recommend py2.7 if you plan to run automatic calculations with AbiPy
 Note that the majority of the post-processing tools available in AbiPy require output files in
 netcdf_ format so we strongly suggest to compile Abinit with netcdf support
 (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
-to link Abinit against an external netcdf library please consult the configuration examples
-provided by abiconfig_.
+to link Abinit against an external netcdf library please consult the configuration examples provided by abiconfig_.
 
 AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
@@ -201,6 +200,19 @@ License
 
 AbiPy is released under the GNU GPL license. For more details see the LICENSE file.
 
+.. _Python: http://www.python.org/
+.. _Abinit: https://www.abinit.org
+.. _pymatgen: http://www.pymatgen.org
 .. _`abipy docpage` : http://pythonhosted.org/abipy
-
-.. include:: docs/links.rst
+.. _matplotlib: http://matplotlib.org
+.. _pandas: http://pandas.pydata.org
+.. _scipy: https://www.scipy.org/
+.. _seaborn: https://seaborn.pydata.org/
+.. _ipython: https://ipython.org/index.html
+.. _jupyter: http://jupyter.org/
+.. _netcdf: https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit
+.. _abiconfig: https://github.com/abinit/abiconfig
+.. _conda: https://conda.io/docs/
+.. _netcdf4-python: http://unidata.github.io/netcdf4-python/
+.. _spack: https://github.com/LLNL/spack
+.. _pytest: https://docs.pytest.org/en/latest/contents.html
