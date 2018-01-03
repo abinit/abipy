@@ -90,13 +90,13 @@ sphinx_gallery_conf = {
         "pymatgen": "http://pymatgen.org/",
     },
     #https://sphinx-gallery.github.io/advanced_configuration.html#generate-binder-links-for-gallery-notebooks-experimental
-    #'binder': {
-    #    'org': 'abipy',
-    #    'repo': 'https://github.com/abinit/abipy',
-    #    'url': 'https://mybinder.org', # URL serving binders (e.g. mybinder.org)
-    #    'branch': 'develop',  # Can also be a tag or commit hash
-    #    'dependencies': './binder/requirements.txt' # list_of_paths_to_dependency_files>'
-    # },
+    'binder': {
+        'org': 'abipy',
+        'repo': 'https://github.com/abinit/abipy',
+        'url': 'https://mybinder.org', # URL serving binders (e.g. mybinder.org)
+        'branch': 'develop',  # Can also be a tag or commit hash
+        'dependencies': '../environment.yml' # list_of_paths_to_dependency_files>'
+     },
 }
 
 # Generate the API documentation when building

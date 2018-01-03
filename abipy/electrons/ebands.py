@@ -2135,6 +2135,7 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
                         #columns=list(odict_list[0].keys()) if odict_list else None)
 
 
+
 class ElectronBandsPlotter(NotebookWriter):
     """
     Class for plotting electronic band structure and DOSes.

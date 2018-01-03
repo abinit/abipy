@@ -1,0 +1,10 @@
+# https://github.com/binder-examples/jupyter-extension/blob/master/postBuild
+
+python setup.py install
+
+#jupyter contrib nbextension install --user
+#jupyter nbextension enable --py widgetsnbextension
+#jupyter nbextension enable python-markdown/main
+
+# Notebooks w/ extensions that auto-run code must be "trusted" to work the first time
+#jupyter trust index.ipynb

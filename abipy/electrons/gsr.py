@@ -92,13 +92,13 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """|ElectronBands| object."""
         return self._ebands
 
-    @property
+    @lazy_property
     def is_scf_run(self):
         """True if the GSR has been produced by a SCF run."""
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
         # In principle one should use iscf but it's not available in the GSR.
-        #return self.ebands.kpoints.ksampling.kptopt >= 0
-        return abs(self.cart_stress_tensor[0,0] - 9.9999999999e+99) > 0.1
+        #return int(self.reader.read_value("kptopt")) >= 0
+        return abs(self.cart_stress_tensor[0, 0] - 9.9999999999e+99) > 0.1
 
     #FIXME
     @property
