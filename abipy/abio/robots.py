@@ -611,7 +611,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     def get_baserobot_code_cells(self, title=None):
         """
-        Return list of notebook_ cells with calls to methods provides by the baseclass.
+        Return list of jupyter_ cells with calls to methods provides by the baseclass.
         """
         # Try not pollute namespace with lots of variables.
         nbformat, nbv = self.get_nbformat_nbv()

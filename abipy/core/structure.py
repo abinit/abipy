@@ -1151,7 +1151,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def chemview(self, **kwargs):
         """
-        Visualize structure in jupyter notebook using chemview package.
+        Visualize structure in jupyter_ notebook using chemview package.
         """
         from pymatgen.vis.structure_chemview import quick_view
         return quick_view(self, **kwargs)

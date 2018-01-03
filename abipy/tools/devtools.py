@@ -46,7 +46,7 @@ class HtmlDiff(object):
 
     def open_browser(self, diffmode="difflib", **kwargs):
         """
-        Generate diff with `diffmode`, open browser, return exit code.
+        Generate diff with ``diffmode``, open browser, return exit code.
         """
         try:
             func = getattr(self, diffmode)

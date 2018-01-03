@@ -20,6 +20,6 @@ fi
 
 # Generate documentation
 if [[ "${PYTHON_VERSION}" == "2.7" && "${TRAVIS_OS_NAME}" == "linux" ]]; then
-    pip install -q -r ./docs/requirements.txt
+    pip install -r ./docs/requirements.txt
     cd ./docs && export READTHEDOCS=1 && make && unset READTHEDOCS && cd ..;
 fi

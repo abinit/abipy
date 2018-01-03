@@ -12,22 +12,23 @@
 
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
+.. include:: docs/links.rst
+
 
 About
 =====
 
-AbiPy is a Python library to analyze the results produced by `ABINIT <https://www.abinit.org>`_,
+AbiPy is a Python library to analyze the results produced by Abinit_,
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Many-Body perturbation theory.
 It also provides tools to generate input files and workflows to automate
 ab-initio calculations and typical convergence studies.
-AbiPy is interfaced with `Pymatgen <http://www.pymatgen.org>`_ and this allows users to
+AbiPy is interfaced with pymatgen_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem
 
 Official documentation of the stable version available at the `abipy docpage`_.
 
-AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pandas <http://pandas.pydata.org>`_,
-`ipython <https://ipython.org/index.html>`_ and `jupyter <http://jupyter.org/>`_
+AbiPy can be used in conjunction with matplotlib_, pandas_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ gallery.
@@ -41,10 +42,10 @@ Python 2.7 is more intensively tested than py3k especially at the level of workf
 so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
 Note that the majority of the post-processing tools available in AbiPy require output files in
-``netcdf`` format so we strongly suggest to compile Abinit with netcdf support
+netcdf_ format so we strongly suggest to compile Abinit with netcdf support
 (use ``--with_trio_flavor="netcdf-fallback"`` at configure time to activate the internal netcdf library,
 to link Abinit against an external netcdf library please consult the configuration examples
-provided by `abiconfig <https://github.com/abinit/abiconfig>`_.
+provided by abiconfig_.
 
 AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
@@ -66,21 +67,17 @@ In this case, please consult the detailed installation instructions provided by 
 and then follow the instructions in `our howto <http://pythonhosted.org/abipy/installation.html>`_.
 
 The installation process is greatly simplified if you install the required 
-python packages through one of the following python distributions:
+python packages through `Anaconda <https://continuum.io/downloads>`_.
 
-  * `Anaconda <https://continuum.io/downloads>`_
-
-  * `Canopy <https://www.enthought.com/products/canopy>`_
-
-We routinely use ``conda`` to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (``matplotlib``, ``scipy``, ``numpy``)
-in the form of pre-compiled packages and ``netcdf4`` can be easily installed with::
+We routinely use conda_ to test new developments with multiple versions of Python and multiple virtual environments.
+The anaconda distribution already provides the most critical dependencies (matplotlib_, scipy_, numpy_)
+in the form of pre-compiled packages and netcdf4-python_ can be easily installed with::
 
     conda install netcdf4
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://pythonhosted.org/abipy/installation.html>`_.
-We are also working with the `Spack <https://github.com/LLNL/spack>`_ community
+We are also working with the spack_ community
 to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
 
 ---------------------
@@ -130,8 +127,7 @@ to install the package in developmental mode
 The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have ``pytest`` (recommended) 
-or ``nose`` installed and then just type::
+To run the suite of unit tests, make sure you have pytest_ installed and then type::
 
     $ pytest
 

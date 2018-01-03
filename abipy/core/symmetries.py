@@ -14,7 +14,6 @@ from six.moves import cStringIO
 from tabulate import tabulate
 from monty.string import is_string
 from monty.itertools import iuptri
-
 from monty.functools import lazy_property
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 try:
@@ -60,7 +59,7 @@ def mati3inv(mat3, trans=True):
         mat3: (3, 3) matrix-like object with integer elements
 
     Returns:
-        `ndarray` with the TRANSPOSE of the inverse of mat3 if trans==True.
+        |numpy-array| with the TRANSPOSE of the inverse of mat3 if trans==True.
         If trans==False, the inverse of mat3 is returned.
 
     .. note::
@@ -68,13 +67,13 @@ def mati3inv(mat3, trans=True):
        Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.
        Since these form a group, inverses are also integer arrays.
     """
-    mat3 = np.array(mat3)
-    if mat3.dtype not in (np.int, np.int8, np.int16, np.int32, np.int64):
-        raise TypeError("Expecting integer matrix but received dtype %s" % mat3.dtype)
+    mat3 = np.array(mat3, dtype=np.int)
+    #if mat3.dtype not in (np.int, np.int8, np.int16, np.int32, np.int64):
+    #    raise TypeError("Expecting integer matrix but received dtype %s" % mat3.dtype)
     if mat3.shape != (3, 3):
         raise TypeError("Expecting (3, 3) matrix but received shape %s" % str(mat3.shape))
 
-    mit = np.empty((3,3), dtype=np.int)
+    mit = np.empty((3, 3), dtype=np.int)
     mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
     mit[1,0] = mat3[2,1] * mat3[0,2] - mat3[0,1] * mat3[2,2]
     mit[2,0] = mat3[0,1] * mat3[1,2] - mat3[1,1] * mat3[0,2]
@@ -552,7 +551,7 @@ class AbinitSpaceGroup(OpSequence):
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
         """
         Args:
-            spgid: space group number (from 1 to 232, 0 if cannot be specified).
+            spgid (int): space group number (from 1 to 232, 0 if cannot be specified).
             symrel: (nsym,3,3) array with the rotational part of the symmetries in real
                 space (reduced coordinates are assumed, see also `inord` for the order.
             tnons: (nsym,3) array with fractional translation in reduced coordinates.
@@ -625,10 +624,10 @@ class AbinitSpaceGroup(OpSequence):
     @classmethod
     def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
         """
-        Takes a :class:`Structure` object. Uses spglib to perform various symmetry finding operations.
+        Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.
 
         Args:
-            structure: :class:`Structure` object
+            structure: |Structure| object
             has_timerev: True is time-reversal symmetry is included.
             symprec: Tolerance for symmetry finding
             angle_tolerance: Angle tolerance for symmetry finding.
@@ -1176,8 +1175,8 @@ class BilbaoPointGroup(object):
 
     def to_string(self, tablefmt="simple", numalign="left"):
         """
-        Write a string with the character_table to the given `stream`.
-        `tablefmt` and `numalign` options are passed to `tabulate`.
+        Write a string with the character_table to the given ``stream``.
+        ``tablefmt`` and ``numalign`` options are passed to ``tabulate``.
         """
         s = tabulate(self.character_table[1:], headers=self.character_table[0],
                      tablefmt=tablefmt, numalign=numalign)

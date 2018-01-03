@@ -228,8 +228,7 @@ class Has_Structure(object):
         """
         Export the structure on file.
 
-        returns:
-            Instance of :class:`Visualizer`
+        returns: |Visualizer| instance.
         """
         return self.structure.export(filepath)
 
@@ -237,7 +236,7 @@ class Has_Structure(object):
         """
         Visualize the crystalline structure with the specified visualizer.
 
-        See :class:`Visualizer` for the list of applications and formats supported.
+        See |Visualizer| for the list of applications and formats supported.
         """
         from abipy.iotools.visualizer import Visualizer
         visu = Visualizer.from_name(appname)
@@ -402,7 +401,7 @@ class NotebookWriter(object):
         nbpath = self.write_notebook(nbpath=nbpath)
 
         if which("jupyter") is None:
-            raise RuntimeError("Cannot find jupyter in PATH. Install it with `conda install jupyter or `pip install jupyter`")
+            raise RuntimeError("Cannot find jupyter in $PATH. Install it with `conda install jupyter or `pip install jupyter`")
 
         if foreground:
             return os.system("jupyter notebook %s" % nbpath)
@@ -535,4 +534,4 @@ class Has_Header(object):
         """|AttrDict| with the Abinit header e.g. hdr.ecut."""
         return self.reader.read_abinit_hdr()
 
-    #def compare_hdr(self, other):
+    #def compare_hdr(self, other_hdr):

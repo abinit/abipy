@@ -16,12 +16,12 @@ import shutil
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "abipy"))
+ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 sys.path.insert(0, ABIPY_ROOT)
 
 import imp
-mod_name = os.path.join(ABIPY_ROOT, "core", "release.py")
+mod_name = os.path.join(ABIPY_ROOT, "abipy", "core", "release.py")
 relmod = imp.load_source(mod_name, mod_name)
 
 on_rtd = os.environ.get('READTHEDOCS') == 'True' and os.environ.get("READTHEDOCS_PROJECT")
@@ -46,7 +46,6 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
-    'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
@@ -56,16 +55,16 @@ extensions = [
     'sphinxcontrib.programoutput',
     'sphinx_gallery.gen_gallery',
     "sphinxarg.ext",         # CLI doc
-    #'nbsphinx',
     'sphinxcontrib.bibtex',
     "releases",
+    #'nbsphinx',
+    #'sphinx.ext.coverage',
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib
 extensions += [
-    #'matplotlib.sphinxext.mathmpl',     # sphinx gets stuck if I remove it!
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_directive',
@@ -89,7 +88,15 @@ sphinx_gallery_conf = {
         'matplotlib': 'https://matplotlib.org',
         'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
         "pymatgen": "http://pymatgen.org/",
-    }
+    },
+    #https://sphinx-gallery.github.io/advanced_configuration.html#generate-binder-links-for-gallery-notebooks-experimental
+    #'binder': {
+    #    'org': 'abipy',
+    #    'repo': 'https://github.com/abinit/abipy',
+    #    'url': 'https://mybinder.org', # URL serving binders (e.g. mybinder.org)
+    #    'branch': 'develop',  # Can also be a tag or commit hash
+    #    'dependencies': './binder/requirements.txt' # list_of_paths_to_dependency_files>'
+    # },
 }
 
 # Generate the API documentation when building
@@ -376,13 +383,14 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/', None),
+    'python': ('https://docs.python.org/{.major}'.format(sys.version_info), None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
-    'matplotlib': ('http://matplotlib.org/', None),
+    'matplotlib': ('https://matplotlib.org/', None),
     "monty": ("http://pythonhosted.org/monty/", None),
     "pymatgen": ("http://pymatgen.org/", None),
+    'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),
 }
 
 # If true, Sphinx will warn about all references where the target cannot be found.

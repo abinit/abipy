@@ -223,8 +223,7 @@ Compare my structure with the Materials Project database
 --------------------------------------------------------
 
 Let's assume we have performed a structural relaxation and we want
-to compare our results with the Materials Project.
-
+to compare our results with the Materials Project data.
 One can use the :ref:`abicomp.py` structure to extract the structure from the HIST.nc_
 file and compare the data with the database::
 
@@ -249,7 +248,7 @@ that produces
 
     Use --verbose to print atomic positions.
 
-Note that one can replace the ``HIST.nc`` file with any other file providing a structure object.
+Note that one can replace the HIST.nc_ file with any other file providing a structure object.
 
 .. important::
 

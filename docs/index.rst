@@ -31,8 +31,8 @@ Post-processing
 .. toctree::
    :maxdepth: 1
 
-   scripts/index.rst
-   gallery/index.rst
+   scripts/index
+   gallery/index
    scripts_howto
 
 Workflows
@@ -41,9 +41,9 @@ Workflows
 .. toctree::
    :maxdepth: 1
 
-   workflows/taskmanager.rst
-   workflows/manager_examples.rst
-   flow_gallery/index.rst
+   workflows/taskmanager
+   workflows/manager_examples
+   flow_gallery/index
    flows_howto
 
 API
@@ -52,8 +52,9 @@ API
 .. toctree::
    :maxdepth: 1
 
-   api/index.rst
-   devel/index.rst
+   api/index
+   coding_guide
+   documenting_guide
 
 Indices and tables
 ==================

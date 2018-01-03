@@ -10,6 +10,7 @@
 .. _pymatgen: http://www.pymatgen.org
 .. _fireworks: https://materialsproject.github.io/fireworks/
 .. _mongodb: https://www.mongodb.com/
+.. _mongoengine: http://mongoengine.org/
 .. _`materials project`: https://materialsproject.org/
 .. _conda: https://conda.io/docs/
 .. _Anaconda: https://continuum.io/downloads
@@ -91,14 +92,17 @@
 .. |SkwInterpolator| replace:: :class:`abipy.core.skw.SkwInterpolator`
 .. |ElectronDos| replace:: :class:`abipy.electrons.ebands.ElectronDos`
 .. |PhononBands| replace:: :class:`abipy.dfpt.phonons.PhononBands`
+.. |Task| replace:: :class:`pymatgen.io.abinit.tasks.Task`
 .. |ScfTask| replace:: :class:`pymatgen.io.abinit.tasks.ScfTask`
 .. |NscfTask| replace:: :class:`pymatgen.io.abinit.tasks.NscfTask`
 .. |Flow| replace:: :class:`pymatgen.io.abinit.flows.Flow`
+.. |Work| replace:: :class:`pymatgen.io.abinit.works.Work`
 .. |TaskManager| replace:: :class:`pymatgen.io.abinit.tasks.TaskManager`
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
 .. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
+.. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
 .. |PhdosFile| replace:: :class:`abipy.dfpt.phonons.PhdosFile`
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
@@ -107,6 +111,7 @@
 .. |Pseudo| replace:: :class:`pymatgen.io.abinit.pseudos.Pseudo`
 .. |PseudoTable| replace:: :class:`pymatgen.io.abinit.pseudos.PseudoTable`
 .. |Visualizer| replace:: :class:`abipy.iotools.visualizer.Visualizer`
+.. |SigresFile| replace:: :class:`abipy.electrons.gw.SigresFile`
 
 .. Important objects provided by libraries.
 .. |matplotlib-Figure| replace:: :class:`matplotlib.figure.Figure`

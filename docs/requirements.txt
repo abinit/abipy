@@ -1,3 +1,5 @@
+ipython
+sphinx
 sphinxcontrib-napoleon
 sphinxcontrib-programoutput
 sphinx-gallery

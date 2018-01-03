@@ -38,6 +38,8 @@ __all__ = [
     "wrap_to_bz",
     "as_kpoints",
     "Kpoint",
+    "KpointList",
+    "KpointStar",
     "Kpath",
     "IrredZone",
     "rc_list",
