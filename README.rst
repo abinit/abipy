@@ -12,8 +12,8 @@
 
 .. image:: https://img.shields.io/badge/license-GPL-blue.svg
 
-.. include:: docs/links.rst
-
+.. image:: https://mybinder.org/badge.svg 
+    :target: https://mybinder.org/v2/gh/abinit/abipy/develop
 
 About
 =====
@@ -202,3 +202,5 @@ License
 AbiPy is released under the GNU GPL license. For more details see the LICENSE file.
 
 .. _`abipy docpage` : http://pythonhosted.org/abipy
+
+.. include:: docs/links.rst
