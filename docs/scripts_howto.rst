@@ -12,6 +12,8 @@ Feel free to suggest new entries!
 
 .. important::
 
+    The scripts employ the file extension to detect the file type so don't change it.
+
     Remember that it is possible to get the documentation of the 
     script by just adding ``--help`` after the scripts name.
 
@@ -25,8 +27,6 @@ Feel free to suggest new entries!
     
     prints the documentation for ``COMMAND`` and the options supported by ``COMMAND``.
 
-The scripts employ the file extension to detect the file type so don't change it.
-are quite flexible
 
 Get information about a generic ``FILE``
 ----------------------------------------
@@ -59,9 +59,9 @@ Use::
 
 to read the structure from ``FILE`` and generate a CIF_ file (default behaviour).
 
-The majority of the netcfd files produced by Abinit contain structural information
+The majority of the netcdf_ files produced by Abinit contain structural information
 so this command can be used with netcdf ouput files as well as Abinit input/output 
-files and all the other formats supported by pymatgen.
+files and all the other formats supported by pymatgen e.g. POSCAR files.
 Other formats can be specified with the ``-f`` option.
 For example::
 
@@ -92,7 +92,7 @@ If the structure looks good, use the :ref:`abinp.py` script with the ``validate`
 
     abinp.py validate run.abi       
     
-to validate the input file with Abinit (requires ``manager.yml`` and obviously Abinit).
+to validate the input file with Abinit (requires ``manager.yml`` and, obviously, Abinit).
 
 The script provides other options to invoke Abinit 
 to get space group information, the list of k-points in the IBZ.
@@ -118,7 +118,7 @@ If ``FILE`` contains electronic band energies, use e.g.::
 
 to plot the KS eigenvalues (the same command works for other files such as ``WFK.nc``, ``DEN.nc`` etcetera. 
 
-Note that ``abiview.py`` uses a predefined logic to visualize the data.
+Note that :ref:`abiview.py` uses a predefined logic to visualize the data.
 There are options to tune some parameters and/or export data in different formats
 but exposing the AbiPy API from the command line is not easy.
 
@@ -126,7 +126,7 @@ For a more flexible interface, we suggest to use::
 
     abiopen.py FILE
 
-to start an ipython shell that will allow you to interact with the python object directly.
+to start an ipython_ shell that will allow you to interact with the python object directly.
 
 If you have installed jupyter_ on your machine/cluster and you have a web browser, use::
 
@@ -229,7 +229,7 @@ file and compare the data with the database::
 
     abicomp.py mp_structure ../abipy/data/refs/sic_relax_HIST.nc
 
-It's also possilbe to select only the structures with the same space group number as the input structure with::
+It's also possible to select only the structures with the same space group number as the input structure with::
 
     abicomp.py mp_structure ../abipy/data/refs/sic_relax_HIST.nc --same-spgnum
 
@@ -252,7 +252,7 @@ Note that one can replace the HIST.nc_ file with any other file providing a stru
 
 .. important::
 
-    The structures of the materials project have been obtained with the GGA-PBE function
+    The structures of the materials project have been obtained with the GGA-PBE functional
     and they might include the U term in the Hamiltonian.
     One should take into account these different settings when comparing structural relaxations.
 
@@ -316,7 +316,7 @@ Visualize phonon displacements
 
 AbiPy is interfaced with the phononwebsite_ project 
 If you have already installed the python package from `github <https://github.com/henriquemiranda/phononwebsite>`_
-you can export the ``PHBST.nc`` to JSON and then load the file via the web-interface.
+it's possbile to export the ``PHBST.nc`` to JSON and then load the file via the web-interface.
 Alternatively, it's possible to automate the entire procedure with the :ref:`abiview.py` script.
 
 Use::
@@ -365,7 +365,7 @@ Compare multiple files
 The :ref:`abicomp.py` script is explicitely designed for this kind of task.
 It operates on multiple files (usually files with the same extension) and 
 either produces matplotlib_ plots or creates AbiPy robots providing methods
-to analyze the results, perform convergence studies and create pandas DataFrames_.
+to analyze the results, perform convergence studies and build pandas DataFrames_.
 
 The ``COMMAND`` defines the quantity to be compared, followed by a list of filenames.
 
@@ -384,14 +384,14 @@ To plot multiple electronic structures on a grid, use::
 
     abicomp.py ebands *_GSR.nc out2_WFK.nc -p
 
-Remember that it is possible to use shell syntax ``*_GSR.nc`` to select all files with a given extension.
+Remember that it is possible to use the shell syntax ``*_GSR.nc`` to select all files with a given extension.
 If you have nested directories, use unix ``find`` to scan the directory tree for files matching a given pattern
 For example::
 
     abicomp.py ebands `find . -name *_GSR.nc` 
 
-finds all GSR files contained withing the current working directory.
-The output of ``find`` is then passed to ``abicomp.py``
+finds all ``GSR.nc`` files contained withing the current working directory.
+The output of ``find`` is then passed to :ref:`abicomp.py`.
 
 .. note::
 

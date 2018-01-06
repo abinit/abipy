@@ -17,6 +17,7 @@
 .. _abinit-channel: https://anaconda.org/abinit
 .. _matsci: http://materials.sh/
 .. _spack: https://github.com/LLNL/spack
+.. _pickle: https://docs.python.org/3/library/pickle.html#module-pickle
 .. _matplotlib: http://matplotlib.org
 .. _pandas: http://pandas.pydata.org
 .. _scipy: https://www.scipy.org/
@@ -119,3 +120,29 @@
 .. |pandas-DataFrame| replace:: :class:`pandas.DataFrame`
 .. |pandas-DataFrames| replace:: :class:`pandas.DataFrame`
 .. |numpy-array| replace:: :class:`numpy.ndarray`
+
+
+.. Badges
+.. |pypi-version| image:: https://badge.fury.io/py/abipy.svg
+    :alt: PyPi version
+    :target: https://badge.fury.io/py/abipy
+
+.. |travis-status| image:: https://travis-ci.org/abinit/abipy.svg?branch=develop
+    :alt: Travis status
+    :target: https://travis-ci.org/abinit/abipy
+
+.. |coverage-status| image:: https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=develop
+    :alt: Coverage status
+    :target: https://coveralls.io/github/abinit/abipy?branch=develop
+
+.. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg   
+    :alt: Download with Anaconda
+    :target: https://conda.anaconda.org/abinit
+
+.. |abipy-license| image:: https://img.shields.io/badge/license-GPL-blue.svg
+    :alt: AbiPy license
+    :target: https://opensource.org/licenses/gpl-2.0.php
+
+.. |launch-binder| image:: https://mybinder.org/badge.svg 
+    :alt: Launch binder
+    :target: https://mybinder.org/v2/gh/abinit/abipy/develop

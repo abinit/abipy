@@ -486,7 +486,7 @@ class AbipyTest(PymatgenTest):
         assert not errors
 
     @staticmethod
-    def abivalidate_flow(self, flow):
+    def abivalidate_flow(flow):
         """
         Invoke Abinit to test validity of the inputs of a |Flow|
         """

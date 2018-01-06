@@ -42,7 +42,7 @@ Use::
 
     abidoc.py manager
 
-to document all the options supported by TaskManager and::
+to document all the options supported by |TaskManager| and::
 
     abidoc.py scheduler
 
@@ -76,19 +76,19 @@ Reduce the number of files produced by the Flow
 
 When running many calculations, 
 Use ``prtwf -1`` to tell Abinit to produce the wavefunction file, only
-if the calculation is not converged.
+if SCF cycle didn't converged so that AbiPy can reuse the file to restart the calculation.
 
 Note that it's possibile to use::
 
     flow.use_smartio()
 
-to activate  this mode for all tasks who are  not supposed to produce WFK files
+to activate this mode for all tasks that are not supposed to produce WFK files
 for their children.
 
 Extend tasks/works with specialized code
 ----------------------------------------
 
-Remember that pickle does not support classes defined inside scripts. 
+Remember that pickle_ does not support classes defined inside scripts. 
 If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass 
 in a separated python module and import the module inside your script.
 
@@ -104,7 +104,7 @@ to cancel all jobs of the flow that are in queue and kill the scheduler.
 Compare multiple output files
 -----------------------------
 
-The ``abicomp.py``
+The :ref:`abicomp.py` script
 
 Try to understand why a task failed
 ------------------------------------

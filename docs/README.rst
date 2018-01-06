@@ -11,7 +11,7 @@ Organization of documentation
 
 The documentation for AbiPy is generated from ReStructured Text using the Sphinx_ documentation generation tool. 
 The documentation sources are found in the :file:`~/docs/` directory in the repository.  
-To build the documentation in html format, cd into :file:`abipy/docs/` and do::
+To build the documentation in HTML format, cd into :file:`abipy/docs/` and do::
 
   make html 
 
@@ -45,7 +45,7 @@ To build the HTML documentation, install sphinx then type ``make html`` that wil
 
     sphinx-build -b html -d _build/doctrees . _build/html
 
-Remeber to issue::
+Remember to issue::
 
     export READTHEDOCS=1
 
@@ -59,9 +59,11 @@ Use ``pip`` to install the dependencies::
 
     pip install -r requirements.txt
 
-To deploy to gh-pages::
+and::
 
    ./ghp_import.py _build/html/ -n -p
+
+to deploy to gh-pages.
 
 .. _formatting-abipy-docs:
 
@@ -113,6 +115,13 @@ Here are a few additional things to keep in mind:
     See :cite:`Gonze2016` for a brief description of recent developments in ABINIT.
 
   yelds: See :cite:`Gonze2016` for a brief description of recent developments in ABINIT.
+
+  To add a new bibtex entry to the database, please use the :program:`doi2bibtex` tool
+  provided by the `betterbib package <https://github.com/nschloe/betterbib>`_::
+
+    doi2bibtex https://doi.org/10.1103/PhysRevB.33.7017 >> refs.bib
+
+  then change the bibtex identifier (use the name of the first author and the publication year).
 
 * Interactive ipython_ sessions can be illustrated in the documentation using the following directive::
 
@@ -188,6 +197,6 @@ Figures can be automatically generated from scripts and included in the docs.
 It is not necessary to explicitly save the figure in the script, this will be done 
 automatically at build time to ensure that the code that is included runs and produces the advertised figure.
 
-Any plots specific to the documentation should be added to the ``examples/plot/`` directory and committed to git.  
+Any plots specific to the documentation should be added to the :file:`examples/plot/` directory and committed to git.  
 
 `sphinx-gallery <https://github.com/sphinx-gallery/sphinx-gallery>`_

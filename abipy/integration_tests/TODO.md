@@ -72,6 +72,8 @@ TODO list:
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
+* Create git repo for Abipy webisite to faciliate integration with binder + sphinx-gallery?
+
 ## Low priority
 
 * Use parser subclass to avoid boiler plate code.
@@ -133,3 +135,9 @@ TODO list:
         [30/03/15 15:18:54] guido petretto: - dopo il restart c'è un errore (dilatm?) e viene chiamato il reset_from_scraatch
         [30/03/15 15:19:48] guido petretto: a questo punto il job viene riavviato, ma in in c'è ancora la vecchia density e nell'input c'è irdden=1, ma la
         struttura è diversa
+
+
+* DONE Add the fermi level to the DEN file (netcdf and fortran version) so that the NSCF run can read 
+  it and can report this value in the final band structure.
+
+* DONE ecut is not reported in the GSR file. Similar problem for the k-sampling (see SIGRES.nc)
