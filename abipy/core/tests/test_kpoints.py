@@ -335,7 +335,7 @@ class KmeshTest(AbipyTest):
     def test_unshifted_kmesh(self):
         """Testing the generation of unshifted kmeshes."""
         def rm_spaces(s):
-            return " ".join(s.split())
+            return " ".join(s.split()).replace("[ ", "[")
 
         mpdivs, shifts = [1, 2, 3], [0, 0, 0]
 
