@@ -2,8 +2,17 @@
     :Release: |version|
     :Date: |today|
 
-|pypi-version| |travis-status| |coverage-status| 
-|download-with-anaconda| |abipy-license| |launch-binder|
+
+.. list-table::
+    :stub-columns: 1
+    :widths: 10 90
+
+    * - Package
+      - |pypi-version| |download-with-anaconda| |supported-versions|
+    * - Continuous Integration
+      - |travis-status| |coverage-status| 
+    * - Documentation
+      - |launch-nbviewer| |launch-binder| 
 
 Getting Started
 ===============
@@ -35,7 +44,7 @@ Workflows
    workflows/taskmanager
    workflows/manager_examples
    flow_gallery/index
-   flows_howto
+.. flows_howto
 
 API
 ===

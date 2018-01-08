@@ -12,10 +12,10 @@ Feel free to suggest new entries!
 
 .. important::
 
-    The scripts employ the file extension to detect the file type so don't change it.
+    The AbiPy scripts detect the file type by looking at the file extension to so don't change it.
 
-    Remember that it is possible to get the documentation of the 
-    script by just adding ``--help`` after the scripts name.
+    Also, remember that it is possible to get the documentation 
+    by just adding ``--help`` after the scripts name.
 
     For example::
 
@@ -104,7 +104,7 @@ Get a quick look to a file
 
 The :ref:`abiview.py` script is especially designed for this task.
 The syntax is ``abistruct.py COMMAND FILE`` where ``COMMAND`` is either 
-the Abinit file extension or the AbiPy object we want to visualize.
+the Abinit file extension (without ``.nc``, if any) or the AbiPy object we want to visualize.
 
 To get a quick look at the DDB file, use::
 
@@ -156,7 +156,7 @@ try the nbjsmol_ jupyter extension.
 Get neighbors for each atom in the unit cell out to a distance radius
 ---------------------------------------------------------------------
 
-If we are interested in the environment/nearest neighbours of the atoms in the unit cell
+If we are interested in the environment/nearest neighbours of the atoms in the unit cell,
 we can analyze the different coordinations with::
 
     abistruct.py neighbors sic_relax_HIST.nc
@@ -265,7 +265,7 @@ Use::
     abiview.py abo run.abo
 
 to plot the SCF iterations or the steps of the structural relaxations or the DFPT SCF cycles
-(depending on the content of run.abo)
+(depending on the content of run.abo).
 
 Note that one can also use::
     
@@ -288,8 +288,8 @@ and::
 
 for phonons.
 
-Plot the Fermi surface
-----------------------
+Visualize the Fermi surface
+---------------------------
 
 Use::
 
@@ -391,15 +391,14 @@ For example::
     abicomp.py ebands `find . -name *_GSR.nc` 
 
 finds all ``GSR.nc`` files contained withing the current working directory.
-The output of ``find`` is then passed to :ref:`abicomp.py`.
+The output of ``find`` is then passed to the :ref:`abicomp.py` script.
 
 .. note::
 
     Note the `backticks syntax <https://unix.stackexchange.com/questions/27428/what-does-backquote-backtick-mean-in-commands>`_
     used in the command.
 
-to build a ``plotter`` object and open the ipython_ terminal.
-Then, inside ipython, type
+Then, inside the ipython terminal, type
 
 .. code-block:: ipython
 
@@ -408,6 +407,8 @@ Then, inside ipython, type
     df.plot("")
 
 to build a pandas DataFrame_ and plot ...
+to build a ``plotter`` object and open the ipython_ terminal.
+
 
 Let's take the case of Gd2SiO5 (GSO).  
 I had to do some extra calculations and so I wanted to get the input structure somewhere. 
@@ -509,14 +510,8 @@ You might also want to compare the structures you obtained with those of the Mat
     YSO/mp-554420.cif      P2_1/c          14  
     YSO/ysoo_GSR.nc          C2/c          15 
 
-Anyway, we're interested in the environment/nearest neighbours of the oxygen atoms. 
-We can easily identify the different coordination with::
-
-    abistruct.py neighbors YSO/mp-3520.cif -r 2.7
- 
-Finding neighbors for each atom in the unit cell, out to a distance 2.7 [Angstrom]
-
-You'll see that we can identify the Y lying at sites coordinated with 6 oxygens and those at sites with 7 oxygens. 
+Compare attributes of multiple files
+------------------------------------
  
 Finally, if you want to compare total energies of the two GSO phases::
 
@@ -560,7 +555,7 @@ Use::
 
     abidoc.py man ecut
 
-to print to terminal the official documentation for the ``ecut`` variable.
+to print the official documentation for the ``ecut`` variable to the terminal.
 
 To list all the variables depending on the ``natom`` dimension, use::
 

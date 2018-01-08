@@ -7,15 +7,18 @@ matrix:
     - os: linux
       python: 2.7
       env: PYTHON_VERSION=2.7
+      env: ABINIT_VERSION=8.6.1
     - os: linux
       python: 3.6
       env: PYTHON_VERSION=3.6
+      env: ABINIT_VERSION=8.6.1
 
 #dist: precise
 sudo: false
 install:
   #- sudo apt-get update
   - env
+  #- set -ev  # exit on first error, print each command
 
   # pip-based installation.
   #- travis_wait pip install -q -r requirements.txt
@@ -28,11 +31,6 @@ install:
 
   - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install nose nose-exclude
-
-  # Install abinit from abinit conda channel.
-  #- conda install -c gmatteo abinit=8.6.1
-  #- abinit --version
-  #- abinit --build
 
   # Mayavi (optional requirement)
   #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
@@ -79,3 +77,12 @@ notifications:
       - gmatteo@gmail.com
     on_success: change
     on_failure: always
+
+# https://docs.travis-ci.com/user/deployment/pages/
+#deploy:
+#  provider: pages
+#  skip_cleanup: true
+#  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+#  local_dir: ${TRAVIS_BUILD_DIR}/yourfolder
+#  on:
+#    branch: master

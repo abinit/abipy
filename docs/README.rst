@@ -11,13 +11,16 @@ Organization of documentation
 
 The documentation for AbiPy is generated from ReStructured Text using the Sphinx_ documentation generation tool. 
 The documentation sources are found in the :file:`~/docs/` directory in the repository.  
-To build the documentation in HTML format, cd into :file:`abipy/docs/` and do::
 
-  make html 
+* index.rst - the top level include document for AbiPy docs
+* api - placeholders to automatically generate the api documentation
+* conf.py - the sphinx configuration
+* _static - used by the sphinx build system
+* _templates - used by the sphinx build system
 
-The actual ReStructured Text files are kept in :file:`docs/users`, :file:`docs/devel`, :file:`docs/api`. 
-The main entry point is :file:`docs/index.rst`, which pulls in the :file:`index.rst` 
-file for the users guide, developers guide, api reference. 
+The main entry point is :file:`docs/index.rst`, which pulls in 
+the files for the users guide, developers guide, api reference. 
+The actual ReStructured Text files for the API are kept in :file:`docs/api`. 
 
 Additional files can be added to the various guides by including their base
 file name (the ``.rst`` extension is not necessary) in the table of contents.
@@ -31,15 +34,6 @@ Before building the documentation, you need to install the sphinx extensions lis
 in :file:`abipy/docs/requirements.txt` with::
 
     pip install -r abipy/docs/requirements.txt
-
-* api - placeholders to automatically generate the api documentation
-* devel - documentation for AbiPy developers
-* users - the user documentation, e.g plotting tutorials, configuration tips, etc.
-* faq - frequently asked questions
-* index.rst - the top level include document for AbiPy docs
-* conf.py - the sphinx configuration
-* _static - used by the sphinx build system
-* _templates - used by the sphinx build system
 
 To build the HTML documentation, install sphinx then type ``make html`` that will execute::
 
@@ -55,15 +49,12 @@ The documentation is produced in :file:`_build/html`.
 
 You can run ``make help`` to see information on all possible make targets.
 
-Use ``pip`` to install the dependencies::
-
-    pip install -r requirements.txt
-
-and::
+Use::
 
    ./ghp_import.py _build/html/ -n -p
 
 to deploy to gh-pages.
+
 
 .. _formatting-abipy-docs:
 
@@ -78,19 +69,6 @@ Here are a few additional things to keep in mind:
   Abipy's documentation makes heavy use of cross-referencing and other semantic markup. 
   Several aliases are defined in :file:`abipy/docs/links.rst` and are automatically
   included in each ``rst`` file via `rst_epilog <http://www.sphinx-doc.org/en/stable/config.html#confval-rst_epilog>`_
-
-* Function arguments and keywords should be referred to using the *emphasis* role. 
-  This will keep AbiPy's documentation consistant with Python's documentation::
-
-    Here is a description of *argument*
-
-  Please do not use the `default role`::
-
-    Please do not describe `argument` like this.
-
-  nor the ``literal`` role::
-
-    Please do not describe ``argument`` like this.
 
 * Mathematical expressions can be rendered with `mathjax <https://www.mathjax.org/>`_ in html.
   For example:
@@ -186,7 +164,7 @@ In addition to the aforementioned formatting suggestions:
   We use the `napoleon <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/>`_ extension
   to convert Google style docstrings to reStructuredText before Sphinx attempts to parse them.
 
-* Please limit the text width of docstrings to 70 characters.
+* Please limit the text width of docstrings to (around) 90 characters.
 
 * Keyword arguments should be described using a definition list.
 

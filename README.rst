@@ -1,8 +1,17 @@
 .. :Repository: https://github.com/abinit/abipy
 .. :Author: Matteo Giantomassi (http://github.com/abinit)
 
-|pypi-version| |travis-status| |coverage-status| 
-|download-with-anaconda| |abipy-license| |launch-binder|
+.. list-table::
+    :stub-columns: 1
+    :widths: 10 90
+
+    * - Package
+      - |pypi-version| |download-with-anaconda| |supported-versions|
+    * - Continuous Integration
+      - |travis-status| |coverage-status| 
+    * - Documentation
+      - |launch-nbviewer| |launch-binder| 
+
 
 About
 =====
@@ -13,22 +22,20 @@ within Density Functional Theory and Many-Body perturbation theory.
 It also provides tools to generate input files and workflows to automate
 ab-initio calculations and typical convergence studies.
 AbiPy is interfaced with pymatgen_ and this allows users to
-benefit from the different tools and python objects available in the pymatgen ecosystem
+benefit from the different tools and python objects available in the pymatgen ecosystem.
 
-Official documentation of the stable version available at the `abipy docpage`_.
+The official documentation of the stable version available at the `abipy docpage`_.
 
 AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our
 `examples/plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_ gallery.
-To learn more about the integration between jupyter_ and AbiPy, visit our collection of `notebooks
-<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-and the
-`AbiPy lessons <https://nbviewer.jupyter.org/github/abinit/abitutorials/tree/master/abitutorials/index.ipynb>`_.
+To learn more about the integration between jupyter_ and AbiPy, visit `our collection of notebooks
+<https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
 
-AbiPy supports both Python 2.7 as well as Python >= 3.4.
-Python 2.7 is more intensively tested than py3k especially at the level of workflows
-so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.
+.. AbiPy supports both Python 2.7 as well as Python >= 3.4.
+.. Python 2.7 is more intensively tested than py3k especially at the level of workflows
+.. so we still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
 Note that the majority of the post-processing tools available in AbiPy require output files in
 netcdf_ format so we strongly suggest to compile Abinit with netcdf support
@@ -84,17 +91,16 @@ Optional libraries that are required if you need certain features:
     Install these two packages with ``conda install jupyter nbformat`` or use ``pip``.
     Recommended but you will also need a web browser to open the notebook.
 
-``wxPython`` and ``wxmplot`` for the GUI
-
-    Use ``conda install wxpython``
-    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
-    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
+.. ``wxPython`` and ``wxmplot`` for the GUI
+..    Use ``conda install wxpython``
+..    The directory ``abipy.gui.demos`` contains demos that can be used to test the installation.
+..    of the GUI (run the script ``runall.py`` to have an overview of the different graphical interfaces).
 
 Developmental version
 ---------------------
 
-Getting the developmental version of AbiPy is easy. You can clone it from the 
-`github repository <https://github.com/abinit/abipy>`_ using this command::
+Getting the developmental version of AbiPy is easy. 
+You can clone it from the `github repository <https://github.com/abinit/abipy>`_ using this command::
 
     git clone https://github.com/abinit/abipy
 
@@ -123,7 +129,8 @@ Unit tests require two additional packages that can be installed with::
 
 Note that several unit tests check the integration between AbiPy and Abinit. 
 In order to run the tests, you need a working set of Abinit executables and  a ``manager.yml`` configuration file.
-A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the anaconda cloud with::
+A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the 
+`abinit channel <https://anaconda.org/abinit>`_ with::
 
     $ conda install abinit -c abinit
 
@@ -156,7 +163,8 @@ Below is a brief description of the different directories found there:
     (use ``jupyter notebook FILE`` to open the notebook in your browser,
     use ``conda install jupyter`` to install the package)
 
-The directory :file:`abipy/examples/flows` contains python scripts that can be used to automate typical ab-initio calculations.
+The directory :file:`abipy/examples/flows` contains python scripts that can be used 
+to automate typical ab-initio calculations.
 
 Command line tools
 ------------------
@@ -219,10 +227,18 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
     :alt: Download with Anaconda
     :target: https://conda.anaconda.org/abinit
 
-.. |abipy-license| image:: https://img.shields.io/badge/license-GPL-blue.svg
-    :alt: AbiPy license
-    :target: https://opensource.org/licenses/gpl-2.0.php
-
 .. |launch-binder| image:: https://mybinder.org/badge.svg 
     :alt: Launch binder
     :target: https://mybinder.org/v2/gh/abinit/abipy/develop
+
+.. |launch-nbviewer| image:: https://img.shields.io/badge/render-nbviewer-orange.svg
+    :alt: Launch nbviewer
+    :target: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb
+
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/abipy.svg?style=flat
+    :alt: Supported versions
+    :target: https://pypi.python.org/pypi/abipy
+
+.. |requires| image:: https://requires.io/github/abinit/abipy/requirements.svg?branch=develop
+     :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
+     :alt: Requirements Status

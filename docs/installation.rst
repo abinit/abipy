@@ -10,7 +10,7 @@ Stable version
 --------------
 
 The version at the `Python Package Index <https://pypi.python.org/pypi/abipy>`_ (PyPI) is always 
-the latest stable release that can be installed with::
+the latest **stable** release that can be installed with::
 
     pip install abipy
 
@@ -20,7 +20,7 @@ In this case, please consult the detailed installation instructions provided by 
 and then follow the instructions in the :ref:`netcdf4_installation` section.
 
 The installation process is greatly simplified if you install the required 
-python packages through the Anaconda_ distribution.
+packages through the Anaconda_ distribution.
 We routinely use conda_ to test new developments with multiple versions of Python and multiple virtual environments.
 The anaconda distribution already provides the most critical dependencies (numpy_, scipy_, matplotlib_, ...)
 in the form of pre-compiled packages and netcdf4-python_ can be easily installed with::
@@ -155,6 +155,9 @@ For further information on the syntax of the configuration file, please consult 
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the abinit-channel_ with::
 
     conda install abinit -c abinit
+
+Examples of configuration files to configure and compile Abinit on clusters can be found 
+in the abiconfig_ package.
 
 Contributing to AbiPy is relatively easy.
 Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.

@@ -15,10 +15,10 @@ When committing changes to AbiPy, there are a few things to bear in mind.
   Note that the changelog is written following the format employed by the 
   `releases <https://github.com/bitprophet/releases>`_ Sphinx extension.
 
-* if you change the API, please document it in the docstring with the ``versionadded`` role::
+* if you change the API, please document the modifications in the docstring with the ``versionadded`` role::
 
     .. versionadded:: 0.2
-       The transforms have been completely revamped.
+       Add new argument ``foobar``
 
 * Are your changes python2.7 compatible?
 
@@ -26,7 +26,7 @@ When committing changes to AbiPy, there are a few things to bear in mind.
 
 * Can you add a test to test your changes?
 
-* if you have added new files or directories, or reorganized existing
+* If you have added new files or directories, or reorganized existing
   ones, are the new files included in the match patterns in :file:`MANIFEST.in`.  
   This file determines what goes into the source distribution of the build.
 
@@ -84,7 +84,12 @@ if there is a file with tabs or a different number of spaces it is a bug -- plea
 
 Keep docstrings uniformly indented as in the example below, with nothing to the left of the triple quotes.  
 
-Limit line length to 90 characters.  
+Limit line length to (around) 90 characters. 
+If you wonder why we are violating pep8 that specifies a maximum line length of 79 characters,
+check out this video by Raymond Hettinger:
+
+.. youtube:: wf-BqAjZb8M
+
 If a logical line needs to be longer, use parentheses to break it; do not use an escaped newline.
 It may be preferable to use a temporary variable to replace a single
 long line with two shorter and more readable lines.

@@ -504,7 +504,7 @@ class Sigmaw(object):
 
 class SigresPlotter(Iterable):
     """
-    This object receives a list of :class:`SigresFile` objects and provides methods
+    This object receives a list of |SigresFile| objects and provides methods
     to inspect/analyze the GW results (useful for convergence studies)
 
     .. Attributes:
@@ -1832,7 +1832,7 @@ class SigresRobot(Robot, RobotWithEbands):
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`SigresFile` object and returns a tuple (key, value)
+                Each function receives a |SigresFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # TODO: Ideally one should select the k-point for which we have the fundamental gap for the given spin

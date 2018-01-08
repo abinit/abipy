@@ -17,8 +17,10 @@ import shutil
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+#print(ABIPY_ROOT)
 
 sys.path.insert(0, ABIPY_ROOT)
+
 
 import imp
 mod_name = os.path.join(ABIPY_ROOT, "abipy", "core", "release.py")
@@ -59,6 +61,7 @@ extensions = [
     "releases",
     #'nbsphinx',
     #'sphinx.ext.coverage',
+
 ]
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -69,6 +72,12 @@ extensions += [
     'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_directive',
     'IPython.sphinxext.ipython_console_highlighting',
+]
+
+# Add local extensions (not available on PyPi)
+sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
+extensions += [
+    'youtube',
 ]
 
 from sphinx_gallery.sorting import FileNameSortKey, NumberOfCodeLinesSortKey
@@ -245,6 +254,17 @@ html_theme_options = {
     # Values: "3" (default) or "2" (in quotes)
     'bootstrap_version': "3",
 }
+
+
+def setup(app):
+    """
+    Sphinx automatically calls your setup function defined in "conf.py" during the build process for you.
+    There is no need to, nor should you, call this function directly in your code.
+    http://www.sphinx-doc.org/en/stable/extdev/appapi.html
+    """
+    # Add custom css in _static
+    app.add_stylesheet("my_style.css")
+
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -425,15 +445,18 @@ autodoc_member_order = "bysource"
 #from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 #from pybtex.style.template import toplevel # ... and anything else needed
 #from pybtex.plugin import register_plugin
-#
+
 #class MyStyle(UnsrtStyle):
+#    def format_label(self, entry):
+#        print("hello")
+#        return "APA"
 #
-#    def format_XXX(self, e):
-#        template = toplevel [
-#            # etc.
-#        ]
-#        return template.format_data(e)
-#
+#    #def format_XXX(self, e):
+#    #    template = toplevel [
+#    #        # etc.
+#    #    ]
+#    #    return template.format_data(e)
+
 #register_plugin('pybtex.style.formatting', 'mystyle', MyStyle)
 
 # This is for releases http://releases.readthedocs.io/en/latest/usage.html

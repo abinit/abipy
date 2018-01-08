@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ev  # exit on first error, print each command
+set -e  # exit on first error
 
 echo Installing AbiPy dependencies with conda.
 echo Adding conda-forge, matsci and abinit to channels
@@ -16,7 +16,7 @@ conda install -y --file ./requirements-optional.txt
 conda install -y -c matsci bader
 
 # Install abinit from abinit conda channel.
-conda install -y -c gmatteo abinit=8.6.1
+conda install -y -c gmatteo abinit=${ABINIT_VERSION}
 abinit --version
 abinit --build
 

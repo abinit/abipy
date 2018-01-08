@@ -146,3 +146,15 @@
 .. |launch-binder| image:: https://mybinder.org/badge.svg 
     :alt: Launch binder
     :target: https://mybinder.org/v2/gh/abinit/abipy/develop
+
+.. |launch-nbviewer| image:: https://img.shields.io/badge/render-nbviewer-orange.svg
+    :alt: Launch nbviewer
+    :target: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb
+
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/abipy.svg?style=flat
+    :alt: Supported versions
+    :target: https://pypi.python.org/pypi/abipy
+
+.. |requires| image:: https://requires.io/github/abinit/abipy/requirements.svg?branch=develop
+     :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
+     :alt: Requirements Status
