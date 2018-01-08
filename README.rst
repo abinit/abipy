@@ -10,7 +10,7 @@
     * - Continuous Integration
       - |travis-status| |coverage-status| 
     * - Documentation
-      - |launch-nbviewer| |launch-binder| 
+      - |docs-stable| |docs-devel| |launch-nbviewer| |launch-binder| 
 
 
 About
@@ -25,6 +25,7 @@ AbiPy is interfaced with pymatgen_ and this allows users to
 benefit from the different tools and python objects available in the pymatgen ecosystem.
 
 The official documentation of the stable version available at the `abipy docpage`_.
+while the documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
 
 AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ipython_ and jupyter_ notebooks
 thus providing a powerful and user-friendly environment for data analysis and visualization.
@@ -115,8 +116,6 @@ or alternately::
 to install the package in developmental mode 
 (this is the recommended approach, especially if you are planning to implement new features).
 
-The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
-
 The Github version include test files for complete unit testing.
 To run the suite of unit tests, make sure you have pytest_ installed and then type::
 
@@ -125,14 +124,14 @@ To run the suite of unit tests, make sure you have pytest_ installed and then ty
 in the AbiPy root directory.
 Unit tests require two additional packages that can be installed with::
 
-   $ pip install nose-exclude scripttest
+    pip install nose-exclude scripttest
 
 Note that several unit tests check the integration between AbiPy and Abinit. 
 In order to run the tests, you need a working set of Abinit executables and  a ``manager.yml`` configuration file.
 A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the 
 `abinit channel <https://anaconda.org/abinit>`_ with::
 
-    $ conda install abinit -c abinit
+    conda install abinit -c abinit
 
 For further information on the syntax of the configuration file, please consult the 
 `workflows <http://pythonhosted.org/abipy/workflows.html>`_ section.
@@ -150,7 +149,7 @@ Using AbiPy
 Basic usage
 -----------
 
-There are a variety of ways to use AbiPy, and most of them are illustrated in the :file:`abipy/examples` directory.
+There are a variety of ways to use AbiPy, and most of them are illustrated in the ``abipy/examples`` directory.
 Below is a brief description of the different directories found there:
 
   * `plot <http://pythonhosted.org/abipy/examples/plot/index.html>`_
@@ -163,7 +162,7 @@ Below is a brief description of the different directories found there:
     (use ``jupyter notebook FILE`` to open the notebook in your browser,
     use ``conda install jupyter`` to install the package)
 
-The directory :file:`abipy/examples/flows` contains python scripts that can be used 
+The directory ``abipy/examples/flows`` contains python scripts that can be used 
 to automate typical ab-initio calculations.
 
 Command line tools
@@ -242,3 +241,11 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
 .. |requires| image:: https://requires.io/github/abinit/abipy/requirements.svg?branch=develop
      :target: https://requires.io/github/abinit/abipy/requirements/?branch=develop
      :alt: Requirements Status
+
+.. |docs-stable| image:: https://img.shields.io/badge/docs-stable_version-blue.svg
+     :alt: Documentation stable version
+     :target: http://pythonhosted.org/abipy/
+
+.. |docs-devel| image:: https://img.shields.io/badge/docs-devel_version-ff69b4.svg
+     :alt: Documentation development version
+     :target: http://abinit.github.io/abipy

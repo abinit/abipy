@@ -12,7 +12,8 @@
     * - Continuous Integration
       - |travis-status| |coverage-status| 
     * - Documentation
-      - |launch-nbviewer| |launch-binder| 
+      - |docs-stable| |docs-devel| |launch-nbviewer| |launch-binder| 
+
 
 Getting Started
 ===============
@@ -33,7 +34,7 @@ Post-processing
 
    scripts/index
    gallery/index
-   scripts_howto
+   postprocessing_howto
 
 Workflows
 =========

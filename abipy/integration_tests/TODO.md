@@ -72,7 +72,7 @@ TODO list:
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
-* Create git repo for Abipy webisite to faciliate integration with binder + sphinx-gallery?
+* Create git repo for Abipy webisite to facilitate integration with binder + sphinx-gallery?
 
 ## Low priority
 
