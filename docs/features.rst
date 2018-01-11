@@ -13,14 +13,15 @@ benefit from the different tools and python objects available in the pymatgen ec
 AbiPy can be used in conjunction with  matplotlib_, pandas_, seaborn_,
 ipython_ and jupyter_ thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our :ref:`plot-gallery`.
-To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
-<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-and the
-`AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
+To learn more about the integration between jupyter_ and AbiPy, visit `our collection of notebooks
+<https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
+or click the **Launch Binder** badge to start a Docker image with Abinit, AbiPy and all the other python dependencies
+required to run the code inside the jupyter notebooks.
+The notebook will be opened in your browser after building.
 
-AbiPy supports both Python 2.7 as well as Python >= 3.4.
-Note however that Python 2.7 is more intensively tested than py3k, especially at the level of workflows.
-We hence still recommend py2.7 if you plan to run automatic calculations with AbiPy.
+.. AbiPy supports both Python 2.7 as well as Python >= 3.4.
+.. Note however that Python 2.7 is more intensively tested than py3k, especially at the level of workflows.
+.. We hence still recommend py2.7 if you plan to run automatic calculations with AbiPy.
 
 Note also that the majority of the post-processing tools available in AbiPy require Abinit output files in
 netcdf_ format so we strongly suggest to compile Abinit with netcdf support

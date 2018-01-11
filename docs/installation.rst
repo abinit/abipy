@@ -21,11 +21,11 @@ and then follow the instructions in the :ref:`netcdf4_installation` section.
 
 The installation process is greatly simplified if you install the required 
 packages through the Anaconda_ distribution.
-We routinely use conda_ to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (numpy_, scipy_, matplotlib_, ...)
-in the form of pre-compiled packages and netcdf4-python_ can be easily installed with::
+We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
+The anaconda distribution already provides the most critical dependencies (numpy_, scipy_, matplotlib_, netcdf4-python_)
+in the form of pre-compiled packages that can be easily installed with e.g.::
 
-    conda install netcdf4
+    conda install numpy scipy netcdf4
 
 Additional information on the steps required to install AbiPy with anaconda 
 are available in the :ref:`anaconda_howto` howto as well as in the 
@@ -52,7 +52,7 @@ ipython_
 jupyter_ and nbformat_
 
     Required to generate jupyter notebooks.
-    Install these two packages with ``conda install jupyter nbformat`` or use ``pip_``.
+    Install these two packages with ``conda install jupyter nbformat`` or use pip_.
     To use ``jupyter`` you will also need a web browser to open the notebook.
     (recommended)
 
@@ -63,7 +63,7 @@ Anaconda Howto
 --------------
 
 Download the anaconda installer from the `official web-site <https://www.continuum.io/downloads>`_.
-Choose the version that matches your OS and select python2.7.
+Choose the version that matches your OS and select python3.6.
 You may want to use the ``wget`` utility to download the anaconda script directly from the terminal
 (useful if you are installing anaconda on a cluster).
 
@@ -77,7 +77,7 @@ Once the installation is completed, execute::
 to activate the ``root`` environment.
 The output of ``which python`` should show that you are using the python interpreter provided by anaconda.
 
-Use the ``conda`` command-line interface to install the packages not included in the official distribution.
+Use the conda_ command-line interface to install the packages not included in the official distribution.
 For example, you can install ``pyyaml`` and ``netcdf4`` with::
 
     conda install pyyaml netcdf4
@@ -123,7 +123,7 @@ Developmental version
 Getting the developmental version of AbiPy is easy.
 You can clone it from our  `github repository <https://github.com/abinit/abipy>`_ using::
 
-   git clone https://github.com/abinit/abipy
+    git clone https://github.com/abinit/abipy
 
 After cloning the repository, type::
 
