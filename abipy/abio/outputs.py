@@ -823,7 +823,7 @@ class AboRobot(Robot):
             with_dims: True if dimensions should be added
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`GsrFile` object and returns a tuple (key, value)
+                Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         rows, row_names = [], []

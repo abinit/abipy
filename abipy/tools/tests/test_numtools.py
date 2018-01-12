@@ -19,7 +19,7 @@ class TestTools(AbipyTest):
     def test_add_periodic_replicas(self):
         """Testing add_periodic_replicas"""
         # 1D nd 2D case
-        arr = np.array([1,2,3,4,5,6])
+        arr = np.array([1, 2, 3, 4, 5, 6])
         new_arr = add_periodic_replicas(arr)
         self.assertTrue(new_arr[-1] == 1)
 

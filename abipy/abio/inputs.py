@@ -9,6 +9,7 @@ import collections
 import warnings
 import itertools
 import copy
+import time
 import six
 import abc
 import json
@@ -1153,7 +1154,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             qpt: q-point in reduced coordinates.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
-            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
             List of |AbinitInput| objects for DFPT runs.
@@ -1255,7 +1256,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 Defaults to {"tolwfr": 1.0e-22}.
             use_symmetries: boolean that computes the irreducible components of the perturbation.
                 Default to True. Should be set to False for nonlinear coefficients calculation.
-            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
             List of |AbinitInput| objects for DFPT runs.
@@ -1318,7 +1319,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             skip_permutations: Since the current version of abinit always performs all the permutations
                 of the perturbations, even if only one is asked, if True avoids the creation of inputs that
                 will produce duplicated outputs.
-            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_dteperts(phonon_pert=phonon_pert, manager=manager)
@@ -1534,8 +1535,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         Returns:
             `namedtuple` with attributes:
-                points: `ndarray` with points in the IBZ in reduced coordinates.
-                weights: `ndarray` with weights of the points.
+                points: |numpy-array| with points in the IBZ in reduced coordinates.
+                weights: |numpy-array| with weights of the points.
         """
         # Avoid modifications in self.
         inp = self.deepcopy()
@@ -1664,7 +1665,13 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         try:
             return yaml_read_irred_perts(task.log_file.path)
         except Exception as exc:
-            self._handle_task_exception(task, exc)
+            # Sometimes the previous call raises: Cannot find next YAML document in /tmp/tmpskvdr_bo/run.log
+            # perhaps because the log file is still being written (?) so let's wait a bit.
+            time.sleep(2.0)
+            try:
+                return yaml_read_irred_perts(task.log_file.path)
+            except Exception as exc:
+                self._handle_task_exception(task, exc)
 
     def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -1905,7 +1912,7 @@ class MultiDataset(object):
 
     @classmethod
     def from_inputs(cls, inputs):
-        """Build object from a list of :class:`AbinitInput` objects."""
+        """Build object from a list of |AbinitInput| objects."""
         for inp in inputs:
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
                 raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
@@ -2474,7 +2481,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         properties from PhDos
 
         Args:
-            structure: :class:`Structure` object
+            structure: |Structure| object
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
@@ -2949,7 +2956,7 @@ class OpticInput(AbstractInput, MSONable):
 
         Args:
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
-            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Return:
             `namedtuple` with the following attributes:
