@@ -5,7 +5,7 @@ import wx
 from collections import OrderedDict
 from abipy.gui import awx
 
-from abipy.htc.fftbench import FFTProf
+from abipy.tools.fftprof import FFTProf
 from abipy.gui.editor import SimpleTextViewer
 from .awx.panels import LinspaceControl
 

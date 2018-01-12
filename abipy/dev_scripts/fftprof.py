@@ -7,7 +7,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 
-from abipy.htc.fftbench import FFT_Benchmark
+from abipy.tools.fftprof import FFTBenchmark
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
 
     # Plot the benchmark results saved in the files
     for prof_file in prof_files:
-        FFT_Benchmark.from_file(prof_file).plot()
+        FFTBenchmark.from_file(prof_file).plot()
 
     return 0
 

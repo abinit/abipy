@@ -2,7 +2,6 @@
 """Tests for duck module."""
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-
 import numpy as np
 
 from abipy.core.testing import AbipyTest

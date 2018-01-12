@@ -15,6 +15,8 @@ import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
+from abipy.flowtk.abiobjects import LdauParams
+
 
 def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
     # Input file taken from tldau_2.in
@@ -96,7 +98,7 @@ def build_flow(options):
 
     for u in u_values:
         # Apply U-J on Ni only.
-        luj_params = abilab.LdauParams(usepawu, structure)
+        luj_params = LdauParams(usepawu, structure)
         luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit="eV")
 
         scf_input, nscf_input, dos_input = make_scf_nscf_dos_inputs(structure, pseudos, luj_params)

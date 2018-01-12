@@ -575,7 +575,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
     @property
     def abi_string(self):
         """Return a string with the ABINIT input associated to this structure."""
-        from abipy.htc.variable import InputVariable
+        from abipy.abio.variable import InputVariable
         lines = []
         app = lines.append
         abivars = self.to_abivars()

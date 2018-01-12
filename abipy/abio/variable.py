@@ -1,14 +1,14 @@
-from __future__ import print_function, division #, unicode_literals
+from __future__ import print_function, division, absolute_import #, unicode_literals
 
 import string
 import warnings
-from .utils import flatten, listify, is_number, is_iter
-
+import collections
 import numpy as np
 
 
-__all__ = ['InputVariable', 'SpecialInputVariable']
-
+__all__ = [
+    'InputVariable',
+]
 
 _SPECIAL_DATASET_INDICES = (':', '+', '?')
 
@@ -60,8 +60,9 @@ def convert_number(value):
 
 
 class InputVariable(object):
-    """An Abinit input variable."""
-
+    """
+    An Abinit input variable.
+    """
     def __init__(self, name, value, units='', valperline=3):
 
         self._name = name
@@ -89,9 +90,9 @@ class InputVariable(object):
     def name(self):
         return self._name
 
-    @name.setter
-    def name(self, name):
-        self._name = name
+    #@name.setter
+    #def name(self, name):
+    #    self._name = name
 
     @property
     def basename(self):
@@ -111,50 +112,49 @@ class InputVariable(object):
 
     def __str__(self):
         """Declaration of the variable in the input file."""
-
         value = self.value
         if value is None or not str(value):
             return ''
-    
+
         var = self.name
         line = ' ' + var
-    
+
         # By default, do not impose a number of decimal points
         floatdecimal = 0
-    
+
         # For some inputs, impose number of decimal points...
         if any(inp in var for inp in ('xred', 'xcart', 'rprim', 'qpt', 'kpt')):
             #TODO Shouldn't do that
             floatdecimal = 16
-    
+
         # ...but not for those
         if any(inp in var for inp in ('ngkpt', 'kptrlatt', 'ngqpt', 'ng2qpt')):
             #TODO Shouldn't do that
             floatdecimal = 0
-    
+
         if isinstance(value, np.ndarray):
             n = 1
             for i in np.shape(value):
                 n *= i
             value = np.reshape(value, n)
             value = list(value)
-    
+
         # values in lists
         if isinstance(value, (list, tuple)):
-    
+
             # Reshape a list of lists into a single list
             if all(isinstance(v, (list, tuple)) for v in value):
                 line += self.format_list2d(value, floatdecimal)
-    
+
             else:
                 # Maximum number of values per line.
                 #valperline = 3
                 #if any(inp in var for inp in ['bdgw']):
                 #    #TODO Shouldn't do that
                 #    valperline = 2
-    
+
                 line += self.format_list(value, floatdecimal)
-    
+
         # scalar values
         else:
             line += ' ' + str(value)
@@ -162,7 +162,7 @@ class InputVariable(object):
         # Add units
         if self.units:
             line += ' ' + self.units
-    
+
         return line
 
     def format_scalar(self, val, floatdecimal=0):
@@ -173,33 +173,32 @@ class InputVariable(object):
         sval = str(val)
         if sval.lstrip('-').lstrip('+').isdigit() and floatdecimal == 0:
             return sval
-    
+
         try:
             fval = float(val)
         except:
             return sval
-    
+
         if fval == 0 or (abs(fval) > 1e-3 and abs(fval) < 1e4):
             form = 'f'
             addlen = 5
         else:
             form = 'e'
             addlen = 8
-    
+
         ndec = max(len(str(fval-int(fval)))-2, floatdecimal)
         ndec = min(ndec, 10)
-    
+
         sval = '{v:>{l}.{p}{f}}'.format(v=fval, l=ndec+addlen, p=ndec, f=form)
-    
+
         sval = sval.replace('e', 'd')
-    
+
         return sval
 
     def format_list2d(self, values, floatdecimal=0):
         """Format a list of lists."""
-    
         lvals = flatten(values)
-    
+
         # Determine the representation
         if all(isinstance(v, int) for v in lvals):
             type_all = int
@@ -210,7 +209,7 @@ class InputVariable(object):
                 type_all = float
             except:
                 type_all = str
-    
+
         # Determine the format
         width = max(len(str(s)) for s in lvals)
         if type_all == int:
@@ -218,22 +217,22 @@ class InputVariable(object):
         elif type_all == str:
             formatspec = '>{0}'.format(width)
         else:
-    
+
             # Number of decimal
             maxdec = max(len(str(f-int(f)))-2 for f in lvals)
             ndec = min(max(maxdec, floatdecimal), 10)
-    
+
             if all(f == 0 or (abs(f) > 1e-3 and abs(f) < 1e4) for f in lvals):
                 formatspec = '>{w}.{p}f'.format(w=ndec+5, p=ndec)
             else:
                 formatspec = '>{w}.{p}e'.format(w=ndec+8, p=ndec)
-    
+
         line = '\n'
         for L in values:
             for val in L:
                 line += ' {v:{f}}'.format(v=val, f=formatspec)
             line += '\n'
-    
+
         return line.rstrip('\n')
 
     def format_list(self, values, floatdecimal=0):
@@ -242,17 +241,17 @@ class InputVariable(object):
         The result might be spread among several lines.
         """
         line = ''
-    
+
         # Format the line declaring the value
         for i, val in enumerate(values):
             line += ' ' + self.format_scalar(val, floatdecimal)
             if self.valperline is not None and (i+1) % self.valperline == 0:
                 line += '\n'
-    
+
         # Add a carriage return in case of several lines
         if '\n' in line.rstrip('\n'):
             line = '\n' + line
-    
+
         return line.rstrip('\n')
 
     @staticmethod
@@ -261,18 +260,17 @@ class InputVariable(object):
         Interpret a string variable and attempt to return a value of the
         appropriate type.  If all else fails, return the initial string.
         """
-
         value = None
-    
+
         try:
             for part in sval.split():
-    
+
                 if '*' in part:
                     # cases like istwfk *1
                     if part[0] == '*':
                         value = None
                         break
-    
+
                     # cases like acell 3*3.52
                     else:
                         n = int(part.split('*')[0])
@@ -281,22 +279,22 @@ class InputVariable(object):
                             value = []
                         value += n * [f]
                         continue
-    
+
                 # Fractions
                 if '/' in part:
                     (num, den) = (float(part.split('/')[i]) for i in range(2))
                     part = num / den
-    
+
                 # Unit
                 if part in _UNITS.keys():
-    
+
                     if value is None:
                         warnings.warn("Could not apply the unit token '%s'." % part)
                     elif isinstance(value, list):
                         value.append(part)
                     else:
                         value = [value, part]
-    
+
                     # Convert
                     if False:
                         if isinstance(value, list):
@@ -307,15 +305,15 @@ class InputVariable(object):
                             break
                         else:
                             value *= _UNITS[part]
-    
+
                     continue
-    
+
                 # Convert
                 try:
                     val = convert_number(part)
                 except:
                     val = part
-    
+
                 if value is None:
                     value = val
                 elif isinstance(value, list):
@@ -324,10 +322,10 @@ class InputVariable(object):
                     value = [value, val]
         except:
             value = None
-    
+
         if value is None:
             value = sval
-    
+
         return value
 
     @classmethod
@@ -383,49 +381,50 @@ class InputVariable(object):
         return self.sorting_name == other.sorting_name
 
 
-class SpecialInputVariable(InputVariable):
-    """
-    An Abinit input variable which can be set by replacing
-    the special dataset indices according to
-        : --> __s
-        + --> __i
-        ? --> __a
-    hence allowing for pythonic names.
-    """
-    @property
-    def name(self):
-        return self._name
+def is_number(s):
+    """Returns True if the argument can be made a float."""
+    try:
+        float(s)
+        return True
+    except:
+        return False
 
-    @name.setter
-    def name(self, name):
-        name = self.internal_to_declared(name)
-        self._name = name
 
-    @property
-    def internal_name(self):
-        return self.declared_to_internal(self.name)
+def is_iter(obj):
+    """Return True if the argument is list-like."""
+    return hasattr(obj, '__iter__')
 
-    @staticmethod
-    def internal_to_declared(name):
-        """
-        Make the conversion
-            __s --> :
-            __i --> +
-            __a --> ?
-        """
-        for old, new in _SPECIAL_CONVERSION:
-            name = name.replace(old, new)
-        return name
 
-    @staticmethod
-    def declared_to_internal(name):
-        """
-        Make the conversion
-             : --> __s
-             + --> __i
-             ? --> __a
-        """
-        for new, old in _SPECIAL_CONVERSION:
-            name = name.replace(old, new)
-        return name
+#def is_scalar(obj):
+#    """Return True if the argument is not list-like."""
+#    return not is_iter
 
+
+def flatten(iterable):
+    """Make an iterable flat, i.e. a 1d iterable object."""
+    iterator = iter(iterable)
+    array, stack = collections.deque(), collections.deque()
+    while True:
+        try:
+            value = next(iterator)
+        except StopIteration:
+            if not stack:
+                return tuple(array)
+            iterator = stack.pop()
+        else:
+            if not isinstance(value, str) \
+               and isinstance(value, collections.Iterable):
+                stack.append(iterator)
+                iterator = iter(value)
+            else:
+                array.append(value)
+
+#def listify(obj):
+#    """Return a flat list out of the argument."""
+#    if not obj:
+#        obj = list()
+#    elif is_iter(obj):
+#        obj = list(flatten(obj))
+#    else:
+#        obj = [obj]
+#    return deepcopy(obj)

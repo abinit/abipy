@@ -34,7 +34,7 @@ from abipy.core.structure import (Lattice, Structure, StructureModifier, datafra
   mp_match_structure, mp_search, cod_search)
 from abipy.core.mixins import CubeFile
 from abipy.core.kpoints import set_atol_kdiff
-from abipy.htc.input import AbiInput, LdauParams, LexxParams, input_gen
+#from abipy.htc.input import LdauParams, LexxParams
 from abipy.abio.robots import Robot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
@@ -165,8 +165,8 @@ def dir2abifiles(top, recurse=True):
     """
     Analyze the filesystem starting from directory `top` and
     return an ordered dictionary mapping the directory name to the list
-    of files supported by `abiopen` contained within that directory.
-    If not `recurse`, children directories are not analyzed.
+    of files supported by ``abiopen`` contained within that directory.
+    If not ``recurse``, children directories are not analyzed.
     """
     dl = collections.defaultdict(list)
 
@@ -187,7 +187,7 @@ def dir2abifiles(top, recurse=True):
 
 def isabifile(filepath):
     """
-    Return True if `filepath` can be opened with `abiopen`.
+    Return True if `filepath` can be opened with ``abiopen``.
     """
     try:
         abifile_subclass_from_filename(filepath)

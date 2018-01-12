@@ -28,11 +28,9 @@ omit =
     */site-packages/*
     abipy/data/*
     abipy/examples/*
-    abipy/htc/*
     abipy/gui/*
     abipy/gw/*
     abipy/extensions/*
     abipy/gw/*
     abipy/scripts/*
-    abipy/integration_tests/*
     ./docs/

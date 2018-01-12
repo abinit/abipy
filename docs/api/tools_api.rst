@@ -53,6 +53,14 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`fftprof` Module
+---------------------
+
+.. automodule:: abipy.tools.fftprof
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`iotools` Module
 ---------------------
 

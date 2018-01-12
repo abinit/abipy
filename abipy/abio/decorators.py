@@ -13,7 +13,7 @@ try:
 except ImportError:
     from pymatgen.serializers.json_coders import pmg_serialize
 
-from abipy.htc.input import LdauParams, LexxParams
+from abipy.flowtk.abiobjects import LdauParams, LexxParams
 from .inputs import AbinitInput, MultiDataset
 
 import logging

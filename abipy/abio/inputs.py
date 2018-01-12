@@ -26,7 +26,7 @@ except ImportError:
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
-from abipy.htc.variable import InputVariable
+from abipy.abio.variable import InputVariable
 from abipy.abio.abivars import is_abivar, is_anaddb_var
 from abipy.abio.abivars_db import get_abinit_variables
 from abipy.abio.input_tags import *
@@ -1755,7 +1755,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         Returns:
             List of dictionaries with the Abinit variables defining the irreducible perturbation
-            
+
         Example:
 
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},

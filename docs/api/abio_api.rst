@@ -84,3 +84,11 @@ abio Package
    :members:
    :undoc-members:
    :show-inheritance:
+
+:mod:`variable` Module
+----------------------
+
+.. automodule:: abipy.abio.variable
+   :members:
+   :undoc-members:
+   :show-inheritance:
