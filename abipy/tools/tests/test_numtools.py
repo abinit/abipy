@@ -1,14 +1,14 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import, unicode_literals
 
 from abipy.tools.numtools import *
-from abipy.core.testing import AbiPyTest
+from abipy.core.testing import AbipyTest
 
 
 class TestTools(AbipyTest):
     """Test numtools."""
 
     def test_transpose_last3dims(self):
-        """test transpose_last3dims"""
+        """Testing transpose_last3dims"""
         arr = np.arange(120)
         arr.shape = (2, 2, 10, 3)
 
@@ -17,8 +17,7 @@ class TestTools(AbipyTest):
         assert np.all(arr == same_arr)
 
     def test_add_periodic_replicas(self):
-        """test add_periodic_replicas"""
-
+        """Testing add_periodic_replicas"""
         # 1D nd 2D case
         arr = np.array([1,2,3,4,5,6])
         new_arr = add_periodic_replicas(arr)
@@ -44,8 +43,3 @@ class TestTools(AbipyTest):
             self.assertTrue(np.all(view[...,0] == view[...,-1]))
             self.assertTrue(np.all(view[...,0,0] == view[...,-1,-1]))
             self.assertTrue(np.all(view[...,0,0,0] == view[...,-1,-1,-1]))
-
-
-if __name__ == "__main__":
-    import unittest
-    unittest.main()
