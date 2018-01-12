@@ -6,11 +6,9 @@ matrix:
   include:
     - os: linux
       python: 2.7
-      env: PYTHON_VERSION=2.7
       env: ABINIT_VERSION=8.6.1
     - os: linux
       python: 3.6
-      env: PYTHON_VERSION=3.6
       env: ABINIT_VERSION=8.6.1
 
 #dist: precise
@@ -29,12 +27,12 @@ install:
   - source dev_scripts/conda_install.sh
   - conda uninstall -y pymatgen
 
-  - if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
+  - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install nose nose-exclude
 
   # Mayavi (optional requirement)
-  #- if [[ "${PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
-  #- if [[ "${PYTHON_VERSION}" == "3.6" ]]; then conda install vtk && pip install mayavi; fi
+  #- if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mayavi; fi
+  #- if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" ]]; then conda install vtk && pip install mayavi; fi
 
   # Use gmatteo's pymatgen fork
   #- git clone --depth=50 https://github.com/gmatteo/pymatgen.git && cd pymatgen && pip install -r requirements.txt && pip install -r requirements-optional.txt && python setup.py install && cd ../
@@ -69,7 +67,7 @@ branches:
     - develop
 
 after_success:
-  - if [[ "${PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
+  - if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then coveralls; fi
 
 notifications:
   email:
