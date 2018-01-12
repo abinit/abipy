@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 
 from abipy.tools.numtools import *
-from abipy.core.testing import *
+from abipy.core.testing import AbiPyTest
 
 
 class TestTools(AbipyTest):

@@ -102,7 +102,7 @@ def build_flow(options):
     # read a submatrix when we test the convergence wrt to ecuteps.
     scr_work = flowtk.Work()
 
-    for inp in abilab.input_gen(scr_inp, nband=[10, 15]):
+    for inp in scr_inp.generate(nband=[10, 15]):
         inp.set_vars(ecuteps=max_ecuteps)
         scr_work.register_scr_task(inp, deps={bands.nscf_task: "WFK"})
 
@@ -112,7 +112,7 @@ def build_flow(options):
     # different SCR file computed with a different value of nband.
 
     # Build a list of sigma inputs with different ecuteps
-    sigma_inputs = list(abilab.input_gen(sig_inp, ecuteps=ecuteps_list))
+    sigma_inputs = list(sig_inp.generate(ecuteps=ecuteps_list))
 
     for scr_task in scr_work:
         sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)

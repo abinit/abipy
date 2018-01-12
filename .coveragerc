@@ -30,7 +30,5 @@ omit =
     abipy/examples/*
     abipy/gui/*
     abipy/gw/*
-    abipy/extensions/*
-    abipy/gw/*
     abipy/scripts/*
     ./docs/

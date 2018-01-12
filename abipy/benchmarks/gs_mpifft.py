@@ -21,7 +21,7 @@ def make_input(paw=False):
     structure = abidata.structure_from_ucell("SiO2-alpha")
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Global variables
     ecut = 24
@@ -64,7 +64,7 @@ def build_flow(options):
         for npfft in mpi_list:
             if not options.accept_mpi_omp(npfft, omp_threads): continue
             manager = options.manager.new_with_fixed_mpi_omp(npfft, omp_threads)
-            for inp in abilab.input_gen(template, fftalg=fftalg, npfft=npfft, ecut=ecut_list):
+            for inp in template.generate(fftalg=fftalg, npfft=npfft, ecut=ecut_list):
                 work.register_scf_task(inp, manager=manager)
         flow.register_work(work)
 

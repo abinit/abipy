@@ -29,7 +29,6 @@ root = os.path.dirname(__file__)
 
 __all__ = [
     "AbipyTest",
-    "AbipyFileTest",
 ]
 
 

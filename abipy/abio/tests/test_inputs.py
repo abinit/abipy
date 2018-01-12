@@ -122,6 +122,14 @@ class TestAbinitInput(AbipyTest):
         self.serialize_with_pickle(inp, test_eq=False)
         self.assertMSONable(inp)
 
+        # Test generate method.
+        ecut_list = [10, 20]
+        for i, ginp in enumerate(inp.generate(ecut=ecut_list)):
+            assert ginp["ecut"] == ecut_list[i]
+
+        inp_list = list(inp.generate(ecut=[10, 20], nsppol=[1, 2]))
+        assert len(inp_list) == 4
+
         # Test tags
         assert isinstance(inp.tags, set)
         assert len(inp.tags) == 0
