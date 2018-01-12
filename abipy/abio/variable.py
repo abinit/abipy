@@ -90,10 +90,6 @@ class InputVariable(object):
     def name(self):
         return self._name
 
-    #@name.setter
-    #def name(self, name):
-    #    self._name = name
-
     @property
     def basename(self):
         """Return the name trimmed of any dataset index."""
@@ -357,29 +353,6 @@ class InputVariable(object):
 
         return cls(name, value, units)
 
-    #@property
-    #def sorting_name(self):
-    #    """Name for sorting purposes."""
-    #    try:
-    #        letters = string.letters
-    #    except AttributeError:  # Py3
-    #        letters = string.ascii_letters
-
-    #    dataset = self.dataset
-    #    for this, that in zip(_DATASET_INDICES, letters):
-    #        dataset = dataset.replace(this, that)
-
-    #    return self.basename + '_' + dataset
-
-    #def __gt__(self, other):
-    #    return self.sorting_name > other.sorting_name
-
-    #def __lt__(self, other):
-    #    return self.sorting_name < other.sorting_name
-
-    #def __eq__(self, other):
-    #    return self.sorting_name == other.sorting_name
-
 
 def is_number(s):
     """Returns True if the argument can be made a float."""
@@ -413,13 +386,3 @@ def flatten(iterable):
                 iterator = iter(value)
             else:
                 array.append(value)
-
-#def listify(obj):
-#    """Return a flat list out of the argument."""
-#    if not obj:
-#        obj = list()
-#    elif is_iter(obj):
-#        obj = list(flatten(obj))
-#    else:
-#        obj = [obj]
-#    return deepcopy(obj)

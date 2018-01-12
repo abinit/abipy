@@ -272,8 +272,7 @@ class QpTempList(list):
         """
         Merge self with other. Return new :class:`QpTempList` object
 
-        Raise:
-            `ValueError` if merge cannot be done.
+        Raise: `ValueError` if merge cannot be done.
         """
         skb0_list = [qp.skb for qp in self]
         for qp in other:
@@ -694,8 +693,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 ax.plot(self.tmesh, self.qp_dirgaps_t[spin, ik], marker=self.marker_spin[spin],
                         label="QP gap k:%s" % repr(kpt))
                 # Add KS gaps (assumed at T=0).
-                ax.scatter(0, self.ks_dirgaps[spin, ik],
-                        label="KS gap k:%s" % repr(kpt))
+                ax.scatter(0, self.ks_dirgaps[spin, ik], label="KS gap k:%s" % repr(kpt))
 
         ax.grid(True)
         ax.set_xlabel("Temperature [K]")
@@ -724,7 +722,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             label:
             cmap: matplotlib color map.
-
 
         Returns: |matplotlib-Figure|
         """

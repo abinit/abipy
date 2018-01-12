@@ -1,4 +1,4 @@
-"""Tests for eph module."""
+"""Tests for sigeph module."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
@@ -14,8 +14,8 @@ class SigEPhFileTest(AbipyTest):
 
     def test_sigeph_file(self):
         """Tests for SigEPhFile."""
-        raise self.SkipTest("Disabled")
-        ncfile = abilab.abiopen(abidata.ref_file("test_SIGEPH.nc"))
+        #raise self.SkipTest("Disabled")
+        ncfile = abilab.abiopen(abidata.ref_file("diamond_444q_SIGEPH.nc"))
         repr(ncfile); str(ncfile)
         assert ncfile.to_string(verbose=2)
         assert ncfile.nsppol == 1 and ncfile.nspden == 1 and ncfile.nspinor == 1
@@ -31,6 +31,7 @@ class SigEPhFileTest(AbipyTest):
         assert ncfile.nband == 54
         #self.assert_almost_equal(ncfile.eta, 0.001)
         assert len(ncfile.mu_e) == ncfile.ntemp
+        assert "nbsum" in ncfile.params
 
         assert ncfile.ks_dirgaps.shape == (ncfile.nsppol, ncfile.nkcalc)
         assert ncfile.qp_dirgaps_t.shape == (ncfile.nsppol, ncfile.nkcalc, ncfile.ntemp)
@@ -79,7 +80,7 @@ class SigEPhFileTest(AbipyTest):
 
         sigma = ncfile.reader.read_sigma_eph(spin=0, sigma_kpoint=[0.5, 0, 0], band=3)
         repr(sigma); str(sigma)
-        assert sigma.to_string(verbose=2, title="Fan-Migdal")
+        assert sigma.to_string(verbose=2, title="Fan-Migdal Self-energy.")
         assert sigma.spin == 0 and sigma.band == 3 and sigma.kpoint == [0.5, 0, 0]
         assert sigma.tmesh is ncfile.tmesh
         assert sigma.wmesh.shape == (sigma.nwr,)
@@ -151,9 +152,9 @@ class SigEPhFileTest(AbipyTest):
 
     def test_sigeph_robot(self):
         """Tests for SigEPhRobot."""
-        raise self.SkipTest("Disabled")
+        #raise self.SkipTest("Disabled")
         filepaths = [
-            abidata.ref_file("test_SIGEPH.nc"),
+            abidata.ref_file("diamond_444q_SIGEPH.nc"),
         ]
         with abilab.SigEPhRobot.from_files(filepaths) as robot:
             robot.add_file("same_file", filepaths[0])
@@ -168,6 +169,7 @@ class SigEPhFileTest(AbipyTest):
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, show=False)
                 #assert robot.plot_qp_convergence(show=False)
+                #assert robot.plot_qps_vs_e0(show=False)
                 assert robot.plot_qpgaps_t(show=False)
 
             if self.has_nbformat():

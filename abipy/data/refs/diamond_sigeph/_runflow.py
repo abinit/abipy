@@ -123,14 +123,16 @@ def build_flow(options):
 def main(options):
     return build_flow(options)
 
+
 if __name__ == "__main__":
     retcode = main()
     if retcode != 0: sys.exit(retcode)
 
     rename_table = [
-        #  src, dest
-        ("_runflow/w2/t1/outdata/out_SIGEPH.nc", "test_SIGEPH.nc"),
+        # src, dest
+        ("_runflow/w2/t1/outdata/out_SIGEPH.nc", "diamond_444q_SIGEPH.nc"),
     ]
+
     import shutil
     for old, new in rename_table:
         shutil.copyfile(old, new)
