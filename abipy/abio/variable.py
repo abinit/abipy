@@ -357,28 +357,28 @@ class InputVariable(object):
 
         return cls(name, value, units)
 
-    @property
-    def sorting_name(self):
-        """Name for sorting purposes."""
-        try:
-            letters = string.letters
-        except AttributeError:  # Py3
-            letters = string.ascii_letters
+    #@property
+    #def sorting_name(self):
+    #    """Name for sorting purposes."""
+    #    try:
+    #        letters = string.letters
+    #    except AttributeError:  # Py3
+    #        letters = string.ascii_letters
 
-        dataset = self.dataset
-        for this, that in zip(_DATASET_INDICES, letters):
-            dataset = dataset.replace(this, that)
+    #    dataset = self.dataset
+    #    for this, that in zip(_DATASET_INDICES, letters):
+    #        dataset = dataset.replace(this, that)
 
-        return self.basename + '_' + dataset
+    #    return self.basename + '_' + dataset
 
-    def __gt__(self, other):
-        return self.sorting_name > other.sorting_name
+    #def __gt__(self, other):
+    #    return self.sorting_name > other.sorting_name
 
-    def __lt__(self, other):
-        return self.sorting_name < other.sorting_name
+    #def __lt__(self, other):
+    #    return self.sorting_name < other.sorting_name
 
-    def __eq__(self, other):
-        return self.sorting_name == other.sorting_name
+    #def __eq__(self, other):
+    #    return self.sorting_name == other.sorting_name
 
 
 def is_number(s):
@@ -393,11 +393,6 @@ def is_number(s):
 def is_iter(obj):
     """Return True if the argument is list-like."""
     return hasattr(obj, '__iter__')
-
-
-#def is_scalar(obj):
-#    """Return True if the argument is not list-like."""
-#    return not is_iter
 
 
 def flatten(iterable):
