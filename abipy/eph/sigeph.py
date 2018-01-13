@@ -516,7 +516,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Get important dimensions.
         self.nkcalc = r.nkcalc
         self.ntemp = r.ntemp
-        #self.nqbz = r.nqbz
+        self.nqbz = r.nqbz
         #self.nqibz = r.nqibz
         self.ngqpt = r.ngqpt
 
@@ -881,6 +881,71 @@ class SigEPhRobot(Robot, RobotWithEbands):
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             fig = ncfile.plot_qpgaps_t(ax=ax, show=False)
             ax = fig.axes[0]
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpgaps_convergence(self, itemp=0, sortby=None, hue=None, fontsize=12, **kwargs):
+        """
+        Plot the convergence of the direct gaps at given temperature for all the k-points available on file.
+
+        Args:
+            itemp: Temperature index.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function.
+                If None, no sorting is performed.
+                If string and not empty it's assumed that the ncfile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of callable(ncfile) is used.
+            hue:
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # TODO: test that nsppol, sigma_kpoints, tlist are consistent.
+        # TODO: hue option?
+        nc0 = self.abifiles[0]
+        nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
+
+        # len(sigma_kpoints) plots. Different spins (if any) are placed on the same subfigure.
+        #num_plots, ncols, nrows = len(sigma_kpoints), 1, 1
+        #if num_plots > 1:
+        #    ncols = 2
+        #    nrows = (num_plots // ncols) + (num_plots % ncols)
+        ncols, nrows = 1, len(sigma_kpoints)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        labels, ncfiles, params = self.sortby(sortby, unpack=True)
+
+        for ik, kpt in enumerate(sigma_kpoints):
+            ax = ax_list[ik]
+            for spin in range(nsppol):
+                ax.set_title("QP dirgap @ k:%s" % repr(kpt), fontsize=fontsize)
+
+                # Extract QP dirgap for [spin, kpt, itemp]
+                if hue is None:
+                    yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in ncfiles]
+                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+
+                else:
+                    for g in self.group_and_sortby(hue, sortby):
+                        yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in g.abifiles]
+                        label = "%s: %s" % (hue, g.hvalue)
+                        ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+
+            ax.grid(True)
+            if ik == len(sigma_kpoints) - 1 and duck.is_string(sortby):
+                ax.set_xlabel("%s" % sortby)
+            ax.set_ylabel("QP Direct gap [eV]")
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        # Get around a bug in matplotlib
+        #if num_plots % ncols != 0:
+        #    ax_list[-1].plot([0, 1], [0, 1], lw=0)
+        #    ax_list[-1].axis('off')
+
         return fig
 
     def write_notebook(self, nbpath=None, title=None):

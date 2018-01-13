@@ -15,7 +15,6 @@ class RobotTest(AbipyTest):
 
     def test_base_robot_class(self):
         """Testing base robot class"""
-
         # This is for the abstract interface.
         class MyRobot(Robot):
             EXT = "FOOBAR.nc"

@@ -477,10 +477,35 @@ class Robot(NotebookWriter):
 Note that this list is automatically generated.
 Not all entries are sortable (Please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
 
-    def sortby(self, func_or_string, reverse=False):
+    def _sortby_labelfile_list(self, labelfile_list, func_or_string, reverse=False, unpack=False):
+        """
+        Return: list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
+            or labels, abifiles, params if ``unpack``
+        """
+        if not func_or_string:
+            items = [(label, abifile, label) for (label, abifile) in labelfile_list]
+            if not unpack:
+                return items
+            else:
+                return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
+
+        elif callable(func_or_string):
+            items = [(label, abifile, func_or_string(abifile)) for (label, abifile) in labelfile_list]
+
+        else:
+            # Assume string and attribute with the same name.
+            self.is_sortable(func_or_string, raise_exc=True)
+            items = [(label, abifile, getattr(abifile, func_or_string)) for (label, abifile) in labelfile_list]
+
+        items = sorted(items, key=lambda t: t[2], reverse=reverse)
+        if not unpack:
+            return items
+        else:
+            return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
+
+    def sortby(self, func_or_string, reverse=False, unpack=False):
         """
         Sort files in the robot by ``func_or_string``.
-        Return list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
 
         Args:
             func_or_string: Either None, string, callable defining the quantity to be used for sorting.
@@ -488,17 +513,43 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                 If callable, the output of callable(abifile) is used.
                 If None, no sorting is performed.
             reverse: If set to True, then the list elements are sorted as if each comparison were reversed.
-        """
-        if not func_or_string:
-            return [(label, abifile, label) for (label, abifile) in self]
-        elif callable(func_or_string):
-            items = [(label, abifile, func_or_string(abifile)) for (label, abifile) in self]
-        else:
-            # Assume string and attribute with the same name.
-            self.is_sortable(func_or_string, raise_exc=True)
-            items = [(label, abifile, getattr(abifile, func_or_string)) for (label, abifile) in self]
+            unpack: Return (labels, abifiles, params) if True
 
-        return sorted(items, key=lambda t: t[2], reverse=reverse)
+        Return: list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
+            or labels, abifiles, params if ``unpack``
+        """
+        labelfile_list = [t for t in self]
+        return self._sortby_labelfile_list(labelfile_list, func_or_string, reverse=reverse, unpack=unpack)
+
+    def group_and_sortby(self, hue, func_or_string):
+        """
+        Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
+
+        Args:
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of callable(abifile) is used.
+            func_or_string: Either None, string, callable defining the quantity to be used for sorting.
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of callable(abifile) is used.
+                If None, no sorting is performed.
+
+        Yields: :class:`HueGroup` instance.
+        """
+        def sort_and_groupby(items, key, reverse=False):
+            """Sort items use ``key`` function and invoke groupby to group items."""
+            from itertools import groupby
+            return groupby(sorted(items, key=key, reverse=reverse), key=key)
+
+        # Group by hue
+        items = [(label, abifile) for (label, abifile) in self]
+        key = lambda t: hue(t[1]) if callable(hue) else getattr(t[1], hue)
+
+        for hvalue, labelfile_list in sort_and_groupby(items, key=key):
+            # Use func_or_string to sort each group
+            labels, abifiles, xvalues = self._sortby_labelfile_list(labelfile_list, func_or_string, unpack=True)
+            yield HueGroup(hvalue, xvalues, abifiles, labels)
 
     def close(self):
         """
@@ -621,3 +672,23 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             nbv.new_code_cell("robot.get_lattice_dataframe()"),
             nbv.new_code_cell("#robot.get_coords_dataframe()"),
         ]
+
+
+class HueGroup(object):
+    """
+    This small object is used by ``group_and_sortby`` to store information abouth the group.
+    """
+
+    def __init__(self, hvalue, xvalues, abifiles, labels):
+        """
+        Args:
+            hvalue: Hue value.
+            xvalues: abifiles are sorted by ``func_or_string`` and these are the values
+                associated to ``abifiles``.
+            abifiles: List of file with this hue value.
+            labels: List of labels associated to ``abifiles``.
+        """
+        self.hvalue = hvalue
+        self.abifiles = abifiles
+        self.labels = labels
+        self.xvalues = xvalues

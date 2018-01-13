@@ -29,6 +29,8 @@ class SigEPhFileTest(AbipyTest):
         assert ncfile.symsigma == 0
         assert ncfile.ntemp ==  6
         assert ncfile.nband == 54
+        assert ncfile.nqbz == ncfile.ngqpt.prod()
+        #assert ncfile.nqibz == ..
         #self.assert_almost_equal(ncfile.eta, 0.001)
         assert len(ncfile.mu_e) == ncfile.ntemp
         assert "nbsum" in ncfile.params
@@ -170,7 +172,14 @@ class SigEPhFileTest(AbipyTest):
                 assert robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, show=False)
                 #assert robot.plot_qp_convergence(show=False)
                 #assert robot.plot_qps_vs_e0(show=False)
-                assert robot.plot_qpgaps_t(show=False)
+                try:
+                    assert robot.plot_qpgaps_t(show=False)
+                except ValueError:
+                    # workaround for matplotlib bug
+                    pass
+
+                assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
+                assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqbz", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -86,10 +86,10 @@ def flow_main(main):  # pragma: no cover
                 else:
                     print("Validation succeeded")
 
-            if options.remove and os.path.isdir(options.workdir):
-                print("Removing old directory:", options.workdir)
+            if options.remove and os.path.isdir(flow.workdir):
+                print("Removing old directory:", flow.workdir)
                 import shutil
-                shutil.rmtree(options.workdir)
+                shutil.rmtree(flow.workdir)
 
             if options.dry_run:
                 print("Dry-run mode.")
