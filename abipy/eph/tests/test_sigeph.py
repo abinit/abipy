@@ -24,14 +24,14 @@ class SigEPhFileTest(AbipyTest):
         self.assert_equal(ncfile.ebands.kpoints.ksampling.mpdivs, [4, 4, 4])
 
         assert ncfile.nkcalc == 2
-        #assert ncfile.reader.nqbz == 64
         self.assert_equal(ncfile.ngqpt.flatten(), [4, 4, 4])
         assert ncfile.symsigma == 0
         assert ncfile.ntemp ==  6
         assert ncfile.nband == 54
         assert ncfile.nqbz == ncfile.ngqpt.prod()
-        #assert ncfile.nqibz == ..
+        assert ncfile.nqibz == 8
         #self.assert_almost_equal(ncfile.eta, 0.001)
+        assert ncfile.has_spectral_function and ncfile.reader.nwr == 101
         assert len(ncfile.mu_e) == ncfile.ntemp
         assert "nbsum" in ncfile.params
 
@@ -179,7 +179,7 @@ class SigEPhFileTest(AbipyTest):
                     pass
 
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
-                assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqbz", show=False)
+                assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))
