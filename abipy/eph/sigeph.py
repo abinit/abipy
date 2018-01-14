@@ -1164,6 +1164,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.get_dataframe_params()"),
             nbv.new_code_cell("# data = robot.get_dataframe()\ndata"),
             nbv.new_code_cell("robot.plot_qpgaps_convergence(itemp=0, sortby=None, hue=None);"),
             #nbv.new_code_cell("robot.plot_qpgaps_t(sortby=None);"),
