@@ -19,6 +19,7 @@ class PspsFileTestCase(AbipyTest):
             repr(psps); print(psps)
             r = psps.reader
             assert r.usepaw == 0 and r.ntypat == 1
+            assert not psps.params
 
             if self.has_matplotlib():
                 psps.plot(what="all", with_qn=True, show=False)

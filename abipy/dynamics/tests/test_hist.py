@@ -14,6 +14,7 @@ class HistFileTest(AbipyTest):
         hist = HistFile(abidata.ref_file("sic_relax_HIST.nc"))
         repr(hist); str(hist)
         hist.to_string(verbose=2)
+        assert not hist.params
 
         an = hist.get_relaxation_analyzer()
         assert hist.num_steps == 7

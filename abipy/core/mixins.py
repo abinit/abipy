@@ -167,6 +167,13 @@ class AbinitNcFile(_File):
         """String with abinit version: three digits separated by comma."""
         return self.reader.rootgrp.getncattr("abinit_version")
 
+    @abc.abstractproperty
+    def params(self):
+        """
+        :class:`OrderedDict` with the convergence parameters
+        Used to construct |pandas-DataFrames|.
+        """
+
 
 @six.add_metaclass(abc.ABCMeta)
 class AbinitFortranFile(_File):
@@ -299,6 +306,16 @@ class Has_ElectronBands(object):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
 
+    def get_ebands_params(self):
+        """:class:`OrderedDict` with the convergence parameters."""
+        return collections.OrderedDict([
+            ("nsppol", self.nsppol),
+            ("nspinor", self.nspinor),
+            ("nspden", self.nspden),
+            ("nband", self.nband),
+            ("nkpt", self.nkpt),
+        ])
+
     def plot_ebands(self, **kwargs):
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
         return self.ebands.plot(**kwargs)
@@ -309,11 +326,19 @@ class Has_ElectronBands(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_PhononBands(object):
-    """Mixin class for :class:`AbinitNcFile` containing phonon data."""
+    """
+    Mixin class for :class:`AbinitNcFile` containing phonon data.
+    """
 
     @abc.abstractproperty
     def phbands(self):
         """Returns the |PhononBands| object."""
+
+    def get_phbands_params(self):
+        """:class:`OrderedDict` with the convergence parameters."""
+        return collections.OrderedDict([
+            ("nqpt", len(self.phbands.qpoints)),
+        ])
 
     def plot_phbands(self, **kwargs):
         """
@@ -533,5 +558,9 @@ class Has_Header(object):
     def hdr(self):
         """|AttrDict| with the Abinit header e.g. hdr.ecut."""
         return self.reader.read_abinit_hdr()
+
+    #def get_hdr_params(self):
+    #    """:class:`OrderedDict` with the convergence parameters."""
+    #    return collections.OrderedDict([
 
     #def compare_hdr(self, other_hdr):

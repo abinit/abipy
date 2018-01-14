@@ -15,6 +15,7 @@ class EphFileTest(AbipyTest):
         ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_EPH.nc"))
         repr(ncfile); str(ncfile)
         assert ncfile.to_string(verbose=2)
+        assert ncfile.params["nspinor"] == ncfile.nspinor
         assert ncfile.structure.formula == "Al1" and len(ncfile.structure) == 1
         # Ebands
         assert ncfile.nsppol == 1 and ncfile.nspden == 1 and ncfile.nspinor == 1
@@ -89,6 +90,9 @@ class EphRobotTest(AbipyTest):
             repr(robot); str(robot)
             robot.to_string(verbose=2)
             #assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
+
+            df_params = robot.get_dataframe_params()
+            self.assert_equal(df_params["nspden"].values, 1)
 
             data = robot.get_dataframe(with_geo=True)
             assert "lambda_qcoarse" in data and "omegalog_qintp" in data

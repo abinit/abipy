@@ -535,7 +535,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                 If callable, the output of callable(abifile) is used.
                 If None, no sorting is performed.
 
-        Yields: :class:`HueGroup` instance.
+        Return: List of :class:`HueGroup` instance.
         """
         def sort_and_groupby(items, key, reverse=False):
             """Sort items use ``key`` function and invoke groupby to group items."""
@@ -546,10 +546,12 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         items = [(label, abifile) for (label, abifile) in self]
         key = lambda t: hue(t[1]) if callable(hue) else getattr(t[1], hue)
 
+        groups = []
         for hvalue, labelfile_list in sort_and_groupby(items, key=key):
             # Use func_or_string to sort each group
             labels, abifiles, xvalues = self._sortby_labelfile_list(labelfile_list, func_or_string, unpack=True)
-            yield HueGroup(hvalue, xvalues, abifiles, labels)
+            groups.append(HueGroup(hvalue, xvalues, abifiles, labels))
+        return groups
 
     def close(self):
         """
@@ -650,6 +652,27 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         """Return |pandas-DataFrame| with atomic positions."""
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.coords
+
+    def get_dataframe_params(self, abspath=False):
+        """
+        Return |pandas-DataFrame| with the most important parameters.
+        that are usually subject to convergence studies.
+
+        Args:
+            abspath: True if paths in index should be absolute. Default: Relative to `top`.
+        """
+        rows, row_names = [], []
+        for label, abifile in self:
+            if not hasattr(abifile, "params"):
+                import warnings
+                warnings.warn("%s does not have `params` attribute" % type(abifile))
+                break
+            rows.append(abifile.params)
+            row_names.append(label)
+
+        row_names = row_names if abspath else self._to_relpaths(row_names)
+        import pandas as pd
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     ##############################################
     # Helper functions to plot pandas dataframes #

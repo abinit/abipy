@@ -26,6 +26,7 @@ class AnaddbNcFileTest(AbipyTest):
             assert anc.dchide is not None
             assert anc.oscillator_strength is not None
             assert anc.ifc is None
+            assert not anc.params
 
             if self.has_nbformat():
                 anc.write_notebook(nbpath=self.get_tmpname(text=True))

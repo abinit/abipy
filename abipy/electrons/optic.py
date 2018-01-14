@@ -226,6 +226,12 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """Close the file."""
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
+
     @staticmethod
     def get_linopt_latex_label(what, comp):
         """

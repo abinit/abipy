@@ -18,6 +18,7 @@ class GrunsFileTest(AbipyTest):
             assert ncfile.structure.formula == "Mg2 Si1"
             assert ncfile.iv0 == 1
             #assert len(ncfile.volumes) == 3
+            assert not ncfile.params
 
             d = ncfile.doses
             assert d is ncfile.doses

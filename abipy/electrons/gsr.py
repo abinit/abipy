@@ -189,6 +189,15 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         return self.reader.read_abinit_xcfunc()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        od["ecut"] = float(self.ecut)
+        #if self.usepaw == 1
+        #    od["pawecutdg"] = float(self.pawecutdg)
+        return od
+
     def close(self):
         self.reader.close()
 

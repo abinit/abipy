@@ -17,6 +17,7 @@ class TestWFKFile(AbipyTest):
         repr(wfk); str(wfk)
         assert len(wfk.to_string(verbose=2))
         assert wfk.nsppol == 1 and wfk.nspinor == 1 and wfk.nspden == 1
+        assert wfk.params["nspinor"] == wfk.nspinor
 
         spin, kpoint, band = (0, 0, 0)
         with self.assertRaises(ValueError):

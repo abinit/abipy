@@ -238,6 +238,12 @@ class DdkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #    """:class:`XcFunc object with info on the exchange-correlation functional."""
     #    return self.reader.read_abinit_xcfunc()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
+
     def close(self):
         """Close the file."""
         self.reader.close()

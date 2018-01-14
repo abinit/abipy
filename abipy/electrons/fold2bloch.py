@@ -134,6 +134,12 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         self.reader.close()
 
     @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
+
+    @lazy_property
     def uf_eigens(self):
         """[nsppol, nk_unfolded, nband] |numpy-array| with unfolded eigenvalues in eV."""
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")

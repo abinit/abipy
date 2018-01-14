@@ -37,6 +37,7 @@ def _latex_symbol_cplxmode(symbol, cplx_mode):
             "angle": r"$Phase(" + symbol + ")$"}[cplx_mode]
 
 
+# TODO: Should contain ElectronBands.
 class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     """
     This object provides an interface to the ``SCR.nc`` file produced by the GW code.
@@ -152,6 +153,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         |AttrDict| with the most important parameters used to compute the screening
         keys can be accessed with the dot notation i.e. ``params.zcut``.
         """
+        #od = self.get_ebands_params()
         return self.reader.read_params()
 
     @add_fig_kwargs

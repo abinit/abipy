@@ -54,6 +54,10 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def close(self):
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        return {}
+
     def __str__(self):
         return self.to_string()
 

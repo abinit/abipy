@@ -19,6 +19,7 @@ class DensityNcFileTest(AbipyTest):
             assert denc.structure.formula == "Si2"
             assert denc.ebands.structure == denc.structure
             assert str(denc.xc) == "LDA_XC_TETER93"
+            assert denc.params["nsppol"] == 1
 
             # Kpoint sampling
             # kptopt1 1 ngkpt1 8 8 8 nshiftk1 1 shiftk1   0 0 0

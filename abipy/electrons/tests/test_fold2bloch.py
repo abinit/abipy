@@ -19,6 +19,7 @@ class Fold2BlochTest(AbipyTest):
             assert fb.nss == 1 and fb.uf_nkpt == 252
             assert fb.ebands is not None
             assert fb.structure.formula == "H6"
+            assert fb.params["nspden"] == fb.nspden
             r = fb.get_spectral_functions()
             nw = len(r.mesh)
             assert r.sfw.shape == (fb.nss, fb.uf_nkpt, nw)

@@ -87,6 +87,9 @@ class GSRFileTestCase(AbipyTest):
             self.assert_almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             self.assert_almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
 
+            assert gsr.params["nband"] == 8
+            assert gsr.params["nkpt"] == 29
+
             # Test energy_terms
             eterms = gsr.energy_terms
             repr(eterms); str(eterms)
@@ -187,6 +190,9 @@ class GstRobotTest(AbipyTest):
         assert "energy" in df
         self.assert_equal(df["ecut"].values, 6.0)
         self.assert_almost_equal(df["energy"].values, -241.2364683)
+
+        df_params = robot.get_dataframe_params()
+        assert "nband" in df_params
 
         assert "angle1" in robot.get_lattice_dataframe()
         assert hasattr(robot.get_coords_dataframe(), "keys")

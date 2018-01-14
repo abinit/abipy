@@ -82,6 +82,7 @@ class TestSigresFile(AbipyTest):
         sigres = abilab.abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
         assert sigres.nsppol == 1
         sigres.print_qps(precision=5, ignore_imag=False)
+        assert sigres.params["nsppol"] == sigres.nsppol
 
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6
@@ -94,7 +95,7 @@ class TestSigresFile(AbipyTest):
             -0.25, 0.5, 0.25,
             0.5, 0, 0,
             0, 0, 0
-        ], (-1,3))
+        ], (-1, 3))
 
         self.assert_almost_equal(sigres.ibz.frac_coords, kptgw_coords)
 
@@ -207,6 +208,7 @@ class TestSigresPlotter(AbipyTest):
 
 
 class SigresRobotTest(AbipyTest):
+
     def test_sigres_robot(self):
         """Testing SIGRES robot."""
         filepaths = abidata.ref_files(
@@ -228,6 +230,9 @@ class SigresRobotTest(AbipyTest):
             repr(robot); str(robot)
             assert robot.to_string(verbose=2)
             assert robot._repr_html_()
+
+            df_params = robot.get_dataframe_params()
+            self.assert_equal(df_params["nsppol"].values, 1)
 
             label_ncfile_param = robot.sortby("nband")
             assert [t[2] for t in label_ncfile_param] == [10, 20, 30]

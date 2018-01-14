@@ -315,6 +315,7 @@ class DielectricFunction(object):
         return f.plot_ax(ax, **kwargs)
 
 
+# TODO: Should have ElectronBands
 class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     Usage example:
@@ -365,6 +366,16 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def structure(self):
         """|Structure| object."""
         return self.reader.read_structure()
+
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        return self.reader.read_params()
+        #od = self.get_ebands_params()
+        #od = OrderedDict([
+        #    ("nsppol", self.nsppol),
+        #])
+        #return od
 
     @lazy_property
     def exc_mdf(self):

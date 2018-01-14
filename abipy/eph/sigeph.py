@@ -39,14 +39,12 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
     .. Attributes:
 
-        spin: spin index (C convention, i.e >= 0)
+        spin: Spin index (C convention, i.e >= 0)
         kpoint: |Kpoint| object.
         band: band index. (C convention, i.e >= 0).
         tmesh: Temperature mesh in Kelvin.
         e0: Initial KS energy.
         qpe: Quasiparticle energy (complex) computed with the perturbative approach.
-        sigxme: Matrix element of Sigma_x.
-        sigcmee0: Matrix element of Sigma_c(e0) with e0 being the KS energy.
         ze0: Renormalization factor computed at e=e0.
 
     .. note::
@@ -58,6 +56,16 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
     def qpeme0(self):
         """E_QP[T] - E_0"""
         return self.qpe - self.e0
+
+    @property
+    def re_qpe(self):
+        """Real part of the QP energy."""
+        return self.qpe.real
+
+    @property
+    def imag_qpe(self):
+        """Imaginay part of the QP energy."""
+        return self.qpe.imag
 
     @property
     def skb(self):
@@ -93,7 +101,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
     def get_dataframe(self, index=None, params=None):
         """
         Args:
-            index:
+            index: dataframe index.
             params: Optional (Ordered) dictionary with extra parameters.
 
         Return: |pandas-DataFrame|
@@ -206,7 +214,7 @@ def _get_fields_for_plot(vs, with_fields, exclude_fields):
 
 class QpTempList(list):
     """
-    A list of quasiparticle corrections for a given spin.
+    A list of quasiparticle corrections (usually for a given spin).
     """
     def __init__(self, *args, **kwargs):
         super(QpTempList, self).__init__(*args)
@@ -485,7 +493,7 @@ class EphSelfEnergy(object):
 
         if "title" not in kwargs:
             title = "K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin)
-            fig.suptitle(title)
+            fig.suptitle(title, fontsize=fontsize)
 
         return fig
 
@@ -649,7 +657,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def params(self):
-        """:class:`OrderedDict` with the convergence parameters, e.g. nbsum."""
+        """:class:`OrderedDict` with the convergence parameters, e.g. ``nbsum``."""
         return OrderedDict([
             ("nbsum", self.nbsum),
             ("zcut", self.zcut),
@@ -681,7 +689,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             spin: Spin index.
             sigma_kpoint: K-point in self-energy
-            index:
+            index: dataframe index.
             with_params: False to exclude calculation parameters from the dataframe.
             ignore_imag: Only real part is returned if ``ignore_imag``.
         """
@@ -698,12 +706,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #def get_dirgaps_dataframe(self):
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, ax=None, fontsize=12, **kwargs):
+    def plot_qpgaps_t(self, ax=None, plot_delta=False, fontsize=12, **kwargs):
         """
         Plot the KS and the QP(T) direct gaps for all the k-points available on file.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            plot_delta: If True, plot QP_gap - KS_gap
             fontsize: legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -718,16 +727,69 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         for spin in range(self.nsppol):
             for ik, kpt in enumerate(self.sigma_kpoints):
-                # Plot QP_{spin,kpt}(T)
-                ax.plot(self.tmesh, self.qp_dirgaps_t[spin, ik], marker=self.marker_spin[spin],
-                        label="QP gap k:%s" % repr(kpt))
-                # Add KS gaps (assumed at T=0).
-                ax.scatter(0, self.ks_dirgaps[spin, ik], label="KS gap k:%s" % repr(kpt))
+                if not plot_delta:
+                    # Plot QP_{spin,kpt}(T)
+                    ax.plot(self.tmesh, self.qp_dirgaps_t[spin, ik], marker=self.marker_spin[spin],
+                            label="QP gap k:%s" % repr(kpt))
+                    # Add KS gaps (assumed at T=0).
+                    ax.scatter(0, self.ks_dirgaps[spin, ik], label="KS gap k:%s" % repr(kpt))
+                else:
+                    # Plot QP_{spin,kpt}(T) - KS_gap
+                    ax.plot(self.tmesh, self.qp_dirgaps_t[spin, ik] - self.ks_dirgaps[spin, ik],
+                            marker=self.marker_spin[spin], label="QP-KS gap k:%s" % repr(kpt))
 
         ax.grid(True)
         ax.set_xlabel("Temperature [K]")
-        ax.set_ylabel("Direct gap [eV]")
+        if plot_delta:
+            ax.set_ylabel("QP-KS gap [eV]")
+        else:
+            ax.set_ylabel("Direct gap [eV]")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpdata_t(self, spin, sigma_kpoint, band_list=None, fontsize=12, **kwargs):
+        """
+        Plot the QP results as function T for a given (spin, k-point) and all bands.
+
+        Args:
+            spin: Spin index
+            sigma_kpoint: self-energy K-point
+            band_list: List of band indices to be included. If None, all bands are shown.
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # TODO: Add more quantities DW, Fan(0)
+        # Quantities to plot.
+        what_list = ["re_qpe", "imag_qpe", "ze0"]
+
+        # Build grid plot.
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # Read all QPs for this (spin, sigma_kpoint) and all bands.
+        qp_list = self.reader.read_qplist_sk(spin, sigma_kpoint)
+
+        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+            # Plot QP(T)
+            for qp in qp_list:
+                if band_list is not None and qp.band not in band_list: continue
+                yvals = getattr(qp, what)
+                ax.plot(qp.tmesh, yvals, marker=self.marker_spin[spin],
+                        label="band: %s" % qp.band)
+
+            ax.grid(True)
+            ax.set_ylabel(what)
+            if i == len(what_list) - 1: ax.set_xlabel("Temperature [K]")
+            if i == 0: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        if "title" not in kwargs:
+            title = "QP results spin:%s, k:%s" % (spin, repr(qp_list[0].kpoint))
+            fig.suptitle(title, fontsize=fontsize)
 
         return fig
 
@@ -774,7 +836,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             #nbv.new_code_cell("ncfile.get_dirgaps_dataframe()"),
             #nbv.new_code_cell("alldata = ncfile.get_dataframe()\nalldata"),
             nbv.new_code_cell("ncfile.plot_qpgaps_t();"),
+            nbv.new_code_cell("ncfile.plot_qpgaps_t(plot_delta=True);"),
             nbv.new_code_cell("ncfile.plot_qps_vs_e0();"),
+            nbv.new_code_cell("""\
+for spin in range(ncfile.nsppol):
+    for sigma_kpoint in ncfile.sigma_kpoints:
+        ncfile.plot_qpdata_t(spin, sigma_kpoint, band_list=None, fontsize=12);"""),
+            nbv.new_code_cell("#df = ncfile.get_dataframe_sk(spin=0, sigma_kpoint=(0, 0, 0))"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -808,7 +876,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             # FIXME
             # Different values of bstart_ks are difficult to handle
             # Because the high-level API assumes an absolute global index
-            # Should decided how to treat this case: either raise or interpret band as an absolute band index.
+            # Should decide how to treat this case: either raise or interpret band as an absolute band index.
             if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstart_sk")
             if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
@@ -899,6 +967,10 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
+        # Make sure that nsppol, sigma_kpoints, and tmesh are consistent.
+        self._check_dims_and_params()
+
+        # TODO: Refactor
         ax_list = None
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             sigma = ncfile.reader.read_sigma_eph(spin, sigma_kpoint, band)
@@ -942,7 +1014,8 @@ class SigEPhRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_qpgaps_convergence(self, itemp=0, sortby=None, hue=None, fontsize=12, **kwargs):
         """
-        Plot the convergence of the direct gaps at given temperature for all the k-points available on file.
+        Plot the convergence of the direct QP gaps at given temperature
+        for all the k-points available on file.
 
         Args:
             itemp: Temperature index.
@@ -952,12 +1025,15 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 If string and not empty it's assumed that the ncfile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of callable(ncfile) is used.
-            hue:
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of callable(abifile) is used.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        # test that nsppol, sigma_kpoints, tlist are consistent.
+        # Make sure that nsppol, sigma_kpoints, and tmesh are consistent.
         self._check_dims_and_params()
 
         nc0 = self.abifiles[0]
@@ -968,7 +1044,10 @@ class SigEPhRobot(Robot, RobotWithEbands):
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        labels, ncfiles, params = self.sortby(sortby, unpack=True)
+        if hue is None:
+            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+        else:
+            groups = self.group_and_sortby(hue, sortby)
 
         for ik, kpt in enumerate(sigma_kpoints):
             ax = ax_list[ik]
@@ -980,9 +1059,8 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 if hue is None:
                     yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in ncfiles]
                     ax.plot(params, yvals, marker=nc0.marker_spin[spin])
-
                 else:
-                    for g in self.group_and_sortby(hue, sortby):
+                    for g in groups:
                         yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in g.abifiles]
                         label = "%s: %s" % (hue, g.hvalue)
                         ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
@@ -992,6 +1070,86 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 ax.set_xlabel("%s" % sortby)
             ax.set_ylabel("QP Direct gap [eV]")
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpdata_convergence(self, spin, sigma_kpoint, band,
+                                itemp=0, sortby=None, hue=None, fontsize=12, **kwargs):
+        """
+        Plot the convergence of the QP results at given temperature
+        for all the k-points available on file.
+
+        Args:
+            spin: Spin index.
+            sigma_kpoint:
+            band: Band index.
+            itemp: Temperature index.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function.
+                If None, no sorting is performed.
+                If string and not empty it's assumed that the ncfile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of callable(ncfile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of callable(abifile) is used.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Make sure that nsppol, sigma_kpoints, and tmesh are consistent.
+        self._check_dims_and_params()
+
+        # TODO: Add more quantities DW, Fan(0)
+        # Quantities to plot.
+        what_list = ["re_qpe", "imag_qpe", "ze0"]
+
+        # Build grid plot.
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        nc0 = self.abifiles[0]
+        ik = nc0.sigkpt2index(sigma_kpoint)
+        sigma_kpoint = nc0.sigma_kpoints[ik]
+
+        # Sort and read QP data.
+        if hue is None:
+            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+            qplist = [ncfile.reader.read_qp(spin, sigma_kpoint, band) for ncfile in ncfiles]
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+            qplist_group = []
+            for g in groups:
+                lst = [ncfile.reader.read_qp(spin, sigma_kpoint, band) for ncfile in g.abifiles]
+                qplist_group.append(lst)
+
+        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+            if hue is None:
+                # Extract QP data.
+                yvals = [getattr(qp, what)[itemp] for qp in qplist]
+                ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+            else:
+                for g, qplist in zip(groups, qplist_group):
+                    # Extract QP data.
+                    yvals = [getattr(qp, what)[itemp] for qp in qplist]
+                    label = "%s: %s" % (hue, g.hvalue)
+                    ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+
+            ax.grid(True)
+            ax.set_ylabel(what)
+            if i == len(what_list) - 1 and duck.is_string(sortby):
+                ax.set_xlabel("%s" % sortby)
+            if i == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        if "title" not in kwargs:
+            title = "QP results spin: %s, k:%s, band: %s, T = %.1f K" % (
+                    spin, repr(sigma_kpoint), band, nc0.tmesh[itemp])
+            fig.suptitle(title, fontsize=fontsize)
 
         return fig
 
@@ -1006,9 +1164,22 @@ class SigEPhRobot(Robot, RobotWithEbands):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.SigEPhRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("data = robot.get_dataframe()\ndata"),
-            nbv.new_code_cell("robot.plot_qpgaps_t(sortby=None);"),
-            nbv.new_code_cell("robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, itemp=0, sortby=None);"),
+            nbv.new_code_cell("# data = robot.get_dataframe()\ndata"),
+            nbv.new_code_cell("robot.plot_qpgaps_convergence(itemp=0, sortby=None, hue=None);"),
+            #nbv.new_code_cell("robot.plot_qpgaps_t(sortby=None);"),
+            nbv.new_code_cell("""\
+nc0 = robot.abifiles[0]
+for spin in range(nc0.nsppol):
+    for ik, sigma_kpoint in enumerate(nc0.sigma_kpoints):
+        for band in range(nc0.bstart_sk[spin, ik], nc0.bstop_sk[spin, ik]):
+            robot.plot_qpdata_convergence(spin, sigma_kpoint, band, itemp=0, sortby=None, hue=None);"""),
+
+            nbv.new_code_cell("""\
+#nc0 = robot.abifiles[0]
+#for spin in range(nc0.nsppol):
+#    for ik, sigma_kpoint in enumerate(nc0.sigma_kpoints):
+#        for band in range(nc0.bstart_sk[spin, ik], nc0.bstop_sk[spin, ik]):
+#           robot.plot_selfenergy_conv(spin, sigma_kpoint, band, itemp=0, sortby=None);"),"""),
         ])
 
         # Mixins.
@@ -1153,7 +1324,7 @@ class SigmaPhReader(ElectronsReader):
 
     def read_qp(self, spin, sigma_kpoint, band, ignore_imag=False):
         """
-        Return :class:``QpTempState` for the given (spin, kpoint, band).
+        Return :class:`QpTempState` for the given (spin, kpoint, band).
         Only real part is returned if ``ignore_imag``.
         """
         spin, ik, ib, sigma_kpoint = self.get_sigma_skb_kpoint(spin, sigma_kpoint, band)

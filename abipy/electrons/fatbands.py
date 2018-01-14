@@ -282,6 +282,12 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """|Structure| object."""
         return self.ebands.structure
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
+
     def close(self):
         """Called at the end of the ``with`` context manager."""
         return self.reader.close()

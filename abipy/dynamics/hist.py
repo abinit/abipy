@@ -47,10 +47,15 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """Close the file."""
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        return {}
+
     def __str__(self):
         return self.to_string()
 
-    # TODO
+    # TODO: Add more metadata.
     #@lazy_property
     #def nsppol(self):
     #    """Number of independent spins."""

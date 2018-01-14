@@ -45,6 +45,7 @@ class TestMDF_Reader(AbipyTest):
         with MdfFile(abidata.ref_file("tbs_4o_DS2_MDF.nc")) as mdf_file:
             repr(mdf_file); str(mdf_file)
             assert len(mdf_file.structure) == 2
+            assert mdf_file.params["nsppol"] == 1
 
             exc_tsr = mdf_file.get_tensor("exc")
             rpa_tsr = mdf_file.get_tensor("rpa")
@@ -114,6 +115,8 @@ class MdfRobotTest(AbipyTest):
 
         df = robot.get_dataframe(with_geo=True)
         assert df is not None
+        df_params = robot.get_dataframe_params()
+        assert "nsppol" in df_params
 
         plotter = robot.get_multimdf_plotter()
         if self.has_matplotlib():

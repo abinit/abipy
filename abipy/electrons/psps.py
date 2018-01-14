@@ -5,6 +5,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 
 from monty.bisect import find_gt
+from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.flowtk import Pseudo
 from abipy.iotools import ETSF_Reader
@@ -80,6 +81,11 @@ class PspsFile(AbinitNcFile):
     def close(self):
         """Close the file."""
         self.reader.close()
+
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        return {}
 
     @add_fig_kwargs
     def plot(self, **kwargs):

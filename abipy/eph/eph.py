@@ -495,10 +495,11 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """|PhononBands| object with frequencies along the q-path."""
         return self.reader.read_phbands_qpath()
 
-    #@lazy_property
-    #def params(self):
-    #    """Dictionary with the parameters that are usually tested for convergence."""
-    #    return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
 
     @lazy_property
     def a2f_qcoarse(self):

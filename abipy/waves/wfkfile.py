@@ -77,6 +77,12 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def close(self):
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
+
     @property
     def structure(self):
         """|Structure| object."""

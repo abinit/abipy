@@ -49,6 +49,7 @@ class PhononBandsTest(AbipyTest):
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as nc:
             repr(nc); str(nc)
             assert nc.to_string(verbose=1)
+            assert nc.params["nqpt"] == len(nc.qpoints)
             same_phbands_nc = PhononBands.as_phbands(nc)
             self.assert_equal(same_phbands_nc.phfreqs, phbands.phfreqs)
             # a + b gives plotter

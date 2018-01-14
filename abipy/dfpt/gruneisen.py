@@ -56,6 +56,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close file."""
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        return {}
+
     def __str__(self):
         return self.to_string()
 

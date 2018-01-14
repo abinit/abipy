@@ -66,6 +66,7 @@ class SigEPhFileTest(AbipyTest):
         if self.has_matplotlib():
             # Test ncfile plot methods.
             assert ncfile.plot_qpgaps_t(show=False)
+            assert ncfile.plot_qpdata_t(spin=0, sigma_kpoint=(0, 0, 0), show=False)
 
         if self.has_nbformat():
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -98,6 +99,7 @@ class SigEPhFileTest(AbipyTest):
         assert qp.skb == (0, [0, 0, 0], 3)
         #assert len(qp.qpeme0) == qpt.ntemp
         self.assert_equal(qp.qpeme0, qp.qpe - qp.e0)
+        self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         fields = qp.get_fields()
         assert all(k in fields for k in ("qpeme0", "kpoint"))
         #self.assert_almost_equal(qp.e0, -5.04619941555265, decimal=5)
@@ -174,12 +176,18 @@ class SigEPhFileTest(AbipyTest):
                 #assert robot.plot_qps_vs_e0(show=False)
                 try:
                     assert robot.plot_qpgaps_t(show=False)
+                    assert robot.plot_qpgaps_t(plot_delta=True, show=False)
                 except ValueError:
                     # workaround for matplotlib bug
                     pass
 
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)
+
+                assert robot.plot_qpdata_convergence(spin=0, sigma_kpoint=(0, 0, 0), band=3,
+                        itemp=-1, show=False)
+                assert robot.plot_qpdata_convergence(spin=0, sigma_kpoint=(0, 0, 0), band=3,
+                        itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -24,6 +24,7 @@ class OpticTest(AbipyTest):
             self.assert_almost_equal(optic.scissor, 0.000)
             self.assert_almost_equal(optic.tolerance, 0.002)
             assert optic.reader.ntemp == 1
+            assert optic.params["nspden"] == 1
 
             assert optic.reader.computed_components["linopt"] == ["xx", "zz"]
             assert optic.reader.computed_components["shg"] == ["xyz", "yyy"]
@@ -55,6 +56,9 @@ class OpticRobotTest(AbipyTest):
             assert robot.computed_components_intersection["shg"] == ["xyz", "yyy"]
             assert robot.computed_components_intersection["leo"] == ["xyz"]
             assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
+
+            df_params = robot.get_dataframe_params()
+            self.assert_equal(df_params["nspden"].values, 1)
 
             # Test plot methods
             if self.has_matplotlib():

@@ -1307,7 +1307,7 @@ class PhononBands(object):
         Plot the phonon band structure with the phonon DOS.
 
         Args:
-            phdos: An instance of :class:`PhononDos` or a netcdf file providing a PhononDos object.
+            phdos: An instance of |PhononDos| or a netcdf file providing a PhononDos object.
             units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
@@ -1503,7 +1503,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     """
     Object used to access data stored in the PHBST.nc file produced by ABINIT.
 
-
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PhbstFile
     """
@@ -1557,6 +1556,12 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
     def close(self):
         """Close the file."""
         self.reader.close()
+
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_phbands_params()
+        return od
 
     def qindex(self, qpoint):
         """
@@ -1664,7 +1669,7 @@ class PhononDos(Function1D):
     @classmethod
     def as_phdos(cls, obj, phdos_kwargs=None):
         """
-        Return an instance of :class:`PhononDOS` from a generic obj. Supports::
+        Return an instance of |PhononDos| from a generic obj. Supports::
 
             - instances of cls
             - files (string) that can be open with abiopen and that provide one of the following attributes: [`phdos`, `phbands`]
@@ -1963,7 +1968,7 @@ class PhdosReader(ETSF_Reader):
         return self.read_value("pjdos")
 
     def read_phdos(self):
-        """Return the :class:`PhononDOS`. with the total phonon DOS"""
+        """Return the |PhononDos|. with the total phonon DOS"""
         return PhononDos(self.wmesh, self.read_value("phdos"))
 
     def read_pjdos_symbol_rc_dict(self):
@@ -1984,7 +1989,7 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_dict(self):
         """
-        Ordered dictionary mapping element symbol --> :class:`PhononDos`
+        Ordered dictionary mapping element symbol --> |PhononDos|
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol ``symbol``.
         """
@@ -2023,6 +2028,18 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        """
+        :class:`OrderedDict` with the convergence parameters
+        Used to construct |pandas-DataFrames|.
+        """
+        return {}
+        #od = OrderedDict([
+        #    ("nsppol", self.nsppol),
+        #])
+        #return od
+
     def __str__(self):
         """Invoked by str"""
         return self.to_string()
@@ -2051,7 +2068,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def phdos(self):
-        """:class:`PhononDos` object."""
+        """|PhononDos| object."""
         return self.reader.read_phdos()
 
     @lazy_property
@@ -2311,9 +2328,9 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
     Args:
         phb_objects: List of objects from which the phonon band structures are extracted.
             Each item in phb_objects is either a string with the path of the netcdf file,
-            or one of the abipy object with an ``phbands`` attribute or a :class:`PhononBands` object.
+            or one of the abipy object with an ``phbands`` attribute or a |PhononBands| object.
         phdos_objects: List of objects from which the phonon DOSes are extracted.
-            Accept filepaths or :class:`PhononDos` objects. If phdos_objects is not None,
+            Accept filepaths or |PhononDos| objects. If phdos_objects is not None,
             each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
         titles: List of strings with the titles to be added to the subplots.
         phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
@@ -2381,7 +2398,7 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
 
     Args:
         phbands_objects: List of objects that can be converted to phonon bands objects..
-            Support netcdf filenames or :class:`PhononBands` objects
+            Support netcdf filenames or |PhononBands| objects
             See ``PhononBands.as_phbands`` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
@@ -2420,9 +2437,9 @@ class PhononBandsPlotter(NotebookWriter):
         """
         Args:
             key_phbands: List of (label, phbands) tuples.
-                phbands is any object that can be converted into :class:`PhononBands` e.g. ncfile, path.
+                phbands is any object that can be converted into |PhononBands| e.g. ncfile, path.
             key_phdos: List of (label, phdos) tuples.
-                phdos is any object that can be converted into :class:`PhononDos`
+                phdos is any object that can be converted into |PhononDos|.
         """
         if key_phbands is None: key_phbands = []
         key_phbands = [(k, PhononBands.as_phbands(v)) for k, v in key_phbands]
@@ -2490,12 +2507,12 @@ class PhononBandsPlotter(NotebookWriter):
 
     @property
     def phbands_list(self):
-        """"List of `:class:PhononBands`."""
+        """"List of |PhononBands| objects."""
         return list(self._bands_dict.values())
 
     @property
     def phdoses_list(self):
-        """"List of :class:`PhononDos`."""
+        """"List of |PhononDos|."""
         return list(self._phdoses_dict.values())
 
     def iter_lineopt(self):
@@ -2519,8 +2536,8 @@ class PhononBandsPlotter(NotebookWriter):
 
         Args:
             label: label for the bands. Must be unique.
-            bands: :class:`PhononBands` object.
-            phdos: :class:`PhononDos` object.
+            bands: |PhononBands| object.
+            phdos: |PhononDos| object.
             phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
               Used only if ``phdos`` is not None.
         """
@@ -2867,7 +2884,7 @@ class PhononDosPlotter(NotebookWriter):
 
         Args:
             label: label for the phonon DOS. Must be unique.
-            phdos: :class:`PhononDos` object.
+            phdos: |PhononDos| object.
             phdos_kwargs: optional dictionary with the options passed to `get_phdos` to compute the phonon DOS.
                 Used when phdos is not already an instance of `cls` or when we have to compute the DOS from obj.
         """
@@ -3525,14 +3542,16 @@ class RobotWithPhbands(object):
 
 def open_file_phononwebsite(filename, port=8000,
                             website="http://henriquemiranda.github.io/phononwebsite",
-                            host="localhost", browser=None):
+                            host="localhost", browser=None): # pragma: no cover
     """
     Take a file, detect the type and open it on the phonon website
     Based on a similar function in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
 
     Args:
-
-    Return
+        port:
+        website: Website URL
+        host:
+        browser: Open webpage in ``browser``.
     """
     if filename.endswith(".json"):
         filetype = "json"

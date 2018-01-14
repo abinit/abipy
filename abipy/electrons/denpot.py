@@ -49,6 +49,11 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
         """Close the file."""
         self.reader.close()
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        return {}
+
 
 
 class _DenPotNcReader(ElectronsReader, FieldReader):
@@ -84,6 +89,12 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
     def xc(self):
         """:class:`XcFunc` object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
+
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        return od
 
     @lazy_property
     def field(self):

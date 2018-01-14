@@ -32,6 +32,8 @@ class DdkTest(AbipyTest):
             assert np.all(ddk.hdr["qptn"] == 0)
             #assert ddk.xc == "LDA"
 
+            assert ddk.params["nband"] == 20
+
             if self.has_nbformat():
                 assert ddk.write_notebook(nbpath=self.get_tmpname(text=True))
 

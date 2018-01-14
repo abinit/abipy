@@ -30,6 +30,7 @@ class TestElectronFatbands(AbipyTest):
         assert fbnc_kpath.mband == 8
         assert fbnc_kpath.natsph_extra == 0
         assert not fbnc_kpath.ebands.has_metallic_scheme
+        assert fbnc_kpath.params["nkpt"] == 78
 
         if self.has_matplotlib():
             assert fbnc_kpath.plot_fatbands_typeview(tight_layout=True, show=False)
