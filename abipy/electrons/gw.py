@@ -922,16 +922,17 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return Marker(*(x, y, s))
 
-    @lazy_property
-    def params(self):
-        """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
-        return self.reader.read_params()
-
     #@lazy_property
     #def params(self):
-    #    """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
-    #    od = self.get_ebands_params()
-    #    return od
+    #    """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
+    #    return self.reader.read_params()
+
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies e.g ecuteps"""
+        od = self.get_ebands_params()
+        od.update(self.reader.read_params())
+        return od
 
     def close(self):
         """Close the netcdf file."""
@@ -1775,7 +1776,7 @@ class SigresReader(ETSF_Reader):
     def read_params(self):
         """
         Read the parameters of the calculation.
-        Returns: |AttrDict| instance with the value of the parameters.
+        Returns: OrderedDict with the value of the parameters.
         """
         param_names = [
             "ecutwfn", "ecuteps", "ecutsigx", "scr_nband", "sigma_nband",
@@ -1784,13 +1785,13 @@ class SigresReader(ETSF_Reader):
 
         # Read data and convert to scalar to avoid problems with pandas dataframes.
         # Old sigres files may not have all the metadata.
-        params = AttrDict()
+        params = OrderedDict()
         for pname in param_names:
             v = self.read_value(pname, default=None)
             params[pname] = v if v is None else np.asscalar(v)
 
         # Other quantities that might be subject to convergence studies.
-        params["nkibz"] = len(self.ibz)
+        #params["nkibz"] = len(self.ibz)
 
         return params
 
