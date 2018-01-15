@@ -1936,7 +1936,7 @@ class PhononDos(Function1D):
         """
         factor = factor_ev2units("thz")
 
-        return PmgPhononDos(self.mesh*factor, self.values)
+        return PmgPhononDos(self.mesh*factor, self.values/factor)
 
 
 class PhdosReader(ETSF_Reader):
@@ -2312,7 +2312,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
         pjdos_atdir = self.reader.read_pjdos_atdir()
 
-        summed_pjdos = np.sum(pjdos_atdir, axis=1)
+        factor = factor_ev2units("thz")
+        summed_pjdos = np.sum(pjdos_atdir, axis=1) / factor
 
         pdoss = {site: pdos for site, pdos in zip(self.structure, summed_pjdos)}
 
