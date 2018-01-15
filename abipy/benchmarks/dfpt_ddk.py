@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Benchmark for DDK calculations.""" 
+"""Benchmark for DDK calculations."""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -17,7 +17,7 @@ def make_inputs(paw=False):
     Return: GS input, NSCF input, DDK input.
     """
     pseudos = abidata.pseudos("14si.pspnc", "6c.pspnc") if not paw else \
-              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "6c.lda.atompaw") 
+              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "6c.lda.atompaw")
 
     structure = abidata.structure_from_ucell("SiC")
 
@@ -25,13 +25,13 @@ def make_inputs(paw=False):
 
     # Global variables.
     global_vars = dict(
-        ecut=32,      
+        ecut=32,
         pawecutdg=32 if paw else None,
         nband=24,
         nbdbuf=4,
         # Definition of the SCF procedure
-        nstep=100,       
-        diemac=9.0,        
+        nstep=100,
+        diemac=9.0,
     )
 
     multi.set_vars(global_vars)
@@ -40,7 +40,7 @@ def make_inputs(paw=False):
     multi.set_kmesh(
         ngkpt=[16, 16, 16],
         #ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.5,     
+        shiftk=[0.0, 0.0, 0.5,
                 0.0, 0.5, 0.0,
                 0.5, 0.0, 0.0,
                 0.5, 0.5, 0.5]
@@ -49,7 +49,7 @@ def make_inputs(paw=False):
 
     multi[0].set_vars(
       kptopt=1,          # Automatic generation of k points with symmetries.
-      tolvrs=1.0e-6,     
+      tolvrs=1.0e-6,
       nband=12,
       nbdbuf=2,
     )
@@ -115,7 +115,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

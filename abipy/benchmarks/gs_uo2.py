@@ -129,7 +129,7 @@ def make_input():
     # Crystal structure with acell 3*11. angstrom natom 96 ntypat 2
     structure = abilab.Structure.from_abivars(
         acell=3 * [11. / bohr_to_ang],
-        rprim=np.eye(3), 
+        rprim=np.eye(3),
         typat=32*[1] + 64*[2],
         znucl=[92, 8],
         xred=xred,
@@ -148,7 +148,7 @@ def make_input():
         ecut=6,
         pawecutdg=10,
 
-        # SCF parameters 
+        # SCF parameters
         toldfe=1.e-5,
         nstep=28,
         #diemac 500.
@@ -163,7 +163,7 @@ def make_input():
         chksymbreak=0,
         chkprim=0,
 
-        # Bands and occupation scheme 
+        # Bands and occupation scheme
         nsppol=2,
         nband=448,
         nbdbuf=20,
@@ -223,7 +223,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

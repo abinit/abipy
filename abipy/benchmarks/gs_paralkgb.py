@@ -20,8 +20,8 @@ def make_input(paw=False):
     """
     Build and return an input file for GS calculations with paral_kgb=1
     """
-    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") 
-              #if not paw else 
+    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc")
+              #if not paw else
               #abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
     structure = abidata.structure_from_ucell("SiO2-alpha")
 
@@ -61,10 +61,10 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-      dict(npkpt=64, npband=1, npfft=2), # 128 
-      dict(npkpt=64, npband=2, npfft=2), # 256   
-      dict(npkpt=64, npband=2, npfft=4), # 512   
-      dict(npkpt=64, npband=4, npfft=4), # 1024  
+      dict(npkpt=64, npband=1, npfft=2), # 128
+      dict(npkpt=64, npband=2, npfft=2), # 256
+      dict(npkpt=64, npband=2, npfft=4), # 512
+      dict(npkpt=64, npband=4, npfft=4), # 1024
     ]
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
@@ -90,7 +90,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

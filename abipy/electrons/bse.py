@@ -368,16 +368,6 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_structure()
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
-        return self.reader.read_params()
-        #od = self.get_ebands_params()
-        #od = OrderedDict([
-        #    ("nsppol", self.nsppol),
-        #])
-        #return od
-
-    @lazy_property
     def exc_mdf(self):
         "Excitonic macroscopic dieletric function."""
         return self.reader.read_exc_mdf()

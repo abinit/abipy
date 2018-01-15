@@ -725,7 +725,7 @@ class KpointList(collections.Sequence):
     @classmethod
     def subclass_from_name(cls, name):
         """Return the class with the given name."""
-        if cls.__name__ == name: return c
+        if cls.__name__ == name: return cls
         for c in cls.__subclasses__():
             if c.__name__ == name: return c
 

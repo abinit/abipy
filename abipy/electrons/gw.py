@@ -927,11 +927,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
         return self.reader.read_params()
 
-    @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
-        od = self.get_ebands_params()
-        return od
+    #@lazy_property
+    #def params(self):
+    #    """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    #    od = self.get_ebands_params()
+    #    return od
 
     def close(self):
         """Close the netcdf file."""

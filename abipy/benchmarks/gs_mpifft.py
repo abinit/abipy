@@ -49,7 +49,7 @@ def make_input(paw=False):
 
 def build_flow(options):
     fftalg_list = [312, 402, 401]
-    ecut_list = list(range(200, 610, 100)) 
+    ecut_list = list(range(200, 610, 100))
     ecut_list = [400,]
 
     if options.mpi_list is None: mpi_list = [2, 4, 6, 8]
@@ -59,7 +59,7 @@ def build_flow(options):
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
-    for fftalg in fftalg_list: 
+    for fftalg in fftalg_list:
         work = flowtk.Work()
         for npfft in mpi_list:
             if not options.accept_mpi_omp(npfft, omp_threads): continue
@@ -76,7 +76,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

@@ -306,6 +306,10 @@ class Has_ElectronBands(object):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
 
+    @lazy_property
+    def tsmear(self):
+        return self.ebands.smearing.tsmear_ev.to("Ha")
+
     def get_ebands_params(self):
         """:class:`OrderedDict` with the convergence parameters."""
         return collections.OrderedDict([
@@ -321,6 +325,7 @@ class Has_ElectronBands(object):
         return self.ebands.plot(**kwargs)
 
     def plot_ebands_with_edos(self, edos, **kwargs):
+        """Plot the electron energy bands with DOS. See the :func:`ElectronBands.plot_with_edos` for the signature."""
         return self.ebands.plot_with_edos(edos, **kwargs)
 
 

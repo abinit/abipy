@@ -144,7 +144,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        # Build grid of plots.
+        # Build plot grid.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
@@ -318,7 +318,7 @@ class QpTempList(list):
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        # Build grid of plots.
+        # Build plot grid.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
@@ -870,7 +870,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             wapp("Comparing ncfiles with different values of nsppol.")
         if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles):
             same_nkcalc = False
-            wapp("Comparing ncfiles with different number of k-points in self-energy. Do")
+            wapp("Comparing ncfiles with different number of k-points in self-energy. Doh!")
 
         if same_nsppol and same_nkcalc:
             # FIXME
@@ -958,9 +958,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function.
                 If None, no sorting is performed.
-                If string and not empty it's assumed that the ncfile has an attribute
+                If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                If callable, the output of sortby(abifile) is used.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             cmap: matplotlib color map.
@@ -999,9 +999,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function.
                 If None, no sorting is performed.
-                If string and not empty it's assumed that the ncfile has an attribute
+                If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                If callable, the output of sortby(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
         Returns: |matplotlib-Figure|
@@ -1012,7 +1012,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, itemp=0, sortby=None, hue=None, fontsize=12, **kwargs):
+    def plot_qpgaps_convergence(self, itemp=0, sortby=None, hue=None, fontsize=8, **kwargs):
         """
         Plot the convergence of the direct QP gaps at given temperature
         for all the k-points available on file.
@@ -1022,13 +1022,13 @@ class SigEPhRobot(Robot, RobotWithEbands):
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function.
                 If None, no sorting is performed.
-                If string and not empty it's assumed that the ncfile has an attribute
+                If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                If callable, the output of sortby(abifile) is used.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of callable(abifile) is used.
+                If callable, the output of hue(abifile) is used.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1062,12 +1062,12 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 else:
                     for g in groups:
                         yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in g.abifiles]
-                        label = "%s: %s" % (hue, g.hvalue)
+                        label = "%s: %s" % (self._get_label(hue), g.hvalue)
                         ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
 
             ax.grid(True)
-            if ik == len(sigma_kpoints) - 1 and duck.is_string(sortby):
-                ax.set_xlabel("%s" % sortby)
+            if ik == len(sigma_kpoints) - 1:
+                ax.set_xlabel("%s" % self._get_label(sortby))
             ax.set_ylabel("QP Direct gap [eV]")
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -1088,13 +1088,13 @@ class SigEPhRobot(Robot, RobotWithEbands):
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function.
                 If None, no sorting is performed.
-                If string and not empty it's assumed that the ncfile has an attribute
+                If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                If callable, the output of sortby(abifile) is used.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of callable(abifile) is used.
+                If callable, the output of hue(abifile) is used.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1136,13 +1136,13 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 for g, qplist in zip(groups, qplist_group):
                     # Extract QP data.
                     yvals = [getattr(qp, what)[itemp] for qp in qplist]
-                    label = "%s: %s" % (hue, g.hvalue)
+                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
                     ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
 
             ax.grid(True)
             ax.set_ylabel(what)
-            if i == len(what_list) - 1 and duck.is_string(sortby):
-                ax.set_xlabel("%s" % sortby)
+            if i == len(what_list) - 1:
+                ax.set_xlabel("%s" % self._get_label(sortby))
             if i == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

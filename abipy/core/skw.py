@@ -175,7 +175,7 @@ class ElectronInterpolator(object):
         if self.verbose:
             print("Number of ir-kpoints: %d" % nkibz)
 
-        kshift = 0.0 if is_shift is None else 0.5 * np.asarray(kshift)
+        kshift = 0.0 if is_shift is None else 0.5 * np.asarray(is_shift)
         bz = (grid + kshift) / mesh
 
         # All k-points and mapping to ir-grid points

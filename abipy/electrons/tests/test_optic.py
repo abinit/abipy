@@ -42,8 +42,6 @@ class OpticTest(AbipyTest):
                 optic.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
-
-
 class OpticRobotTest(AbipyTest):
 
     def test_optic_robot(self):
@@ -65,6 +63,7 @@ class OpticRobotTest(AbipyTest):
                 assert robot.plot_linopt_convergence(show=False)
                 assert robot.plot_shg_convergence(show=False)
                 assert robot.plot_leo_convergence(show=False)
+                assert robot.plot_lattice_convergence(sortby="nkpt", hue="nspden", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

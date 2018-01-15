@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 from itertools import product
@@ -30,7 +30,7 @@ def make_inputs(paw=False):
 
 
     multi.set_kmesh(ngkpt=[4,4,3], shiftk=[0.0, 0.0, 0.0])
-     
+
     gs, nscf, scr, sigma = multi.split_datasets()
 
     # Dataset 1 (GS run)
@@ -46,13 +46,13 @@ def make_inputs(paw=False):
 
     # Dataset3: Calculation of the screening.
     scr.set_vars(
-        optdriver=3,   
+        optdriver=3,
         gwpara=2,
         nband=25,
-        ecutwfn=ecut,   
+        ecutwfn=ecut,
         symchi=1,
         inclvkb=0,
-        ecuteps=6.0,    
+        ecuteps=6.0,
     )
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
@@ -100,7 +100,7 @@ def build_flow(options):
             if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
             inp = sigma_inp.new_with_vars(nband=nband)
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            sigma_work.register_sigma_task(inp, manager=manager, 
+            sigma_work.register_sigma_task(inp, manager=manager,
                                            deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
         flow.register_work(sigma_work)
 
@@ -112,7 +112,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     return build_flow(options)
 
 

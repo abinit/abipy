@@ -137,8 +137,8 @@ def make_input(paw=False):
     structure = abilab.Structure.from_abivars(
         acell=3*[19.215],
         rprim=np.eye(3),
-        ntypat=1, 
-        typat=108*[1], 
+        ntypat=1,
+        typat=108*[1],
         znucl=13.0,
         xred=xred,
     )
@@ -151,11 +151,11 @@ def make_input(paw=False):
 
         ecut=3.0,
         pawecutdg=6.0 if paw else None,
-        nband=300, 
+        nband=300,
         nsppol=1,
 
         # SCF cycle parameters
-        tolvrs=1.e-3, 
+        tolvrs=1.e-3,
         nstep=50,
 
         # K-points and sym
@@ -171,7 +171,7 @@ def make_input(paw=False):
 
         # IO
         prtden=0,
-        prtwf=0, 
+        prtwf=0,
         prteig=0,
         timopt=-1,
     )
@@ -188,7 +188,7 @@ def build_flow(options):
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
     if max_ncpus is None:
         nkpt = len(template.abiget_ibz().points)
-        max_ncpus = nkpt * template["nsppol"] * template["nband"] * 4 
+        max_ncpus = nkpt * template["nsppol"] * template["nband"] * 4
     print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
 
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
@@ -223,7 +223,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

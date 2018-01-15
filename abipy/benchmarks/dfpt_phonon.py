@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Benchmark for phonon calculation with DFPT.""" 
+"""Benchmark for phonon calculation with DFPT."""
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import sys
@@ -13,7 +13,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_inputs(paw=False):
     """
-    This function constructs the input files for the phonon calculation: 
+    This function constructs the input files for the phonon calculation:
     GS input + the input files for the phonon calculation.
     """
     # Crystalline AlAs: computation of the second derivative of the total energy
@@ -24,7 +24,7 @@ def make_inputs(paw=False):
 
     # List of q-points for the phonon calculation.
     qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00, 
+             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
              5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
              2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
@@ -38,8 +38,8 @@ def make_inputs(paw=False):
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(
-        nband=12,             
-        ecut=12.0,         
+        nband=12,
+        ecut=12.0,
         pawecutdg=24.0 if paw else None,
         ngkpt=[8, 8, 8],
         nshiftk=4,
@@ -59,7 +59,7 @@ def make_inputs(paw=False):
     # i.e. the same parameters used for the k-mesh in gs_inp.
     #qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
     #print("get_ibz", qpoints)
- 
+
     ph_inp = abilab.AbinitInput(structure, pseudos)
 
     # Response-function calculation for phonons.
@@ -117,7 +117,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     return build_flow(options)
 
 

@@ -35,6 +35,7 @@ def enable_notebook(with_seaborn=True):
         sns.set(context='notebook', style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
+
 def get_abinb_workdir():
     """
     Return the absolute path of the scratch directory used to produce

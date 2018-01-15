@@ -14,7 +14,7 @@ from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
-from abipy.tools.plotting import plot_xy_with_hue
+from abipy.tools.plotting import plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 
 
 class Robot(NotebookWriter):
@@ -47,8 +47,8 @@ class Robot(NotebookWriter):
         self._abifiles, self._do_close = OrderedDict(), OrderedDict()
         self._exceptions = deque(maxlen=100)
 
-        for label, ncfile in args:
-            self.add_file(label, ncfile)
+        for label, abifile in args:
+            self.add_file(label, abifile)
 
     @classmethod
     def get_supported_extensions(self):
@@ -494,6 +494,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         else:
             # Assume string and attribute with the same name.
+            # TODO: Could try in abifile.params if not getattr(abifile, func_or_string)
             self.is_sortable(func_or_string, raise_exc=True)
             items = [(label, abifile, getattr(abifile, func_or_string)) for (label, abifile) in labelfile_list]
 
@@ -510,7 +511,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         Args:
             func_or_string: Either None, string, callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of callable(abifile) is used.
+                If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.
             reverse: If set to True, then the list elements are sorted as if each comparison were reversed.
             unpack: Return (labels, abifiles, params) if True
@@ -529,10 +530,10 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of callable(abifile) is used.
+                If callable, the output of hue(abifile) is used.
             func_or_string: Either None, string, callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of callable(abifile) is used.
+                If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.
 
         Return: List of :class:`HueGroup` instance.
@@ -683,9 +684,168 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
     def plot_xy_with_hue(*args, **kwargs):
         return plot_xy_with_hue(*args, **kwargs)
 
+    @staticmethod
+    def _get_label(func_or_string):
+        """
+        Return label associated to ``func_or_string``.
+        If callable, docstring __doc__ is used.
+        """
+        if func_or_string is None:
+            return ""
+        elif callable(func_or_string):
+            if getattr(func_or_string, "__doc__", ""):
+                return func_or_string.__doc__.strip()
+            else:
+                return func_or_string.__name__
+        else:
+            return str(func_or_string)
+
+    @add_fig_kwargs
+    def plot_convergence(self, what, sortby=None, hue=None, ax=None, fontsize=12, **kwargs):
+        """
+        Plot the convergence of ``what`` wrt the ``sortby`` parameter.
+        Values can optionally be grouped by ``hue``.
+
+        Args:
+            what: Define the quantity to plot. Accepts callable or string
+                If string, it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of what(abifile) is used.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function.
+                If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+
+        Example:
+
+             robot.plot_convergence("energy")
+
+             robot.plot_convergence("energy", sortby="nkpt")
+
+             robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        def get_yvalues(abifiles):
+            if callable(what):
+                return [float(what(a)) for a in abifiles]
+            else:
+                return [float(getattr(a, what)) for a in abifiles]
+
+        if hue is None:
+            labels, abifiles, params = self.sortby(sortby, unpack=True)
+            yvals = get_yvalues(abifiles)
+            #print("params", params, "\nyvals", yvals)
+            ax.plot(params, yvals, **kwargs)
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+            for g in groups:
+                yvals = get_yvalues(g.abifiles)
+                label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                ax.plot(g.xvalues, yvals, label=label, **kwargs)
+
+        ax.grid(True)
+        ax.set_xlabel("%s" % self._get_label(sortby))
+        ax.set_ylabel("%s" % self._get_label(what))
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_lattice_convergence(self, sortby=None, hue=None, fontsize=8, **kwargs):
+        """
+        Plot the convergence of the lattice parameters (a, b, c, alpha, beta, gamma).
+        wrt the``sortby`` parameter. Values can optionally be grouped by ``hue``.
+
+        Args:
+            what: Define the quantity to plot. Accepts callable or string
+                If string, it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of what(abifile) is used.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function.
+                If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+
+        Example:
+
+             robot.plot_lattice_convergence()
+
+             robot.plot_lattice_convergence(sortby="nkpt")
+
+             robot.plot_lattice_convergence(sortby="nkpt", hue="tsmear")
+        """
+        if not self.abifiles: return None
+
+        # The majority of AbiPy files have a structure object
+        # whereas Hist.nc defines final_structure. Use geattr and key to extract structure object.
+        key = "structure"
+        if not hasattr(self.abifiles[0], "structure"):
+            if hasattr(self.abifiles[0], "final_structure"):
+                key = "final_structure"
+            else:
+                raise TypeError("Don't know how to extract structure from %s" % type(self.abifiles[0]))
+
+        # Define callbacks. docstrings will be used as ylabels.
+        def a(afile):
+            "a [Ang]"
+            return getattr(afile, key).lattice.a
+        def b(afile):
+            "b [Ang]"
+            return getattr(afile, key).lattice.b
+        def c(afile):
+            "c [Ang]"
+            return getattr(afile, key).lattice.c
+        def alpha(afile):
+            r"$\alpha$"
+            return getattr(afile, key).lattice.alpha
+        def beta(afile):
+            r"$\beta$"
+            return getattr(afile, key).lattice.beta
+        def gamma(afile):
+            r"$\gamma$"
+            return getattr(afile, key).lattice.gamma
+
+        what_list = [a, b, c, alpha, beta, gamma]
+
+        # Build plot grid.
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+
+        for i, (ax, what) in enumerate(zip(ax_list.ravel(), what_list)):
+            self.plot_convergence(what, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize,
+                                  marker="o", show=False)
+            if i != 0 and ax.legend():
+                ax.legend().set_visible(False)
+            if i != len(what_list) - 1 and ax.xaxis.label:
+                ax.xaxis.label.set_visible(False)
+
+        return fig
+
     def get_baserobot_code_cells(self, title=None):
         """
-        Return list of jupyter_ cells with calls to methods provides by the baseclass.
+        Return list of jupyter_ cells with calls to methods provided by the base class.
         """
         # Try not pollute namespace with lots of variables.
         nbformat, nbv = self.get_nbformat_nbv()
@@ -693,6 +853,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         return [
             nbv.new_markdown_cell(title),
             nbv.new_code_cell("robot.get_lattice_dataframe()"),
+            nbv.new_code_cell("""# robot.plot_lattice_convergence(sortby="nkpt", hue="tsmear")"""),
             nbv.new_code_cell("#robot.get_coords_dataframe()"),
         ]
 

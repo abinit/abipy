@@ -100,9 +100,9 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return abs(self.cart_stress_tensor[0, 0] - 9.9999999999e+99) > 0.1
 
     #FIXME
-    @property
-    def tsmear(self):
-        return self.ebands.smearing.tsmear_ev.to("Ha")
+    #@lazy_property
+    #def tsmear(self):
+    #    return self.ebands.smearing.tsmear_ev.to("Ha")
 
     @lazy_property
     def ecut(self):

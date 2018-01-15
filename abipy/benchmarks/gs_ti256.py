@@ -287,7 +287,7 @@ def make_input(paw=True):
     # Crystal structure.
     structure = abilab.Structure.from_abivars(
         acell=[50.4, 25.2, 25.2],
-        rprim=np.eye(3), 
+        rprim=np.eye(3),
         typat=256*[1],
         znucl=22,
         xred=xred,
@@ -324,7 +324,7 @@ def make_input(paw=True):
         occopt=3,
         tsmear="1800. K",
 
-        # IO 
+        # IO
         optforces=2,
         optstress=1,
         prtwf=0,
@@ -343,9 +343,9 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-     dict(npkpt=2, npband=8 , npfft=8 ),  # 128 
-     dict(npkpt=2, npband=8 , npfft=16),  # 256 
-     dict(npkpt=2, npband=16, npfft=16),  # 512 
+     dict(npkpt=2, npband=8 , npfft=8 ),  # 128
+     dict(npkpt=2, npband=8 , npfft=16),  # 256
+     dict(npkpt=2, npband=16, npfft=16),  # 512
      dict(npkpt=2, npband=16, npfft=32),  # 1024
      dict(npkpt=2, npband=32, npfft=32),  # 2048
     ]
@@ -371,7 +371,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     return build_flow(options)
 
 

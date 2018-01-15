@@ -138,7 +138,7 @@ def make_input():
     # Crystal structure.
     structure = abilab.Structure.from_abivars(
         acell=3*[23.01],
-        rprim=np.eye(3), 
+        rprim=np.eye(3),
         typat=107*[1],
         znucl=79.,
         xred=xred,
@@ -156,7 +156,7 @@ def make_input():
         fftalg=402,
         #fftalg=302,  # To use FFTW instead of ABINIT FFT
 
-        # SCF cycle 
+        # SCF cycle
         toldfe=1.e-5,
         nstep=20,
 
@@ -169,7 +169,7 @@ def make_input():
         chksymbreak=0,
         chkprim=0,
 
-        # Bands and occupation scheme 
+        # Bands and occupation scheme
         nband=650,
         occopt=3,
         tsmear=0.002,
@@ -194,10 +194,10 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-      dict(npkpt=1, npband=13, npfft=10), # 130   
-      dict(npkpt=1, npband=26, npfft=10), # 260   
-      dict(npkpt=1, npband=65, npfft=8 ), # 520   
-      dict(npkpt=1, npband=65, npfft=16), # 1040  
+      dict(npkpt=1, npband=13, npfft=10), # 130
+      dict(npkpt=1, npband=26, npfft=10), # 260
+      dict(npkpt=1, npband=65, npfft=8 ), # 520
+      dict(npkpt=1, npband=65, npfft=16), # 1040
     ]
 
     for wfoptalg in [None, 1]:
@@ -220,7 +220,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

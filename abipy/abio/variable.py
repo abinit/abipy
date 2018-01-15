@@ -27,36 +27,36 @@ _UNITS = {
 }
 
 
-def convert_number(value):
-    """
-    Converts some object to a float or a string.
-    If the argument is an integer or a float, returns the same object.
-    If the argument is a string, tries to convert to an integer,
-    then to a float.
-    The string '1.0d-03' will be treated the same as '1.0e-03'
-    """
-    if isinstance(value, (float, int)):
-        return value
-
-    elif isinstance(value, str):
-
-        if is_number(value):
-            try:
-                val = int(value)
-            except ValueError:
-                val = float(value)
-            return val
-
-        else:
-            val = value.replace('d', 'e')
-            if is_number(val):
-                val = float(val)
-                return val
-            else:
-                raise ValueError('convert_number failed')
-
-    else:
-        raise ValueError('convert_number failed')
+#def convert_number(value):
+#    """
+#    Converts some object to a float or a string.
+#    If the argument is an integer or a float, returns the same object.
+#    If the argument is a string, tries to convert to an integer,
+#    then to a float.
+#    The string '1.0d-03' will be treated the same as '1.0e-03'
+#    """
+#    if isinstance(value, (float, int)):
+#        return value
+#
+#    elif isinstance(value, str):
+#
+#        if is_number(value):
+#            try:
+#                val = int(value)
+#            except ValueError:
+#                val = float(value)
+#            return val
+#
+#        else:
+#            val = value.replace('d', 'e')
+#            if is_number(val):
+#                val = float(val)
+#                return val
+#            else:
+#                raise ValueError('convert_number failed')
+#
+#    else:
+#        raise ValueError('convert_number failed')
 
 
 class InputVariable(object):
@@ -250,117 +250,117 @@ class InputVariable(object):
 
         return line.rstrip('\n')
 
-    @staticmethod
-    def string_to_value(sval):
-        """
-        Interpret a string variable and attempt to return a value of the
-        appropriate type.  If all else fails, return the initial string.
-        """
-        value = None
+    #@staticmethod
+    #def string_to_value(sval):
+    #    """
+    #    Interpret a string variable and attempt to return a value of the
+    #    appropriate type.  If all else fails, return the initial string.
+    #    """
+    #    value = None
 
-        try:
-            for part in sval.split():
+    #    try:
+    #        for part in sval.split():
 
-                if '*' in part:
-                    # cases like istwfk *1
-                    if part[0] == '*':
-                        value = None
-                        break
+    #            if '*' in part:
+    #                # cases like istwfk *1
+    #                if part[0] == '*':
+    #                    value = None
+    #                    break
 
-                    # cases like acell 3*3.52
-                    else:
-                        n = int(part.split('*')[0])
-                        f = convert_number(part.split('*')[1])
-                        if value is None:
-                            value = []
-                        value += n * [f]
-                        continue
+    #                # cases like acell 3*3.52
+    #                else:
+    #                    n = int(part.split('*')[0])
+    #                    f = convert_number(part.split('*')[1])
+    #                    if value is None:
+    #                        value = []
+    #                    value += n * [f]
+    #                    continue
 
-                # Fractions
-                if '/' in part:
-                    (num, den) = (float(part.split('/')[i]) for i in range(2))
-                    part = num / den
+    #            # Fractions
+    #            if '/' in part:
+    #                (num, den) = (float(part.split('/')[i]) for i in range(2))
+    #                part = num / den
 
-                # Unit
-                if part in _UNITS.keys():
+    #            # Unit
+    #            if part in _UNITS.keys():
 
-                    if value is None:
-                        warnings.warn("Could not apply the unit token '%s'." % part)
-                    elif isinstance(value, list):
-                        value.append(part)
-                    else:
-                        value = [value, part]
+    #                if value is None:
+    #                    warnings.warn("Could not apply the unit token '%s'." % part)
+    #                elif isinstance(value, list):
+    #                    value.append(part)
+    #                else:
+    #                    value = [value, part]
 
-                    # Convert
-                    if False:
-                        if isinstance(value, list):
-                            for i in range(len(value)):
-                                value[i] *= _UNITS[part]
-                        elif isinstance(value, str):
-                            value = None
-                            break
-                        else:
-                            value *= _UNITS[part]
+    #                # Convert
+    #                if False:
+    #                    if isinstance(value, list):
+    #                        for i in range(len(value)):
+    #                            value[i] *= _UNITS[part]
+    #                    elif isinstance(value, str):
+    #                        value = None
+    #                        break
+    #                    else:
+    #                        value *= _UNITS[part]
 
-                    continue
+    #                continue
 
-                # Convert
-                try:
-                    val = convert_number(part)
-                except:
-                    val = part
+    #            # Convert
+    #            try:
+    #                val = convert_number(part)
+    #            except:
+    #                val = part
 
-                if value is None:
-                    value = val
-                elif isinstance(value, list):
-                    value.append(val)
-                else:
-                    value = [value, val]
-        except:
-            value = None
+    #            if value is None:
+    #                value = val
+    #            elif isinstance(value, list):
+    #                value.append(val)
+    #            else:
+    #                value = [value, val]
+    #    except:
+    #        value = None
 
-        if value is None:
-            value = sval
+    #    if value is None:
+    #        value = sval
 
-        return value
+    #    return value
 
-    @classmethod
-    def from_str(cls, bigstring):
-        """Return an instance from a string declaration."""
-        parts = bigstring.split()
+    #@classmethod
+    #def from_str(cls, bigstring):
+    #    """Return an instance from a string declaration."""
+    #    parts = bigstring.split()
 
-        # Perform checks on the string
-        if len(parts) < 2 or (parts[-1] in _UNITS and len(parts) < 3):
-            msg = '\n'.join(['Unable to initialize variable from string:',
-                             bigstring, 'not enough tokens.'])
-            raise ValueError(msg)
-        elif not parts[0].isalpha():
-            msg = '\n'.join(['Unable to initialize variable from string:',
-                             bigstring, 'no valid variable name found.'])
-            raise ValueError(msg)
+    #    # Perform checks on the string
+    #    if len(parts) < 2 or (parts[-1] in _UNITS and len(parts) < 3):
+    #        msg = '\n'.join(['Unable to initialize variable from string:',
+    #                         bigstring, 'not enough tokens.'])
+    #        raise ValueError(msg)
+    #    elif not parts[0].isalpha():
+    #        msg = '\n'.join(['Unable to initialize variable from string:',
+    #                         bigstring, 'no valid variable name found.'])
+    #        raise ValueError(msg)
 
-        # Make the name
-        name = parts.pop(0)
-        #name = cls.declared_to_internal(name)
+    #    # Make the name
+    #    name = parts.pop(0)
+    #    #name = cls.declared_to_internal(name)
 
-        # Make the units
-        if parts[-1] in _UNITS:
-            units = parts.pop(-1)
-        else:
-            units = None
+    #    # Make the units
+    #    if parts[-1] in _UNITS:
+    #        units = parts.pop(-1)
+    #    else:
+    #        units = None
 
-        value = cls.string_to_value(' '.join(parts))
+    #    value = cls.string_to_value(' '.join(parts))
 
-        return cls(name, value, units)
+    #    return cls(name, value, units)
 
 
-def is_number(s):
-    """Returns True if the argument can be made a float."""
-    try:
-        float(s)
-        return True
-    except:
-        return False
+#def is_number(s):
+#    """Returns True if the argument can be made a float."""
+#    try:
+#        float(s)
+#        return True
+#    except:
+#        return False
 
 
 def is_iter(obj):

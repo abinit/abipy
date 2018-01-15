@@ -5,7 +5,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
-import abipy.data as abidata  
+import abipy.data as abidata
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -46,13 +46,13 @@ def make_inputs(paw=False):
 
     # Dataset3: Calculation of the screening.
     scr.set_vars(
-        optdriver=3,   
+        optdriver=3,
         gwpara=2,
-        ecutwfn=ecut,   
+        ecutwfn=ecut,
         symchi=1,
         awtr=2,
         inclvkb=0,
-        ecuteps=6.0,    
+        ecuteps=6.0,
     )
 
     return gs, nscf, scr
@@ -94,7 +94,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

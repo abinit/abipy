@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
-import abipy.data as abidata  
+import abipy.data as abidata
 
 from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
@@ -15,7 +15,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 def make_flow_ephinp(options):
     # Preparatory run for E-PH calculations.
     # The sequence of datasets makes the ground states and
-    # all of the independent perturbations of the single Al atom 
+    # all of the independent perturbations of the single Al atom
     # for the irreducible qpoints in a 4x4x4 grid.
     # Note that the q-point grid must be a sub-grid of the k-point grid (here 8x8x8)
     pseudos = abidata.pseudos("Al.oncvpsp") if not options.paw else \
@@ -23,7 +23,7 @@ def make_flow_ephinp(options):
 
     structure = abilab.Structure.from_abivars(
         acell=3*[7.5],
-        rprim=[0.0, 0.5, 0.5, 
+        rprim=[0.0, 0.5, 0.5,
                0.5, 0.0, 0.5,
                0.5, 0.5, 0.0],
         typat=1,
@@ -48,14 +48,14 @@ def make_flow_ephinp(options):
 
     # The kpoint grid is minimalistic to keep the calculation manageable.
     gs_inp.set_kmesh(
-        ngkpt=[8, 8, 8], 
+        ngkpt=[8, 8, 8],
         kptopt=3,
         shiftk=[0.0, 0.0, 0.0],
     )
 
     # Phonon calculation with 4x4x4
     qpoints = np.reshape([
-         0.00000000e+00,  0.00000000e+00,  0.00000000e+00, 
+         0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
          2.50000000e-01,  0.00000000e+00,  0.00000000e+00,
          5.00000000e-01,  0.00000000e+00,  0.00000000e+00,
          2.50000000e-01,  2.50000000e-01,  0.00000000e+00,
@@ -85,7 +85,7 @@ def make_flow_ephinp(options):
         ph_ndivsm=20,
         ph_nqpath=3,
         ph_qpath= [
-          0  , 0  , 0, 
+          0  , 0  , 0,
           0.5, 0  , 0,
           0.5, 0.5, 0,],
         # phonon DOS obtained via Fourier interpolation
@@ -127,7 +127,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
 
     return build_flow(options)
 

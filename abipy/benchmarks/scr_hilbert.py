@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import sys
 import abipy.abilab as abilab
-import abipy.data as abidata  
+import abipy.data as abidata
 import abipy.flowtk as flowtk
 
 from itertools import product
@@ -14,9 +14,9 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 def make_inputs(paw=False):
     # Crystalline silicon
     # Calculation of the GW correction to the direct band gap in Gamma
-    # Dataset 1: ground state calculation 
-    # Dataset 2: NSCF calculation 
-    # Dataset 3: calculation of the screening 
+    # Dataset 1: ground state calculation
+    # Dataset 2: NSCF calculation
+    # Dataset 3: calculation of the screening
     # Dataset 4: calculation of the Self-Energy matrix elements (GW corrections)
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
@@ -45,12 +45,12 @@ def make_inputs(paw=False):
     )
 
     # This grid contains the Gamma point, which is the point at which
-    # we will compute the (direct) band gap. 
+    # we will compute the (direct) band gap.
     gw_kmesh = dict(
         ngkpt=ngkpt,
-        shiftk=[0.0, 0.0, 0.0,  
-                0.0, 0.5, 0.5,  
-                0.5, 0.0, 0.5,  
+        shiftk=[0.0, 0.0, 0.0,
+                0.0, 0.5, 0.5,
+                0.5, 0.0, 0.5,
                 0.5, 0.5, 0.0]
     )
 
@@ -72,17 +72,17 @@ def make_inputs(paw=False):
     # Dataset3: Calculation of the screening.
     scr.set_kmesh(**gw_kmesh)
     scr.set_vars(
-        optdriver=3,   
+        optdriver=3,
         gwcalctyp=9,
         gwpara=2,
         nband=25,
-        ecutwfn=ecut,   
+        ecutwfn=ecut,
         symchi=1,
         awtr=2,
         inclvkb=1,
-        ecuteps=6.0,    
+        ecuteps=6.0,
         spmeth=1,        # Use Hilbert transform : Im chi0 --> chi0.
-        nomegasf=250,    # Number of points for Imchi0 
+        nomegasf=250,    # Number of points for Imchi0
         nfreqre=50,
         nfreqim=10,
         freqremax="25 eV",
@@ -129,7 +129,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     return build_flow(options)
 
 

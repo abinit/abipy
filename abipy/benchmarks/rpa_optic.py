@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Benchmark for Optic calculations.""" 
+"""Benchmark for Optic calculations."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
 import os
-import abipy.data as data  
+import abipy.data as data
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
@@ -17,13 +17,13 @@ def make_base_flow(options):
                                 pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
     # Global variables
-    kmesh = dict(ngkpt=[4, 4, 4], 
+    kmesh = dict(ngkpt=[4, 4, 4],
                  nshiftk=4,
                  shiftk=[[0.5, 0.5, 0.5],
                          [0.5, 0.0, 0.0],
                          [0.0, 0.5, 0.0],
                          [0.0, 0.0, 0.5]]
-                )
+    )
 
     paral_kgb = 1
     global_vars = dict(ecut=2, paral_kgb=paral_kgb)
@@ -40,7 +40,7 @@ def make_base_flow(options):
     # NSCF run with large number of bands, and points in the the full BZ
     multi[1].set_vars(
         iscf=-2,
-        nband=20, 
+        nband=20,
         nstep=25,
         kptopt=1,
         tolwfr=1.e-9,
@@ -56,12 +56,12 @@ def make_base_flow(options):
 
         multi[2+dir].set_vars(
             iscf=-3,
-            nband=20,  
+            nband=20,
             nstep=1,
-            nline=0,  
+            nline=0,
             prtwf=3,
             kptopt=3,
-            nqpt=1, 
+            nqpt=1,
             qpt=[0.0, 0.0, 0.0],
             rfdir=rfdir,
             rfelfd=2,
@@ -87,7 +87,7 @@ def make_base_flow(options):
     return flow
 
 
-def build_flow(options): 
+def build_flow(options):
     flow = make_base_flow(options)
 
     optic_input = abilab.OpticInput(
@@ -126,7 +126,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return 
+        return
     return build_flow(options)
 
 

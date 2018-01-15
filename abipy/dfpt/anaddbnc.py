@@ -47,7 +47,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(AbinitNcFile, self).__init__(filepath)
+        super(AnaddbNcFile, self).__init__(filepath)
         self.reader = ETSF_Reader(filepath)
         self._structure = self.reader.read_structure()
 
