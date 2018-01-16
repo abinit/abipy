@@ -10,7 +10,7 @@ from abipy.abilab import abiopen
 import abipy.data as abidata
 
 # Read the Phonon DOS from the netcdf file produced by anaddb with prtdos 2
-# (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb` 
+# (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb`
 # to open the file in a jupyter notebook.
 with abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc")) as phdos_file:
 

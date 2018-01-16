@@ -3616,7 +3616,6 @@ def open_file_phononwebsite(filename, port=8000,
     webbrowser.get(browser).open_new(url)
 
     # Quit application when SIGINT is received
-    import sys
     def signal_handler(signal, frame):
         sys.exit(0)
     import signal

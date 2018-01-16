@@ -22,12 +22,12 @@ with abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc")) as ncfile:
 phbands.plot(title="AlAs Phonon bands and DOS in eV")
 
 # plot phonon bands with DOS.
-phbands.plot_with_phdos(phdos, units="cm-1", 
+phbands.plot_with_phdos(phdos, units="cm-1",
                         title="AlAs Phonon bands + DOS in cm-1")
 
 # plot phonon DOS.
 phdos.plot(units="cm-1", title="Phonon DOS and IDOS in cm-1")
 
 # Plot the phonon band structure with different color for each line.
-phbands.plot_colored_matched(units="cm-1", 
+phbands.plot_colored_matched(units="cm-1",
                             title="AlAs with different color for each line.")

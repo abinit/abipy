@@ -2,7 +2,7 @@
 This module provides interfaces with the Materials Project REST API v2 to enable
 the creation of data structures and pymatgen objects using Materials Project data.
 """
-from __future__ import division, unicode_literals, print_function, division
+from __future__ import unicode_literals, print_function, division
 
 import sys
 
@@ -178,10 +178,10 @@ class DatabaseStructures(NotebookWriter):
     __nonzero__ = __bool__  # py2
 
     def filter_by_spgnum(self, spgnum):
-         """Filter structures by space group number. Return new MpStructures object."""
-         inds = [i for i, s in enumerate(self.structures) if s.get_space_group_info()[1] == int(spgnum)]
-         new_data = None if self.data is None else [self.data[i] for i in inds]
-         return self.__class__([self.structures[i] for i in inds], [self.ids[i] for i in inds], data=new_data)
+        """Filter structures by space group number. Return new MpStructures object."""
+        inds = [i for i, s in enumerate(self.structures) if s.get_space_group_info()[1] == int(spgnum)]
+        new_data = None if self.data is None else [self.data[i] for i in inds]
+        return self.__class__([self.structures[i] for i in inds], [self.ids[i] for i in inds], data=new_data)
 
     def add_entry(self, structure, entry_id, data_dict=None):
         """

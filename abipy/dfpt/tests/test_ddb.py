@@ -292,8 +292,8 @@ class DdbRobotTest(AbipyTest):
 
         r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)
         if self.has_matplotlib():
-           assert r.phbands_plotter.gridplot(show=False)
-           assert r.phdos_plotter.gridplot(show=False)
+            assert r.phbands_plotter.gridplot(show=False)
+            assert r.phdos_plotter.gridplot(show=False)
 
         if self.has_nbformat():
             robot.write_notebook(nbpath=self.get_tmpname(text=True))

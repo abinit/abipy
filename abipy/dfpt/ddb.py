@@ -24,7 +24,7 @@ from abipy.core.kpoints import KpointList, Kpoint
 from abipy.core.tensor import Tensor
 from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
-from abipy.dfpt.phonons import PhononDosPlotter, InteratomicForceConstants
+from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
 from abipy.core.abinit_units import Ha_cmm1
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
@@ -658,9 +658,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             q = Queue()
             for i in range(num_cpus):
-                 t = Thread(target=worker)
-                 t.daemon = True
-                 t.start()
+                t = Thread(target=worker)
+                t.daemon = True
+                t.start()
 
             for i, nqsmall in enumerate(nqsmalls):
                 q.put((nqsmall, i))
@@ -1428,7 +1428,6 @@ class DdbRobot(Robot):
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
-        from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
         phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
 
         for label, ddb in self:

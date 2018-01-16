@@ -17,7 +17,7 @@ from itertools import product
 from abipy.benchmarks import bench_main, BenchmarkFlow
 
 
-def make_input():
+def make_input(): # pragma: no cover
     """
     """
     pseudos = abidata.pseudos("8o_hard.paw", "7n.paw", "1h.paw")
@@ -107,7 +107,7 @@ def make_input():
     return inp
 
 
-def build_flow(options):
+def build_flow(options): # pragma: no cover
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     template = make_input()
@@ -145,7 +145,7 @@ def build_flow(options):
 
 
 @bench_main
-def main(options):
+def main(options):  # pragma: no cover
     if options.info:
         # print doc string and exit.
         print(__doc__)

@@ -606,8 +606,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.ebands.structure
 
     def close(self):
-         """Close the file."""
-         self.reader.close()
+        """Close the file."""
+        self.reader.close()
 
     @property
     def has_spectral_function(self):
@@ -940,9 +940,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
         """
         df_list = []; app = df_list.append
         for label, ncfile in self:
-           for spin in range(ncfile.nsppol):
-               for ik, sigma_kpoint in enumerate(ncfile.sigma_kpoints):
-                   app(ncfile.get_dataframe_sk(spin, ik, with_params=with_params, ignore_imag=ignore_imag))
+            for spin in range(ncfile.nsppol):
+                for ik, sigma_kpoint in enumerate(ncfile.sigma_kpoints):
+                    app(ncfile.get_dataframe_sk(spin, ik, with_params=with_params, ignore_imag=ignore_imag))
         return pd.concat(df_list)
 
     @add_fig_kwargs

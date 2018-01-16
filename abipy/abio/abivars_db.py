@@ -241,8 +241,8 @@ class ValueWithConditions(yaml.YAMLObject):
     def __repr__(self):
         s = ''
         for key in self.__dict__.keys():
-           if key != 'defaultval':
-             s += str(self.__dict__[key]) + ' if ' + str(key) + ',\n'
+            if key != 'defaultval':
+                s += str(self.__dict__[key]) + ' if ' + str(key) + ',\n'
         s += str(self.defaultval) + ' otherwise.\n'
         return s
 

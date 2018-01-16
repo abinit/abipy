@@ -3,7 +3,7 @@ r"""
 SIGRES file (GW)
 ================
 
-This example shows how to visualize the QP results 
+This example shows how to visualize the QP results
 stored in the SIGRES produced by the GW code (sigma run)
 """
 import abipy.data as abidata

@@ -9,7 +9,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
 import abipy.abilab as abilab
 import abipy.data as abidata
 
-# Open the file (alternatively one can use the shell and `abiopen.py FILE -nb` 
+# Open the file (alternatively one can use the shell and `abiopen.py FILE -nb`
 # to open the file in a jupyter notebook
 # This file has been produced on a k-path so it's not suitable for DOS calculations.
 fbnc_kpath = abilab.abiopen(abidata.ref_file("ni_kpath_FATBANDS.nc"))
@@ -46,11 +46,11 @@ fbnc_kmesh.plot_pjdos_lview(xlims=elims, lmax=lmax, tight_layout=True)
 
 # Now we use the two netcdf files to produce plots with fatbands + PJDOSEs.
 # The data for the DOS is taken from pjdosfile.
-fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, 
+fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims,
                                     lmax=lmax, view="type", tight_layout=True)
 
 # fatbands + PJDOS grouped by L
-fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims, 
+fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, ylims=elims,
                                     lmax=lmax, view="lview", tight_layout=True)
 
 # Close files.

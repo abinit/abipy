@@ -458,7 +458,7 @@ class GrunsReader(ETSF_Reader):
 
         amuz = {}
         for symbol in self.chemical_symbols:
-           type_idx = self.typeidx_from_symbol(symbol)
-           amuz[znucl_typat[type_idx]] = amu_typat[type_idx]
+            type_idx = self.typeidx_from_symbol(symbol)
+            amuz[znucl_typat[type_idx]] = amu_typat[type_idx]
 
         return amuz

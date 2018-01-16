@@ -41,7 +41,8 @@ TODO list:
 
 * Read LO-TO data from PHBST.nc instead of anaddb.nc
 
-* Check ddb.update_header (reactivate test)
+* Remove ddb.update_header, add possibility of changing amu in anaddb/abinit
+  and API to "mix" DDB files (reactivate test)
 
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 

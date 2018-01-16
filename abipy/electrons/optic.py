@@ -283,11 +283,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for comp, eps in comp2eps.items():
-             values = LINEPS_WHAT2EFUNC[what](eps)
-             # Note: I'm skipping the first point at w=0 because optic does not compute it!
-             # The same trick is used in the other plots.
-             ax.plot(self.wmesh[1:], values[1:],
-                     label=self.get_linopt_latex_label(what, comp) if label is None else label)
+            values = LINEPS_WHAT2EFUNC[what](eps)
+            # Note: I'm skipping the first point at w=0 because optic does not compute it!
+            # The same trick is used in the other plots.
+            ax.plot(self.wmesh[1:], values[1:],
+                    label=self.get_linopt_latex_label(what, comp) if label is None else label)
 
         ax.grid(True)
         if with_xlabel: ax.set_xlabel('Photon Energy [eV]')

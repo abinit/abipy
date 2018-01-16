@@ -472,10 +472,10 @@ class PspsReader(ETSF_Reader):
         for ilmn in range(self.lmnmax):
             iln = indlmn_type[ilmn, 4]
             if iln > iln0:
-              iln0 = iln
-              l = indlmn_type[ilmn, 0]  # l
-              n = indlmn_type[ilmn, 2]  # n
-              ln_list.append((l, n))
+                iln0 = iln
+                l = indlmn_type[ilmn, 0]  # l
+                n = indlmn_type[ilmn, 2]  # n
+                ln_list.append((l, n))
 
         return ln_list
 

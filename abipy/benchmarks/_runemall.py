@@ -14,7 +14,7 @@ from subprocess import call, Popen
 from abipy.abilab import __version__
 
 
-def main():
+def main(): # pragma: no cover
     def str_examples():
         examples = """
           Usage example:\n\n

@@ -123,9 +123,9 @@ class Tensor(object):
         my_tensor = cartesian_tensor
 
         for real_sym in real_symmops:
-             mat = real_sym.rotation_matrix
-             prod_sym = np.dot(np.transpose(mat),np.dot(cartesian_tensor,mat))
-             sym_tensor = sym_tensor + prod_sym
+            mat = real_sym.rotation_matrix
+            prod_sym = np.dot(np.transpose(mat),np.dot(cartesian_tensor,mat))
+            sym_tensor = sym_tensor + prod_sym
 
         sym_tensor = sym_tensor/len(real_symmops)
 

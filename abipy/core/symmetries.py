@@ -799,7 +799,6 @@ class LittleGroup(OpSequence):
         """
         True if the k-point is on the border of the BZ.
         """
-        from abipy.core.kpoints import wrap_to_ws
         frac_coords = np.array(self.kpoint)
         kreds = wrap_to_ws(frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
@@ -949,11 +948,11 @@ class LatticeRotation(Operation):
         return self.__class__(-self.mat)
 
     def __pow__(self, intexp, modulo=1):
-       if intexp ==  0: return self.__class__(self._E3D)
-       if intexp  >  0: return self.__class__(self.mat ** intexp)
-       if intexp == -1: return self.inverse()
-       if intexp  <  0: return self.__pow__(-intexp).inverse()
-       raise TypeError("type %s is not supported in __pow__" % type(intexp))
+        if intexp ==  0: return self.__class__(self._E3D)
+        if intexp  >  0: return self.__class__(self.mat ** intexp)
+        if intexp == -1: return self.inverse()
+        if intexp  <  0: return self.__pow__(-intexp).inverse()
+        raise TypeError("type %s is not supported in __pow__" % type(intexp))
 
     @property
     def order(self):

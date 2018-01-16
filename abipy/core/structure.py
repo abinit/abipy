@@ -223,7 +223,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         elif filepath.endswith(".nc"):
             # Generic netcdf file.
-            from abipy.iotools import as_etsfreader
             ncfile, closeit = as_etsfreader(filepath)
 
             new = ncfile.read_structure(cls=cls)

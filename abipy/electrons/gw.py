@@ -1155,7 +1155,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Args:
             ignore_imag: Only real part is returned if ``ignore_imag``.
         """
-        import pandas as pd
         df_list = []
         for spin in range(self.nsppol):
             for gwkpoint in self.gwkpoints:

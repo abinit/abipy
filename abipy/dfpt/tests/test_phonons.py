@@ -124,7 +124,6 @@ class PlotterTest(AbipyTest):
     def test_plot_functions(self):
         """Testing plotting tools for phonons."""
         phbst_filename = abidata.ref_file("trf2_5.out_PHBST.nc")
-        from abipy import abilab
         with abilab.abiopen(phbst_filename) as nc:
             phbands = nc.phbands
 
