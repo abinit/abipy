@@ -924,7 +924,7 @@ if False:
             nbv.new_code_cell("""\
 #asr_plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10)
 #asr_plotter.gridplot();
-"""
+"""),
 
             nbv.new_markdown_cell("## Call `anaddb` to compute phonon DOS with different BZ samplings"),
             nbv.new_code_cell("""\
