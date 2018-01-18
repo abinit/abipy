@@ -41,8 +41,9 @@ TODO list:
 
 * Read LO-TO data from PHBST.nc instead of anaddb.nc
 
-* Remove ddb.update_header, add possibility of changing amu in anaddb/abinit
-  and API to "mix" DDB files (reactivate test)
+* DONE Remove ddb.update_header
+
+* add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
 
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 
@@ -69,7 +70,7 @@ TODO list:
 
 * Add memory error to Abinit errors
 
-* Remove Old workflow model. 
+* DONE: Remove Old workflow model. 
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 

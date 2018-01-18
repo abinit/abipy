@@ -44,23 +44,6 @@ class DdbTest(AbipyTest):
             struct = ddb.structure
             assert struct.formula == "Al1 As1"
 
-            # Test update header
-            # FIXME Disabled after my changes in ddb.header
-            # The implementation of update_header should be checked again.
-            """
-            h_copy = ddb.header.copy()
-            ddb.update_header()
-            for k, v in ddb.header.items():
-                if k == "lines":
-                    err = 0
-                    assert len(ddb.header.lines) == len(h_copy.lines)
-                    #for line1, line2 in zip(ddb.header.lines, h_copy.lines):
-                    #    if line1 != line2:
-                    #        err += 1
-                    #        print("line1", line1, "\nline2, line2)
-                    #assert err == 0
-            """
-
             # Test interface with Anaddb.
             print(ddb.qpoints[0])
             assert ddb.qindex(ddb.qpoints[0]) == 0
@@ -222,7 +205,10 @@ class DdbTest(AbipyTest):
                 assert qpoint in ddb.computed_dynmat
                 assert len(ddb.computed_dynmat[qpoint].index[0]) == 4
 
+            # Test Lru_cache as well
             assert ddb.has_bec_terms(select="at_least_one")
+            assert ddb.has_bec_terms(select="at_least_one")
+            assert not ddb.has_bec_terms(select="all")
             assert not ddb.has_bec_terms(select="all")
             assert ddb.has_emacro_terms()
             assert ddb.has_lo_to_data()
@@ -248,6 +234,27 @@ class DdbTest(AbipyTest):
             #self.assert_almost_equal(emacro.values, ref_emacro_values)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
+
+    def test_mgo_becs_emacro(self):
+        """
+        Testing DDB for MgO with with Born effective charges and E_macro.
+        Large breaking of the ASR.
+        """
+        with abilab.abiopen(abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")) as ddb:
+            assert ddb.structure.formula == "Mg1 O1"
+            assert len(ddb.qpoints) == 72
+            assert ddb.has_emacro_terms()
+            assert ddb.has_bec_terms()
+
+            if self.has_matplotlib():
+                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                    nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+                str(plotter)
+                assert plotter.combiplot(show=False)
+
+                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                    nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+                assert plotter.gridplot(show=False)
 
 
 class DielectricTensorGeneratorTest(AbipyTest):

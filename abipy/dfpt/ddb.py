@@ -36,6 +36,10 @@ from abipy.abio.robots import Robot
 import logging
 logger = logging.getLogger(__name__)
 
+try:
+    from functools import lru_cache
+except ImportError:  # py2k
+    from abipy.tools.functools_lru_cache import lru_cache
 
 class DdbError(Exception):
     """Error class raised by DDB."""
@@ -121,6 +125,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
         app("")
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
+        app("Has electric-field perturbation: %s" % self.has_emacro_terms())
+        app("Has Born effective charges: %s" % self.has_bec_terms())
 
         if verbose > 1:
             from pprint import pformat
@@ -427,6 +433,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         return self.has_emacro_terms(select=select) and self.has_bec_terms(select=select)
 
+    @lru_cache(typed=True)
     def has_emacro_terms(self, select="at_least_one"):
         """
         True if the DDB file contains info on the electric-field perturbation.
@@ -457,6 +464,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
+    @lru_cache(typed=True)
     def has_bec_terms(self, select="at_least_one"):
         """
         True if the DDB file contains info on the Born effective charges.
@@ -494,7 +502,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
             workdir: Working directory. If None, a temporary directory is created.
             mpi_procs: Number of MPI processes to use.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
@@ -553,7 +561,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
-                used to sample the smallest lattice vector.
+                used to sample the smallest lattice vector. If 0, DOS is not computed and
+                (phbst, None) is returned.
             ndivsm: Number of division used for the smallest segment of the q-path
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
@@ -599,7 +608,59 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if lo_to_splitting:
             phbst.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-        return phbst, task.open_phdos()
+        if inp["prtdos"] == 0:
+            return phbst, None
+        else:
+            return phbst, task.open_phdos()
+
+    def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1,
+                       nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
+                       verbose=0, mpi_procs=1):
+        """
+        Invoke anaddb to compute the phonon band structure and the phonon DOS with different
+        values of the ``asr`` input variable (acoustic sum rule treatment).
+        Build and return |PhononDosPlotter| object.
+
+        Args:
+            asr_list: List of ``asr`` values to test.
+            chneut_list: List of ``chneut`` values to test (used by anaddb only if dipdip == 1).
+            dipdip: 1 to activate treatment of dipole-dipole interaction (requires BECS and dielectric tensor).
+            nqsmall: Defines the q-mesh for the phonon DOS in terms of
+                the number of divisions to be used to sample the smallest reciprocal lattice vector.
+                0 to disable DOS computation.
+            ndivsm: Number of division used for the smallest segment of the q-path
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
+            verbose: Verbosity level.
+            mpi_procs: Number of MPI processes used by anaddb.
+
+        Return:
+            |PhononDosPlotter| object.
+
+            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
+            to visualize the results.
+        """
+        lo_to_splitting = self.has_lo_to_data()
+
+        phbands_plotter = PhononBandsPlotter()
+
+        for asr, chneut in itertools.product(asr_list, chneut_list):
+
+            phbst_file, phdos_file = self.anaget_phbst_and_phdos_files(
+                nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
+                lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
+                anaddb_kwargs=None, verbose=verbose, mpi_procs=mpi_procs, workdir=None, manager=None)
+
+            label = "asr: %d, dipdip: %d, chneut: %d" % (asr, dipdip, chneut)
+            if phdos_file is not None:
+                phbands_plotter.add_phbands(label, phbst_file.phbands, phdos=phdos_file.phdos)
+                phdos_file.close()
+            else:
+                phbands_plotter.add_phbands(label, phbst_file.phbands)
+            phbst_file.close()
+
+        return phbands_plotter
 
     def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None,
                          num_cpus=1, stream=sys.stdout):
@@ -611,7 +672,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Args:
             nqsmalls: List of integers defining the q-mesh for the DOS. Each integer gives
                 the number of divisions to be used to sample the smallest reciprocal lattice vector.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
@@ -762,124 +823,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
-    def update_header(self):
-        """
-        Updates the header.lines with the variables contained in the header dictionary
-        The variables are written from a list in the correct order (check if this is necessary)
-        """
-
-        header = self.header
-        #list of variables with the correct order
-        variables = ['usepaw','natom','nkpt','nsppol','nsym','ntypat','occopt','nband',
-                     'acell','amu','dilatmx','ecut','pawecutdg','ecutsm','intxc','iscf',
-                     'ixc','kpt','kptnrm','ngfft','nspden','nspinor','occ','rprim',
-                     'dfpt_sciss','spinat','symafm','symrel','tnons','tolwfr','tphysel',
-                     'tsmear','typat','wtk','xred','znucl','zion']
-
-        # Adjust variables according to usepaw and version
-        if int(self.header["usepaw"]) == 0:
-            variables.remove("pawecutdg")
-        if "sciss" in self.header:
-            # old header with sciss instead of dfpt_sciss
-            variables[variables.index("dfpt_sciss")] = "sciss"
-
-        header_lines = []
-
-        #add header
-        n = 0
-        while True:
-            line = header.lines[n]
-            n += 1
-            if "usepaw" in line:
-                break
-            header_lines.append(line)
-
-        nskip = 10
-        fmti = "%5d"
-        fmtf = "%22.14e"
-        fmt3 = " " * nskip + fmtf *3 + '\n'
-
-        #write all the variables in order
-        for variable in variables:
-            data = header[variable]
-            string = ""
-
-            #dfpt variable bug
-            if variable in ('dfpt_sciss', "sciss"):
-                variable = "  " + variable
-
-            #specific variables
-            print("variable", variable)
-            if variable == 'symrel':
-                for sym in data:
-                    string += " "*15+(fmti*9)%tuple(sym.T.flatten())+'\n'
-                string = string[10:-1]
-            elif variable == 'symafm':
-                nchunks = int(len(data)/12)
-                for i in range(nchunks):
-                    string += " "*15+(fmti*12)%tuple(data[12*i:12*(i+1)])+'\n'
-                #add missing lines
-                missing_data = data[12*nchunks:]
-                if len(missing_data):
-                    fmtn = " "*15+fmti*len(missing_data)+'\n'
-                    string += fmtn%tuple(missing_data)
-                string = string[10:-1]
-            elif variable in ['typat','ngfft','symafm']:
-                string = "     "+(fmti*len(data))%tuple(data)
-            elif variable in ['occ','spinat','wtk','znucl']:
-                nchunks = int(len(data)/3)
-                for i in range(nchunks):
-                    string += fmt3%tuple(data[3*i:3*(i+1)])
-                #add missing lines
-                missing_data = data[3*nchunks:]
-                if len(missing_data):
-                    fmtn = " "*nskip+fmtf*len(missing_data)+'\n'
-                    string += fmtn%tuple(missing_data)
-                string = string[nskip:-1]
-            #general
-            elif isinstance(data,int):
-                string = "     "+fmti%data
-            elif isinstance(data,float):
-                string = fmtf%data
-            elif isinstance(data,list):
-                string = (fmtf*len(data))%tuple(data)
-            elif isinstance(data,np.ndarray):
-                #check dimensions
-                dim = len(data.shape)
-                if dim == 1:
-                    string += ""
-                elif dim == 2:
-                    for line in data:
-                        string += fmt3%tuple(line)
-                    string = string[nskip:-1]
-                else:
-                    raise ValueError('invalid dimensions: %d'%dim)
-            else:
-                raise ValueError('unkown type of variable in the dictionary')
-
-            string = "%10s%s"%(variable,string.replace('e','D'))
-            header_lines += string.split('\n')
-
-        #skip all the variables
-        n = 0
-        while True:
-            line = header.lines[n]
-            n += 1
-            if "zion" in line:
-                break
-
-        #add footer
-        nlines = len(header.lines)
-        header_lines.append("")
-        while True:
-            n += 1
-            if n >= nlines:
-                break
-            line = header.lines[n]
-            header_lines.append(line)
-
-        self.header.lines = header_lines
-
     def write(self, filepath):
         """
         Writes the DDB file in filepath. Requires the blocks data.
@@ -976,6 +919,12 @@ if False:
     emacro, becs = ddb.anaget_emacro_and_becs()
     print(emacro)
     print(becs)"""),
+
+            nbv.new_markdown_cell("## Call `anaddb` to compute phonons and DOS with/without ASR"),
+            nbv.new_code_cell("""\
+#asr_plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10)
+#asr_plotter.gridplot();
+"""
 
             nbv.new_markdown_cell("## Call `anaddb` to compute phonon DOS with different BZ samplings"),
             nbv.new_code_cell("""\
@@ -1370,7 +1319,7 @@ class DdbRobot(Robot):
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.

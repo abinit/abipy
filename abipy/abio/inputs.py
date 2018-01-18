@@ -2434,6 +2434,10 @@ class AnaddbInput(AbstractInput, Has_Structure):
         new.set_autoqmesh(nqsmall)
         new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
 
+        # Disable DOS computation.
+        if nqsmall == 0:
+            new["prtdos"] = 0
+
         new.set_qpath(ndivsm, qptbounds=qptbounds)
         qptbounds = new['qpath']
         q1shft = np.reshape(q1shft, (-1, 3))
