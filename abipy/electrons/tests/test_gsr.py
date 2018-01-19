@@ -185,7 +185,11 @@ class GstRobotTest(AbipyTest):
             assert robot.combiplot_edos(show=False)
             assert robot.gridplot_edos(show=False)
 
+            assert robot.plot_gsr_convergence(show=False)
             assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+
+            assert robot.plot_egaps(show=False)
+            assert robot.plot_egaps(sortby="nkpt", hue="tsmear")
 
 	# Get pandas dataframe.
         df = robot.get_dataframe()

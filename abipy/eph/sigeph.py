@@ -22,7 +22,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import KpointList
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, rotate_ticklabels
 from abipy.tools import duck
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 #from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
@@ -1065,6 +1065,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             ax.grid(True)
             if ik == len(sigma_kpoints) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax, 15)
             ax.set_ylabel("QP Direct gap [eV]")
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -1139,6 +1140,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             ax.set_ylabel(what)
             if i == len(what_list) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax, 15)
             if i == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

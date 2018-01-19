@@ -60,9 +60,19 @@ def set_axlims(ax, lims, axname):
     return left, right
 
 
+def rotate_ticklabels(ax, rotation, axname="x"):
+    """Rotate the ticklables of axis ``ax``"""
+    if "x" in axname:
+        for tick in ax.get_xticklabels():
+            tick.set_rotation(rotation)
+    if "y" in axname:
+        for tick in ax.get_yticklabels():
+            tick.set_rotation(rotation)
+
+
 def data_from_cplx_mode(cplx_mode, arr):
     """
-    Extract the data from the numpy array `arr` depending on the values of `cplx_mode`.
+    Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.
 
     Args:
         cplx_mode: Possible values in ("re", "im", "abs", "angle")
@@ -86,19 +96,18 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
     Useful for convergence tests done wrt to two parameters.
 
     Args:
-        data: DataFrame containing columns `x`, `y`, and `hue`.
+        data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
         x: Name of the column used as x-value
         y: Name of the column used as y-value
         hue: Variable that define subsets of the data, which will be drawn on separate lines
         decimals: Number of decimal places to round `hue` columns. Ignore if None
-        ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        ax: |matplotlib-Axes| or None if a new figure should be created.
         xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
-                     or scalar e.g. `left`. If left (right) is None, default values are used
+            or scalar e.g. `left`. If left (right) is None, default values are used
         fontsize: Legend fontsize.
         kwargs: Keywork arguments are passed to ax.plot method.
 
-    Returns:
-        `matplotlib` figure.
+    Returns: |matplotlib-Figure|
     """
     # Check here because pandas messages are a bit criptic.
     miss = [k for k in (x, y, hue) if k not in data]
@@ -148,8 +157,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs):
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
 
-    Returns:
-        `matplotlib` figure.
+    Returns: |matplotlib-Figure|
     """
     # Handle vectors
     array = np.atleast_2d(array)

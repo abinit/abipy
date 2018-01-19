@@ -31,7 +31,8 @@ from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingI
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
+from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
+    get_ax3d_fig_plt, rotate_ticklabels)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -3762,8 +3763,94 @@ class RobotWithEbands(object):
     #def get_ebands_dataframe(self, with_spglib=True):
     #    return dataframe_from_ebands(self.ncfiles, index=list(self.keys()), with_spglib=with_spglib)
 
+    @add_fig_kwargs
+    def plot_egaps(self, sortby=None, hue=None, fontsize=6, **kwargs):
+        """
+        Plot the convergence of the direct and fundamental gaps
+        wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
+
+        Args:
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Note: Handling nsppol > 1 and the case in which we have abifiles with different nsppol is a bit tricky
+        # hence we have to handle the different cases explicitly (see get_xy)
+        if len(self.abifiles) == 0: return None
+        max_nsppol = max(f.nsppol for f in self.abifiles)
+
+        items = ["fundamental_gaps", "direct_gaps", "bandwidths"]
+
+        def get_xy(item, spin, all_xvals, all_abifiles):
+            """
+            Extract (xvals, yvals) from all_abifiles for given (item, spin) and initial all_xvals.
+            Here we handle the case in which we have files with different nsppol.
+            """
+            xvals, yvals = [], []
+
+            for i, af in enumerate(all_abifiles):
+                if spin > af.nsppol - 1: continue
+                xvals.append(all_xvals[i])
+                if callable(item):
+                    yy = float(item(af.ebands))
+                else:
+                    yy = getattr(af.ebands, item)
+                    if item in ("fundamental_gaps", "direct_gaps"):
+                        yy = yy[spin].energy
+                    else:
+                        yy = yy[spin]
+
+                yvals.append(yy)
+
+            return xvals, yvals
+
+        # Build grid plot.
+        nrows, ncols = len(items), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # Sort and group files if hue.
+        if hue is None:
+            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+
+        marker_spin = {0: "^", 1: "v"}
+        for i, (ax, item) in enumerate(zip(ax_list, items)):
+            for spin in range(max_nsppol):
+                if hue is None:
+                    # Extract data.
+                    xvals, yvals = get_xy(item, spin, params, self.abifiles)
+                    ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                else:
+                    for g in groups:
+                        # Extract data.
+                        xvals, yvals = get_xy(item, spin, g.xvalues, g.abifiles)
+                        label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                        ax.plot(xvals, yvals, label=label, marker=marker_spin[spin], **kwargs)
+
+            ax.grid(True)
+            ax.set_ylabel(self._get_label(item))
+            if i == len(items) - 1:
+                ax.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax, 15)
+            if i == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
     def get_ebands_code_cells(self, title=None):
-        """Return list of notebook cells. """
+        """Return list of notebook cells."""
         nbformat, nbv = self.get_nbformat_nbv()
         title = "## Code to compare multiple ElectronBands objects" if title is None else str(title)
         # Try not pollute namespace with lots of variables.
@@ -3771,4 +3858,5 @@ class RobotWithEbands(object):
             nbv.new_markdown_cell(title),
             nbv.new_code_cell("robot.get_ebands_plotter().ipw_select_plot();"),
             nbv.new_code_cell("robot.get_edos_plotter().ipw_select_plot();"),
+            nbv.new_code_cell("#robot.plot_egaps(sorby=None, hue=None);"),
         ]

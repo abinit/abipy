@@ -14,7 +14,8 @@ from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
-from abipy.tools.plotting import plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
+    rotate_ticklabels)
 
 
 class Robot(NotebookWriter):
@@ -755,6 +756,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         ax.grid(True)
         ax.set_xlabel("%s" % self._get_label(sortby))
+        if sortby is None: rotate_ticklabels(ax, 15)
         ax.set_ylabel("%s" % self._get_label(item))
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -778,6 +780,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
             fontsize: legend and label fontsize.
+            kwargs: keyword arguments are passed to ax.plot
 
         Returns: |matplotlib-Figure|
         """
@@ -790,12 +793,13 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        # Sort and read QP data.
+        # Sort and group files if hue.
         if hue is None:
             labels, ncfiles, params = self.sortby(sortby, unpack=True)
         else:
             groups = self.group_and_sortby(hue, sortby)
 
+        marker = kwargs.pop("marker", "o")
         for i, (ax, item) in enumerate(zip(ax_list, items)):
             if hue is None:
                 # Extract data.
@@ -803,7 +807,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                     yvals = [float(item(gsr)) for gsr in self.abifiles]
                 else:
                     yvals = [getattr(gsr, item) for gsr in self.abifiles]
-                ax.plot(params, yvals, marker="o")
+                ax.plot(params, yvals, marker=marker, **kwargs)
             else:
                 for g in groups:
                     # Extract data.
@@ -812,12 +816,13 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
                     else:
                         yvals = [getattr(gsr, item) for gsr in g.abifiles]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                    ax.plot(g.xvalues, yvals, label=label, marker="o")
+                    ax.plot(g.xvalues, yvals, label=label, marker=marker, **kwargs)
 
             ax.grid(True)
             ax.set_ylabel(self._get_label(item))
             if i == len(items) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax, 15)
             if i == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -895,9 +900,10 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
 
+        marker = kwargs.pop("marker", "o")
         for i, (ax, item) in enumerate(zip(ax_list.ravel(), items)):
             self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize,
-                                  marker="o", show=False)
+                                  marker=marker, show=False)
             if i != 0 and ax.legend():
                 ax.legend().set_visible(False)
             if i != len(items) - 1 and ax.xaxis.label:
