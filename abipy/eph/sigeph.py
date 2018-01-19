@@ -343,8 +343,7 @@ class QpTempList(list):
                 # TODO real and imag?
                 ax.plot(e0mesh, yt.real, linestyle,
                         color=cmap(itemp / self.ntemp),
-                        #label=lbl,
-                        label="T=%.1f K" % self.tmesh[itemp] if i == 0 else None,
+                        label="T = %.1f K" % self.tmesh[itemp] if i == 0 else None,
                         **kwargs)
 
         # Get around a bug in matplotlib

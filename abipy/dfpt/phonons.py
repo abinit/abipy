@@ -3505,6 +3505,29 @@ class RobotWithPhbands(object):
     """
     Mixin class for robots associated to files with |PhononBands|.
     """
+    def combiplot_phbands(self, **kwargs):
+        """Wraps combiplot method of |PhononBandsPlotter|. kwargs passed to combiplot."""
+        return self.get_phbands_plotter().combiplot(**kwargs)
+
+    def gridplot_phbands(self, **kwargs):
+        """Wraps gridplot method of |PhononBandsPlotter|. kwargs passed to gridplot."""
+        return self.get_phbands_plotter().gridplot(**kwargs)
+
+    def boxplot_phbands(self, **kwargs):
+        """Wraps boxplot method of |PhononBandsPlotter|. kwargs passed to boxplot."""
+        return self.get_phbands_plotter().boxplot(**kwargs)
+
+    def combiboxplot_phbands(self, **kwargs):
+        """Wraps combiboxplot method of |ElectronDosPlotter|. kwargs passed to combiboxplot."""
+        return self.get_phbands_plotter().combiboxplot(**kwargs)
+
+    #def combiplot_edos(self, **kwargs):
+    #    """Wraps combiplot method of |ElectronDosPlotter|. kwargs passed to combiplot."""
+    #    return self.get_edos_plotter().combiplot(**kwargs)
+    #
+    #def gridplot_edos(self, **kwargs):
+    #    """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
+    #    return self.get_edos_plotter().gridplot(**kwargs)
 
     def get_phbands_plotter(self, filter_abifile=None, cls=None):
         """

@@ -2938,7 +2938,7 @@ class ElectronDos(object):
                   hence what="id" plots both IDOS and DOS. (default "d").
             fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
             exchange_xy: True to exchange x-y axis.
-            kwargs: Options passes to matplotlib.
+            kwargs: Options passed to matplotlib ``ax.plot``
 
         Return: list of lines added to the axis.
         """
@@ -3690,8 +3690,8 @@ class ElectronBands3D(Bands3D):
     pass
 
 
-class PhononBands3D(Bands3D):
-    pass
+#class PhononBands3D(Bands3D):
+#    pass
 
 
 class RobotWithEbands(object):
@@ -3846,6 +3846,7 @@ class RobotWithEbands(object):
                 if sortby is None: rotate_ticklabels(ax, 15)
             if i == 0:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                #ax.legend(loc='best', fontsize=fontsize, shadow=True, fancybox=True, framealpha=0.5)
 
         return fig
 

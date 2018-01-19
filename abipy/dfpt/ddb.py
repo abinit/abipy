@@ -1237,7 +1237,6 @@ class DielectricTensorGenerator(Has_Structure):
 
         Return: |matplotlib-Figure|
         """
-
         w_range = np.linspace(w_min, w_max, num, endpoint=True)
 
         t = np.zeros((num,3,3))
