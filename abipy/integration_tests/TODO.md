@@ -17,7 +17,7 @@ TODO list:
 * Fix annoying warnings about k-point sampling.
 
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
-  qadapter package ...
+  qadapter package ... (postponed to v0.4)
 
 * Try to reintegrate AbiPy with new abivars
 
@@ -39,11 +39,12 @@ TODO list:
 
 * Refactor/improve Visualizer
 
-* Read LO-TO data from PHBST.nc instead of anaddb.nc
+* Read LO-TO data from PHBST.nc instead of anaddb.nc (postponed to v0.4)
 
 * DONE Remove ddb.update_header
 
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
+  phonon group velocities (requires extensio in netcdf files)
 
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 
@@ -57,7 +58,7 @@ TODO list:
 
 * DONE Finalize interface with phononwebsite.
 
-* Replace core.tensor with pymatgen tensor
+* Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 

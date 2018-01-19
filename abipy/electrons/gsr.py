@@ -99,11 +99,6 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         #return int(self.reader.read_value("kptopt")) >= 0
         return abs(self.cart_stress_tensor[0, 0] - 9.9999999999e+99) > 0.1
 
-    #FIXME
-    #@lazy_property
-    #def tsmear(self):
-    #    return self.ebands.smearing.tsmear_ev.to("Ha")
-
     @lazy_property
     def ecut(self):
         """Cutoff energy in Hartree (Abinit input variable)"""
@@ -138,7 +133,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """Cartesian forces in eV / Ang"""
         return self.reader.read_cart_forces()
 
-    @property
+    @lazy_property
     def max_force(self):
         fmods = np.sqrt([np.dot(force, force) for force in self.cart_forces])
         return fmods.max()
@@ -523,6 +518,34 @@ class GsrRobot(Robot, RobotWithEbands):
             ax_list[-1].axis('off')
 
         return fig
+
+    @add_fig_kwargs
+    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
+            items=("energy", "pressure", "max_force"), **kwargs):
+        """
+        Plot the convergence of the most important quantities available in the GSR file
+        wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
+
+        Args:
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            items: List of GSR attributes (or callables) to be analyzed.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+
+        Example:
+
+             robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
+        """
+        return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
 
     #def get_phasediagram_results(self):
     #    from abipy.core.restapi import PhaseDiagramResults

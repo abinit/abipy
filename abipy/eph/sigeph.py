@@ -956,8 +956,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             band: Band index.
             itemp: Temperature index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function.
-                If None, no sorting is performed.
+                Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
@@ -997,8 +996,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function.
-                If None, no sorting is performed.
+                Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
@@ -1020,8 +1018,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         Args:
             itemp: Temperature index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function.
-                If None, no sorting is performed.
+                Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
@@ -1086,8 +1083,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             band: Band index.
             itemp: Temperature index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function.
-                If None, no sorting is performed.
+                Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.

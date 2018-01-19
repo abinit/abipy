@@ -17,7 +17,7 @@ class AbilabTest(AbipyTest):
         assert abilab.abifile_subclass_from_filename("GSR.nc") is not None
 
         assert len(abilab.dir2abifiles(top=abidata.dirpath))
-        assert len(abilab.dir2abifiles(top=abidata.dirpath, recurse=False)) == 0
+        assert len(abilab.dir2abifiles(top=abidata.dirpath, recurse=False)) == 1
         with self.assertRaises(ValueError):
             abilab.abifile_subclass_from_filename("foobar")
 

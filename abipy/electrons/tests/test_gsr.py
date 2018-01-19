@@ -185,6 +185,8 @@ class GstRobotTest(AbipyTest):
             assert robot.combiplot_edos(show=False)
             assert robot.gridplot_edos(show=False)
 
+            assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+
 	# Get pandas dataframe.
         df = robot.get_dataframe()
         assert "energy" in df

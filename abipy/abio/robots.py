@@ -701,19 +701,18 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             return str(func_or_string)
 
     @add_fig_kwargs
-    def plot_convergence(self, what, sortby=None, hue=None, ax=None, fontsize=12, **kwargs):
+    def plot_convergence(self, item, sortby=None, hue=None, ax=None, fontsize=12, **kwargs):
         """
-        Plot the convergence of ``what`` wrt the ``sortby`` parameter.
+        Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
 
         Args:
-            what: Define the quantity to plot. Accepts callable or string
+            item: Define the quantity to plot. Accepts callable or string
                 If string, it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of what(abifile) is used.
+                If callable, the output of item(abifile) is used.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function.
-                If None, no sorting is performed.
+                Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
@@ -737,10 +736,10 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         def get_yvalues(abifiles):
-            if callable(what):
-                return [float(what(a)) for a in abifiles]
+            if callable(item):
+                return [float(item(a)) for a in abifiles]
             else:
-                return [float(getattr(a, what)) for a in abifiles]
+                return [float(getattr(a, item)) for a in abifiles]
 
         if hue is None:
             labels, abifiles, params = self.sortby(sortby, unpack=True)
@@ -756,8 +755,71 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         ax.grid(True)
         ax.set_xlabel("%s" % self._get_label(sortby))
-        ax.set_ylabel("%s" % self._get_label(what))
+        ax.set_ylabel("%s" % self._get_label(item))
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_convergence_items(self, items, sortby=None, hue=None, fontsize=6, **kwargs):
+        """
+        Plot the convergence of a list of ``items`` wrt to the ``sortby`` parameter.
+        Values can optionally be grouped by ``hue``.
+
+        Args:
+            items: List of attributes (or callables) to be analyzed.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Note: in principle one could call plot_convergence inside a loop but
+        # this one is faster as sorting is done only once.
+
+        # Build grid plot.
+        nrows, ncols = len(items), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # Sort and read QP data.
+        if hue is None:
+            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+
+        for i, (ax, item) in enumerate(zip(ax_list, items)):
+            if hue is None:
+                # Extract data.
+                if callable(item):
+                    yvals = [float(item(gsr)) for gsr in self.abifiles]
+                else:
+                    yvals = [getattr(gsr, item) for gsr in self.abifiles]
+                ax.plot(params, yvals, marker="o")
+            else:
+                for g in groups:
+                    # Extract data.
+                    if callable(item):
+                        yvals = [float(item(gsr)) for gsr in g.abifiles]
+                    else:
+                        yvals = [getattr(gsr, item) for gsr in g.abifiles]
+                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                    ax.plot(g.xvalues, yvals, label=label, marker="o")
+
+            ax.grid(True)
+            ax.set_ylabel(self._get_label(item))
+            if i == len(items) - 1:
+                ax.set_xlabel("%s" % self._get_label(sortby))
+            if i == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -768,10 +830,10 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         wrt the``sortby`` parameter. Values can optionally be grouped by ``hue``.
 
         Args:
-            what: Define the quantity to plot. Accepts callable or string
+            item: Define the quantity to plot. Accepts callable or string
                 If string, it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
-                If callable, the output of what(abifile) is used.
+                If callable, the output of item(abifile) is used.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function.
                 If None, no sorting is performed.
@@ -826,19 +888,19 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             r"$\gamma$"
             return getattr(afile, key).lattice.gamma
 
-        what_list = [a, b, c, alpha, beta, gamma]
+        items = [a, b, c, alpha, beta, gamma]
 
         # Build plot grid.
-        nrows, ncols = len(what_list), 1
+        nrows, ncols = len(items), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
 
-        for i, (ax, what) in enumerate(zip(ax_list.ravel(), what_list)):
-            self.plot_convergence(what, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize,
+        for i, (ax, item) in enumerate(zip(ax_list.ravel(), items)):
+            self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize,
                                   marker="o", show=False)
             if i != 0 and ax.legend():
                 ax.legend().set_visible(False)
-            if i != len(what_list) - 1 and ax.xaxis.label:
+            if i != len(items) - 1 and ax.xaxis.label:
                 ax.xaxis.label.set_visible(False)
 
         return fig
