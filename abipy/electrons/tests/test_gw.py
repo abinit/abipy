@@ -231,7 +231,7 @@ class SigresRobotTest(AbipyTest):
             assert robot.to_string(verbose=2)
             assert robot._repr_html_()
 
-            df_params = robot.get_dataframe_params()
+            df_params = robot.get_params_dataframe()
             self.assert_equal(df_params["nsppol"].values, 1)
 
             label_ncfile_param = robot.sortby("nband")

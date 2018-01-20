@@ -655,7 +655,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         dfs = self.get_structure_dataframes(**kwargs)
         return dfs.coords
 
-    def get_dataframe_params(self, abspath=False):
+    def get_params_dataframe(self, abspath=False):
         """
         Return |pandas-DataFrame| with the most important parameters.
         that are usually subject to convergence studies.

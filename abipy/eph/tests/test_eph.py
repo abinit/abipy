@@ -91,7 +91,7 @@ class EphRobotTest(AbipyTest):
             robot.to_string(verbose=2)
             #assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
 
-            df_params = robot.get_dataframe_params()
+            df_params = robot.get_params_dataframe()
             self.assert_equal(df_params["nspden"].values, 1)
 
             data = robot.get_dataframe(with_geo=True)

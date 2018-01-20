@@ -1,6 +1,7 @@
 ipython
 jupyter
 nbformat
+pygments
 ipywidgets
 networkx
 scikit-image

@@ -31,7 +31,7 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
    )
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8,8,8],  shiftk=structure.calc_shiftk())
+    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=structure.calc_shiftk())
     multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF Band Structure)
@@ -56,7 +56,6 @@ def build_flow(options):
     if not options.workdir:
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    #pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
     structure = abidata.structure_from_ucell("MgB2")
 
     # Get pseudos from a table.

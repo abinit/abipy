@@ -424,8 +424,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def params(self):
-        """Dictionary with the parameters that are usually tested for convergence."""
-        return {k: v for k, v in self.header.items() if k in ("nkpt", "nsppol", "ecut", "tsmear", "ixc")}
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        names = ("nkpt", "nsppol", "ecut", "tsmear", "occopt", "ixc", "nband", "usepaw")
+        od = OrderedDict()
+        for k in names:
+            od[k] = self.header[k]
+        return od
 
     def has_lo_to_data(self, select="at_least_one"):
         """
@@ -506,12 +510,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             workdir: Working directory. If None, a temporary directory is created.
             mpi_procs: Number of MPI processes to use.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
-            verbose: verbosity level. Set it to a value > 0 to get more information
+            verbose: verbosity level. Set it to a value > 0 to get more information.
             lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
-                non_anal_phfreqs attributes will be added to the returned object
+                non_anal_phfreqs attributes will be added to the returned object.
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
-                cartesian direction will be used
-            anaddb_kwargs: additional kwargs for anaddb
+                cartesian direction will be used.
+            anaddb_kwargs: additional kwargs for anaddb.
 
         Return: |PhononBands| object.
         """
@@ -528,14 +532,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
                 qpoint, self.filepath, self.qpoints))
 
+        #if lo_to_splitting == "automatic":
+        #    lo_to_splitting = self.has_lo_to_data()
         #if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath)
+        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB %s:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
                                           anaddb_kwargs=anaddb_kwargs)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir,
+                                          manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -563,19 +570,19 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
-            ndivsm: Number of division used for the smallest segment of the q-path
+            ndivsm: Number of division used for the smallest segment of the q-path.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
-                In the later case, the value 0.001 eV is used as gaussian broadening
-            lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure
-            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)
+                In the later case, the value 0.001 eV is used as gaussian broadening.
+            lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
             qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            anaddb_kwargs: additional kwargs for anaddb
-            verbose: verbosity level. Set it to a value > 0 to get more information
+            anaddb_kwargs: additional kwargs for anaddb.
+            verbose: verbosity level. Set it to a value > 0 to get more information.
             mpi_procs: Number of MPI processes to use.
             workdir: Working directory. If None, a temporary directory is created.
-            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file.
 
         Returns:
             |PhbstFile| with the phonon band structure.
@@ -583,8 +590,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
+        #lo_to_splitting = "automatic"
+        #if lo_to_splitting == "automatic":
+        #    lo_to_splitting = self.has_lo_to_data()
+
         if lo_to_splitting and not self.has_lo_to_data():
-            cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB:" % self.filepath, "yellow")
+            cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
@@ -642,6 +653,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             to visualize the results.
         """
         lo_to_splitting = self.has_lo_to_data()
+        #lo_to_splitting = "automatic"
 
         phbands_plotter = PhononBandsPlotter()
 
@@ -691,9 +703,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         num_cpus = min(num_cpus, len(nqsmalls))
 
         def do_work(nqsmall):
-            _, phdos_file = self.anaget_phbst_and_phdos_files(
+            phbst_file, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, ngqpt=ngqpt)
-            return phdos_file.phdos
+            phdos = phdos_file.phdos
+            phbst_file.close()
+            phdos_file.close()
+            return phdos
 
         if num_cpus == 1:
             # Sequential version
@@ -1321,7 +1336,7 @@ class DdbRobot(Robot):
         """
 	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 	by the robot and the given anaddb input arguments.
-        Build and return a pandas dataframe with results
+        Build and return a |pandas-Dataframe| with results
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
@@ -1368,7 +1383,6 @@ class DdbRobot(Robot):
             if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
             rows.append(d)
 
-
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
@@ -1391,6 +1405,7 @@ class DdbRobot(Robot):
 
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.
+            #if kwargs.get("lo_to_splitting", "automatic"):
             if kwargs.get("lo_to_splitting", False):
                 anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)

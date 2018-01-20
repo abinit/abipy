@@ -1552,6 +1552,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
+        #print("Computing ibz with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -1656,6 +1657,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         )
 
         if kptopt is not None: inp["kptopt"] = kptopt
+        #print("Computing irred_perts with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -2346,9 +2348,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         new.set_vars(
             ifcflag=ifcflag,        # Interatomic force constant flag
-            asr=asr,          # Acoustic Sum Rule
-            chneut=chneut,    # Charge neutrality requirement for effective charges.
-            dipdip=dipdip,    # Dipole-dipole interaction treatment
+            asr=asr,                # Acoustic Sum Rule
+            chneut=chneut,          # Charge neutrality requirement for effective charges.
+            dipdip=dipdip,          # Dipole-dipole interaction treatment
             # This part is fixed
             nph1l=1,
             qph1l=np.append(qpoint, 1)

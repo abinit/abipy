@@ -197,7 +197,7 @@ class GstRobotTest(AbipyTest):
         self.assert_equal(df["ecut"].values, 6.0)
         self.assert_almost_equal(df["energy"].values, -241.2364683)
 
-        df_params = robot.get_dataframe_params()
+        df_params = robot.get_params_dataframe()
         assert "nband" in df_params
 
         assert "angle1" in robot.get_lattice_dataframe()

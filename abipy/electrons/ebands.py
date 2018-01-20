@@ -899,7 +899,6 @@ class ElectronBands(Has_Structure):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        #import seaborn.apionly as sns
         import seaborn as sns
         hue = None if self.nsppol == 1 else "spin"
         ax = sns.boxplot(x="band", y="eig", data=frame, hue=hue, ax=ax, **kwargs)

@@ -55,7 +55,7 @@ class OpticRobotTest(AbipyTest):
             assert robot.computed_components_intersection["leo"] == ["xyz"]
             assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
 
-            df_params = robot.get_dataframe_params()
+            df_params = robot.get_params_dataframe()
             self.assert_equal(df_params["nspden"].values, 1)
 
             # Test plot methods

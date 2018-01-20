@@ -549,8 +549,8 @@ def _invoke_robot(options):
         robot.make_and_open_notebook(foreground=options.foreground)
 
     else:
-        #df = robot.get_dataframe_params()
-        #abilab.print_dataframe(df, title="Output of robot.get_dataframe_params():")
+        #df = robot.get_params_dataframe()
+        #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
 
         # Print dataframe if robot provides get_dataframe method.
         if hasattr(robot, "get_dataframe"):

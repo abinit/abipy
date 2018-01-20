@@ -1184,6 +1184,7 @@ class PhononBands(object):
         # Plot fatbands: one plot per atom type.
         ax00 = None
         for ax_row, symbol in enumerate(self.structure.symbol_set):
+            last_ax = (ax_row == len(self.structure.symbol_set) - 1)
             ax = plt.subplot(gspec[ax_row, 0], sharex=ax00, sharey=ax00)
             if ax_row == 0: ax00 = ax
             self.decorate_ax(ax, units=units, qlabels=qlabels)
@@ -3113,7 +3114,7 @@ class InteratomicForceConstants(Has_Structure):
                  ifc_cart_coord_short_range, local_vectors, distances):
         """
         Args:
-            structure: :class:`Structure` object.
+            structure: |Structure| object.
             atoms_index: List of integers representing the indices in the structure of the analyzed atoms.
             neighbours_index: List of integers representing the indices in the structure of the neighbour atoms.
             ifc_cart_coord: ifc in Cartesian coordinates
@@ -3276,16 +3277,16 @@ class InteratomicForceConstants(Has_Structure):
         """
         Plots the specified ifcs, filtered according to the optional arguments.
         An array with shape number_of_atoms*number_of_neighbours, so only one of the components of the ifc matrix can
-        be plot at a time.
+        be plotted at a time.
 
         Args:
-            ifc: an array with shape number_of_atoms*number_of_neighbours of the ifc that should be plotted
+            ifc: an array with shape number_of_atoms * number_of_neighbours of the ifc that should be plotted
             atom_indices: a list of atom indices in the structure. Only neighbours of these atoms will be considered.
             atom_element: symbol of an element in the structure. Only neighbours of these atoms will be considered.
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
         Returns: |matplotlib-Figure|
