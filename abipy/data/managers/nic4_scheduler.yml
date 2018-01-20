@@ -39,5 +39,7 @@ safety_ratio: 5
 # Send an e-mail to mailto every remindme_s seconds.
 remindme_s: 345600
 
-max_njobs_inqueue: 10
-contact_resource_manager: True
+# This is important in order not to break the limits enforced by the sysadmin
+# Default queue* (2 days, 448 cores max per user, 64 jobs max per user, among which max 32 running, 256 CPUs max per job)
+max_njobs_inqueue: 30
+max_ncores_used: 400
