@@ -19,8 +19,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.electrons.ebands import ElectronsReader, ElectronDos, RobotWithEbands
-from abipy.dfpt.phonons import (PhononBands, PhononDos, RobotWithPhbands,
-    factor_ev2units, unit_tag, dos_label_from_units, wlabel_from_units)
+from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
 from abipy.abio.robots import Robot
 
 
@@ -201,7 +200,7 @@ class A2f(object):
         """""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        wfactor = factor_ev2units(units)
+        wfactor = abu.phfactor_ev2units(units)
 
         # TODO Better handling of styles
         style = dict(
@@ -231,7 +230,7 @@ class A2f(object):
                 if exchange_xy: xx, yy = yy, xx
                 ax_plot(xx, yy, marker=self.marker_spin[spin], **style)
 
-        xlabel = wlabel_from_units(units)
+        xlabel = abu.wlabel_from_units(units)
         ylabel = r"$\alpha^2F(\omega)$"
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
         ax.set_xlabel(xlabel)
@@ -270,7 +269,7 @@ class A2f(object):
             axmat = np.reshape(axmat, (self.natom, 3))
             fig = plt.gcf()
 
-        wfactor = factor_ev2units(units)
+        wfactor = abu.phfactor_ev2units(units)
         wvals = self.mesh * wfactor
 
         if with_lambda:
@@ -308,7 +307,7 @@ class A2f(object):
                 #ax.set_yticks([])
 
             if iatom == self.natom -1:
-                ax.set_xlabel(wlabel_from_units(units))
+                ax.set_xlabel(abu.wlabel_from_units(units))
             #set_axlims(ax, xlims, "x")
             #set_axlims(ax, ylims, "y")
 
@@ -631,7 +630,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Add eph coupling.
         xvals = np.arange(len(self.phbands.qpoints))
-        yvals = self.phbands.phfreqs * factor_ev2units(units)
+        yvals = self.phbands.phfreqs * abu.phfactor_ev2units(units)
 
         # [0] is for the number_of_spins
         # TODO units

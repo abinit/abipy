@@ -227,7 +227,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         if not self.phbands_qpath_vol: return None
         phbands = self.phbands_qpath_vol[self.iv0]
-        factor = phbands.factor_ev2units(units)
+        factor = phbands.phfactor_ev2units(units)
 
         # Build axes (ax_bands and ax_doses)
         if with_doses is None:

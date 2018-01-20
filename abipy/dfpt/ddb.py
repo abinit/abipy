@@ -1117,6 +1117,8 @@ class DielectricTensorGenerator(Has_Structure):
     based on the phonon frequencies at gamma and oscillator strengths.
     The first three frequencies would be considered as acoustic modes and
     ignored in the calculation. No checks would be performed.
+
+    See the definitions Eq.(53-54) in :cite:`Gonze1997` PRB55, 10355 (1997).
     """
 
     def __init__(self, phfreqs, oscillator_strength, emacro, structure):
@@ -1191,11 +1193,14 @@ class DielectricTensorGenerator(Has_Structure):
         """
         Returns a :class:`DielectricTensor` object representing
         the dielectric tensor in atomic units at the specified frequency w.
+        Eq.(53-54) in PRB55, 10355 (1997).
 
         Args:
             w: frequency
             units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
         """
+        # TODO
+        #fact =  1 / factor_ev2units(units)
         if units == 'eV':
             pass
         elif units == 'Ha':
@@ -1237,6 +1242,8 @@ class DielectricTensorGenerator(Has_Structure):
 
         Return: |matplotlib-Figure|
         """
+        # TODO: w_min and w_max should have default values
+        # w_min = 0 and w_max = phfreqs.max() + 10%
         w_range = np.linspace(w_min, w_max, num, endpoint=True)
 
         t = np.zeros((num,3,3))

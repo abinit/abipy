@@ -2525,7 +2525,6 @@ class ElectronBandsPlotter(NotebookWriter):
         data = pd.concat(frames, ignore_index=True)
 
         import matplotlib.pyplot as plt
-        #import seaborn.apionly as sns
         import seaborn as sns
         if not spin_polarized:
             ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -2934,8 +2933,8 @@ class ElectronDos(object):
             e0: Option used to define the zero of energy in the band structure plot.
             spin: selects the spin component, None for total DOS, IDOS.
             what: string selecting what will be plotted:
-                  "d" for DOS, "i" for IDOS. chars can be concatenated
-                  hence what="id" plots both IDOS and DOS. (default "d").
+                "d" for DOS, "i" for IDOS. chars can be concatenated
+                hence what="id" plots both IDOS and DOS. (default "d").
             fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
             exchange_xy: True to exchange x-y axis.
             kwargs: Options passed to matplotlib ``ax.plot``
