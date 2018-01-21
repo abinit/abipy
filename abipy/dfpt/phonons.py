@@ -13,7 +13,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import is_string, list_strings, marquee
-from monty.collections import AttrDict
+from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
@@ -1408,6 +1408,64 @@ class PhononBands(object):
                                            lattice=self.structure.reciprocal_lattice,
                                            has_nac=self.non_anal_ph is not None, eigendisplacements=displ,
                                            labels_dict=labels_dict, structure=self.structure)
+
+    def acoustic_indices(self, qpoint, threshold=0.95, raise_on_no_indices=True):
+        """
+        Extract the indices of the three acoustic modes for a qpoint.
+        Acoustic modes could be reasonably identified for Gamma and points close to Gamma.
+
+        Args:
+            qpoint: the qpoint. Accepts integer or reduced coordinates
+            threshold: fractional value allowed for the matching of the displacements to identify acoustic modes.
+            raise_on_no_indices: if True a RuntimeError will be raised if the acoustic mode will not be
+                correctly identified
+        """
+        qindex = self.qindex(qpoint)
+
+        phdispl = self.phdispl_cart[qindex]
+
+        indices = []
+        for mode, displ_mode in enumerate(phdispl):
+            displ_mode = np.reshape(displ_mode, (-1, 3))
+            a = displ_mode[0] / np.linalg.norm(displ_mode[0])
+            for d in displ_mode[1:]:
+                b = d / np.linalg.norm(d)
+                if np.dot(a, b) < threshold:
+                    break
+            else:
+                indices.append(mode)
+
+        if len(indices) != 3 and raise_on_no_indices:
+            raise RuntimeError('wrong number of indices: {}'.format(indices))
+        else:
+            indices = [0, 1, 2]
+
+        return indices
+
+    def asr_breaking(self, units='eV', threshold=0.95, raise_on_no_indices=True):
+        """
+        Calculates the breaking of the acoustic sum rule.
+        Requires the presence of Gamma .
+
+        Args:
+            units: Units for the output. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            threshold: fractional value allowed for the matching of the displacements to identify acoustic modes.
+            raise_on_no_indices: if True a RuntimeError will be raised if the acoustic mode will not be
+                correctly identified
+
+        Returns:
+            A namedtuple with:
+                the three breaking of the acoustic modes
+                the maximum breaking with sign
+                the absolute value of the maximum breaking
+        """
+        gamma_ind = self.qpoints.index((0,0,0))
+        ind = self.acoustic_indices(gamma_ind, threshold=threshold, raise_on_no_indices=raise_on_no_indices)
+        asr_break = self.phfreqs[0, ind] * factor_ev2units(units)
+
+        imax = np.argmax(asr_break)
+
+        return dict2namedtuple(breakings=asr_break, max_break=asr_break[imax], absmax_break=abs(asr_break[imax]))
 
 
 class PHBST_Reader(ETSF_Reader):

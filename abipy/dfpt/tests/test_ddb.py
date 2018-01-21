@@ -235,6 +235,10 @@ class DdbTest(AbipyTest):
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
 
+            # get the dielectric tensor generator from anaddb
+            dtg = ddb.anaget_dielectric_tensor_generator()
+            assert dtg is not None and hasattr(dtg, "phfreqs")
+
     def test_mgo_becs_emacro(self):
         """
         Testing DDB for MgO with with Born effective charges and E_macro.
@@ -267,15 +271,16 @@ class DielectricTensorGeneratorTest(AbipyTest):
         d = DielectricTensorGenerator.from_files(phbstnc_fname, anaddbnc_fname)
         repr(d); str(d)
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178775812721)
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
 
         d = DielectricTensorGenerator.from_objects(PhononBands.from_file(phbstnc_fname),
                                                    AnaddbNcFile.from_file(anaddbnc_fname))
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178775812721)
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
 
         if self.has_matplotlib():
             assert d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)
+            assert d.plot_vs_w(0, None, 10, units="cm-1", show=False)
 
 
 class DdbRobotTest(AbipyTest):

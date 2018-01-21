@@ -26,7 +26,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
-from abipy.core.abinit_units import Ha_cmm1
+from abipy.core.abinit_units import Ha_cmm1, phfactor_ev2units, phunit_tag
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
@@ -823,6 +823,51 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return InteratomicForceConstants.from_file(os.path.join(task.workdir, 'anaddb.nc'))
 
+    def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
+                                           manager=None, verbose=0, anaddb_kwargs=None):
+        """
+        Execute anaddb to extract the quantities necessary to create a DielectricTensorGenerator.
+        Requires phonon perturbations at Gamma and static electric field perturbations.
+
+        Args:
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            workdir: Working directory. If None, a temporary directory is created.
+            mpi_procs: Number of MPI processes to use.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file
+            verbose: verbosity level. Set it to a value > 0 to get more information
+            anaddb_kwargs: additional kwargs for anaddb
+
+        Return: |DielectricTensorGenerator| object.
+        """
+
+        # Check if gamma is in the DDB.
+        try:
+            self.qindex((0,0,0))
+        except:
+            raise ValueError("Gamma point not in %s.\nddb.qpoints:\n%s" % (self.filepath, self.qpoints))
+
+        inp = AnaddbInput.modes_at_qpoint(self.structure, (0, 0, 0), asr=asr, chneut=chneut, dipdip=dipdip,
+                                          lo_to_splitting=False, anaddb_kwargs=anaddb_kwargs)
+
+        if anaddb_kwargs is None or 'dieflag' not in anaddb_kwargs:
+            inp['dieflag'] = 1
+
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+
+        if verbose:
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here
+        task.start_and_wait(autoparal=False)
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise self.AnaddbError(task=task, report=report)
+
+        return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
+                                                    os.path.join(task.workdir, "anaddb.nc"))
+
+
     def write(self, filepath):
         """
         Writes the DDB file in filepath. Requires the blocks data.
@@ -1015,10 +1060,13 @@ class Becs(Has_Structure):
 
         return "\n".join(lines)
 
+    @property
+    def sumrule(self):
+        return self.values.sum(axis=0)
+
     def check_sumrule(self, stream=sys.stdout):
         stream.write("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        becs_atomsum = self.values.sum(axis=0)
-        stream.write(str(becs_atomsum))
+        stream.write(str(self.sumrule))
 
 
 class ElasticComplianceTensor(Has_Structure):
@@ -1197,18 +1245,10 @@ class DielectricTensorGenerator(Has_Structure):
 
         Args:
             w: frequency
-            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
+            units: string specifying the units used for the frequency.  Possible values in
+            ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
-        # TODO
-        #fact =  1 / factor_ev2units(units)
-        if units == 'eV':
-            pass
-        elif units == 'Ha':
-            w = w / eV_to_Ha
-        elif units == 'cm-1':
-            w = w / Ha_cmm1 / eV_to_Ha
-        else:
-            raise ValueError('Unknown units {}'.format(units))
+        w =  w / phfactor_ev2units(units)
 
         t = np.zeros((3,3))
         for i in range(3, len(self.phfreqs)):
@@ -1222,13 +1262,13 @@ class DielectricTensorGenerator(Has_Structure):
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot_vs_w(self, w_min, w_max, num, component='diago', units='eV', ax=None, fontsize=12, **kwargs):
+    def plot_vs_w(self, w_min=0, w_max=None, num=100, component='diag', units='eV', ax=None, fontsize=12, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of the frequency.
 
         Args:
             w_min: minimum frequency.
-            w_max: maximum frequency.
+            w_max: maximum frequency. If None it will be set to the value of the maximum frequecy, increased by 10%.
             num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among:
@@ -1237,13 +1277,15 @@ class DielectricTensorGenerator(Has_Structure):
                 * 'all' to plot all the components
                 * 'diag_av' to plot the average of the components on the diagonal
 
-            units: string specifying the units used for the frequency. Accepted values are Ha, eV (default), cm-1
+            units: string specifying the units used for the frequency. Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             fontsize: Legend and label fontsize.
 
         Return: |matplotlib-Figure|
         """
-        # TODO: w_min and w_max should have default values
-        # w_min = 0 and w_max = phfreqs.max() + 10%
+        if w_max is None:
+            w_max = np.max(self.phfreqs) * 1.1 * phfactor_ev2units(units)
+
         w_range = np.linspace(w_min, w_max, num, endpoint=True)
 
         t = np.zeros((num,3,3))
@@ -1255,13 +1297,7 @@ class DielectricTensorGenerator(Has_Structure):
         if 'linewidth' not in kwargs:
             kwargs['linewidth'] = 2
 
-        if units == 'eV':
-            ax.set_xlabel('Energy [eV]')
-        elif units == 'Ha':
-            ax.set_xlabel('Energy [Ha]')
-        elif units == 'cm-1':
-            ax.set_xlabel(r'Frequency [cm$^{-1}$]')
-
+        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
         ax.set_ylabel(r'$\varepsilon$')
 
         if isinstance(component, (list, tuple)):
@@ -1277,7 +1313,7 @@ class DielectricTensorGenerator(Has_Structure):
             for i in range(3):
                 ax.plot(w_range, np.trace(t, axis1=1, axis2=2)/3, label='[{},{}]'.format(i, i), **kwargs)
         else:
-            ValueError('Unkwnown component {}'.format(component))
+            raise ValueError('Unkwnown component {}'.format(component))
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
