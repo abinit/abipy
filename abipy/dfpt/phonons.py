@@ -1461,7 +1461,7 @@ class PhononBands(object):
         """
         gamma_ind = self.qpoints.index((0,0,0))
         ind = self.acoustic_indices(gamma_ind, threshold=threshold, raise_on_no_indices=raise_on_no_indices)
-        asr_break = self.phfreqs[0, ind] * factor_ev2units(units)
+        asr_break = self.phfreqs[0, ind] * abu.phfactor_ev2units(units)
 
         imax = np.argmax(asr_break)
 
