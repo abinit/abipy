@@ -5,7 +5,7 @@ Objects to read and analyze optical properties stored in the optic.nc file produ
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import pymatgen.core.units as units
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import marquee, list_strings
@@ -14,39 +14,6 @@ from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_Elect
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, data_from_cplx_mode
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
-
-
-def s2itup(comp):
-    """
-    Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices
-    that can be used to slice susceptibility tensors (numpy array).
-
-    >>> assert s2itup("yy") == (1, 1)
-    >>> assert s2itup("xyz") == (0, 1, 2)
-    """
-    d = {"x": 0, "y": 1, "z": 2}
-    comp = str(comp).strip()
-    if len(comp) == 2:
-        return d[comp[0]], d[comp[1]]
-    elif len(comp) == 3:
-        return d[comp[0]], d[comp[1]], d[comp[2]]
-    else:
-        raise ValueError("Expecting component in the form `xy` or `xyz` but got `%s`" % comp)
-
-
-def itup2s(t):
-    """
-    Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).
-    Assume C-indexing e.g. 0 --> x
-
-    >>> assert itup2s((0, 1)) == "xy"
-    >>> assert itup2s((0, 1, 2)) == "xyz"
-    """
-    if not isinstance(t, tuple) and len(t) not in (2, 3):
-        raise TypeError("Expecting tuple of len 2 or 3, got %s" % str(t))
-    d = {0: "x", 1: "y", 2: "z"}
-    return "".join(d[i] for i in t)
-
 
 ALL_CHIS = OrderedDict([
     ("linopt", {
@@ -187,11 +154,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         app(marquee("Optic calculation", mark="="))
         # Show Optic variables.
-        app("broadening: %s [Ha], %.3f [eV]" % (self.broadening, self.broadening * units.Ha_to_eV))
-        app("scissor: %s [Ha], %.3f [eV]" % (self.scissor, self.scissor * units.Ha_to_eV))
-        app("tolerance: %s [Ha], %.3f [eV]" % (self.tolerance, self.tolerance * units.Ha_to_eV))
-        app("maxomega: %s [Ha], %.3f [eV]" % (self.maxomega, self.maxomega * units.Ha_to_eV))
-        app("domega: %s [Ha], %.3f [eV]" % (self.domega, self.domega * units.Ha_to_eV))
+        app("broadening: %s [Ha], %.3f [eV]" % (self.broadening, self.broadening * abu.Ha_eV))
+        app("scissor: %s [Ha], %.3f [eV]" % (self.scissor, self.scissor * abu.Ha_eV))
+        app("tolerance: %s [Ha], %.3f [eV]" % (self.tolerance, self.tolerance * abu.Ha_eV))
+        app("maxomega: %s [Ha], %.3f [eV]" % (self.maxomega, self.maxomega * abu.Ha_eV))
+        app("domega: %s [Ha], %.3f [eV]" % (self.domega, self.domega * abu.Ha_eV))
         app("do_antiresonant %s, do_ep_renorm %s" % (self.do_antiresonant, self.do_ep_renorm))
         app("Number of temperatures: %d" % self.reader.ntemp)
 
@@ -427,7 +394,7 @@ class OpticReader(ElectronsReader):
                     raise NotImplementedError("rank %s" % info["rank"])
 
             self.computed_ids[chiname] = ids
-            self.computed_components[chiname] = [itup2s(it) for it in ids]
+            self.computed_components[chiname] = [abu.itup2s(it) for it in ids]
 
     def read_lineps(self, components, itemp=0):
         """

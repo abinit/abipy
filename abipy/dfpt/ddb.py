@@ -26,7 +26,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
-from abipy.core.abinit_units import Ha_cmm1, phfactor_ev2units, phunit_tag
+from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
@@ -854,7 +854,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anaget_dielectric_tensor_generator(self, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                            manager=None, verbose=0, anaddb_kwargs=None):
         """
-        Execute anaddb to extract the quantities necessary to create a DielectricTensorGenerator.
+        Execute anaddb to extract the quantities necessary to create a |DielectricTensorGenerator|.
         Requires phonon perturbations at Gamma and static electric field perturbations.
 
         Args:

@@ -311,8 +311,10 @@ class DielectricTensorGeneratorTest(AbipyTest):
         self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
 
         if self.has_matplotlib():
-            assert d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)
-            assert d.plot_vs_w(0, None, 10, units="cm-1", show=False)
+            assert d.plot_vs_w(w_min=0.0001, w_max=0.01, num=10, units="Ha", show=False)
+            assert d.plot_vs_w(w_min=0, w_max=None, num=10, units="cm-1", show=False)
+            for comp in ["diag", "all", "diag_av"]:
+                assert d.plot_vs_w(num=10, component=comp, units="cm-1", show=False)
 
 
 class DdbRobotTest(AbipyTest):

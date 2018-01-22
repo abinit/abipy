@@ -114,3 +114,35 @@ def phdos_label_from_units(units):
         return d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+
+
+def s2itup(comp):
+    """
+    Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices
+    that can be used to slice susceptibility tensors (numpy array).
+
+    >>> assert s2itup("yy") == (1, 1)
+    >>> assert s2itup("xyz") == (0, 1, 2)
+    """
+    d = {"x": 0, "y": 1, "z": 2}
+    comp = str(comp).strip()
+    if len(comp) == 2:
+        return d[comp[0]], d[comp[1]]
+    elif len(comp) == 3:
+        return d[comp[0]], d[comp[1]], d[comp[2]]
+    else:
+        raise ValueError("Expecting component in the form `xy` or `xyz` but got `%s`" % comp)
+
+
+def itup2s(t):
+    """
+    Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).
+    Assume C-indexing e.g. 0 --> x
+
+    >>> assert itup2s((0, 1)) == "xy"
+    >>> assert itup2s((0, 1, 2)) == "xyz"
+    """
+    if not isinstance(t, tuple) and len(t) not in (2, 3):
+        raise TypeError("Expecting tuple of len 2 or 3, got %s" % str(t))
+    d = {0: "x", 1: "y", 2: "z"}
+    return "".join(d[i] for i in t)

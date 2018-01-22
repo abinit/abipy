@@ -1455,7 +1455,7 @@ class PhononBands(object):
     def asr_breaking(self, units='eV', threshold=0.95, raise_on_no_indices=True):
         """
         Calculates the breaking of the acoustic sum rule.
-        Requires the presence of Gamma .
+        Requires the presence of Gamma.
 
         Args:
             units: Units for the output. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.

@@ -102,6 +102,7 @@
 .. |GsrFile| replace:: :class:`abipy.electrons.gsr.GsrFile`
 .. |GsrRobot| replace:: :class:`abipy.electrons.gsr.GsrRobot`
 .. |DdbFile| replace:: :class:`abipy.dfpt.ddb.DdbFile`
+.. |DielectricTensorGenerator| replace:: :class:`abipy.dfpt.ddb.DielectricTensorGenerator`
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
 .. |PhbstFile| replace:: :class:`abipy.dfpt.phonons.PhbstFile`
