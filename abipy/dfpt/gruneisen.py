@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 import abipy.core.abinit_units as abu
+import scipy.constants as const
 
 from collections import OrderedDict
 from monty.string import marquee, list_strings
@@ -16,6 +17,7 @@ from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
 #from abipy.tools import duck
+from abipy.core.func1d import Function1D
 
 
 # DOS name --> meta-data
@@ -26,6 +28,20 @@ _ALL_DOS_NAMES = OrderedDict([
     ("gruns_vdos", dict(latex=r"$DOS_v$")),
     ("gruns_v2dos", dict(latex=r"$DOS_{v^2}$")),
 ])
+
+
+def get_cv_per_mode(t, w):
+    """
+    Returns the contribution to the constant-volume specific heat, in eV/K at temperature t for a mode with
+    frequency w
+
+    Args:
+        t: temperature in K
+        w: frequency in eV
+
+    """
+
+
 
 
 class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -96,8 +112,27 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @lazy_property
     def doses(self):
-        "Dictionary with the phonon doses."""
+        """Dictionary with the phonon doses."""
         return self.reader.read_doses()
+
+    @lazy_property
+    def wvols_qibz(self):
+        """Phonon frequencies on reagular grid for the different volumes in eV """
+        return self.reader.read_value("gruns_wvols_qibz") * abu.Ha_eV
+
+    @lazy_property
+    def qibz(self):
+        """q-points in the irreducible brillouin zone"""
+        return self.reader.read_value("gruns_qibz")
+
+    @lazy_property
+    def gvals_qibz(self):
+        """Gruneisen parameters in the irreducible brillouin zone"""
+        if "gruns_gvals_qibz" not in self.reader.rootgrp.variables:
+            raise RuntimeError("GRUNS.nc file does not contain `gruns_gvals_qibz`."
+                               "Use prtdos in anaddb input file to compute these values in the IBZ")
+
+        return self.reader.read_value("gruns_gvals_qibz")
 
     @lazy_property
     def phbands_qpath_vol(self):
@@ -122,11 +157,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         freq            Phonon frequency in eV.
         ==============  ==========================
         """
-        if "gruns_gvals_qibz" not in self.reader.rootgrp.variables:
-            raise RuntimeError("GRUNS.nc file does not contain `gruns_gvals_qibz`."
-                               "Use prtdos in anaddb input file to compute these values in the IBZ")
 
-        grun_vals = self.reader.read_value("gruns_gvals_qibz")
+        grun_vals = self.gvals_qibz
         nqibz, natom3 = grun_vals.shape
         phfreqs = self.reader.rootgrp.variables["gruns_wvols_qibz"][:, self.iv0, :] * abu.Ha_eV
         # TODO: units?
@@ -228,6 +260,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if not self.phbands_qpath_vol: return None
         phbands = self.phbands_qpath_vol[self.iv0]
         factor = phbands.phfactor_ev2units(units)
+        gamma_fact *= factor
 
         # Build axes (ax_bands and ax_doses)
         if with_doses is None:
@@ -368,7 +401,6 @@ class GrunsReader(ETSF_Reader):
         self.num_volumes = self.read_dimvalue("gruns_nvols")
         # The index of the volume used for the finite difference.
         self.iv0 = self.read_value("gruns_iv0") - 1  #  F --> C
-        assert self.iv0 == 1
 
     def read_doses(self):
         """

@@ -75,6 +75,11 @@ class PhononBandsTest(AbipyTest):
         umodes = phbands.get_unstable_modes(below_mev=-1000)
         assert len(umodes) == 0
 
+        acoustic_modes = phbands.acoustic_indices((0,0,0))
+        self.assertArrayEqual(acoustic_modes, [0, 1, 2])
+        asr_breaking = phbands.asr_breaking()
+        assert asr_breaking.absmax_break == 0
+
         # Test convertion to eigenvectors. Verify that they are orthonormal
         # Allow relatively large tolerance due to possible mismatching in the atomic masses between abinit and pmg
         eig = phbands.dyn_mat_eigenvect
