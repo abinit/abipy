@@ -117,7 +117,7 @@ def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
     See itertools.groupby for further info.
 
     >>> sort_and_groupby([1, 2, 1], ret_lists=True)
-    ([1, 2], [[1, 1], [2]]
+    ([1, 2], [[1, 1], [2]])
     """
     from itertools import groupby
     if not ret_lists:

@@ -219,7 +219,7 @@ class SigresRobotTest(AbipyTest):
         assert abilab.SigresRobot.class_handles_filename(filepaths[0])
         assert len(filepaths) == 3
 
-        with abilab.SigresRobot.from_files(filepaths) as robot:
+        with abilab.SigresRobot.from_files(filepaths, abspath=True) as robot:
             assert robot.start is None
             start = robot.trim_paths(start=None)
             assert robot.start == start

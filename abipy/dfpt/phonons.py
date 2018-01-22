@@ -3578,7 +3578,7 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
         Returns: |matplotlib-Figure|
