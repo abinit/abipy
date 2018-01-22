@@ -256,6 +256,38 @@ class DdbTest(AbipyTest):
                     nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
                 assert plotter.gridplot(show=False)
 
+    def test_mgb2_ddbs_ngkpt_tsmear(self):
+        """Testing multiple DDB files and gridplot_with_hue."""
+        import os
+        paths = [
+            #"mgb2_444k_0.01tsmear_DDB",
+            #"mgb2_444k_0.02tsmear_DDB",
+            #"mgb2_444k_0.04tsmear_DDB",
+            "mgb2_888k_0.01tsmear_DDB",
+            #"mgb2_888k_0.02tsmear_DDB",
+            "mgb2_888k_0.04tsmear_DDB",
+            "mgb2_121212k_0.01tsmear_DDB",
+            #"mgb2_121212k_0.02tsmear_DDB",
+            "mgb2_121212k_0.04tsmear_DDB",
+        ]
+
+        paths = [os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", f) for f in paths]
+
+        robot = abilab.DdbRobot()
+        for i, path in enumerate(paths):
+            robot.add_file(path, path)
+
+        robot.remap_labels(lambda ddb: "nkpt: %s, tsmear: %.3f" % (ddb.header["nkpt"], ddb.header["tsmear"]))
+
+        # Invoke anaddb to get bands and doses
+        r = robot.anaget_phonon_plotters(nqsmall=2)
+
+        if self.has_matplotlib():
+            assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=True, show=False)
+            assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=False, show=False)
+
+        robot.close()
+
 
 class DielectricTensorGeneratorTest(AbipyTest):
 

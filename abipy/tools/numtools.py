@@ -110,6 +110,26 @@ def grouper(n, iterable, fillvalue=None):
     return list(zip_longest(fillvalue=fillvalue, *args))
 
 
+def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
+    """
+    Sort ``items`` using ``key`` function and invoke itertools.groupby to group items.
+    If ret_lists is True, a tuple of lists (keys, groups) is returned else iterator.
+    See itertools.groupby for further info.
+
+    >>> sort_and_groupby([1, 2, 1], ret_lists=True)
+    ([1, 2], [[1, 1], [2]]
+    """
+    from itertools import groupby
+    if not ret_lists:
+        return groupby(sorted(items, key=key, reverse=reverse), key=key)
+    else:
+        keys, groups = [], []
+        for hvalue, grp in groupby(sorted(items, key=key, reverse=reverse), key=key):
+            keys.append(hvalue)
+            groups.append(list(grp))
+        return keys, groups
+
+
 #########################################################################################
 # Sorting and ordering
 #########################################################################################

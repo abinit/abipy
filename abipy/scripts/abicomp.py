@@ -518,6 +518,7 @@ def _invoke_robot(options):
     # To define an Help action
     # http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
+    #print(paths)
 
     if os.path.isdir(paths[0]):
         # Assume directory.
@@ -725,12 +726,23 @@ Usage example:
                                                      parse timing data and plot results.
   abicomp.py text run1.abo run2.abo               => Produce diff of 2+ text files in the browser.
 
-TIP: Use Unix find to select all files with the a given extension and pass them to abicomp.py:
+TIP:
+
+Use Unix find to select all files with the a given extension and pass them to abicomp.py.
 For instance:
 
     abicomp.py structure `find . -name "*_GSR.nc"`
 
-will compare the structurs extracted from all GSR.nc files found within the current working directory (note backticks).
+will compare the structures extracted from all GSR.nc files found within the current working directory (note backticks).
+
+Also, remember that in bash {#..#} generates a sequence of numbers or chars, similarly to range() in Python
+For instance:
+
+    {1..5} --> 1 2 3 4 5
+
+and this trick can be used to select files/directories as in:
+
+    abicomp.py structure w1/t{2..4}/outdata/*_GSR.nc
 
 NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
 In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:

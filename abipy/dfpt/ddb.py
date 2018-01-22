@@ -72,7 +72,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     This object provides an interface to the DDB_ file produced by ABINIT
     as well as methods to compute phonon band structures, phonon DOS, thermodinamical properties ...
 
-    About the indices (idir, ipert) used by Abinit (Fortran notation)
+    About the indices (idir, ipert) used by Abinit (Fortran notation):
 
     * idir in [1, 2, 3] gives the direction (usually reduced direction)
     * ipert in [1, 2, ..., mpert] where mpert = natom + 6
@@ -122,11 +122,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
+        app(marquee("DDB Info", mark="="))
         app("")
+        app("Number of q-points in DDB: %d" % len(self.qpoints))
         app("guessed_ngqpt: %s (guess for the q-mesh divisions made by AbiPy)" % self.guessed_ngqpt)
         app("Has electric-field perturbation: %s" % self.has_emacro_terms())
         app("Has Born effective charges: %s" % self.has_bec_terms())
+
+        if verbose:
+            app(self.qpoints.to_string(verbose=verbose, title="Q-points in DDB"))
 
         if verbose > 1:
             from pprint import pformat
@@ -431,6 +435,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             od[k] = self.header[k]
         return od
 
+    def _add_params(self, obj):
+        """Add params (meta variable) to object ``obj``. Usually a phonon bands or phonon dos object."""
+        if not hasattr(obj, "params"):
+            raise TypeError("object %s does not have `params` attribute" % type(obj))
+        obj.params.update(self.params)
+
     def has_lo_to_data(self, select="at_least_one"):
         """
         True if the DDB file contains the data required to compute the LO-TO splitting.
@@ -615,14 +625,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if not report.run_completed:
             raise self.AnaddbError(task=task, report=report)
 
-        phbst = task.open_phbst()
+        # Open file and add metadata to phbands from DDB
+        # TODO: in principle phbands.add_params?
+        phbst_file = task.open_phbst()
+        self._add_params(phbst_file.phbands)
         if lo_to_splitting:
-            phbst.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
+            phbst_file.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
-        if inp["prtdos"] == 0:
-            return phbst, None
-        else:
-            return phbst, task.open_phdos()
+        phdos_file = None if inp["prtdos"] == 0 else task.open_phdos()
+        #if phdos_file is not None: self._add_params(phdos_file.phdos)
+
+        return phbst_file, phdos_file
 
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1,
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
@@ -1411,9 +1424,10 @@ class DdbRobot(Robot):
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)
 
             phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
-            phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
             phbst_file.close()
-            phdos_file.close()
+            if phdos_file is not None:
+                phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
+                phdos_file.close()
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
 

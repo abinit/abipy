@@ -109,7 +109,7 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     Returns: |matplotlib-Figure|
     """
-    # Check here because pandas messages are a bit criptic.
+    # Check here because pandas error messages are a bit criptic.
     miss = [k for k in (x, y, hue) if k not in data]
     if miss:
         raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
@@ -120,7 +120,11 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
     for key, grp in data.groupby(hue):
-        xvals, yvals = grp[x], grp[y]
+        #xvals, yvals = grp[x], grp[y]
+        # Sort xs and rearrange ys
+        xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
+        xvals, yvals = xy[:, 0], xy[:, 1]
+
         label = "{} = {}".format(hue, key)
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)

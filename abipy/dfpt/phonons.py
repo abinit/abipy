@@ -23,10 +23,10 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, Note
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
-from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos
-from pymatgen.phonon.dos import PhononDos as PmgPhononDos
+from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
+
 
 __all__ = [
     "PhononBands",
@@ -213,6 +213,15 @@ class PhononBands(object):
 
         self.non_anal_ph = non_anal_ph
         self.amu = amu
+
+        # Dictionary with metadata e.g. nkpt, tsmear ...
+        self.params = OrderedDict()
+
+    # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
+    @property
+    def nqpt(self):
+        """An alias for num_qpoints."""
+        return  self.num_qpoints
 
     def __repr__(self):
         """String representation (short version)"""
@@ -1132,7 +1141,7 @@ class PhononBands(object):
                 Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to `units`.
-            width_ratios: Ratios between the width of the fatbands plots and the DOS plots.
+            width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
                 Used if `phdos_file` is not None
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
@@ -1158,7 +1167,7 @@ class PhononBands(object):
 
         # Grid with [ntypat] plots if fatbands only or [ntypat, 2] if fatbands + PJDOS
         import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
+        from matplotlib.gridspec import GridSpec
 
         fig = plt.figure()
         nrows, ncols = (ntypat, 1) if phdos_file is None else (ntypat, 2)
@@ -1247,7 +1256,7 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, phdos, units="eV", qlabels=None, axlist=None, **kwargs):
+    def plot_with_phdos(self, phdos, units="eV", qlabels=None, axlist=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS.
 
@@ -1258,18 +1267,19 @@ class PhononBands(object):
                 The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
+            width_ratios: Ratio between the width of the bands plots and the DOS plots.
+                Used if `axlist` is None
 
         Returns: |matplotlib-Figure|
         """
         phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
 
         import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec
-
         if axlist is None:
             # Build axes and align bands and DOS.
+            from matplotlib.gridspec import GridSpec
             fig = plt.figure()
-            gspec = GridSpec(1, 2, width_ratios=[2, 1], wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
@@ -1356,7 +1366,6 @@ class PhononBands(object):
         yname = "freq %s" % abu.phunit_tag(units)
         frame[yname] = factor * frame["freq"]
 
-        #import seaborn.apionly as sns
         import seaborn as sns
         hue = None
         ax = sns.boxplot(x="mode", y=yname, data=frame, hue=hue, ax=ax, **kwargs)
@@ -1460,8 +1469,10 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         super(PhbstFile, self).__init__(filepath)
         self.reader = PHBST_Reader(filepath)
 
-        # Initialize Phonon bands
+        # Initialize Phonon bands and add metadata from ncfile
         self._phbands = PhononBands.from_file(filepath)
+        #self._phbands.params.update(self.params)
+        #print(self.params)
 
     def __str__(self):
         return self.to_string()
@@ -2267,7 +2278,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
 # FIXME: Remove. Use PhononBandsPlotter API.
 @add_fig_kwargs
-def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None, units="eV", **kwargs):
+def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None,
+                     units="eV", width_ratios=(2, 1), **kwargs):
     """
     Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
@@ -2282,6 +2294,8 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         phdos_kwargs: optional dictionary with the options passed to ``get_phdos`` to compute the phonon DOS.
             Used only if ``phdos_objects`` is not None.
         units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+        width_ratios: Ratio between the width of the phonon band plots and the DOS plots.
+            Used if `phdos_objects` is not None
 
     Returns: |matplotlib-Figure|
     """
@@ -2304,7 +2318,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         nrows = numeb // ncols + numeb % ncols
 
     if not phdos_list:
-        # Plot grid with bands only.
+        # Plot grid with phonon bands only.
         fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
         axes = axes.ravel()
         # don't show the last ax if numeb is odd.
@@ -2317,14 +2331,14 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
                 ax.set_ylabel("")
 
     else:
-        # Plot grid with bands + DOS
+        # Plot grid with phonon bands + DOS
         # see http://matplotlib.org/users/gridspec.html
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
         fig = plt.figure()
         gspec = GridSpec(nrows, ncols)
 
         for i, (phbands, phdos) in enumerate(zip(phbands_list, phdos_list)):
-            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1], wspace=0.05)
+            subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=width_ratios, wspace=0.05)
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
@@ -2360,7 +2374,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True):
                         columns=list(odict_list[0].keys()) if odict_list else None)
 
 
-
 class PhononBandsPlotter(NotebookWriter):
     """
     Class for plotting phonon band structure and DOSes.
@@ -2375,7 +2388,8 @@ class PhononBandsPlotter(NotebookWriter):
         plotter.add_phbands("bar bands", "bar_PHBST.nc")
         plotter.gridplot()
     """
-    _LINE_COLORS = ["b", "r", "k", "g"]
+    # Used in iter_lineopt to generate matplotlib linestyles.
+    _LINE_COLORS = ["b", "r", "g", "m", "y", "k"]
     _LINE_STYLES = ["-", ":", "--", "-.",]
     _LINE_WIDTHS = [2, ]
 
@@ -2462,8 +2476,8 @@ class PhononBandsPlotter(NotebookWriter):
         return list(self._phdoses_dict.values())
 
     def iter_lineopt(self):
-        """Generates style options for lines."""
-        for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+        """Generates matplotlib linestyles."""
+        for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
     @deprecated(message="add_phbands_from_file method of PhononBandsPlotter has been replaced by add_phbands. It will be removed in 0.4")
@@ -2524,7 +2538,7 @@ class PhononBandsPlotter(NotebookWriter):
     #    return "\n\n".join(text)
 
     @add_fig_kwargs
-    def combiplot(self, qlabels=None, units='eV', ylims=None, **kwargs):
+    def combiplot(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS on the same figure.
         Use ``gridplot`` to plot band structures on different figures.
@@ -2535,6 +2549,8 @@ class PhononBandsPlotter(NotebookWriter):
                 The values are the labels e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
+                Used if plotter has DOSes.
 
         Returns: |matplotlib-Figure|
         """
@@ -2544,7 +2560,7 @@ class PhononBandsPlotter(NotebookWriter):
         # Build grid of plots.
         fig = plt.figure()
         if self.phdoses_dict:
-            gspec = GridSpec(1, 2, width_ratios=[2, 1], wspace=0.05)
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             # Align bands and DOS.
             ax2 = plt.subplot(gspec[1], sharey=ax1)
@@ -2561,16 +2577,20 @@ class PhononBandsPlotter(NotebookWriter):
             for ax in ax_list:
                 set_axlims(ax, ylims, "y")
 
-        # Plot bands.
+        # Plot phonon bands.
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
-        for (label, bands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
+        nqpt_list = [phbands.nqpt for phbands in self._bands_dict.values()]
+        if any(nq != nqpt_list[0] for nq in nqpt_list):
+            cprint("WARNING: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+
+        for (label, phbands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
             my_kwargs.update(lineopt)
             opts_label[label] = my_kwargs.copy()
 
-            l = bands.plot_ax(ax1, branch=None, units=units, **my_kwargs)
+            l = phbands.plot_ax(ax1, branch=None, units=units, **my_kwargs)
             lines.append(l[0])
 
             # Use relative paths if label is a file.
@@ -2581,7 +2601,7 @@ class PhononBandsPlotter(NotebookWriter):
 
             # Set ticks and labels, legends.
             if i == 0:
-                bands.decorate_ax(ax1, qlabels=qlabels, units=units)
+                phbands.decorate_ax(ax1, qlabels=qlabels, units=units)
 
         ax1.legend(lines, legends, loc='best', shadow=True)
 
@@ -2604,7 +2624,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-            with_dos: True if DOS should be printed.
+            with_dos: True to plot phonon DOS (if available).
 
         Returns: |matplotlib-Figure|
         """
@@ -2615,6 +2635,130 @@ class PhononBandsPlotter(NotebookWriter):
             phdos_objects = list(self.phdoses_dict.values())
 
         return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, show=False)
+
+    @add_fig_kwargs
+    def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1), ylims=None, fontsize=8, **kwargs):
+        """
+        Plot multiple phonon bandstructures and optionally DOSes on a grid.
+        Group results by ``hue``.
+
+        Example:
+
+            plotter.gridplot_with_hue("tsmear")
+
+        Args:
+            hue: Variable that define subsets of the phonon bands, which will be drawn on separate plots.
+                Accepts callable or string
+                If string, it's assumed that the phbands has an attribute with the same name and getattr is invoked.
+                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
+                If callable, the output of hue(phbands) is used.
+            with_dos: True to plot phonon DOS (if available).
+            units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
+            width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
+                Used if plotter has PH DOSes is not None
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                or scalar e.g. `left`. If left (right) is None, default values are used
+            fontsize: legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Extract all quantities available in the plotter to prepare grouping.
+        all_labels = list(self._bands_dict.keys())
+        all_phb_objects = list(self._bands_dict.values())
+        all_phdos_objects = None
+        if self.phdoses_dict and with_dos:
+            all_phdos_objects = list(self.phdoses_dict.values())
+
+        from abipy.tools import sort_and_groupby, getattrd, hasattrd
+
+        # Need index to handle all_phdos_objects if DOSes are wanted.
+        if callable(hue):
+            items = [(hue(phb), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+        else:
+            # Assume string. Either phbands.hue or phbands.params[hue].
+            if hasattrd(all_phb_objects[0], hue):
+                items = [(getattrd(phb, hue), phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+            else:
+                items = [(phb.params[hue], phb, i, label) for i, (phb, label) in enumerate(zip(all_phb_objects, all_labels))]
+
+        # Group items by hue value.
+        hvalues, groups = sort_and_groupby(items, key=lambda t: t[0], ret_lists=True)
+        nrows, ncols = len(groups), 1
+
+        if not all_phdos_objects:
+            # Plot grid with phonon bands only.
+            ax_phbands, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                       sharex=True, sharey=True, squeeze=False)
+            ax_phbands = ax_phbands.ravel()
+
+            # Loop over groups
+            for ax, hvalue, grp in zip(ax_phbands, hvalues, groups):
+                # Unzip items
+                # See https://stackoverflow.com/questions/19339/transpose-unzip-function-inverse-of-zip
+                _, phb_list, indices, labels = tuple(map(list, zip(*grp)))
+                assert len(phb_list) == len(indices) and len(phb_list) == len(labels)
+                ax.grid(True)
+                sh = str(hue) if not callable(hue) else str(hue.__doc__)
+                ax.set_title("%s = %s" % (sh, hvalue), fontsize=fontsize)
+
+                nqpt_list = [phbands.nqpt for phbands in phb_list]
+                if any(nq != nqpt_list[0] for nq in nqpt_list):
+                    cprint("WARNING: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+
+                # Plot all bands in grups on the same axis.
+                for i, (phbands, lineopts) in enumerate(zip(phb_list, self.iter_lineopt())):
+                    # Plot all branches with lineopts and set the label of the last line produced.
+                    phbands.plot_ax(ax, branch=None, units=units, **lineopts)
+                    ax.lines[-1].set_label(labels[i])
+
+                    if i == 0:
+                        # Set ticks and labels
+                        phbands.decorate_ax(ax, qlabels=None, units=units)
+
+                # Set legends.
+                ax.legend(loc='best', fontsize=fontsize, shadow=True)
+                set_axlims(ax, ylims, "y")
+
+        else:
+            # Plot grid with phonon bands + DOS (grouped by hue)
+            # see http://matplotlib.org/users/gridspec.html
+            import matplotlib.pyplot as plt
+            from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+            fig = plt.figure()
+            gspec = GridSpec(nrows, ncols)
+
+            # Loop over groups
+            for i, (hvalue, grp) in enumerate(zip(hvalues, groups)):
+                # Unzip items
+                _, phb_list, indices, labels = tuple(map(list, zip(*grp)))
+                assert len(phb_list) == len(indices) and len(phb_list) == len(labels)
+
+                subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=width_ratios, wspace=0.05)
+                # Get axes and align bands and DOS.
+                ax1 = plt.subplot(subgrid[0])
+                ax2 = plt.subplot(subgrid[1], sharey=ax1)
+
+                sh = str(hue) if not callable(hue) else str(hue.__doc__)
+                ax1.set_title("%s = %s" % (sh, hvalue), fontsize=fontsize)
+
+                # Plot all bands in grups on the same axis.
+                nqpt_list = [phbands.nqpt for phbands in phb_list]
+                if any(nq != nqpt_list[0] for nq in nqpt_list):
+                    cprint("WARNING: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+
+                phdos_list = [all_phdos_objects[j] for j in indices]
+                for j, (phbands, phdos, lineopts) in enumerate(zip(phb_list, phdos_list, self.iter_lineopt())):
+                    # Plot all branches with DOS and lineopts and set the label of the last line produced
+                    phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), units=units, show=False, **lineopts)
+                    ax1.lines[-1].set_label(labels[j])
+
+                # Set legends on ax1
+                ax1.legend(loc='best', fontsize=fontsize, shadow=True)
+
+                for ax in (ax1, ax2):
+                    set_axlims(ax, ylims, "y")
+
+        return fig
 
     @add_fig_kwargs
     def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
@@ -2680,7 +2824,6 @@ class PhononBandsPlotter(NotebookWriter):
         yname = "freq %s" % abu.phunit_tag(units)
         data[yname] = factor * data["freq"]
 
-        #import seaborn.apionly as sns
         import seaborn as sns
         sns.boxplot(x="mode", y=yname, data=data, hue="label", ax=ax, **kwargs)
         if swarm:
@@ -2696,7 +2839,7 @@ class PhononBandsPlotter(NotebookWriter):
             interval: draws a new frame every interval milliseconds.
             savefile: Use e.g. 'myanimation.mp4' to save the animation in mp4 format.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
-            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+            width_ratios: Ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
             show: True if the animation should be shown immediately
 
@@ -3327,7 +3470,7 @@ class InteratomicForceConstants(Has_Structure):
             neighbour_element: symbol of an element in the structure. Only neighbours of this specie will be considered.
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to blue, symbol to 'o' and lw to 0
 
         Returns: |matplotlib-Figure|

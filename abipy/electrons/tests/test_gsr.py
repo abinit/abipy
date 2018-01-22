@@ -190,6 +190,7 @@ class GstRobotTest(AbipyTest):
 
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")
+            assert robot.gridplot_with_hue("structure.formula", show=False)
 
 	# Get pandas dataframe.
         df = robot.get_dataframe()

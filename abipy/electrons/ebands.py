@@ -2155,7 +2155,8 @@ class ElectronBandsPlotter(NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ElectronBandsPlotter
     """
-    _LINE_COLORS = ["b", "r",]
+    # Used in iter_lineopt to generate matplotlib linestyles.
+    _LINE_COLORS = ["b", "r", "g", "m", "y", "k"]
     _LINE_STYLES = ["-",":","--","-.",]
     _LINE_WIDTHS = [2,]
 
@@ -2230,7 +2231,7 @@ class ElectronBandsPlotter(NotebookWriter):
         return list(self.edoses_dict.values())
 
     def iter_lineopt(self):
-        """Generates style options for lines."""
+        """Generates matplotlib linestyles."""
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
@@ -2334,6 +2335,10 @@ class ElectronBandsPlotter(NotebookWriter):
         lines, legends = [], []
         my_kwargs, opts_label = kwargs.copy(), {}
         i = -1
+        nkpt_list = [ebands.nkpt for ebands in self.ebands_dict.values()]
+        if any(nk != nkpt_list[0] for nk in nkpt_list):
+            cprint("WARNING: Bands have different number of k-points:\n%s" % str(nkpt_list), "yellow")
+
         for (label, ebands), lineopt in zip(self.ebands_dict.items(), self.iter_lineopt()):
             i += 1
             my_kwargs.update(lineopt)
@@ -3783,7 +3788,7 @@ class RobotWithEbands(object):
         """
         # Note: Handling nsppol > 1 and the case in which we have abifiles with different nsppol is a bit tricky
         # hence we have to handle the different cases explicitly (see get_xy)
-        if len(self.abifiles) == 0: return None
+        if not self.abifiles: return None
         max_nsppol = max(f.nsppol for f in self.abifiles)
 
         items = ["fundamental_gaps", "direct_gaps", "bandwidths"]
@@ -3859,3 +3864,62 @@ class RobotWithEbands(object):
             nbv.new_code_cell("robot.get_edos_plotter().ipw_select_plot();"),
             nbv.new_code_cell("#robot.plot_egaps(sorby=None, hue=None);"),
         ]
+
+    @add_fig_kwargs
+    def gridplot_with_hue(self, hue, ylims=None, fontsize=8, sharex=False, sharey=False, **kwargs):
+        """
+        Plot multiple electron bandstructures on a grid. Group bands by ``hue``.
+
+        Example:
+
+            robot.gridplot_with_hue("nkpt")
+
+        Args:
+            hue: Variable that define subsets of the phonon bands, which will be drawn on separate plots.
+                Accepts callable or string
+                If string, it's assumed that `abifile has an attribute with the same name and getattr is invoked.
+                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
+                If callable, the output of hue(abifile) is used.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
+                or scalar e.g. `left`. If left (right) is None, default values are used
+            fontsize: legend and title fontsize.
+            sharex, sharey: True if X and Y axes should be shared.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Group abifiles by hue.
+        groups = self.group_and_sortby(hue, func_or_string=None)
+
+        nrows, ncols = len(groups), 1
+
+        # Plot grid with phonon bands only.
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=sharex, sharey=sharey, squeeze=False)
+        ax_list = ax_list.ravel()
+        e0 = "fermie"  # Each ebands is aligned with respect to its Fermi energy.
+
+        for ax, grp in zip(ax_list, groups):
+            ax.grid(True)
+            ebands_list = [abifile.ebands for abifile in grp.abifiles]
+            ax.set_title("%s = %s" % (self._get_label(hue), grp.hvalue), fontsize=fontsize)
+
+            nkpt_list = [ebands.nkpt for ebands in ebands_list]
+            if any(nk != nkpt_list[0] for nk in nkpt_list):
+                cprint("WARNING: Bands have different number of k-points:\n%s" % str(nkpt_list), "yellow")
+
+            for i, (ebands, lineopts) in enumerate(zip(ebands_list, self.iter_lineopt())):
+                # Plot all branches with lineopts and set the label of the last line produced.
+                ebands.plot_ax(ax, e0, **lineopts)
+                ax.lines[-1].set_label("%s" % grp.labels[i])
+
+                # Set ticks and labels
+                # (NB: we do this only for the first ebands, in principle ebands
+                # in the group could have different k-points but there's need to be so strict here.
+                if i == 0:
+                    ebands.decorate_ax(ax, klabels=None)
+
+            # Set legends.
+            ax.legend(loc='best', fontsize=fontsize, shadow=True)
+            set_axlims(ax, ylims, "y")
+
+        return fig

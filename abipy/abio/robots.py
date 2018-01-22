@@ -8,6 +8,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import sys
 import os
 import inspect
+import itertools
 
 from collections import OrderedDict, deque
 from functools import wraps
@@ -39,6 +40,11 @@ class Robot(NotebookWriter):
     """
     # filepaths are relative to `start`. None for asbolute paths. This flag is set in trim_paths
     start = None
+
+    # Used in iter_lineopt to generate matplotlib linestyles.
+    _LINE_COLORS = ["b", "r", "g", "m", "y", "k"]
+    _LINE_STYLES = ["-", ":", "--", "-.",]
+    _LINE_WIDTHS = [2, ]
 
     def __init__(self, *args):
         """
@@ -152,10 +158,13 @@ class Robot(NotebookWriter):
                 filename.endswith("." + cls.EXT))  # This for .abo
 
     @classmethod
-    def from_files(cls, filenames, labels=None):
+    def from_files(cls, filenames, labels=None, abspath=False):
         """
         Build a Robot from a list of `filenames`.
         if labels is None, labels are automatically generated from absolute paths.
+
+        Args:
+            abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         filenames = list_strings(filenames)
         from abipy.abilab import abiopen
@@ -171,7 +180,9 @@ class Robot(NotebookWriter):
                 label = abifile.filepath if labels is None else labels[i]
                 items.append((label, abifile))
 
-        return cls(*items)
+        new = cls(*items)
+        if labels is None and not abspath: new.trim_paths(start=None)
+        return new
 
     @classmethod
     def from_flow(cls, flow, outdirs="all", nids=None, ext=None, task_class=None):
@@ -251,6 +262,10 @@ class Robot(NotebookWriter):
             # Look in run.abi directory.
             filepath = node.wdir.has_abiext(self.EXT)
 
+        # This to ignore DDB.nc files (only text DDB are supported)
+        if filepath and filepath.endswith("_DDB.nc"):
+            return
+
         if filepath:
             try:
                 label = os.path.relpath(filepath)
@@ -323,6 +338,11 @@ class Robot(NotebookWriter):
     #                print(exc)
     #                #raise
 
+    def iter_lineopt(self):
+        """Generates matplotlib linestyles."""
+        for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+            yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
+
     @staticmethod
     def ordered_intersection(list_1, list_2):
         """Return ordered intersection of two lists. Items must be hashable."""
@@ -355,26 +375,52 @@ class Robot(NotebookWriter):
                 except Exception as exc:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
-                    #raise
 
     def change_labels(self, new_labels, dryrun=False):
         """
-        Change labels of the files. Return mapping new --> old.
+        Change labels of the files.
+
+        Args:
+            new_labels: List of strings (same length as self.abifiles)
+            dryrun: True to activate dryrun mode.
+
+        Return:
+            mapping new_label --> old_label.
         """
         if len(new_labels) != len(self):
             raise ValueError("Robot has %d files while len(new_labels) = %d" % (len(new_labels), len(self)))
 
         old_labels = list(self._abifiles.keys())
-        old_abifiles = self._abifiles
-        self._abifiles = OrderedDict()
+        if not dryrun:
+            old_abifiles, self._abifiles = self._abifiles, OrderedDict()
         new2old = OrderedDict()
         for old, new in zip(old_labels, new_labels):
-            print("old [%s] --> new [%s]" % (old, new))
             new2old[new] = old
             if not dryrun:
                 self._abifiles[new] = old_abifiles[old]
+            else:
+                print("old [%s] --> new [%s]" % (old, new))
 
         return new2old
+
+    def remap_labels(self, function, dryrun=False):
+        """
+        Change labels of the files by executing ``function``
+
+        Args:
+            function: Callable object e.g. lambda function. The output of function(abifile) is used as
+                new label. Note that the function shall not return duplicated labels when applied to self.abifiles.
+            dryrun: True to activate dryrun mode.
+
+        Return:
+            mapping new_label --> old_label.
+        """
+        new_labels = [function(afile) for afile in self.abifiles]
+        # Labels must be unique and hashable.
+        if len(set(new_labels)) != len(new_labels):
+            raise ValueError("Duplicated labels are not allowed. Change input function.\nnew_labels %s" % str(new_labels))
+
+        return self.change_labels(new_labels, dryrun=dryrun)
 
     def trim_paths(self, start=None):
         """
@@ -531,6 +577,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
             func_or_string: Either None, string, callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
@@ -539,14 +586,10 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         Return: List of :class:`HueGroup` instance.
         """
-        def sort_and_groupby(items, key, reverse=False):
-            """Sort items use ``key`` function and invoke groupby to group items."""
-            from itertools import groupby
-            return groupby(sorted(items, key=key, reverse=reverse), key=key)
-
+        from abipy.tools import sort_and_groupby, getattrd
         # Group by hue
         items = [(label, abifile) for (label, abifile) in self]
-        key = lambda t: hue(t[1]) if callable(hue) else getattr(t[1], hue)
+        key = lambda t: hue(t[1]) if callable(hue) else getattrd(t[1], hue)
 
         groups = []
         for hvalue, labelfile_list in sort_and_groupby(items, key=key):
@@ -709,8 +752,8 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         Args:
             item: Define the quantity to plot. Accepts callable or string
-                If string, it's assumed that the abifile has an attribute
-                with the same name and `getattr` is invoked.
+                If string, it's assumed that the abifile has an attribute with the same name and `getattr` is invoked.
+                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of item(abifile) is used.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
@@ -778,6 +821,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
             fontsize: legend and label fontsize.
             kwargs: keyword arguments are passed to ax.plot
@@ -848,6 +892,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.

@@ -17,15 +17,14 @@ from abipy import flowtk
 
 
 def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=1):
-    """return GS input."""
+    """Build and return Ground-state input for MgB2 given ngkpt and tsmear."""
 
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables
     scf_inp.set_vars(
         ecut=10,
-        nband=11,
-        timopt=-1,
+        nband=8,
         occopt=4,    # Marzari smearing
         tsmear=tsmear,
         paral_kgb=paral_kgb,
@@ -33,7 +32,7 @@ def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=1):
 
     # Dataset 1 (GS run)
     scf_inp.set_kmesh(ngkpt=ngkpt, shiftk=structure.calc_shiftk())
-    scf_inp.set_vars(tolvrs=1e-6)
+    scf_inp.set_vars(tolvrs=1e-10)
 
     return scf_inp
 
@@ -49,11 +48,13 @@ def build_flow(options):
     table = abilab.PseudoTable(abidata.pseudos("12mg.pspnc", "5b.pspnc"))
     pseudos = table.get_pseudos_for_structure(structure)
 
-    nval = structure.num_valence_electrons(pseudos)
+    #nval = structure.num_valence_electrons(pseudos)
     #print(nval)
 
     flow = flowtk.Flow(workdir=options.workdir)
 
+    # Build work of GS task. Each gs_task uses different (ngkpt, tsmear) values
+    # and represent the starting point of the phonon works.
     scf_work = flowtk.Work()
     ngkpt_list = [[4, 4, 4], [8, 8, 8]] #, [12, 12, 12]]
     tsmear_list = [0.01, 0.02] # , 0.04]
@@ -64,12 +65,13 @@ def build_flow(options):
     flow.register_work(scf_work)
 
     # This call uses the information reported in the GS task to
-    # compute all the independent atomic perturbations corresponding to a [4, 4, 4] q-mesh.
+    # compute all the independent atomic perturbations corresponding to a [2, 2, 2] q-mesh.
+    # For each GS task, construct a phonon work that will inherit (ngkpt, tsmear) from scf_task.
     for scf_task in scf_work:
-        ph_work = flowtk.PhononWork.from_scf_task(scf_task, qpoints=[4, 4, 4], is_ngqpt=True)
+        ph_work = flowtk.PhononWork.from_scf_task(scf_task, qpoints=[2, 2, 2], is_ngqpt=True)
         flow.register_work(ph_work)
 
-    return flow
+    return flow.allocate(use_smartio=True)
 
 
 # This block generates the thumbnails in the Abipy gallery.
@@ -103,27 +105,20 @@ if __name__ == "__main__":
 #
 # then use:
 #
-#    abirun.py flow_mgb2_phonons_nkpt_tsmear phbands
+#    abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
 #
-# to get info about the electronic properties:
+# to build a robot from all the output DDB files and start the ipython shell.
 #
-# .. code-block:: shell
-#
-# Our main goal is to analyze the convergence of the phonons wrt to the k-point sampling and tsmear.
-# As we know that ``w0_t2``, `w0_t3`` and ``w0_t4`` are DOS calculations, we can
-# build a GSR robot for these tasks with:
-#
-#    abirun.py flow_mgb2_edoses/ ebands -nids=241034,241035,241036
-#
-# then, inside the ipython shell, one can use:
+# then, inside the ipython shell, use:
 #
 # .. code-block:: ipython
 #
 #    In [1]: %matplotlib
-#    In [2]: robot.combiplot_edos()
+#    In [2]: p = robot.anaget_phonon_plotters()
+#    In [3]: p.phbands_plotter.combiplot()
 #
-# to plot the electronic DOS obtained with different number of k-points in the IBZ.
+# to compute the phonon bands and the DOS for all DDB files with Anaddb
+# and plot the results on the same figure.
 #
 # .. image:: https://github.com/abinit/abipy_assets/blob/master/run_mgb2_edoses.png?raw=true
 #    :alt: Convergence of electronic DOS in MgB2 wrt k-points.
-#

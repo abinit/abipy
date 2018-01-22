@@ -250,3 +250,8 @@ class SigresRobotTest(AbipyTest):
             robot.pop_label("foobar")
             new2old = robot.change_labels(["hello", "world"], dryrun=True)
             assert len(new2old) == 2 and "hello" in new2old
+
+            new2old = robot.remap_labels(lambda af: af.filepath, dryrun=False)
+            assert len(new2old) == 2
+            #print(new2old)
+            assert all([k.endswith(v) for k, v in new2old.items()])
