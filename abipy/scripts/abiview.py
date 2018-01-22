@@ -143,7 +143,7 @@ def abiview_ddb(options):
 
         # Don't need PHDOS if phononwebsite
         nqsmall = 0 if options.phononwebsite else 10
-        ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra", lo_to_splitting = "automatic"
+        ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
         print("""
 Computing phonon bands and DOS from DDB file with
 nqsmall = {nqsmall}, ndivsm = {ndivsm};

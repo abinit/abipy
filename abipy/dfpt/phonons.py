@@ -20,7 +20,7 @@ from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList, Kpath
+from abipy.core.kpoints import Kpoint, Kpath
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
