@@ -16,6 +16,12 @@ from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
 
 
+#def show_pid():
+#    pid = os.getpid()
+#    print("This process has pid {pid}, Use `kill -9 {pid}` to kill the process.".format(pid=pid))
+#    return pid
+
+
 def handle_overwrite(path, options):
     """Exit 1 if file `path` exists and not options.force else return path."""
     name_parts = os.path.splitext(path)
@@ -135,16 +141,20 @@ def abiview_ddb(options):
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
 
-        nqsmall = 10; ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method="tetra"
+        # Don't need PHDOS if phononwebsite
+        nqsmall = 0 if options.phononwebsite else 10
+        ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra", lo_to_splitting = "automatic"
         print("""
 Computing phonon bands and DOS from DDB file with
-nqsmall = {nqsmall}; ndivsm = {ndivsm}; asr = {asr}; chneut = {chneut}; dipdip = {dipdip}; dos_method = {dos_method}
+nqsmall = {nqsmall}, ndivsm = {ndivsm};
+asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_splitting}, dos_method = {dos_method}
 """.format(**locals()))
 
         # Autodetect presence of data for lo_to_splitting data in DDB.
-        lo_to_splitting = ddb.has_lo_to_data()
-        if lo_to_splitting:
-            print("DDB file contains Zeff and Becs, activating LO-TO computation.")
+        #lo_to_splitting = ddb.has_lo_to_data()
+        #lo_to_splitting = False
+        #if lo_to_splitting:
+        #    print("DDB file contains Zeff and Becs, activating LO-TO computation.")
 
         phbst, phdos = ddb.anaget_phbst_and_phdos_files(
             nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
@@ -161,6 +171,7 @@ nqsmall = {nqsmall}; ndivsm = {ndivsm}; asr = {asr}; chneut = {chneut}; dipdip =
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
+            #show_pid()
             return phbands.view_phononwebsite(browser=options.browser)
         else:
             phbands.plot_with_phdos(phdos)
@@ -182,6 +193,7 @@ def abiview_phbands(options):
         #    abifile.phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
+            #show_pid()
             return abifile.phbands.view_phononwebsite(browser=options.browser)
         else:
             print(abifile.to_string(verbose=options.verbose))

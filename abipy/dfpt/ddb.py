@@ -509,8 +509,29 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
+    def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
+        """
+        Invoke anaddb to compute phonon bands.
+        Produce JSON_ file that can be parsed from the phononwebsite_ and open it in ``browser``.
+
+        Args:
+            browser: Open webpage in ``browser``. Use default $BROWSER if None.
+            verbose: Verbosity level
+            dryrun: Activate dryrun mode for unit testing purposes.
+            kwargs: Passed to anaget_phbst_and_phdos_files
+
+        Return: Exit status
+        """
+        # Call anaddb to get phonon bands.
+        if "nqsmall" not in kwargs: kwargs["nqsmall"] = 0
+        phbst_file, phdos_file = self.anaget_phbst_and_phdos_files(**kwargs)
+        phbands = phbst_file.phbands
+        phbst_file.close()
+
+        return phbands.view_phononwebsite(browser=browser, verbose=verbose, dryrun=dryrun)
+
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
-                                 manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
+                                 manager=None, verbose=0, lo_to_splitting="automatic", directions=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute phonon modes at the given q-point.
 
@@ -521,8 +542,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes to use.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file
             verbose: verbosity level. Set it to a value > 0 to get more information.
-            lo_to_splitting: if True the LO-TO splitting will be calculated if qpoint==Gamma and the non_anal_directions
-                non_anal_phfreqs attributes will be added to the returned object.
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used.
             anaddb_kwargs: additional kwargs for anaddb.
@@ -537,15 +560,18 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Check if qpoint is in the DDB.
         try:
-            self.qindex(qpoint)
+            iq = self.qindex(qpoint)
         except:
             raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
                 qpoint, self.filepath, self.qpoints))
 
-        #if lo_to_splitting == "automatic":
-        #    lo_to_splitting = self.has_lo_to_data()
-        #if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
-        #    cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB %s:" % self.filepath)
+        qpoint = self.qpoints[iq]
+
+        if lo_to_splitting == "automatic":
+            lo_to_splitting = self.has_lo_to_data() and qpoint.is_gamma()
+
+        if lo_to_splitting and qpoint.is_gamma() and not self.has_lo_to_data():
+            cprint("lo_to_splitting set to True but Emacro and Becs are not available in DDB %s:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
@@ -553,7 +579,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir,
                                           manager=manager, mpi_procs=mpi_procs)
-
         if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
@@ -565,13 +590,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise self.AnaddbError(task=task, report=report)
 
         with task.open_phbst() as ncfile:
-            if lo_to_splitting and np.allclose(qpoint, [0, 0, 0]):
+            if lo_to_splitting and qpoint.is_gamma():
                 ncfile.phbands.read_non_anal_from_file(os.path.join(task.workdir, "anaddb.nc"))
 
             return ncfile.phbands
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                     lo_to_splitting=False, ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+                                     lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
                                      mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
@@ -584,7 +609,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening.
-            lo_to_splitting: if True the LO-TO splitting will be calculated and included in the band structure.
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated and the non_anal_directions
+                and the non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
             qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
@@ -600,9 +628,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
-        #lo_to_splitting = "automatic"
-        #if lo_to_splitting == "automatic":
-        #    lo_to_splitting = self.has_lo_to_data()
+        if lo_to_splitting == "automatic":
+            lo_to_splitting = self.has_lo_to_data()
 
         if lo_to_splitting and not self.has_lo_to_data():
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
@@ -637,7 +664,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbst_file, phdos_file
 
-    def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1,
+    def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                        verbose=0, mpi_procs=1):
         """
@@ -649,6 +676,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             asr_list: List of ``asr`` values to test.
             chneut_list: List of ``chneut`` values to test (used by anaddb only if dipdip == 1).
             dipdip: 1 to activate treatment of dipole-dipole interaction (requires BECS and dielectric tensor).
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
+                non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
             nqsmall: Defines the q-mesh for the phonon DOS in terms of
                 the number of divisions to be used to sample the smallest reciprocal lattice vector.
                 0 to disable DOS computation.
@@ -665,13 +696,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
             to visualize the results.
         """
-        lo_to_splitting = self.has_lo_to_data()
-        #lo_to_splitting = "automatic"
-
         phbands_plotter = PhononBandsPlotter()
 
         for asr, chneut in itertools.product(asr_list, chneut_list):
-
             phbst_file, phdos_file = self.anaget_phbst_and_phdos_files(
                 nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
                 lo_to_splitting=lo_to_splitting, ngqpt=ngqpt, qptbounds=None,
@@ -964,7 +991,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nbv.new_markdown_cell("## Invoke `anaddb` to compute bands and dos"),
             nbv.new_code_cell("""\
 bstfile, phdosfile =  ddb.anaget_phbst_and_phdos_files(nqsmall=10, ndivsm=20,
-    asr=2, chneut=1, dipdip=0, lo_to_splitting=False,
+    asr=2, chneut=1, dipdip=0, lo_to_splitting="automatic",
     dos_method="tetra", ngqpt=None, qptbounds=None, verbose=0, anaddb_kwargs=None)
 
 phbands, phdos = bstfile.phbands, phdosfile.phdos"""),
@@ -1273,7 +1300,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         Args:
             w: frequency
-            units: string specifying the units used for the frequency.  Possible values in
+            units: string specifying the units used for ph frequencies.  Possible values in
             ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         """
         w =  w / phfactor_ev2units(units)
@@ -1305,7 +1332,7 @@ class DielectricTensorGenerator(Has_Structure):
                 * 'all' to plot all the components
                 * 'diag_av' to plot the average of the components on the diagonal
 
-            units: string specifying the units used for the frequency. Possible values in
+            units: string specifying the units used for ph frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             fontsize: Legend and label fontsize.
 
@@ -1380,8 +1407,8 @@ class DdbRobot(Robot):
     #
     #    return np.array(qpoints)
 
-    def get_dataframe_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, with_geo=True,
-            abspath=False, funcs=None, **kwargs):
+    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, dipdip=1, with_geo=True,
+            abspath=False, funcs=None):
         """
 	Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 	by the robot and the given anaddb input arguments.
@@ -1389,6 +1416,8 @@ class DdbRobot(Robot):
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            units: string specifying the units used for ph frequencies.  Possible values in
+                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             with_geo: True if structure info should be added to the dataframe
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
@@ -1416,8 +1445,9 @@ class DdbRobot(Robot):
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies.
-            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip)
-            freqs = phbands.phfreqs[0, :]  # [nq, nmodes]
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip, lo_to_splitting=False)
+            # [nq, nmodes] array
+            freqs = phbands.phfreqs[0, :] * phfactor_ev2units(units)
 
             d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
 
@@ -1454,7 +1484,7 @@ class DdbRobot(Robot):
 
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.
-            #if kwargs.get("lo_to_splitting", "automatic"):
+            # lo_to_splitting in ["automatic", True, False] and defaults to automatic.
             if kwargs.get("lo_to_splitting", False):
                 anaddb_path = os.path.join(os.path.dirname(phbst_file.filepath), "anaddb.nc")
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)
@@ -1483,7 +1513,7 @@ class DdbRobot(Robot):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("#dfq = robot.get_dataframe_at_qpoint(qpoint=None)"),
+            nbv.new_code_cell("""#dfq = robot.get_dataframe_at_qpoint(qpoint=None, units="meV")"""),
             nbv.new_code_cell("r = robot.anaget_phonon_plotters(%s)" % anaget_phonon_plotters_kwargs),
             nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
             nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),

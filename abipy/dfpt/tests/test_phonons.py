@@ -36,6 +36,8 @@ class PhononBandsTest(AbipyTest):
             repr(nc); str(nc)
             assert nc.to_string(verbose=1)
             assert nc.params["nqpt"] == len(nc.qpoints)
+            assert nc.qpoints.is_path
+            assert any(q.name is not None for q in nc.qpoints)
             same_phbands_nc = PhononBands.as_phbands(nc)
             self.assert_equal(same_phbands_nc.phfreqs, phbands.phfreqs)
             # a + b gives plotter
@@ -59,11 +61,12 @@ class PhononBandsTest(AbipyTest):
         assert phbands.phfactor_ev2units("eV") == abu.phfactor_ev2units("eV")
 
         # Test XYZ vib
-        phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4,4,4])
+        phbands.create_xyz_vib(iqpt=0, filename=self.get_tmpname(text=True), max_supercell=[4, 4, 4])
         # Test ascii file
         phbands.create_ascii_vib(iqpts=0, filename=self.get_tmpname(text=True), pre_factor=1)
         # Test phononwebsite file
         phbands.create_phononwebsite_json(filename=self.get_tmpname(text=True), name='test')
+        assert phbands.view_phononwebsite(verbose=1, dryrun=True) == 0
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
         phbands.to_xmgrace(sys.stdout)

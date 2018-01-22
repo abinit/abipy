@@ -20,7 +20,7 @@ from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.kpoints import Kpoint, KpointList, Kpath
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
@@ -115,10 +115,11 @@ class PhononBands(object):
             structure = r.read_structure()
 
             # Build the list of q-points
-            qpoints = KpointList(structure.reciprocal_lattice,
-                                 frac_coords=r.read_qredcoords(),
-                                 weights=r.read_qweights(),
-                                 names=None)
+            qpoints = Kpath(structure.reciprocal_lattice, frac_coords=r.read_qredcoords(),
+                            weights=r.read_qweights(), names=None)
+
+            for qpoint in qpoints:
+                qpoint.set_name(structure.findname_in_hsym_stars(qpoint))
 
             # Read amu
             amu_list = r.read_amu()
@@ -194,7 +195,7 @@ class PhononBands(object):
         """
         self.structure = structure
 
-        # `KpointList` with the q-points
+        # KpointList with the q-points
         self.qpoints = qpoints
         self.num_qpoints = len(self.qpoints)
 
@@ -299,7 +300,7 @@ class PhononBands(object):
         # if qlabels are not specified by the user.
         _auto_qlabels = OrderedDict()
         for idx, qpoint in enumerate(self.qpoints):
-            name = self.structure.findname_in_hsym_stars(qpoint)
+            name = qpoint.name if qpoint.name is not None else self.structure.findname_in_hsym_stars(qpoint)
             if name is not None:
                 _auto_qlabels[idx] = name
                 if qpoint.name is None: qpoint.set_name(name)
@@ -671,25 +672,32 @@ class PhononBands(object):
         with open(filename, 'wt') as f:
             f.write("\n".join(lines))
 
-    def view_phononwebsite(self, browser=None, verbose=1, **kwargs):
+    def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
         """
-        Produce JSON_ file that can be parsed from the phononwebsite and open it in ``browser``.
+        Produce JSON_ file that can be parsed from the phononwebsite_ and open it in ``browser``.
+
+        Args:
+            browser: Open webpage in ``browser``. Use default $BROWSER if None.
+            verbose: Verbosity level
+            dryrun: Activate dryrun mode for unit testing purposes.
+            kwargs: Passed to create_phononwebsite_json method
 
         Return: Exit status
         """
         # Create json in abipy_nbworkdir with relative path so that we can read it inside the browser.
         from abipy.core.globals import abinb_mkstemp
         prefix = self.structure.formula.replace(" ", "")
-        _, rpath = abinb_mkstemp(force_abinb_workdir=True, use_relpath=True,
+        _, rpath = abinb_mkstemp(force_abinb_workdir=not dryrun, use_relpath=True,
                                  prefix=prefix, suffix=".json", text=True)
 
         if verbose: print("Writing json file:", rpath)
         self.create_phononwebsite_json(rpath, indent=None, **kwargs)
 
+        if dryrun: return 0
         return open_file_phononwebsite(rpath, browser=browser)
 
     def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None,
-                                  match_bands=True, highsym_qpts_mode="split", indent=2):
+                                  match_bands=True, highsym_qpts_mode="std", indent=2):
         """
         Writes a JSON_ file that can be parsed from the phononwebsite_.
 
@@ -700,10 +708,10 @@ class PhononBands(object):
             highsym_qpts: list of tuples. The first element of each tuple should be a list with the coordinates
                 of a high symmetry point, the second element of the tuple should be its label.
             match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.
-            highsym_qpts_mode: if highsym_qpts is None high symmetry q-points can be automatically determined.
+            highsym_qpts_mode: if ``highsym_qpts`` is None, high symmetry q-points can be automatically determined.
                 Accepts the following values:
                 'split' will split the path based on points where the path changes direction in the Brillouin zone.
-                Similar to the what is done in phononwebsite. Only Gamma will be labeled.
+                Similar to what is done in phononwebsite. Only Gamma will be labeled.
                 'std' uses the standard generation procedure for points and labels used in PhononBands.
                 None does not set any point.
             indent: Indentation level, passed to json.dump
@@ -713,7 +721,7 @@ class PhononBands(object):
             r"""
             function that splits the list of qpoints at repetitions (only the first point will be considered as
             high symm) and where the direction changes. Also sets :math:`\Gamma` for [0, 0, 0].
-            Similar to what is done in phononwebsite.
+            Similar to what is done in phononwebsite_.
             """
             h = []
             if np.array_equal(qpts[0], [0, 0, 0]):
@@ -733,18 +741,19 @@ class PhononBands(object):
 
             return h
 
+        # http://henriquemiranda.github.io/phononwebsite/index.html
         data = {}
         data["name"] = name or self.structure.composition.reduced_formula
         data["natoms"] = self.num_atoms
         data["lattice"] = self.structure.lattice.matrix.tolist()
         data["atom_types"] = [e.name for e in self.structure.species]
         data["atom_numbers"] = self.structure.atomic_numbers
-        data["chemical_symbols"] = self.structure.symbol_set
-        data["atomic_numbers"] = list(set(self.structure.atomic_numbers))
         data["formula"] = self.structure.formula.replace(" ", "")
         data["repetitions"] = repetitions or (3, 3, 3)
         data["atom_pos_car"] = self.structure.cart_coords.tolist()
         data["atom_pos_red"] = self.structure.frac_coords.tolist()
+        data["chemical_symbols"] = self.structure.symbol_set
+        data["atomic_numbers"] = list(set(self.structure.atomic_numbers))
 
         qpoints = []
         for q_sublist in self.split_qpoints:
@@ -793,6 +802,7 @@ class PhononBands(object):
         data["distances"] = distances
         data["eigenvalues"] = eigenvalues
         data["vectors"] = vectors
+        #print("name", data["name"], "\nhighsym_qpts:", data["highsym_qpts"])
 
         with open(filename, 'wt') as json_file:
             json.dump(data, json_file, indent=indent)
@@ -1128,8 +1138,7 @@ class PhononBands(object):
     def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
                       alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
                       qlabels=None, ylims=None, fontsize=12,
-                      **kwargs):
-                      #cart_dir=None
+                      **kwargs): #cart_dir=None
         r"""
         Plot phonon fatbands and, optionally, atom-projected DOSes.
 
@@ -3721,7 +3730,7 @@ def open_file_phononwebsite(filename, port=8000,
         port:
         website: Website URL
         host:
-        browser: Open webpage in ``browser``.
+        browser: Open webpage in ``browser``. Use default $BROWSER if None.
     """
     if filename.endswith(".json"):
         filetype = "json"

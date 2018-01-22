@@ -995,6 +995,7 @@ class KpointList(collections.Sequence):
         """Plot k-points with matplotlib."""
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
+        #print("is_path:", self.is_path)
         if self.is_path:
             labels = {k.name: k.frac_coords for k in self if k.name}
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]

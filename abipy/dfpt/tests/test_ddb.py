@@ -50,6 +50,8 @@ class DdbTest(AbipyTest):
 
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], verbose=1)
             assert phbands is not None and hasattr(phbands, "phfreqs")
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], lo_to_splitting=False, verbose=1)
+
 
             # Wrong qpoint
             with self.assertRaises(ValueError):
@@ -148,6 +150,8 @@ class DdbTest(AbipyTest):
         # Get bands and Dos
         phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(verbose=1)
         phbands, phdos = phbands_file.phbands, phdos_file.phdos
+
+        assert ddb.view_phononwebsite(verbose=1, dryrun=True) == 0
 
         if self.has_matplotlib():
             assert phbands.plot_with_phdos(phdos, show=False,
@@ -256,6 +260,7 @@ class DdbTest(AbipyTest):
                 str(plotter)
                 assert plotter.combiplot(show=False)
 
+                # Test nqsmall == 0
                 plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
                     nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
                 assert plotter.gridplot(show=False)
@@ -274,17 +279,17 @@ class DdbTest(AbipyTest):
             #"mgb2_121212k_0.02tsmear_DDB",
             "mgb2_121212k_0.04tsmear_DDB",
         ]
-
         paths = [os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", f) for f in paths]
 
-        robot = abilab.DdbRobot()
-        for i, path in enumerate(paths):
-            robot.add_file(path, path)
-
+        robot = abilab.DdbRobot.from_files(paths)
         robot.remap_labels(lambda ddb: "nkpt: %s, tsmear: %.3f" % (ddb.header["nkpt"], ddb.header["tsmear"]))
 
         # Invoke anaddb to get bands and doses
         r = robot.anaget_phonon_plotters(nqsmall=2)
+
+        data = robot.get_dataframe_at_qpoint(qpoint=(0, 0, 0), units="meV", with_geo=False)
+        assert "tsmear" in data
+        self.assert_equal(data["ixc"].values, 1)
 
         if self.has_matplotlib():
             assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=True, show=False)
@@ -333,7 +338,7 @@ class DdbRobotTest(AbipyTest):
         assert robot.EXT == "DDB"
 
         data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
-                dipdip=0, with_geo=True, abspath=True, verbose=2)
+                dipdip=0, with_geo=True, abspath=True)
         assert "mode1" in data and "angle1" in data
 
         r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)

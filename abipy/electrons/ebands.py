@@ -512,7 +512,7 @@ class ElectronBands(Has_Structure):
         # if klabels are not specified by the user.
         _auto_klabels = OrderedDict()
         for idx, kpoint in enumerate(self.kpoints):
-            name = self.structure.findname_in_hsym_stars(kpoint)
+            name = kpoint.name if kpoint.name is not None else self.structure.findname_in_hsym_stars(kpoint)
             if name is not None:
                 _auto_klabels[idx] = name
                 if kpoint.name is None: kpoint.set_name(name)
