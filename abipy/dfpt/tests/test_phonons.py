@@ -40,6 +40,7 @@ class PhononBandsTest(AbipyTest):
             assert any(q.name is not None for q in nc.qpoints)
             same_phbands_nc = PhononBands.as_phbands(nc)
             self.assert_equal(same_phbands_nc.phfreqs, phbands.phfreqs)
+            assert phbands.phdispl_cart.shape == (phbands.nqpt, phbands.num_branches, phbands.num_branches)
             # a + b gives plotter
             assert hasattr(same_phbands_nc + phbands, "combiplot")
 
@@ -103,6 +104,8 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
+            assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False)
+            assert phbands.plot_phdispl_cartdirs(qpoint=(0, 0, 0), units="cm^-1", show=False)
             assert phbands.boxplot(units="ev", mode_range=[2, 4], show=False)
 
         # Cannot compute PHDOS with q-path
@@ -153,8 +156,9 @@ class PhbstFileTest(AbipyTest):
                 ii = ncfile.qindex(qpt)
                 #print("iq", iq, "qpt", qpt, "ii", ii, "qpoints[ii]", ncfile.qpoints[ii])
                 same_ii, same_qpt = ncfile.qindex_qpoint(ii)
-                assert same_ii == ii
-                assert qpt == same_qpt
+                assert same_ii == ii and qpt == same_qpt
+                same_ii, same_qpt = ncfile.phbands.qindex_qpoint(qpt)
+                assert same_ii == ii and qpt == same_qpt
 
             qpoint = ncfile.qpoints[0]
             frame = ncfile.get_phframe(qpoint)

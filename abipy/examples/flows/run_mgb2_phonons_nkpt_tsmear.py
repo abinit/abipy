@@ -107,18 +107,17 @@ if __name__ == "__main__":
 #
 #    abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
 #
-# to build a robot from all the output DDB files and start the ipython shell.
+# to build a robot from the output DDB files and start the ipython shell.
 #
 # then, inside the ipython shell, use:
 #
 # .. code-block:: ipython
 #
 #    In [1]: %matplotlib
-#    In [2]: p = robot.anaget_phonon_plotters()
-#    In [3]: p.phbands_plotter.combiplot()
+#    In [2]: r = robot.anaget_phonon_plotters(nqsmall=0)
+#    In [3]: r.phbands_plotter.gridplot_with_hue("tsmear")
 #
-# to compute the phonon bands and the DOS for all DDB files with Anaddb
-# and plot the results on the same figure.
+# to compute the phonon bands with Anaddb and plot the results groupe by "tsmear".
 #
-# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_mgb2_edoses.png?raw=true
+# .. image:: https://github.com/abinit/abipy_assets/blob/master/run_mgb2_phonons_nkpt_tsmear.png?raw=true
 #    :alt: Convergence of electronic DOS in MgB2 wrt k-points.

@@ -728,8 +728,12 @@ Usage example:
 
 TIP:
 
-Use Unix find to select all files with the a given extension and pass them to abicomp.py.
-For instance:
+The python code operates on a list of files/directories passed via the command line interface.
+The arguments are interpreted by the shell before invoking the script.
+This means that one can use the bash syntax and the unix tools to precompute the list of files/directories.
+
+For example, one can use Unix find to select all files with the a given extension and pass them to abicomp.py.
+For command:
 
     abicomp.py structure `find . -name "*_GSR.nc"`
 
@@ -743,6 +747,14 @@ For instance:
 and this trick can be used to select files/directories as in:
 
     abicomp.py structure w1/t{2..4}/outdata/*_GSR.nc
+
+The [!name] syntax can be used to exclude patterns, so
+
+    abicomp.py structure w1/t[!2]*/outdata/*_GSR.nc
+
+excludes all the GSR.nc files in the t2/outdata directory.
+
+See also http://wiki.bash-hackers.org/syntax/pattern
 
 NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
 In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:

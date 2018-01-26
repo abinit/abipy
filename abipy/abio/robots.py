@@ -16,7 +16,7 @@ from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    rotate_ticklabels)
+    rotate_ticklabels, set_visible)
 
 
 class Robot(NotebookWriter):
@@ -949,10 +949,10 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         for i, (ax, item) in enumerate(zip(ax_list.ravel(), items)):
             self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize,
                                   marker=marker, show=False)
-            if i != 0 and ax.legend():
-                ax.legend().set_visible(False)
-            if i != len(items) - 1 and ax.xaxis.label:
-                ax.xaxis.label.set_visible(False)
+            if i != 0:
+                set_visible(ax, False, "legend")
+            if i != len(items) - 1:
+                set_visible(ax, False, "xlabel")
 
         return fig
 

@@ -60,6 +60,20 @@ def set_axlims(ax, lims, axname):
     return left, right
 
 
+def set_visible(ax, boolean, *args):
+    """
+    Hide/Show the artists of axis ax listed in args.
+    """
+    if "legend" in args and ax.legend():
+        ax.legend().set_visible(boolean)
+    if "title" in args and ax.title:
+        ax.title.set_visible(boolean)
+    if "xlabel" in args and ax.xaxis.label:
+        ax.xaxis.label.set_visible(boolean)
+    if "ylabel" in args and ax.yaxis.label:
+        ax.yaxis.label.set_visible(boolean)
+
+
 def rotate_ticklabels(ax, rotation, axname="x"):
     """Rotate the ticklables of axis ``ax``"""
     if "x" in axname:

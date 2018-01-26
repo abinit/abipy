@@ -23,7 +23,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, Note
 from abipy.core.kpoints import Kpoint, Kpath
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 
@@ -485,8 +485,7 @@ class PhononBands(object):
     def qindex_qpoint(self, qpoint):
         """Returns (qindex, qpoint) from an integer or a qpoint."""
         qindex = self.qindex(qpoint)
-        qpoint = self.qpoints(qindex)
-        return qindex, qpoint
+        return qindex, self.qpoints[qindex]
 
     def get_unstable_modes(self, below_mev=-5.0):
         """
@@ -1277,7 +1276,7 @@ class PhononBands(object):
             axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
                 is created and the two axes are automatically generated.
             width_ratios: Ratio between the width of the bands plots and the DOS plots.
-                Used if `axlist` is None
+                Used if ``axlist`` is None
 
         Returns: |matplotlib-Figure|
         """
@@ -1318,6 +1317,111 @@ class PhononBands(object):
         ax2.grid(True)
         ax2.yaxis.set_ticks_position("right")
         #ax2.yaxis.set_label_position("right")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV",
+                     colormap="viridis", hatches="default", fontsize=12, **kwargs):
+        """
+        Plot vertical bars with the contribution of the different atomic types to the phonon displacements
+        at a given q-point. The contribution is given by the ratio :math:`\dfrac{|d_{type}|^2} {|d|^2}`
+        where d is the (complex) phonon displacement in cartesian coordinates and d_{type} selects only the
+        terms associated to the atomic type ``type``.
+
+        Args:
+            qpoint: integer, vector of reduced coordinates or |Kpoint| object.
+            cart_dir: "x", "y", or "z" to select a particular Cartesian directions.
+                None if no projection is wanted.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            colormap: Matplotlib colormap used for atom type.
+            hatches: List of strings with matplotlib hatching patterns. None or empty list to disable hatching.
+            fontsize: Legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        factor = abu.phfactor_ev2units(units)
+        icart = {"x": 0, "y": 1, "z": 2, None: None}[cart_dir]
+
+        iq, qpoint = self.qindex_qpoint(qpoint)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        cmap = plt.get_cmap(colormap)
+        ntypat = self.structure.ntypesp
+
+        ax.set_title("qpoint = %s" % repr(qpoint), fontsize=fontsize)
+        ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+        #ax.set_ylabel(r"Contribution of atomic types to phonon displacement $d_{q,\nu}**2$")
+        if icart is None:
+            ax.set_ylabel(r"${|\vec{d}|^2} / {|\vec{d}({type})|^2}$")
+        else:
+            ax.set_ylabel(r"${|\vec{d}_{%s}|^2} / {|\vec{d}({type})|^2}$" % cart_dir)
+
+        # {Mg: [0], B: [1, 2]}
+        symbol2indices = {symbol: np.array(self.structure.indices_from_symbol(symbol))
+                          for symbol in self.structure.symbol_set}
+        #print(symbol2indices)
+
+        width, pad = 4, 1
+        pad = width + pad
+        xticks, xticklabels = [], []
+        if hatches == "default":
+            hatches = ["/", "\\", "'", "|", "-", "+", "x", "o", "O", ".", "*"]
+        else:
+            hatches = list_strings(hatches) if hatches is not None else []
+
+        x = 0
+        for nu in self.branches:
+            w_qnu = self.phfreqs[iq, nu] * factor
+            dcart_qnu = np.reshape(self.phdispl_cart[iq, nu], (len(self.structure), 3))
+            d2norm = sum(np.linalg.norm(d)**2 for d in dcart_qnu)
+
+            # Make a bar plot with rectangles bounded by (x - width/2, x + width/2, bottom, bottom + height)
+            # The align keyword controls if x is interpreted as the center or the left edge of the rectangle.
+            bottom, height = 0.0, 0.0
+            for itype, (symbol, inds) in enumerate(symbol2indices.items()):
+                if icart is None:
+                    assert all(len(d) == 3 for d in dcart_qnu[inds])
+                    height = sum(np.linalg.norm(d)**2 for d in dcart_qnu[inds]) / d2norm
+                else:
+                    height = sum(np.linalg.norm(d)**2 for d in dcart_qnu[inds, icart]) / d2norm
+                ax.bar(x, height, width, bottom, align="center",
+                       color=cmap(float(itype) / max(1, ntypat - 1)),
+                       label=symbol if nu == 0 else None, edgecolor='black',
+                       hatch=hatches[itype % len(hatches)] if hatches else None,
+                      )
+                bottom += height
+
+            xticks.append(x)
+            xticklabels.append("%.3f" % w_qnu)
+            x += (width + pad) / 2
+
+        ax.set_xticks(xticks)
+        ax.set_xticklabels((xticklabels))
+        ax.legend(loc="best", fontsize=fontsize, shadow=False)
+        #ax.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=ntypat)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_phdispl_cartdirs(self, qpoint, units="eV", colormap="viridis", hatches="default", fontsize=12, **kwargs):
+        """
+        Plot vertical bars with the contribution of the different atomic types to the phonon displacements
+        at a gven q-point. See plot_phdispl for API documentation.
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=1,
+                                                sharex=True, sharey=True, squeeze=False)
+        cart_dirs = ["x", "y", "z"]
+        for i, (cart_dir, ax) in enumerate(zip(cart_dirs, ax_list.ravel())):
+            self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
+                              fontsize=fontsize, hatches=hatches, show=False)
+            # Disable artists.
+            if i != 0:
+                set_visible(ax, False, "legend", "title")
+            if i != len(cart_dirs) - 1:
+                set_visible(ax, False, "xlabel")
 
         return fig
 
@@ -1478,7 +1582,7 @@ class PhononBands(object):
                 the maximum breaking with sign
                 the absolute value of the maximum breaking
         """
-        gamma_ind = self.qpoints.index((0,0,0))
+        gamma_ind = self.qpoints.index((0, 0, 0))
         ind = self.acoustic_indices(gamma_ind, threshold=threshold, raise_on_no_indices=raise_on_no_indices)
         asr_break = self.phfreqs[0, ind] * abu.phfactor_ev2units(units)
 
@@ -2071,6 +2175,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Human-readable string with useful information such as structure...
 
+        Args:
             verbose: Verbosity level.
         """
         lines = []; app = lines.append
@@ -2078,7 +2183,6 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
-
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
 
@@ -2867,7 +2971,7 @@ class PhononBandsPlotter(NotebookWriter):
             mode_range: Only bands such as ``mode_range[0] <= nu_index < mode_range[1]`` are included in the plot.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             kwargs: Keyword arguments passed to seaborn_ boxplot.
         """
         frames = []

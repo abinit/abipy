@@ -185,6 +185,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.reader.read_abinit_xcfunc()
 
     @lazy_property
+    def energy_terms(self):
+        return self.reader.read_energy_terms(unit="eV")
+
+    @lazy_property
     def params(self):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -273,7 +277,9 @@ if gsr.ebands.kpoints.is_ibz:
 
 
 class EnergyTerms(AttrDict):
-    """Contributions to the total GS energy. See energies_type in m_energies.F90"""
+    """
+    Contributions to the total GS energy. See energies_type in m_energies.F90.
+    """
 
     _NAME2DOC = OrderedDict([
         # (Name, help)
@@ -317,6 +323,15 @@ class EnergyTerms(AttrDict):
         return self.to_string(with_doc=False)
     __repr__ = __str__
 
+    def to_string(self, verbose=0, with_doc=True):
+        """String representation, with documentation if with_doc."""
+        lines = [str(self.table)]
+        if with_doc:
+            for k, doc in self._NAME2DOC.items():
+                lines.append("%s: %s" % (k, doc))
+
+        return "\n".join(lines)
+
     @property
     def table(self):
         """PrettyTable object with the results."""
@@ -326,14 +341,13 @@ class EnergyTerms(AttrDict):
             table.add_row([k, self[k]])
         return table
 
-    def to_string(self, verbose=0, with_doc=True):
-        """String representation, with documentation if with_doc."""
-        lines = [str(self.table)]
-        if with_doc:
-            for k, doc in self._NAME2DOC.items():
-                lines.append("%s: %s" % (k, doc))
-
-        return "\n".join(lines)
+    #def get_dataframe(self):
+    #    """
+    #    Return a |pandas-DataFrame|
+    #    """
+    #    d = {k: float(self[k]) for k in self}
+    #    return pd.DataFrame(d, index=[None], columns=list(d.keys()))
+    #    #return pd.DataFrame(d, columns=list(d.keys()))
 
 
 class GsrReader(ElectronsReader):
@@ -485,6 +499,69 @@ class GsrRobot(Robot, RobotWithEbands):
 
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
+
+    def get_energyterms_dataframe(self, abspath=False):
+        rows, row_names = [], []
+        for label, gsr in self.items():
+            row_names.append(label)
+            rows.append(gsr.energy_terms)
+
+        row_names = row_names if not abspath else self._to_relpaths(row_names)
+        df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+        first_row = df.iloc[[0]].values[0]
+        df = df.apply(lambda row: row - first_row, axis=1)
+        return df
+
+    @add_fig_kwargs
+    def plot_energyterms(self, fontsize=6, **kwargs):
+        items = ["e_eigenvalues", "e_localpsp", "e_ewald"]
+
+        # Build grid of plots.
+        nrows, ncols = len(items), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+
+        df = self.get_energyterms_dataframe()
+
+        #for i, (item, ax) in enumerate(zip(items, ax_list.ravel())):
+        #    print(item, "\n", df[item])
+        #    df.plot(x=None, y=item, kind='bar', ax=ax, legend=i==0, fontsize=fontsize)
+
+        for i, (item, ax) in enumerate(zip(items, ax_list.ravel())):
+            #values = [float(afile.energy_terms[item]) for afile in self.abifiles]
+            bottom = 0
+            width, pad = 4, 1
+            pad = width + pad
+            xticks, xticklabels = [], []
+            x = 0
+            for j, (label, abifile) in enumerate(self):
+                height = float(abifile.energy_terms[item])
+                if j == 0: h0 = height
+                height -= h0
+                ax.bar(x, height, width, bottom, align="center",
+                       label=label,
+                       #color=cmap(float(itype) / max(1, ntypat - 1)),
+                       edgecolor='black',
+                       #hatch=hatches[itype % len(hatches)] if hatches else None,
+                      )
+                xticks.append(x)
+                xticklabels.append(label)
+                x += (width + pad) / 2
+
+            ax.set_xticks(xticks)
+            ax.set_xticklabels((xticklabels))
+            ax.legend(loc="best", fontsize=fontsize, shadow=False)
+
+        #rows, row_names = [], []
+        #for label, gsr in self.items():
+        #    row_names.append(label)
+        #    rows.append(gsr.energy_terms)
+        #row_names = row_names if not abspath else self._to_relpaths(row_names)
+        #data = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+        #ax, fig, plt = get_ax_fig_plt(ax=None)
+        #sns.barplot(x="day", y="total_bill", hue="sex", data=data)
+
+        return fig
 
     @add_fig_kwargs
     def gridplot_eos(self, eos_names="all", fontsize=6, **kwargs):

@@ -715,7 +715,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return phbands_plotter
 
     def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None,
-                         num_cpus=1, stream=sys.stdout):
+                         verbose=0, num_cpus=1, stream=sys.stdout):
         """
         Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
         reported in the DDB_ file will be Fourier-interpolated on the list of q-meshes specified
@@ -728,6 +728,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
+            verbose: Verbosity level.
             num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.
             stream: File-like object used for printing.
 
@@ -756,7 +757,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         else:
             # Threads
-            print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
+            if verbose:
+                print("Computing %d phonon DOS with %d threads" % (len(nqsmalls), num_cpus) )
             phdoses = [None] * len(nqsmalls)
 
             def worker():
@@ -790,8 +792,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for i, phdos in enumerate(phdoses[:-1]):
             splined_dos = phdos.spline_on_mesh(last_mesh)
             abs_diff = (splined_dos - phdoses[-1]).abs()
-            print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" %
-                (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
+            if verbose:
+                print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" %
+                    (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
 
         # Fill the plotter.
         plotter = PhononDosPlotter()

@@ -590,7 +590,10 @@ class Kpoint(SlotPickleMixin):
         return np.any(diff < _ATOL_KDIFF)
 
     def __repr__(self):
-        return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        if self.name is not None:
+            s += " %s" % self.name
+        return s
 
     def __str__(self):
         return self.to_string()
@@ -598,7 +601,8 @@ class Kpoint(SlotPickleMixin):
     def to_string(self, verbose=0):
         """String representation."""
         s =  "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
-        if self.name is not None: s += ", name: %s" % self.name
+        if self.name is not None:
+            s += ", name: %s" % self.name
         if self._weight is not None: s += ", weight: %.3f" % self.weight
         return s
 
