@@ -500,16 +500,19 @@ class GsrRobot(Robot, RobotWithEbands):
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
-    def get_energyterms_dataframe(self, abspath=False):
+    def get_energyterms_dataframe(self, iref=None, abspath=False):
         rows, row_names = [], []
         for label, gsr in self.items():
             row_names.append(label)
-            rows.append(gsr.energy_terms)
+            d = OrderedDict([("energy", gsr.energy)])
+            d.update(gsr.energy_terms)
+            rows.append(d)
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-        first_row = df.iloc[[0]].values[0]
-        df = df.apply(lambda row: row - first_row, axis=1)
+        if iref is not None:
+            first_row = df.iloc[[iref]].values[0]
+            df = df.apply(lambda row: row - first_row, axis=1)
         return df
 
     @add_fig_kwargs

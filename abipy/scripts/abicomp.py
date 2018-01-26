@@ -543,6 +543,7 @@ def _invoke_robot(options):
 
     if options.ipython:
         import IPython
+        robot.trim_paths()
         IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
                       robot=robot)
 
@@ -550,6 +551,7 @@ def _invoke_robot(options):
         robot.make_and_open_notebook(foreground=options.foreground)
 
     else:
+        robot.trim_paths()
         #df = robot.get_params_dataframe()
         #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
 
