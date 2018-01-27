@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow to analyze the convergen of phonons in metals wrt ngkpt and tsmear
-=======================================================================
+Flow to analyze the convergence of phonons in metals wrt ngkpt and tsmear
+=========================================================================
 
 This examples shows how to build a Flow to compute the
 phonon band structure in a metallic system (MgB2) with different
@@ -47,9 +47,6 @@ def build_flow(options):
     # Get pseudos from a table.
     table = abilab.PseudoTable(abidata.pseudos("12mg.pspnc", "5b.pspnc"))
     pseudos = table.get_pseudos_for_structure(structure)
-
-    #nval = structure.num_valence_electrons(pseudos)
-    #print(nval)
 
     flow = flowtk.Flow(workdir=options.workdir)
 
@@ -105,7 +102,9 @@ if __name__ == "__main__":
 #
 # then use:
 #
-#    abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
+# .. code-block:: shell
+#
+#	abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
 #
 # to build a robot from the output DDB files and start the ipython shell.
 #
@@ -117,7 +116,7 @@ if __name__ == "__main__":
 #    In [2]: r = robot.anaget_phonon_plotters(nqsmall=0)
 #    In [3]: r.phbands_plotter.gridplot_with_hue("tsmear")
 #
-# to compute the phonon bands with Anaddb and plot the results groupe by "tsmear".
+# to compute the phonon bands with Anaddb and plot the results grouped by "tsmear".
 #
 # .. image:: https://github.com/abinit/abipy_assets/blob/master/run_mgb2_phonons_nkpt_tsmear.png?raw=true
-#    :alt: Convergence of electronic DOS in MgB2 wrt k-points.
+#    :alt: Convergence of phonon dispersion of MgB2 wrt k-point sampling and electronic smearing.

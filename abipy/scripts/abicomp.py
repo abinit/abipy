@@ -428,6 +428,13 @@ def abicomp_ddb(options):
     return _invoke_robot(options)
 
 
+def abicomp_phbst(options):
+    """
+    Compare multiple PHBST.nc files.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_sigres(options):
     """
     Compare multiple SIGRES files.
@@ -691,6 +698,7 @@ Usage example:
 #########
 
   abicomp.py phbands *_PHBST.nc -nb             => Compare phonon bands in the jupyter notebook.
+  abicomp.py phbst *_PHBST.nc -ipy              => Compare phonon bands with robot in ipython terminal.
   abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
 
@@ -879,6 +887,7 @@ def get_parser(with_epilog=False):
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
+    p_phbst = subparsers.add_parser('phbst', parents=robot_parents, help=abicomp_phbst.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)

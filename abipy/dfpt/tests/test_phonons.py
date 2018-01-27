@@ -105,7 +105,7 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
             assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False)
-            assert phbands.plot_phdispl_cartdirs(qpoint=(0, 0, 0), units="cm^-1", show=False)
+            assert phbands.plot_phdispl_cartdirs(qpoint=0, units="cm^-1", show=False)
             assert phbands.boxplot(units="ev", mode_range=[2, 4], show=False)
 
         # Cannot compute PHDOS with q-path
@@ -197,6 +197,21 @@ class PhbstFileTest(AbipyTest):
 
         if self.has_matplotlib():
             phbands.plot(title="ZnSe with LO-TO splitting", show=False)
+
+    def test_phbst_robot(self):
+        """Testing PHBST robot."""
+        paths = abidata.ref_files("trf2_5.out_PHBST.nc", "ZnSe_hex_886.out_PHBST.nc")
+
+        with abilab.PhbstRobot.from_files(paths) as robot:
+            assert len(robot) == len(paths)
+            repr(robot); str(robot)
+            assert robot.to_string(verbose=2)
+            df = robot.get_phbands_dataframe()
+            for k in ("min_freq", "max_freq", "std_freq"):
+                assert k in df
+
+            if self.has_matplotlib():
+                assert robot.plot_phdispl(qpoint=(0, 0, 0), show=False)
 
 
 class PhononBandsPlotterTest(AbipyTest):

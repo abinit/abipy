@@ -960,8 +960,22 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return None
 
+    def get_symbol2indices(self):
+
+        """
+        Return a dictionary mapping chemical symbols to numpy array with the position of the atoms.
+
+        Example:
+
+            MgB2 --> {Mg: [0], B: [1, 2]}
+        """
+        return {symbol: np.array(self.indices_from_symbol(symbol)) for symbol in self.symbol_set}
+
     def get_symbol2coords(self):
-        """Return a dictionary mapping chemical symbols to coordinates."""
+        """
+        Return a dictionary mapping chemical symbols to a [ntype_symbol, 3] numpy array
+        with the fractional coordinates.
+        """
         # TODO:
         #use structure.frac_coords but add reshape in pymatgen.
         #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))

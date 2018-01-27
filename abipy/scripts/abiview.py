@@ -16,14 +16,8 @@ from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
 
 
-#def show_pid():
-#    pid = os.getpid()
-#    print("This process has pid {pid}, Use `kill -9 {pid}` to kill the process.".format(pid=pid))
-#    return pid
-
-
 def handle_overwrite(path, options):
-    """Exit 1 if file `path` exists and not options.force else return path."""
+    """Exit 1 if file ``path`` exists and not options.force else return path."""
     name_parts = os.path.splitext(path)
     print("Writing %s file:" % name_parts[-1].replace("." , "").upper())
     if os.path.exists(path) and not options.force:
@@ -171,7 +165,6 @@ asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_spli
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
-            #show_pid()
             return phbands.view_phononwebsite(browser=options.browser)
         else:
             phbands.plot_with_phdos(phdos)
@@ -193,7 +186,6 @@ def abiview_phbands(options):
         #    abifile.phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
-            #show_pid()
             return abifile.phbands.view_phononwebsite(browser=options.browser)
         else:
             print(abifile.to_string(verbose=options.verbose))

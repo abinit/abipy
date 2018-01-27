@@ -476,6 +476,10 @@ class Robot(NotebookWriter):
         """Show label --> file path"""
         stream.write(self.get_label_files_str())
 
+    def __repr__(self):
+        """Invoked by repr."""
+        return self.get_label_files_str()
+
     def __str__(self):
         """Invoked by str."""
         return self.to_string()

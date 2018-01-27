@@ -21,6 +21,7 @@ from pymatgen.core.units import eV_to_Ha, Energy
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, Kpath
+from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible
@@ -1360,9 +1361,7 @@ class PhononBands(object):
             ax.set_ylabel(r"${|\vec{d}_{%s}|^2} / {|\vec{d}({type})|^2}$" % cart_dir)
 
         # {Mg: [0], B: [1, 2]}
-        symbol2indices = {symbol: np.array(self.structure.indices_from_symbol(symbol))
-                          for symbol in self.structure.symbol_set}
-        #print(symbol2indices)
+        symbol2indices = self.structure.get_symbol2indices()
 
         width, pad = 4, 1
         pad = width + pad
@@ -1401,19 +1400,24 @@ class PhononBands(object):
         ax.set_xticks(xticks)
         ax.set_xticklabels((xticklabels))
         ax.legend(loc="best", fontsize=fontsize, shadow=False)
-        #ax.legend(bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=ntypat)
 
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl_cartdirs(self, qpoint, units="eV", colormap="viridis", hatches="default", fontsize=12, **kwargs):
+    def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
+                              colormap="viridis", hatches="default", fontsize=12, **kwargs):
         """
         Plot vertical bars with the contribution of the different atomic types to the phonon displacements
-        at a gven q-point. See plot_phdispl for API documentation.
+        at a gven q-point.
+
+        Args:
+            qpoint: integer, vector of reduced coordinates or |Kpoint| object.
+            cart_dirs: List of strings defining the Cartesian directions.
+
+        See plot_phdispl for the meaning of the other arguments.
         """
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=1,
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(cart_dirs), ncols=1,
                                                 sharex=True, sharey=True, squeeze=False)
-        cart_dirs = ["x", "y", "z"]
         for i, (cart_dir, ax) in enumerate(zip(cart_dirs, ax_list.ravel())):
             self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
                               fontsize=fontsize, hatches=hatches, show=False)
@@ -3002,6 +3006,32 @@ class PhononBandsPlotter(NotebookWriter):
 
         return fig
 
+    @add_fig_kwargs
+    def plot_phdispl(self, qpoint, **kwargs):
+        """
+        Plot vertical bars with the contribution of the different atomic types to the phonon displacements
+        at a given q-point. One panel for all phbands stored in the plotter.
+
+        Args:
+            qpoint: integer, vector of reduced coordinates or |Kpoint| object.
+            kwargs: keyword arguments passed to phbands.plot_phdispl
+
+        Returns: |matplotlib-Figure|
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(self.phbands_dict), ncols=1,
+                                                sharex=False, sharey=False, squeeze=False)
+
+        for i, (ax, (label, phbands)) in enumerate(zip(ax_list.ravel(), self.phbands_dict.items())):
+            phbands.plot_phdispl(qpoint, cart_dir=None, ax=ax, units="eV",
+                                  colormap="viridis", hatches="default", fontsize=12, show=False, **kwargs)
+            # Disable artists.
+            if i != 0:
+                set_visible(ax, False, "title")
+            if i != len(self.phbands_dict) - 1:
+                set_visible(ax, False, "xlabel")
+
+        return fig
+
     def animate(self, interval=500, savefile=None, units="eV", width_ratios=(2, 1), show=True):
         """
         Use matplotlib to animate a list of band structure plots (with or without DOS).
@@ -3812,6 +3842,20 @@ class RobotWithPhbands(object):
         return dataframe_from_phbands([nc.phbands for nc in self.abifiles],
                                       index=self.labels, with_spglib=with_spglib)
 
+    @add_fig_kwargs
+    def plot_phdispl(self, qpoint, **kwargs):
+        """
+        Plot vertical bars with the contribution of the different atomic types to the phonon displacements
+        at a given q-point. One panel for all phbands stored in the plotter.
+
+        Args:
+            qpoint: integer, vector of reduced coordinates or |Kpoint| object.
+            kwargs: keyword arguments passed to phbands.plot_phdispl
+
+        Returns: |matplotlib-Figure|
+        """
+        return self.get_phbands_plotter().plot_phdispl(qpoint, show=False, **kwargs)
+
     def get_phbands_code_cells(self, title=None):
         """Return list of notebook cells."""
         # Try not pollute namespace with lots of variables.
@@ -3820,7 +3864,37 @@ class RobotWithPhbands(object):
         return [
             nbv.new_markdown_cell(title),
             nbv.new_code_cell("robot.get_phbands_plotter().ipw_select_plot();"),
+            nbv.new_code_cell("#robot.plot_phdispl(qpoint=(0, 0, 0));"),
         ]
+
+
+class PhbstRobot(Robot, RobotWithPhbands):
+    """
+    This robot analyzes the results contained in multiple PHBST.nc files.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PhbstRobot
+    """
+    EXT = "PHBST"
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.PhbstRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+        ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+        nb.cells.extend(self.get_phbands_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 def open_file_phononwebsite(filename, port=8000,
@@ -3831,10 +3905,11 @@ def open_file_phononwebsite(filename, port=8000,
     Based on a similar function in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
 
     Args:
-        port:
+        filename: file with phonon data in phononwebsite format.
+        port: Initial port.
         website: Website URL
-        host:
-        browser: Open webpage in ``browser``. Use default $BROWSER if None.
+        host: localhost name.
+        browser: Open webpage in ``browser``. Use default if $BROWSER if None.
     """
     if filename.endswith(".json"):
         filetype = "json"

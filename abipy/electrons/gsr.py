@@ -125,10 +125,6 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.energy / len(self.structure)
 
     @lazy_property
-    def energy_terms(self):
-        return self.reader.read_energy_terms()
-
-    @lazy_property
     def cart_forces(self):
         """Cartesian forces in eV / Ang"""
         return self.reader.read_cart_forces()
@@ -186,6 +182,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def energy_terms(self):
+        """:class:`EnergyTerms` with the different contributions to the total energy in eV."""
         return self.reader.read_energy_terms(unit="eV")
 
     @lazy_property
@@ -321,6 +318,7 @@ class EnergyTerms(AttrDict):
 
     def __str__(self):
         return self.to_string(with_doc=False)
+
     __repr__ = __str__
 
     def to_string(self, verbose=0, with_doc=True):
@@ -380,7 +378,7 @@ class GsrReader(ElectronsReader):
 
         return tensor
 
-    def read_energy_terms(self, unit="eV"):
+    def read_energy_terms(self):
         """
         Return a dictionary with the different contributions to the total electronic energy.
         """
@@ -500,71 +498,30 @@ class GsrRobot(Robot, RobotWithEbands):
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
-    def get_energyterms_dataframe(self, iref=None, abspath=False):
+    def get_energyterms_dataframe(self, iref=None):
+        """
+        Build and return with the different contributions to the total energy in eV
+
+        Args:
+            iref: Index of the abifile used as reference: the energies of the
+            ``iref`` gsrfile will be subtracted from the other rows. Ignored if None.
+
+        Return: |pandas-Dataframe|
+        """
         rows, row_names = [], []
         for label, gsr in self.items():
             row_names.append(label)
+            # Add total energy.
             d = OrderedDict([("energy", gsr.energy)])
             d.update(gsr.energy_terms)
             rows.append(d)
 
-        row_names = row_names if not abspath else self._to_relpaths(row_names)
         df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
         if iref is not None:
-            first_row = df.iloc[[iref]].values[0]
-            df = df.apply(lambda row: row - first_row, axis=1)
+            # Subtract iref row from the rest of the rows.
+            iref_row = df.iloc[[iref]].values[0]
+            df = df.apply(lambda row: row - iref_row, axis=1)
         return df
-
-    @add_fig_kwargs
-    def plot_energyterms(self, fontsize=6, **kwargs):
-        items = ["e_eigenvalues", "e_localpsp", "e_ewald"]
-
-        # Build grid of plots.
-        nrows, ncols = len(items), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
-
-        df = self.get_energyterms_dataframe()
-
-        #for i, (item, ax) in enumerate(zip(items, ax_list.ravel())):
-        #    print(item, "\n", df[item])
-        #    df.plot(x=None, y=item, kind='bar', ax=ax, legend=i==0, fontsize=fontsize)
-
-        for i, (item, ax) in enumerate(zip(items, ax_list.ravel())):
-            #values = [float(afile.energy_terms[item]) for afile in self.abifiles]
-            bottom = 0
-            width, pad = 4, 1
-            pad = width + pad
-            xticks, xticklabels = [], []
-            x = 0
-            for j, (label, abifile) in enumerate(self):
-                height = float(abifile.energy_terms[item])
-                if j == 0: h0 = height
-                height -= h0
-                ax.bar(x, height, width, bottom, align="center",
-                       label=label,
-                       #color=cmap(float(itype) / max(1, ntypat - 1)),
-                       edgecolor='black',
-                       #hatch=hatches[itype % len(hatches)] if hatches else None,
-                      )
-                xticks.append(x)
-                xticklabels.append(label)
-                x += (width + pad) / 2
-
-            ax.set_xticks(xticks)
-            ax.set_xticklabels((xticklabels))
-            ax.legend(loc="best", fontsize=fontsize, shadow=False)
-
-        #rows, row_names = [], []
-        #for label, gsr in self.items():
-        #    row_names.append(label)
-        #    rows.append(gsr.energy_terms)
-        #row_names = row_names if not abspath else self._to_relpaths(row_names)
-        #data = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-        #ax, fig, plt = get_ax_fig_plt(ax=None)
-        #sns.barplot(x="day", y="total_bill", hue="sex", data=data)
-
-        return fig
 
     @add_fig_kwargs
     def gridplot_eos(self, eos_names="all", fontsize=6, **kwargs):
@@ -601,7 +558,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
-            items=("energy", "pressure", "max_force"), **kwargs):
+                             items=("energy", "pressure", "max_force"), **kwargs):
         """
         Plot the convergence of the most important quantities available in the GSR file
         wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
