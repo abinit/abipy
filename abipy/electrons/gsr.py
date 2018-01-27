@@ -378,7 +378,7 @@ class GsrReader(ElectronsReader):
 
         return tensor
 
-    def read_energy_terms(self):
+    def read_energy_terms(self, unit="eV"):
         """
         Return a dictionary with the different contributions to the total electronic energy.
         """
@@ -551,7 +551,6 @@ class GsrRobot(Robot, RobotWithEbands):
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
         return fig

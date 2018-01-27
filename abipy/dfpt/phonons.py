@@ -81,7 +81,8 @@ class PhononMode(object):
         String representation
 
         Args:
-           with_displ: True to print phonon displacement.
+            verbose: Verbosity level.
+            with_displ: True to print phonon displacement.
 	"""
         lines = ["%s: q-point %s, frequency %.5f [eV]" % (self.__class__.__name__, self.qpoint, self.freq)]
         app = lines.append
@@ -1443,7 +1444,7 @@ class PhononBands(object):
         qidx            q-point index.
         mode            phonon branch index.
         freq            Phonon frequency in eV.
-        qpoint          :class:`Kpoint` object
+        qpoint          |Kpoint| object
         ==============  ==========================
         """
         import pandas as pd
