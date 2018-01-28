@@ -55,6 +55,7 @@ class TestFunction1D(AbipyTest):
         assert 1 - cosf ** 2 == sinf ** 2
         self.assert_almost_equal((1-cosf).integral()[-1], 2*np.pi)
         self.assert_almost_equal(sinf.l1_norm, 4., decimal=4)
+        self.assert_almost_equal(sinf.integral_value, 4., decimal=4)
 
         one = Function1D.from_constant(cosf.mesh, 1.0)
         assert one == sinf ** 2 + cosf ** 2

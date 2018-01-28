@@ -9,6 +9,7 @@ import pickle
 import os
 import six
 import json
+import warnings
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
@@ -283,18 +284,6 @@ class PhononBands(object):
 
     __radd__ = __add__
 
-    #def displ_of_specie(self, specie):
-    #    """Returns the displacement vectors for the given specie."""
-    #    # TODO recheck the ordering
-    #    # (nqpt, 3*natom, natom, 2) the last dimension stores the cartesian components.
-    #    #raise NotImplementedError("")
-    #    displ_specie = []
-    #    for i, site in enumerate(self.structure):
-    #        if site.specie == specie:
-    #            displ_specie.append(self.phdispl_cart[:, :, i, :])
-
-    #    return displ_specie
-
     @lazy_property
     def _auto_qlabels(self):
         # Find the q-point names in the pymatgen database.
@@ -353,8 +342,11 @@ class PhononBands(object):
 
     @lazy_property
     def dyn_mat_eigenvect(self):
-        """Eigenvalues of the dynamical matrix."""
-        return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, self.amu)
+        """
+        [nqpt, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
+        in Cartesian coordinates.
+        """
+        return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, amu=self.amu)
 
     @property
     def non_anal_directions(self):
@@ -452,7 +444,7 @@ class PhononBands(object):
         for nu in self.branches:
             w('@    s%d line color %d' % (nu, 1))
 
-        # TODO: LO-TO splitting
+        # TODO: support LO-TO splitting (?)
         for nu in self.branches:
             w('@target G0.S%d' % nu)
             w('@type xy')
@@ -484,10 +476,40 @@ class PhononBands(object):
         else:
             return self.qpoints.index(qpoint)
 
-    def qindex_qpoint(self, qpoint):
-        """Returns (qindex, qpoint) from an integer or a qpoint."""
-        qindex = self.qindex(qpoint)
-        return qindex, self.qpoints[qindex]
+    def qindex_qpoint(self, qpoint, is_non_analytical_direction=False):
+        """
+        Returns (qindex, qpoint) from an integer or a qpoint.
+
+        Args:
+            qpoint: integer, vector of reduced coordinates or |Kpoint| object.
+            is_non_analytical_direction: True if qpoint should be interpreted as a fractional direction for q --> 0
+                In this case qindex refers to the index of the direction in the :class:`NonAnalyticalPh` object.
+        """
+        if not is_non_analytical_direction:
+            # Standard search in qpoints.
+            qindex = self.qindex(qpoint)
+            return qindex, self.qpoints[qindex]
+        else:
+            # Find index of direction given by qpoint.
+            if self.non_anal_ph is None:
+                raise ValueError("Phononbands does not contain non-analytical terms for q-->0")
+
+            # Extract direction (assumed in fractional coordinates)
+            if hasattr(qpoint, "frac_coords"):
+                direction = qpoint.frac_coords
+            elif duck.is_intlike(qpoint):
+                direction = self.non_anal_ph.directions[qpoint]
+            else:
+                direction = qpoint
+
+            qindex = self.non_anal_ph.index_direction(direction, cartesian=False)
+
+            # Convert to fractional coords.
+            cart_direc = self.non_anal_ph.directions[qindex]
+            red_direc = self.structure.reciprocal_lattice.get_fractional_coords(cart_direc)
+            qpoint = Kpoint(red_direc, self.structure.reciprocal_lattice, weight=None, name=None)
+
+            return qindex, qpoint
 
     def get_unstable_modes(self, below_mev=-5.0):
         """
@@ -1038,7 +1060,7 @@ class PhononBands(object):
             # simpler method based just on the matching with the previous point
             #TODO remove after verifying the other method currently in use
             # for i, displ in enumerate(self.split_phdispl_cart):
-            #     eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, self.amu)
+            #     eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, amu=self.amu)
             #     ind_block = np.zeros((len(displ), self.num_branches), dtype=np.int)
             #     # if it's not the first block, match with the last of the previous block. Should give a match in case
             #     # of LO-TO splitting
@@ -1066,7 +1088,7 @@ class PhononBands(object):
                 return np.isclose(np.linalg.det(d), 0, atol=1e-5)
 
             for i, displ in enumerate(self.split_phdispl_cart):
-                eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, self.amu)
+                eigenvectors = get_dyn_mat_eigenvec(displ, self.structure, amu=self.amu)
                 ind_block = np.zeros((len(displ), self.num_branches), dtype=np.int)
                 # if it's not the first block, match the first two points with the last of the previous block.
                 # Should give a match in case of LO-TO splitting
@@ -1093,29 +1115,29 @@ class PhononBands(object):
 
             return self._split_matched_indices
 
-    def _get_non_anal_freqs(self, direction):
+    def _get_non_anal_freqs(self, frac_direction):
         # directions for the qph2l in anaddb are given in cartesian coordinates
-        direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
-        direction = direction / np.linalg.norm(direction)
+        cart_direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(frac_direction)
+        cart_direction = cart_direction / np.linalg.norm(cart_direction)
 
         for i, d in enumerate(self.non_anal_directions):
             d = d / np.linalg.norm(d)
-            if np.allclose(direction, d):
+            if np.allclose(cart_direction, d):
                 return self.non_anal_phfreqs[i]
 
-        raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
+        raise ValueError("Non analytical contribution has not been calcolated for reduced direction {0} ".format(frac_direction))
 
-    def _get_non_anal_phdispl(self, direction):
+    def _get_non_anal_phdispl(self, frac_direction):
         # directions for the qph2l in anaddb are given in cartesian coordinates
-        direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(direction)
-        direction = direction / np.linalg.norm(direction)
+        cart_direction = self.structure.lattice.reciprocal_lattice_crystallographic.get_cartesian_coords(frac_direction)
+        cart_direction = cart_direction / np.linalg.norm(cart_direction)
 
         for i, d in enumerate(self.non_anal_directions):
             d = d / np.linalg.norm(d)
-            if np.allclose(direction, d):
+            if np.allclose(cart_direction, d):
                 return self.non_anal_phdispl_cart[i]
 
-        raise ValueError("Non analytical contribution has not been calcolated for direction {0} ".format(direction))
+        raise ValueError("Non analytical contribution has not been calcolated for reduced direction {0} ".format(frac_direction))
 
     def _make_ticks_and_labels(self, qlabels):
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
@@ -1135,13 +1157,14 @@ class PhononBands(object):
         # Return ticks, labels
         return list(d.keys()), list(d.values())
 
+    # TODO: fatbands along x, y, z
     @add_fig_kwargs
     def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
                       alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
                       qlabels=None, ylims=None, fontsize=12,
                       **kwargs): #cart_dir=None
         r"""
-        Plot phonon fatbands and, optionally, atom-projected DOSes.
+        Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -1150,7 +1173,7 @@ class PhononBands(object):
             phdos_file: Used to activate fatbands + PJDOS plot.
                 Accept string with path of PHDOS.nc file or :class:`PhdosFile` object.
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to `units`.
+            max_stripe_width_mev: The maximum width of the stripe in meV. Will be rescaled according to ``units``.
             width_ratios: Ratio between the width of the fatbands plots and the DOS plots.
                 Used if `phdos_file` is not None
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
@@ -1249,8 +1272,7 @@ class PhononBands(object):
                 ax = plt.subplot(gspec[ax_row, 1], sharex=ax01, sharey=ax00)
                 if ax_row == 0: ax01 = ax
 
-                # Get PJDOS
-                # Dictionary symbol --> partial PhononDos
+                # Get PJDOS: Dictionary symbol --> partial PhononDos
                 pjdos = phdos_file.pjdos_symbol[symbol]
                 x, y = pjdos.mesh * factor, pjdos.values / factor
 
@@ -1323,11 +1345,11 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV",
+    def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV", is_non_analytical_direction=False,
                      colormap="viridis", hatches="default", fontsize=12, **kwargs):
         """
-        Plot vertical bars with the contribution of the different atomic types to the phonon displacements
-        at a given q-point. The contribution is given by the ratio :math:`\dfrac{|d_{type}|^2} {|d|^2}`
+        Plot vertical bars with the contribution of the different atomic types to all the phonon displacements
+        at a given ``qpoint``. The contribution is given by the ratio :math:`\dfrac{|d_{type}|^2} {|d|^2}`
         where d is the (complex) phonon displacement in cartesian coordinates and d_{type} selects only the
         terms associated to the atomic type ``type``.
 
@@ -1338,6 +1360,9 @@ class PhononBands(object):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
+            is_non_analytical_direction: If True, the ``qpoint`` is interpreted as a direction in q-space
+                and the phonon displacements for q --> 0 along this direction are used.
+                Requires band structure with :class:`NonAnalyticalPh` object.
             colormap: Matplotlib colormap used for atom type.
             hatches: List of strings with matplotlib hatching patterns. None or empty list to disable hatching.
             fontsize: Legend and title fontsize.
@@ -1347,15 +1372,17 @@ class PhononBands(object):
         factor = abu.phfactor_ev2units(units)
         icart = {"x": 0, "y": 1, "z": 2, None: None}[cart_dir]
 
-        iq, qpoint = self.qindex_qpoint(qpoint)
+        iq, qpoint = self.qindex_qpoint(qpoint, is_non_analytical_direction=is_non_analytical_direction)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
         ntypat = self.structure.ntypesp
 
-        ax.set_title("qpoint = %s" % repr(qpoint), fontsize=fontsize)
+        if is_non_analytical_direction:
+            ax.set_title("q-direction = %s" % repr(qpoint), fontsize=fontsize)
+        else:
+            ax.set_title("qpoint = %s" % repr(qpoint), fontsize=fontsize)
         ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
-        #ax.set_ylabel(r"Contribution of atomic types to phonon displacement $d_{q,\nu}**2$")
         if icart is None:
             ax.set_ylabel(r"${|\vec{d}|^2} / {|\vec{d}({type})|^2}$")
         else:
@@ -1374,8 +1401,14 @@ class PhononBands(object):
 
         x = 0
         for nu in self.branches:
-            w_qnu = self.phfreqs[iq, nu] * factor
-            dcart_qnu = np.reshape(self.phdispl_cart[iq, nu], (len(self.structure), 3))
+            # Select frequencies and cart displacements depending on is_non_analytical_direction
+            if is_non_analytical_direction:
+                w_qnu = self.non_anal_phfreqs[iq, nu] * factor
+                dcart_qnu = np.reshape(self.non_anal_phdispl_cart[iq, nu], (len(self.structure), 3))
+            else:
+                w_qnu = self.phfreqs[iq, nu] * factor
+                dcart_qnu = np.reshape(self.phdispl_cart[iq, nu], (len(self.structure), 3))
+
             d2norm = sum(np.linalg.norm(d)**2 for d in dcart_qnu)
 
             # Make a bar plot with rectangles bounded by (x - width/2, x + width/2, bottom, bottom + height)
@@ -1387,6 +1420,7 @@ class PhononBands(object):
                     height = sum(np.linalg.norm(d)**2 for d in dcart_qnu[inds]) / d2norm
                 else:
                     height = sum(np.linalg.norm(d)**2 for d in dcart_qnu[inds, icart]) / d2norm
+
                 ax.bar(x, height, width, bottom, align="center",
                        color=cmap(float(itype) / max(1, ntypat - 1)),
                        label=symbol if nu == 0 else None, edgecolor='black',
@@ -1405,11 +1439,11 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
+    def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV", is_non_analytical_direction=False,
                               colormap="viridis", hatches="default", fontsize=12, **kwargs):
         """
-        Plot vertical bars with the contribution of the different atomic types to the phonon displacements
-        at a gven q-point.
+        Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
+        to all the phonon displacements at the given ``qpoint`` along on the Cartesian directions in ``cart_dirs``.
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
@@ -1419,6 +1453,7 @@ class PhononBands(object):
         """
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(cart_dirs), ncols=1,
                                                 sharex=True, sharey=True, squeeze=False)
+
         for i, (cart_dir, ax) in enumerate(zip(cart_dirs, ax_list.ravel())):
             self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
                               fontsize=fontsize, hatches=hatches, show=False)
@@ -1549,7 +1584,6 @@ class PhononBands(object):
                 correctly identified
         """
         qindex = self.qindex(qpoint)
-
         phdispl = self.phdispl_cart[qindex]
 
         indices = []
@@ -1697,19 +1731,17 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def qindex(self, qpoint):
         """
-        Returns the index of the qpoint. Accepts integer or reduced coordinates.
+        Returns the index of the qpoint in the PhbstFile.
+        Accepts integer, vector with reduced coordinates or |Kpoint|.
         """
-        if duck.is_intlike(qpoint):
-            return int(qpoint)
-        else:
-            return self.qpoints.index(qpoint)
+        return self.phbands.qindex(qpoint)
 
-    def qindex_qpoint(self, qpoint):
+    def qindex_qpoint(self, qpoint, is_non_analytical_direction=False):
         """
-        Returns (qindex, qpoint) from an integer or a qpoint.
+        Returns (qindex, qpoint).
+        Accepts integer, vector with reduced coordinates or |Kpoint|.
         """
-        qindex = self.qindex(qpoint)
-        return qindex, self.qpoints[qindex]
+        return self.phbands.qindex_qpoint(qpoint, is_non_analytical_direction=is_non_analytical_direction)
 
     def get_phframe(self, qpoint, with_structure=True):
         """
@@ -2678,7 +2710,6 @@ class PhononBandsPlotter(NotebookWriter):
               Used only if ``phdos`` is not None.
         """
         if dos is not None:
-            import warnings
             warnings.warn("dos has been renamed phdos. The argument will removed in abipy 0.4")
             if phdos is not None:
                 raise ValueError("phdos and dos are mutually exclusive")
@@ -3300,7 +3331,6 @@ class PhononDosPlotter(NotebookWriter):
         if num_plots % ncols != 0: axmat[-1, -1].axis("off")
 
         for iax, (qname, ax) in enumerate(zip(quantities, axmat.flat)):
-
             for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
                 # Compute thermodinamic quantity associated to qname.
                 f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
@@ -3419,6 +3449,10 @@ class NonAnalyticalPh(Has_Structure):
 
     @lazy_property
     def dyn_mat_eigenvect(self):
+        """
+        [ndirection, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
+        in Cartesian coordinates.
+        """
         return get_dyn_mat_eigenvec(self.phdispl_cart, self.structure, amu=self.amu)
 
     @property
@@ -3426,9 +3460,9 @@ class NonAnalyticalPh(Has_Structure):
         """|Structure| object."""
         return self._structure
 
-    def has_direction(self, direction, cartesian=False):
+    def index_direction(self, direction, cartesian=False):
         """
-        Checks if the input direction is among those available.
+        Returns: the index of direction. Raises: `ValueError` if not found.
 
         Args:
             direction: a 3 element list indicating the direction. Can be a generic vector
@@ -3441,12 +3475,28 @@ class NonAnalyticalPh(Has_Structure):
             direction = np.array(direction)
         direction = direction / np.linalg.norm(direction)
 
-        for d in self.directions:
+        for i, d in enumerate(self.directions):
             d = d / np.linalg.norm(d)
             if np.allclose(d, direction):
-                return True
+                return i
 
-        return False
+        raise ValueError("Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s" %
+                (str(direction), cartesian, str(self.directions)))
+
+    def has_direction(self, direction, cartesian=False):
+        """
+        Checks if the input direction is among those available.
+
+        Args:
+            direction: a 3 element list indicating the direction. Can be a generic vector
+            cartesian: if True the direction are already in cartesian coordinates, if False it
+                will be converted to match the internal description of the directions.
+        """
+        try:
+            self.index_direction(direction, cartesian=cartesian)
+            return True
+        except ValueError:
+            return False
 
 
 class InteratomicForceConstants(Has_Structure):
@@ -3738,6 +3788,7 @@ class InteratomicForceConstants(Has_Structure):
                                  max_dist=max_dist, ax=ax, **kwargs)
 
 
+# TODO: amu should become mandatory.
 def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
     """
     Converts the phonon eigendisplacements to the orthonormal eigenvectors of the dynamical matrix.
@@ -3759,10 +3810,11 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
     eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
 
     if amu is None:
+        warnings.warn("get_dyn_mat_eigenvec has been called with amu=None. Eigenvectors may not be orthonormal.")
         amu = {e.number: e.atomic_mass for e in structure.composition.elements}
 
     for j, a in enumerate(structure):
-        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)]*np.sqrt(amu[a.specie.number]*abu.amu_emass)/abu.Bohr_Ang
+        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)] * np.sqrt(amu[a.specie.number]*abu.amu_emass) / abu.Bohr_Ang
 
     return eigvec
 

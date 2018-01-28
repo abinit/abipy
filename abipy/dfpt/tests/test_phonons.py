@@ -25,8 +25,8 @@ class PhononBandsTest(AbipyTest):
         filename = abidata.ref_file("trf2_5.out_PHBST.nc")
         phbands = PhononBands.from_file(filename)
         repr(phbands); str(phbands)
-
         assert phbands.to_string(title="Title", with_structure=False, with_qpoints=True, verbose=1)
+
         assert PhononBands.as_phbands(phbands) is phbands
         with self.assertRaises(TypeError):
             PhononBands.as_phbands({})
@@ -70,7 +70,7 @@ class PhononBandsTest(AbipyTest):
         assert phbands.view_phononwebsite(verbose=1, dryrun=True) == 0
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))
-        phbands.to_xmgrace(sys.stdout)
+        #phbands.to_xmgrace(sys.stdout)
 
         df = phbands.get_dataframe()
         assert "freq" in df and "mode" in df
@@ -79,19 +79,28 @@ class PhononBandsTest(AbipyTest):
         umodes = phbands.get_unstable_modes(below_mev=-1000)
         assert len(umodes) == 0
 
-        acoustic_modes = phbands.acoustic_indices((0,0,0))
+        acoustic_modes = phbands.acoustic_indices((0, 0, 0))
         self.assertArrayEqual(acoustic_modes, [0, 1, 2])
         asr_breaking = phbands.asr_breaking()
         assert asr_breaking.absmax_break == 0
 
         # Test convertion to eigenvectors. Verify that they are orthonormal
         # Allow relatively large tolerance due to possible mismatching in the atomic masses between abinit and pmg
+        # (Note that amu is None here)
+        assert phbands.amu is None
         eig = phbands.dyn_mat_eigenvect
-        assert np.allclose(np.dot(eig[0], eig[0].T), np.eye(len(eig[0]), dtype=np.complex), atol=1e-5, rtol=1e-3)
+        assert len(eig) == phbands.nqpt
+
+        cidentity = np.eye(len(eig[0]), dtype=np.complex)
+        for iq in range(len(eig)):
+            #print("About to test iq", iq, np.dot(eig[iq], eig[iq].T))
+            #assert np.allclose(np.dot(eig[iq], eig[iq].T), cidentity , atol=1e-5, rtol=1e-3)
+            assert np.allclose(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity , atol=1e-5, rtol=1e-3)
+            #self.assert_almost_equal(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity)
 
         # Mapping reduced coordinates -> labels
         qlabels = {
-            (0,0,0): "$\Gamma$",
+            (0,0,0): r"$\Gamma$",
             (0.375, 0.375, 0.75): "K",
             (0.5, 0.5, 1.0): "X",
             (0.5, 0.5, 0.5): "L",
@@ -105,6 +114,9 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
             assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False)
+            with self.assertRaises(ValueError):
+                # No LO-TO terms
+                assert phbands.plot_phdispl(qpoint=1, is_non_analytical_direction=True, show=False)
             assert phbands.plot_phdispl_cartdirs(qpoint=0, units="cm^-1", show=False)
             assert phbands.boxplot(units="ev", mode_range=[2, 4], show=False)
 
@@ -147,7 +159,6 @@ class PhbstFileTest(AbipyTest):
 
     def test_phbst_file(self):
         """Testing PHBST file."""
-        from abipy import abilab
         with abilab.abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
             assert ncfile.phbands is not None
             for iq, qpt in enumerate(ncfile.qpoints):
@@ -189,14 +200,23 @@ class PhbstFileTest(AbipyTest):
         phbands.read_non_anal_from_file(abidata.ref_file("ZnSe_hex_886.anaddb.nc"))
         nana = phbands.non_anal_ph
         assert nana.structure == phbands.structure
-        print(nana.structure.reciprocal_lattice)
+        str(nana.structure.reciprocal_lattice)
         self.assert_almost_equal(nana.directions.flat,
                 [0.1234510847, -0.071274517, 0, 0.1646014463, 0, 0, 0, 0, 0.0751616546])
-        for direc in nana.directions:
-            assert nana.has_direction(direc, cartesian=True)
+
+        for i, cart_direc in enumerate(nana.directions):
+            assert nana.has_direction(cart_direc, cartesian=True)
+
+            red_direc = phbands.structure.reciprocal_lattice.get_fractional_coords(cart_direc)
+            idir, qdir = phbands.qindex_qpoint(red_direc, is_non_analytical_direction=True)
+            assert i == idir
+            idir, qdir = phbands.qindex_qpoint(qdir, is_non_analytical_direction=True)
+            assert i == idir
 
         if self.has_matplotlib():
-            phbands.plot(title="ZnSe with LO-TO splitting", show=False)
+            assert phbands.plot(title="ZnSe with LO-TO splitting", show=False)
+            red_direc = phbands.structure.reciprocal_lattice.get_fractional_coords(nana.directions[1])
+            assert phbands.plot_phdispl(qpoint=red_direc, is_non_analytical_direction=True, show=False)
 
     def test_phbst_robot(self):
         """Testing PHBST robot."""
@@ -294,6 +314,7 @@ class PhononDosTest(AbipyTest):
         assert hasattr(ncfile, "structure")
         nw = len(ncfile.wmesh)
         assert nw == 461
+        natom3 = len(ncfile.structure) * 3
 
         # Read PJDOSes
         assert list(ncfile.pjdos_symbol.keys()) == ["Al", "As"]
@@ -305,6 +326,19 @@ class PhononDosTest(AbipyTest):
         assert arr.shape == (len(ncfile.structure), 3, nw)
 
         phdos = ncfile.phdos
+        # Test integrals of DOS (the tolerance is a bit low likely due to too coarse meshes)
+        self.assert_almost_equal(phdos.integral_value, natom3, decimal=1)
+
+        # Summing projected DOSes over types should give the total DOS.
+        pj_sum = sum(pjdos.integral_value for pjdos in ncfile.pjdos_symbol.values())
+        self.assert_almost_equal(phdos.integral_value, pj_sum)
+
+        # Summing projected DOSes over types and directions should give the total DOS.
+        # phdos_rc_type[ntypat, 3, nomega]
+        values = ncfile.reader.read_value("pjdos_rc_type").sum(axis=(0, 1))
+        tot_dos = abilab.Function1D(phdos.mesh, values)
+        self.assert_almost_equal(phdos.integral_value, tot_dos.integral_value)
+
         assert phdos == PhononDos.as_phdos(abidata.ref_file("trf2_5.out_PHDOS.nc"))
 
         # Test Thermodinamics in the Harmonic approximation
@@ -325,7 +359,7 @@ class PhononDosTest(AbipyTest):
         f = phdos.get_free_energy()
         self.assert_almost_equal(f.values, (u - s.mesh * s.values).values)
 
-        ncfile.to_pymatgen()
+        assert ncfile.to_pymatgen()
 
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)
@@ -414,10 +448,16 @@ class NonAnalyticalPhTest(AbipyTest):
         with DdbFile(os.path.join(test_dir, "ZnO_gamma_becs_DDB")) as ddb:
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=[0, 0, 0], lo_to_splitting=True)
 
+            assert phbands.amu is not None
+            #print(phbands.amu)
+            # FIXME: I don't like that we Z as key in amu. Should be the symbol
+            self.assert_almost_equal(phbands.amu[30.0], 0.6539e+02)
+            self.assert_almost_equal(phbands.amu[8.0], 0.159994e+02)
+
             assert phbands.non_anal_ph is not None
             repr(phbands.non_anal_ph); str(phbands.non_anal_ph)
             assert phbands.structure == phbands.non_anal_ph.structure
-            #assert phbands.non_anal_ph.has_direction(direction= cartesian=False)
+            #assert phbands.non_anal_ph.has_direction(direction=,  cartesian=False)
 
             # TODO should check numerical values (?)
             assert phbands.non_anal_phfreqs is not None

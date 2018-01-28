@@ -52,7 +52,6 @@ class DdbTest(AbipyTest):
             assert phbands is not None and hasattr(phbands, "phfreqs")
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], lo_to_splitting=False, verbose=1)
 
-
             # Wrong qpoint
             with self.assertRaises(ValueError):
                 ddb.anaget_phmodes_at_qpoint(qpoint=(0, 0, 0), verbose=1)
@@ -267,7 +266,6 @@ class DdbTest(AbipyTest):
 
     def test_mgb2_ddbs_ngkpt_tsmear(self):
         """Testing multiple DDB files and gridplot_with_hue."""
-        import os
         paths = [
             #"mgb2_444k_0.01tsmear_DDB",
             #"mgb2_444k_0.02tsmear_DDB",
@@ -350,3 +348,53 @@ class DdbRobotTest(AbipyTest):
             robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()
+
+
+class PhononComputationTest(AbipyTest):
+    def test_phonon_computation(self):
+        """Testing if anaddb pjdoses integrate to 3*natom"""
+        path = os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", "mgb2_121212k_0.04tsmear_DDB")
+        ddb = abilab.abiopen(path)
+
+        for dos_method in ("tetra", "gaussian"):
+            # Get bands and Dos
+            phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=2,
+                dipdip=0, chneut=0, dos_method=dos_method, lo_to_splitting=False, verbose=1)
+
+            phbands, phdos = phbands_file.phbands, phdos_file.phdos
+            natom3 = len(phbands.structure) * 3
+
+            # Test that amu is present with correct values.
+            assert phbands.amu is not None
+            self.assert_almost_equal(phbands.amu[12.0], 0.24305e+02)
+            self.assert_almost_equal(phbands.amu[5.0], 0.10811e+02)
+
+            # Total PHDOS should integrate to 3 * natom
+            # Note that anaddb does not renormalize the DOS so we have to increate the tolerance.
+            #E       Arrays are not almost equal to 2 decimals
+            #E        ACTUAL: 8.9825274146312282
+            #E        DESIRED: 9
+            self.assert_almost_equal(phdos.integral_value, natom3, decimal=1)
+
+            # Test convertion to eigenvectors. Verify that they are orthonormal
+            cidentity = np.eye(natom3, dtype=np.complex)
+            eig = phbands.dyn_mat_eigenvect
+            for iq in range(phbands.nqpt):
+                #print("About to test iq", iq, np.dot(eig[iq].T.conjugate(), eig[iq]))
+                #assert np.allclose(np.dot(eig[iq], eig[iq].T), cidentity , atol=1e-5, rtol=1e-3)
+                self.assert_almost_equal(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity) #, decimal=1)
+
+            # Summing projected DOSes over types should give the total DOS.
+            pj_sum = sum(pjdos.integral_value for pjdos in phdos_file.pjdos_symbol.values())
+            self.assert_almost_equal(phdos.integral_value, pj_sum)
+
+            # Summing projected DOSes over types and directions should give the total DOS.
+            # phdos_rc_type[ntypat, 3, nomega]
+            values = phdos_file.reader.read_value("pjdos_rc_type").sum(axis=(0, 1))
+            tot_dos = abilab.Function1D(phdos.mesh, values)
+            self.assert_almost_equal(phdos.integral_value, tot_dos.integral_value)
+
+            phbands_file.close()
+            phdos_file.close()
+
+        ddb.close()

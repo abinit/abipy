@@ -130,7 +130,7 @@ def bench_main(main):
     from functools import wraps
 
     @wraps(main)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # pragma: no cover
         parser = build_bench_main_parser()
         options = parser.parse_args()
 

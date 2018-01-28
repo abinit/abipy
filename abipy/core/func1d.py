@@ -318,6 +318,11 @@ class Function1D(object):
         return self.spline.integral(a, b)
 
     @lazy_property
+    def integral_value(self):
+        r"""Compute :math:`\int f(x) dx`."""
+        return self.integral()[-1][1]
+
+    @lazy_property
     def l1_norm(self):
         r"""Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
