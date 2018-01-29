@@ -217,6 +217,7 @@ class PhbstFileTest(AbipyTest):
             assert phbands.plot(title="ZnSe with LO-TO splitting", show=False)
             red_direc = phbands.structure.reciprocal_lattice.get_fractional_coords(nana.directions[1])
             assert phbands.plot_phdispl(qpoint=red_direc, is_non_analytical_direction=True, show=False)
+            assert phbands.plot_phdispl(qpoint=red_direc, is_non_analytical_direction=True, use_eigvec=True, show=False)
 
     def test_phbst_robot(self):
         """Testing PHBST robot."""
@@ -453,6 +454,8 @@ class NonAnalyticalPhTest(AbipyTest):
             # FIXME: I don't like that we Z as key in amu. Should be the symbol
             self.assert_almost_equal(phbands.amu[30.0], 0.6539e+02)
             self.assert_almost_equal(phbands.amu[8.0], 0.159994e+02)
+            self.assert_almost_equal(phbands.amu_symbol["Zn"], phbands.amu[30.0])
+            self.assert_almost_equal(phbands.amu_symbol["O"], phbands.amu[8.0])
 
             assert phbands.non_anal_ph is not None
             repr(phbands.non_anal_ph); str(phbands.non_anal_ph)

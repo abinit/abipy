@@ -19,6 +19,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
+from pymatgen.core.periodic_table import Element
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, Kpath
@@ -127,8 +128,8 @@ class PhononBands(object):
             # Read amu
             amu_list = r.read_amu()
             if amu_list is not None:
-                atom_species = r.read_value("atomic_numbers")
-                amu = {at: a for at, a in zip(atom_species, amu_list)}
+                atomic_numbers = r.read_value("atomic_numbers")
+                amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
             else:
                 cprint("Warning: file %s does not contain atomic_numbers.\nParticular methods need them!" %
                         filepath, "red")
@@ -178,7 +179,7 @@ class PhononBands(object):
 
     def read_non_anal_from_file(self, filepath):
         """
-        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file
+        Reads the non analytical directions, frequencies and displacements from the anaddb.nc file
         specified and adds them to the object.
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
@@ -217,6 +218,12 @@ class PhononBands(object):
 
         self.non_anal_ph = non_anal_ph
         self.amu = amu
+        self.amu_symbol = None
+        if amu is not None:
+            self.amu_symbol = {}
+            for z, m in amu.items():
+                el = Element.from_Z(int(z))
+                self.amu_symbol[el.symbol] = m
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
         self.params = OrderedDict()
@@ -608,7 +615,7 @@ class PhononBands(object):
         Args:
             iqpt: index of qpoint in self
             filename: name of the XYZ file that will be created
-            pre_factor: Multiplication factor of the eigendisplacements
+            pre_factor: Multiplication factor of the displacements
             do_real: True if we want only real part of the displacement, False means imaginary part
             scale_matrix: Scaling matrix of the supercell
             max_supercell: Maximum size of the supercell with respect to primitive cell
@@ -637,7 +644,7 @@ class PhononBands(object):
             iqpts: an index or a list of indices of the qpoints in self. Note that at present only V_sim supports
                 an ascii file with multiple qpoints.
             filename: name of the ascii file that will be created.
-            pre_factor: Multiplication factor of the eigendisplacements.
+            pre_factor: Multiplication factor of the displacements.
         """
         if not isinstance(iqpts, (list, tuple)):
             iqpts = [iqpts]
@@ -1159,14 +1166,14 @@ class PhononBands(object):
 
     # TODO: fatbands along x, y, z
     @add_fig_kwargs
-    def plot_fatbands(self, units="eV", colormap="jet", phdos_file=None,
+    def plot_fatbands(self, use_eigvec=True, units="eV", colormap="jet", phdos_file=None,
                       alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
-                      qlabels=None, ylims=None, fontsize=12,
-                      **kwargs): #cart_dir=None
+                      qlabels=None, ylims=None, fontsize=12, **kwargs):
         r"""
         Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
 
         Args:
+            use_eigvec:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
@@ -1217,11 +1224,11 @@ class PhononBands(object):
 
         # FIXME there's a bug in anaddb since we should orthogonalize
         # wrt the phonon displacement as done (correctly) here
-        d2_qnu = np.empty((self.num_qpoints, self.num_branches))
-        for iq in range(self.num_qpoints):
-            for nu in self.branches:
-                cvect = self.phdispl_cart[iq, nu, :]
-                d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
+        d2_qnu = np.ones((self.num_qpoints, self.num_branches))
+        #for iq in range(self.num_qpoints):
+        #    for nu in self.branches:
+        #        cvect = self.phdispl_cart[iq, nu, :]
+        #        d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
 
         # Plot fatbands: one plot per atom type.
         ax00 = None
@@ -1243,28 +1250,32 @@ class PhononBands(object):
             for nu in self.branches:
                 yy_qq = self.phfreqs[:, nu] * factor
 
-                # Exctract the sub-vector associated to this atom type.
-                displ_type = self.phdispl_cart[:, nu, dir_indices]
-                d2_type = np.empty(self.num_qpoints)
+                # Exctract the sub-vector associated to this atom type (eigvec or diplacement).
+                if use_eigvec:
+                    v_type = self.dyn_mat_eigenvect[:, nu, dir_indices]
+                else:
+                    v_type = self.phdispl_cart[:, nu, dir_indices]
+
+                v2_type = np.empty(self.num_qpoints)
                 for iq in range(self.num_qpoints):
-                    d2_type[iq] = np.vdot(displ_type[iq], displ_type[iq]).real
+                    v2_type[iq] = np.vdot(v_type[iq], v_type[iq]).real
 
                 # Normalize and scale by max_stripe_width_mev taking into account units.
                 # The stripe is centered on the phonon branch hence the factor 2
-                d2_type = factor * max_stripe_width_mev * 1.e-3 * d2_type / (2. * d2_qnu[:, nu])
+                v2_type = factor * max_stripe_width_mev * 1.e-3 * v2_type / (2. * d2_qnu[:, nu])
 
                 # Plot the phonon branch and the stripe.
                 if nu == 0:
-                    ax.plot(qq, yy_qq, lw=lw, label=symbol, color=color)
+                    ax.plot(qq, yy_qq, lw=lw, color=color, label=symbol)
                 else:
                     ax.plot(qq, yy_qq, lw=lw, color=color)
 
-                ax.fill_between(qq, yy_qq + d2_type, yy_qq - d2_type, facecolor=color, alpha=alpha, linewidth=0)
+                ax.fill_between(qq, yy_qq + v2_type, yy_qq - v2_type, facecolor=color, alpha=alpha, linewidth=0)
 
             set_axlims(ax, ylims, "y")
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        # Type projected DOSes.
+        # Type projected DOSes (always computed from eigenvectors in anaddb).
         if phdos_file is not None:
             ax01 = None
             for ax_row, symbol in enumerate(self.structure.symbol_set):
@@ -1345,10 +1356,11 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV", is_non_analytical_direction=False,
+    def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV",
+                     is_non_analytical_direction=False, use_eigvec=False,
                      colormap="viridis", hatches="default", fontsize=12, **kwargs):
         """
-        Plot vertical bars with the contribution of the different atomic types to all the phonon displacements
+        Plot vertical bars with the contribution of the different atomic types to all the phonon modes
         at a given ``qpoint``. The contribution is given by the ratio :math:`\dfrac{|d_{type}|^2} {|d|^2}`
         where d is the (complex) phonon displacement in cartesian coordinates and d_{type} selects only the
         terms associated to the atomic type ``type``.
@@ -1361,8 +1373,9 @@ class PhononBands(object):
             units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             is_non_analytical_direction: If True, the ``qpoint`` is interpreted as a direction in q-space
-                and the phonon displacements for q --> 0 along this direction are used.
+                and the phonon (displacements/eigenvectors) for q --> 0 along this direction are used.
                 Requires band structure with :class:`NonAnalyticalPh` object.
+            use_eigvec:
             colormap: Matplotlib colormap used for atom type.
             hatches: List of strings with matplotlib hatching patterns. None or empty list to disable hatching.
             fontsize: Legend and title fontsize.
@@ -1383,10 +1396,14 @@ class PhononBands(object):
         else:
             ax.set_title("qpoint = %s" % repr(qpoint), fontsize=fontsize)
         ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+
+        what = r"\epsilon" if use_eigvec else "d"
         if icart is None:
-            ax.set_ylabel(r"${|\vec{d}|^2} / {|\vec{d}({type})|^2}$")
+            ax.set_ylabel(r"Stacked ${|\vec{%s}({type})|^2}$" % what)
+            #ax.set_ylabel(r"${|\vec{d}|^2} / {|\vec{d}({type})|^2}$")
         else:
-            ax.set_ylabel(r"${|\vec{d}_{%s}|^2} / {|\vec{d}({type})|^2}$" % cart_dir)
+            ax.set_ylabel(r"$Stacked {|\vec{%s}_{%s}({type})|^2}$" % (what, cart_dir))
+            #ax.set_ylabel(r"${|\vec{d}_{%s}|^2} / {|\vec{d}({type})|^2}$" % cart_dir)
 
         # {Mg: [0], B: [1, 2]}
         symbol2indices = self.structure.get_symbol2indices()
@@ -1401,25 +1418,32 @@ class PhononBands(object):
 
         x = 0
         for nu in self.branches:
-            # Select frequencies and cart displacements depending on is_non_analytical_direction
+            # Select frequencies and cartesian displacements/eigenvectors
             if is_non_analytical_direction:
                 w_qnu = self.non_anal_phfreqs[iq, nu] * factor
-                dcart_qnu = np.reshape(self.non_anal_phdispl_cart[iq, nu], (len(self.structure), 3))
+                if use_eigvec:
+                    vcart_qnu = np.reshape(self.non_anal_ph.dyn_mat_eigenvect[iq, nu], (len(self.structure), 3))
+                else:
+                    vcart_qnu = np.reshape(self.non_anal_phdispl_cart[iq, nu], (len(self.structure), 3))
             else:
                 w_qnu = self.phfreqs[iq, nu] * factor
-                dcart_qnu = np.reshape(self.phdispl_cart[iq, nu], (len(self.structure), 3))
+                if use_eigvec:
+                    vcart_qnu = np.reshape(self.dyn_mat_eigenvect[iq, nu], (len(self.structure), 3))
+                else:
+                    vcart_qnu = np.reshape(self.phdispl_cart[iq, nu], (len(self.structure), 3))
 
-            d2norm = sum(np.linalg.norm(d)**2 for d in dcart_qnu)
+            #vnorm2 = sum(np.linalg.norm(d)**2 for d in vcart_qnu)
+            vnorm2 = 1.0
 
             # Make a bar plot with rectangles bounded by (x - width/2, x + width/2, bottom, bottom + height)
             # The align keyword controls if x is interpreted as the center or the left edge of the rectangle.
             bottom, height = 0.0, 0.0
             for itype, (symbol, inds) in enumerate(symbol2indices.items()):
                 if icart is None:
-                    assert all(len(d) == 3 for d in dcart_qnu[inds])
-                    height = sum(np.linalg.norm(d)**2 for d in dcart_qnu[inds]) / d2norm
+                    #assert all(len(d) == 3 for d in vcart_qnu[inds])
+                    height = sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds]) / vnorm2
                 else:
-                    height = sum(np.linalg.norm(d)**2 for d in dcart_qnu[inds, icart]) / d2norm
+                    height = sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds, icart]) / vnorm2
 
                 ax.bar(x, height, width, bottom, align="center",
                        color=cmap(float(itype) / max(1, ntypat - 1)),
@@ -1439,7 +1463,8 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV", is_non_analytical_direction=False,
+    def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
+                              is_non_analytical_direction=False, use_eigvec=False,
                               colormap="viridis", hatches="default", fontsize=12, **kwargs):
         """
         Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
@@ -1456,6 +1481,7 @@ class PhononBands(object):
 
         for i, (cart_dir, ax) in enumerate(zip(cart_dirs, ax_list.ravel())):
             self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
+                              is_non_analytical_direction=is_non_analytical_direction, use_eigeec=use_eigvec,
                               fontsize=fontsize, hatches=hatches, show=False)
             # Disable artists.
             if i != 0:
@@ -3419,12 +3445,18 @@ class NonAnalyticalPh(Has_Structure):
         self.phfreqs = phfreqs
         self.phdispl_cart = phdispl_cart
         self.amu = amu
+        self.amu_symbol = None
+        if amu is not None:
+            self.amu_symbol = {}
+            for z, m in amu.items():
+                el = Element.from_Z(int(z))
+                self.amu_symbol[el.symbol] = m
 
     @classmethod
     def from_file(cls, filepath):
         """
-        Reads the non analytical directions, frequencies and eigendisplacements from the anaddb.nc file specified.
-        Non existence of eigendisplacements is accepted for compatibility with abinit 8.0.6
+        Reads the non analytical directions, frequencies and displacements from the anaddb.nc file specified.
+        Non existence of displacements is accepted for compatibility with abinit 8.0.6
         Raises an error if the other values are not present in anaddb.nc.
         """
 
@@ -3440,8 +3472,8 @@ class NonAnalyticalPh(Has_Structure):
             amu_list = r.read_value("atomic_mass_units", default=None)
             if amu_list is not None:
                 # ntypat arrays
-                atom_species = r.read_value("atomic_numbers")
-                amu = {at: a for at, a in zip(atom_species, amu_list)}
+                atomic_numbers = r.read_value("atomic_numbers")
+                amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
             else:
                 amu = None
 
@@ -3577,7 +3609,7 @@ class InteratomicForceConstants(Has_Structure):
         if self.local_vectors is None:
             return None
         else:
-            return np.einsum("ktli,ktij,ktuj->ktlu",self.local_vectors,self.ifc_cart_coord,self.local_vectors)
+            return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
 
     @lazy_property
     def ifc_local_coord_short_range(self):
@@ -3585,12 +3617,12 @@ class InteratomicForceConstants(Has_Structure):
         if self.local_vectors is None:
             return None
         else:
-            return np.einsum("ktli,ktij,ktuj->ktlu",self.local_vectors,self.ifc_cart_coord_short_range,self.local_vectors)
+            return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_short_range, self.local_vectors)
 
     @lazy_property
     def ifc_local_coord_ewald(self):
         """Ewald part of the ifcs in local coordinates"""
-        return np.einsum("ktli,ktij,ktuj->ktlu",self.local_vectors,self.ifc_cart_coord_ewald,self.local_vectors)
+        return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_ewald, self.local_vectors)
 
     def _filter_ifc_indices(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None, max_dist=None):
         """
@@ -3612,7 +3644,7 @@ class InteratomicForceConstants(Has_Structure):
             atom_indices = [atom_indices]
 
         if atom_element:
-            atom_indices =self.structure.indices_from_symbol(atom_element)
+            atom_indices = self.structure.indices_from_symbol(atom_element)
 
         if atom_indices is None:
             atom_indices = range(len(self.structure))
@@ -3791,12 +3823,18 @@ class InteratomicForceConstants(Has_Structure):
 # TODO: amu should become mandatory.
 def get_dyn_mat_eigenvec(phdispl, structure, amu=None):
     """
-    Converts the phonon eigendisplacements to the orthonormal eigenvectors of the dynamical matrix.
+    Converts the phonon displacements to the orthonormal eigenvectors of the dynamical matrix.
     Small discrepancies with the original values may be expected due to the different values of the atomic masses in
     abinit and pymatgen.
 
+    .. note::
+
+        These eigenvectors are orthonormalized and should be very close to the ones computed by Abinit in a.u.
+        Note, however, that the output vectors are given in atomic units so dividing then by the sqrt(Mass)
+        won't give the dipl_cart used in PhononBands that are in Angstrom.
+
     Args:
-        phdispl: a numpy array containing the eigendisplacements in cartesian coordinates. The last index should have
+        phdispl: a numpy array containing the displacements in cartesian coordinates. The last index should have
             size 3*(num atoms), but the rest of the shape is arbitrary. If qpts is not None the first dimension
             should match the q points.
         structure: |Structure| object.
@@ -3824,7 +3862,6 @@ def match_eigenvectors(v1, v2):
     Given two list of vectors, returns the pair matching based on the complex scalar product.
     Returns the indices of the second list that match the vectors of the first list in ascending order.
     """
-
     prod = np.absolute(np.dot(v1, v2.transpose().conjugate()))
 
     indices = np.zeros(len(v1), dtype=np.int)
@@ -4014,8 +4051,8 @@ def open_file_phononwebsite(filename, port=8000,
         from urllib.parse import quote
     except ImportError:
         from urllib import quote
+
     url_filename = 'http://{}:{}/{}'.format(host, server.server_port, quote(filename))
-    #url_filename = 'http://{}:{}/{}'.format(host, server.server_port, filename)
     url = '%s/phonon.html?%s=%s' % (website, filetype, url_filename)
     print("\nOpening URL:", url)
     print("Using default browser, if the webpage is not displayed correctly",
@@ -4028,6 +4065,7 @@ def open_file_phononwebsite(filename, port=8000,
     # Quit application when SIGINT is received
     def signal_handler(signal, frame):
         sys.exit(0)
+
     import signal
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()

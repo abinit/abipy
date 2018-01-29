@@ -444,7 +444,6 @@ def main():
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
                                       verbose=options.verbose))
-
         #remove_equivalent_atoms(structure)
 
     elif options.command == "abispg":

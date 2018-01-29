@@ -11,7 +11,6 @@ from monty.string import is_string
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-#from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.kpoints import has_timrev_from_kptopt
@@ -47,7 +46,12 @@ class AbinitTextFile(TextFile):
 
 
 class AbinitLogFile(AbinitTextFile, NotebookWriter):
-    """Class representing the Abinit log file."""
+    """
+    Class representing the Abinit log file.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AbinitLogFile
+    """
 
     def to_string(self, verbose=0):
         return str(self.events)
@@ -74,6 +78,9 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
 class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     """
     Class representing the main Abinit output file.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AbinitOutputFile
     """
     # TODO: Extract number of errors and warnings.
 
@@ -222,7 +229,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if not line: continue
             # Ignore first char
             line = line[1:].lstrip().rstrip()
-            #print(line)
+            if not line: continue
+            #print("line", line)
             if line[0].isalpha():
                 pop_stack()
                 stack_lines = []
@@ -788,6 +796,9 @@ class AboRobot(Robot):
     """
     This robot analyzes the results contained in multiple Abinit output files.
     Can compare dimensions, SCF cycles, analyze timers.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AboRobot
     """
     EXT = "abo"
 

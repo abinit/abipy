@@ -356,8 +356,9 @@ class PhononComputationTest(AbipyTest):
         path = os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", "mgb2_121212k_0.04tsmear_DDB")
         ddb = abilab.abiopen(path)
 
-        for dos_method in ("tetra", "gaussian"):
-            # Get bands and Dos
+        #for dos_method in ("tetra", "gaussian"):
+        for dos_method in ("gaussian",):
+            # Get phonon bands and Dos with anaddb.
             phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=2,
                 dipdip=0, chneut=0, dos_method=dos_method, lo_to_splitting=False, verbose=1)
 
@@ -368,6 +369,8 @@ class PhononComputationTest(AbipyTest):
             assert phbands.amu is not None
             self.assert_almost_equal(phbands.amu[12.0], 0.24305e+02)
             self.assert_almost_equal(phbands.amu[5.0], 0.10811e+02)
+            self.assert_almost_equal(phbands.amu_symbol["Mg"], phbands.amu[12.0])
+            self.assert_almost_equal(phbands.amu_symbol["B"],  phbands.amu[5.0])
 
             # Total PHDOS should integrate to 3 * natom
             # Note that anaddb does not renormalize the DOS so we have to increate the tolerance.
