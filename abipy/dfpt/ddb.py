@@ -1397,7 +1397,7 @@ class DdbRobot(Robot):
     #    Return numpy array with the q-points in reduced coordinates found in the DDB files.
     #    """
     #    qpoints = []
-    #    for label, ddb in enumerate(self):
+    #    for label, ddb in self.items():
     #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
 
     #    return np.array(qpoints)
@@ -1405,7 +1405,7 @@ class DdbRobot(Robot):
     #def get_qpoints_intersection(self):
     #    """Return numpy array with the q-points in reduced coordinates found in the DDB files."""
     #    qpoints = []
-    #    for label, ddb in enumerate(self):
+    #    for label, ddb in self.items():
     #        qpoints.extend(q.frac_coords for q in ddb.qpoints if q not in qpoints)
     #
     #    return np.array(qpoints)
@@ -1441,7 +1441,7 @@ class DdbRobot(Robot):
                 raise ValueError("All the q-points in the DDB files must be equal")
 
         rows, row_names = [], []
-        for i, (label, ddb) in enumerate(self):
+        for i, (label, ddb) in enumerate(self.items()):
             row_names.append(label)
             d = OrderedDict()
             #d = {aname: getattr(ddb, aname) for aname in attrs}
@@ -1481,7 +1481,7 @@ class DdbRobot(Robot):
 
         phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
 
-        for label, ddb in self:
+        for label, ddb in self.items():
             # Invoke anaddb to get phonon bands and DOS.
             phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
 

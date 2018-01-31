@@ -223,7 +223,7 @@ class SigresRobotTest(AbipyTest):
             assert robot.start is None
             start = robot.trim_paths(start=None)
             assert robot.start == start
-            for p, _ in robot:
+            for p, _ in robot.items():
                 assert p == os.path.relpath(p, start=start)
 
             assert robot.EXT == "SIGRES"

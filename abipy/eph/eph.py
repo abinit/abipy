@@ -818,7 +818,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         Return: |pandas-DataFrame|
         """
         rows, row_names = [], []
-        for i, (label, ncfile) in enumerate(self):
+        for i, (label, ncfile) in enumerate(self.items()):
             row_names.append(label)
             d = OrderedDict()
 

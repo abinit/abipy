@@ -422,7 +422,7 @@ class GsrRobot(Robot, RobotWithEbands):
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, gsr in self:
+        for label, gsr in self.items():
             row_names.append(label)
             d = OrderedDict()
 
@@ -461,7 +461,7 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         # Read volumes and energies from the GSR files.
         energies, volumes = [], []
-        for label, gsr in self:
+        for label, gsr in self.items():
             energies.append(float(gsr.energy))
             volumes.append(float(gsr.structure.volume))
 
@@ -586,7 +586,7 @@ class GsrRobot(Robot, RobotWithEbands):
     #def get_phasediagram_results(self):
     #    from abipy.core.restapi import PhaseDiagramResults
     #    entries = []
-    #    for label, gsr in self:
+    #    for label, gsr in self.items():
     #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
     #    return PhaseDiagramResults(entries)
 

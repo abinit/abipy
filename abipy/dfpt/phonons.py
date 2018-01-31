@@ -1167,7 +1167,7 @@ class PhononBands(object):
     # TODO: fatbands along x, y, z
     @add_fig_kwargs
     def plot_fatbands(self, use_eigvec=True, units="eV", colormap="jet", phdos_file=None,
-                      alpha=0.7, max_stripe_width_mev=3.0, width_ratios=(2, 1),
+                      alpha=0.7, max_stripe_width_mev=5.0, width_ratios=(2, 1),
                       qlabels=None, ylims=None, fontsize=12, **kwargs):
         r"""
         Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
@@ -3919,7 +3919,7 @@ class RobotWithPhbands(object):
         """
         plotter = PhononBandsPlotter() if cls is None else cls()
 
-        for label, abifile in self:
+        for label, abifile in self.items():
             if filter_abifile is not None and not filter_abifile(abifile): continue
             plotter.add_phbands(label, abifile.phbands)
 

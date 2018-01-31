@@ -934,7 +934,7 @@ class MdfRobot(Robot, RobotWithEbands):
         """
         plotter = MultipleMdfPlotter() if cls is None else cls()
 
-        for label, mdf in self:
+        for label, mdf in self.items():
             plotter.add_mdf_file(label, mdf)
 
         return plotter
@@ -953,7 +953,7 @@ class MdfRobot(Robot, RobotWithEbands):
         Return: |pandas-DataFrame|
         """
         rows, row_names = [], []
-        for i, (label, mdf) in enumerate(self):
+        for i, (label, mdf) in enumerate(self.items()):
             row_names.append(label)
             d = OrderedDict([
                 ("exc_mdf", mdf.exc_mdf),

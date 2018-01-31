@@ -549,7 +549,7 @@ class HistRobot(Robot):
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, hist in self:
+        for label, hist in self.items():
             row_names.append(label)
             d = OrderedDict()
 

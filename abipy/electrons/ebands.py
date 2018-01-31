@@ -3736,7 +3736,7 @@ class RobotWithEbands(object):
         """
         plotter = ElectronBandsPlotter() if cls is None else cls()
 
-        for label, abifile in self:
+        for label, abifile in self.items():
             if filter_abifile is not None and not filter_abifile(abifile): continue
             plotter.add_ebands(label, abifile.ebands)
 
@@ -3754,7 +3754,7 @@ class RobotWithEbands(object):
         """
         plotter = ElectronDosPlotter() if cls is None else cls()
 
-        for label, abifile in self:
+        for label, abifile in self.items():
             if filter_abifile is not None and not filter_abifile(abifile): continue
             if not abifile.ebands.kpoints.is_ibz:
                 cprint("Skipping %s because kpoint sampling not IBZ" % abifile.filepath, "magenta")

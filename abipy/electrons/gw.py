@@ -1819,7 +1819,7 @@ class SigresRobot(Robot, RobotWithEbands):
     EXT = "SIGRES"
 
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
-        for i, (label, sigr) in enumerate(self):
+        for i, (label, sigr) in enumerate(self.items()):
             frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
             if i == 0:
                 table = frame
@@ -1853,7 +1853,7 @@ class SigresRobot(Robot, RobotWithEbands):
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, sigres in self:
+        for label, sigres in self.items():
             row_names.append(label)
             d = OrderedDict()
             for aname in attrs:

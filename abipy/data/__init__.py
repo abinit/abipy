@@ -45,7 +45,7 @@ def pyscript(basename):
     if _SCRIPTS is None:
         # Build mapping basename --> path.
         from monty.os.path import find_exts
-        pypaths = find_exts(_SCRIPTS_DIRPATH, ".py", exclude_dirs="_*|.*")
+        pypaths = find_exts(_SCRIPTS_DIRPATH, ".py", exclude_dirs="_*|.*|develop", match_mode="basename")
         _SCRIPTS = {}
         for p in pypaths:
             k = os.path.basename(p)

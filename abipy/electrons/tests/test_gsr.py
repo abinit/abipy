@@ -141,7 +141,7 @@ class GSRFileTestCase(AbipyTest):
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
-class GstRobotTest(AbipyTest):
+class GsrRobotTest(AbipyTest):
 
     def test_gsr_robot(self):
         """Testing GSR robot"""
@@ -150,8 +150,11 @@ class GstRobotTest(AbipyTest):
         robot = abilab.GsrRobot()
         robot.add_file("gsr0", gsr_path)
         assert len(robot.abifiles) == 1
+        assert "gsr0" in robot.keys()
+        assert "gsr0" in robot.labels
         assert robot.EXT == "GSR"
         repr(robot); str(robot)
+        assert robot.to_string(verbose=2)
 
 	# Cannot have same label
         with self.assertRaises(ValueError):

@@ -351,13 +351,15 @@ class DdbRobotTest(AbipyTest):
 
 
 class PhononComputationTest(AbipyTest):
+
     def test_phonon_computation(self):
-        """Testing if anaddb pjdoses integrate to 3*natom"""
+        """Testing if pjdoses compute by anaddb integrate to 3*natom"""
         path = os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", "mgb2_121212k_0.04tsmear_DDB")
         ddb = abilab.abiopen(path)
 
-        #for dos_method in ("tetra", "gaussian"):
-        for dos_method in ("gaussian",):
+        #for dos_method in ("gaussian",):
+        #for dos_method in ("tetra",):
+        for dos_method in ("tetra", "gaussian"):
             # Get phonon bands and Dos with anaddb.
             phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=2,
                 dipdip=0, chneut=0, dos_method=dos_method, lo_to_splitting=False, verbose=1)

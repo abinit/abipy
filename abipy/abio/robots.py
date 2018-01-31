@@ -30,13 +30,8 @@ class Robot(NotebookWriter):
 
         with Robot([("label1", "file1"), (label2, "file2")]) as robot:
             # Do something with robot. files are automatically closed when we exit.
-
-    .. note::
-
-        __iter__  returns (label, abifile) so:
-
-        for label, abifile in self:
-            print(label)
+            for label, abifile in self.items():
+                print(label)
     """
     # filepaths are relative to `start`. None for asbolute paths. This flag is set in trim_paths
     start = None
@@ -446,8 +441,11 @@ class Robot(NotebookWriter):
     def __len__(self):
         return len(self._abifiles)
 
-    def __iter__(self):
-        return iter(self._abifiles.items())
+    #def __iter__(self):
+    #    return iter(self._abifiles)
+
+    #def __contains__(self, item):
+    #    return item in self._abifiles
 
     def __getitem__(self, key):
         # self[key]
@@ -460,6 +458,9 @@ class Robot(NotebookWriter):
         """Activated at the end of the with statement."""
         self.close()
 
+    def keys(self):
+        return self._abifiles.keys()
+
     def items(self):
         return self._abifiles.items()
 
@@ -470,7 +471,7 @@ class Robot(NotebookWriter):
     def get_label_files_str(self):
         """Return string with [label, filepath]."""
         from tabulate import tabulate
-        return tabulate([(label, abifile.relpath) for label, abifile in self], headers=["Label", "Relpath"]) + "\n"
+        return tabulate([(label, abifile.relpath) for label, abifile in self.items()], headers=["Label", "Relpath"]) + "\n"
 
     def show_files(self, stream=sys.stdout):
         """Show label --> file path"""
@@ -496,7 +497,7 @@ class Robot(NotebookWriter):
 
     def _repr_html_(self):
         """Integration with jupyter_ notebooks."""
-        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, abifile in self))
+        return "<ol>\n{}\n</ol>".format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
     @property
     def abifiles(self):
@@ -570,7 +571,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         Return: list of (label, abifile, param) tuples where param is obtained via ``func_or_string``.
             or labels, abifiles, params if ``unpack``
         """
-        labelfile_list = [t for t in self]
+        labelfile_list = list(self.items())
         return self._sortby_labelfile_list(labelfile_list, func_or_string, reverse=reverse, unpack=unpack)
 
     def group_and_sortby(self, hue, func_or_string):
@@ -592,7 +593,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         """
         from abipy.tools import sort_and_groupby, getattrd
         # Group by hue
-        items = [(label, abifile) for (label, abifile) in self]
+        items = list(self.items())
         key = lambda t: hue(t[1]) if callable(hue) else getattrd(t[1], hue)
 
         groups = []
@@ -646,7 +647,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
     #def get_attributes(self, attr_name, obj=None, retdict=False):
     #    od = OrderedDict()
-    #    for label, abifile in self:
+    #    for label, abifile in self.items():
     #        obj = abifile if obj is None else getattr(abifile, obj)
     #        od[label] = getattr(obj, attr_name)
     #    if retdict:
@@ -711,7 +712,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         rows, row_names = [], []
-        for label, abifile in self:
+        for label, abifile in self.items():
             if not hasattr(abifile, "params"):
                 import warnings
                 warnings.warn("%s does not have `params` attribute" % type(abifile))

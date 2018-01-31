@@ -923,7 +923,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
-        for label, ncfile in self:
+        for label, ncfile in self.items():
             df = ncfile.get_dataframe_sk(spin, sigma_kpoint, index=None,
                                          with_params=with_params, ignore_imag=ignore_imag)
         return pd.concat(df_list)
@@ -938,7 +938,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
-        for label, ncfile in self:
+        for label, ncfile in self.items():
             for spin in range(ncfile.nsppol):
                 for ik, sigma_kpoint in enumerate(ncfile.sigma_kpoints):
                     app(ncfile.get_dataframe_sk(spin, ik, with_params=with_params, ignore_imag=ignore_imag))

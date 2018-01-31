@@ -838,7 +838,7 @@ class AboRobot(Robot):
                 where key is a string with the name of column and value is the value to be inserted.
         """
         rows, row_names = [], []
-        for label, abo in self:
+        for label, abo in self.items():
             row_names.append(label)
             d = OrderedDict()
 
