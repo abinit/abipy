@@ -67,7 +67,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
         try:
             mpids = rest.find_structure(structure)
             if mpids:
-                structures = [Structure.from_material_id(mid, final=final, api_key=api_key, endpoint=endpoint)
+                structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
                         for mid in mpids]
 
         except rest.Error as exc:
@@ -275,7 +275,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return new
 
     @classmethod
-    def from_material_id(cls, material_id, final=True, api_key=None, endpoint=None):
+    def from_mpid(cls, material_id, final=True, api_key=None, endpoint=None):
         """
         Get a Structure corresponding to a material_id.
 

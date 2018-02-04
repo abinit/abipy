@@ -17,9 +17,9 @@ with abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc")) as phdos_file:
     # Plot PJDOS.
     phdos_file.plot_pjdos_type(units="cm-1", title="AlAs type-projected phonon DOS")
 
-    # To have the projection along the reduced directions.
-    phdos_file.plot_pjdos_redirs_type(units="Thz", stacked=True,
-            title="Type-projected ph-DOS decomposed along the three reduced directions.")
+    # To have the projection along the cartesian directions (summed over atomic types)
+    phdos_file.plot_pjdos_cartdirs_type(units="Thz", stacked=True,
+            title="Type-projected ph-DOS decomposed along the three Cartesian directions.")
 
-    # To plot the PJDOS for the inequivalent sites.
-    #phdos_file.plot_pjdos_redirs_site(view="inequivalent")
+    # To plot the PJDOS for all the inequivalent sites.
+    phdos_file.plot_pjdos_cartdirs_site(view="inequivalent", stacked=True)

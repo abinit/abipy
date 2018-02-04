@@ -1167,13 +1167,18 @@ class PhononBands(object):
     # TODO: fatbands along x, y, z
     @add_fig_kwargs
     def plot_fatbands(self, use_eigvec=True, units="eV", colormap="jet", phdos_file=None,
-                      alpha=0.7, max_stripe_width_mev=5.0, width_ratios=(2, 1),
+                      alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
                       qlabels=None, ylims=None, fontsize=12, **kwargs):
         r"""
         Plot phonon fatbands and, optionally, atom-projected phonon DOSes.
+        The width of the band is given by ||v_{type}||
+        where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
+        v_{type} selects only the terms associated to the atomic type.
 
         Args:
-            use_eigvec:
+            use_eigvec: True if the width of the phonon branch should be computed from the eigenvectors.
+                False to use phonon displacements. Note that the PHDOS is always decomposed in
+                terms of (orthonormal) eigenvectors.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             colormap: Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
@@ -1219,16 +1224,18 @@ class PhononBands(object):
 
         # phonon_displacements are in cartesian coordinates and stored in an array with shape
         # (nqpt, 3*natom, 3*natom) where the last dimension stores the cartesian components.
-        # Precompute normalization factor:
-        #   d2[q, nu] = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2
+        # PJDoses are in cartesian coordinates and are computed by anaddb using the the
+        # phonon eigenvectors that are orthonormal.
 
-        # FIXME there's a bug in anaddb since we should orthogonalize
-        # wrt the phonon displacement as done (correctly) here
+        # Precompute normalization factor:
+        # Here I use d2[q, nu] = \sum_{i=0}^{3*Nat-1) |d^{q\nu}_i|**2
+        # it makes sense only for displacements
         d2_qnu = np.ones((self.num_qpoints, self.num_branches))
-        #for iq in range(self.num_qpoints):
-        #    for nu in self.branches:
-        #        cvect = self.phdispl_cart[iq, nu, :]
-        #        d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
+        if not use_eigvec:
+            for iq in range(self.num_qpoints):
+                for nu in self.branches:
+                    cvect = self.phdispl_cart[iq, nu, :]
+                    d2_qnu[iq, nu] = np.vdot(cvect, cvect).real
 
         # Plot fatbands: one plot per atom type.
         ax00 = None
@@ -1262,15 +1269,15 @@ class PhononBands(object):
 
                 # Normalize and scale by max_stripe_width_mev taking into account units.
                 # The stripe is centered on the phonon branch hence the factor 2
-                v2_type = factor * max_stripe_width_mev * 1.e-3 * v2_type / (2. * d2_qnu[:, nu])
+                stype_qq = (factor * max_stripe_width_mev * 1.e-3 / 2) * np.sqrt(v2_type / d2_qnu[:, nu])
 
-                # Plot the phonon branch and the stripe.
+                # Plot the phonon branch with the stripe.
                 if nu == 0:
                     ax.plot(qq, yy_qq, lw=lw, color=color, label=symbol)
                 else:
                     ax.plot(qq, yy_qq, lw=lw, color=color)
 
-                ax.fill_between(qq, yy_qq + v2_type, yy_qq - v2_type, facecolor=color, alpha=alpha, linewidth=0)
+                ax.fill_between(qq, yy_qq + stype_qq, yy_qq - stype_qq, facecolor=color, alpha=alpha, linewidth=0)
 
             set_axlims(ax, ylims, "y")
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -1359,11 +1366,11 @@ class PhononBands(object):
     def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV",
                      is_non_analytical_direction=False, use_eigvec=False,
                      colormap="viridis", hatches="default", fontsize=12, **kwargs):
-        """
+        r"""
         Plot vertical bars with the contribution of the different atomic types to all the phonon modes
-        at a given ``qpoint``. The contribution is given by the ratio :math:`\dfrac{|d_{type}|^2} {|d|^2}`
-        where d is the (complex) phonon displacement in cartesian coordinates and d_{type} selects only the
-        terms associated to the atomic type ``type``.
+        at a given ``qpoint``. The contribution is given by ||v_{type}||
+        where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
+        v_{type} selects only the terms associated to the atomic type.
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
@@ -1375,7 +1382,8 @@ class PhononBands(object):
             is_non_analytical_direction: If True, the ``qpoint`` is interpreted as a direction in q-space
                 and the phonon (displacements/eigenvectors) for q --> 0 along this direction are used.
                 Requires band structure with :class:`NonAnalyticalPh` object.
-            use_eigvec:
+            use_eigvec: True if eigenvectors should be used instead of displacements (eigenvectors
+                are orthonormal, unlike diplacements)
             colormap: Matplotlib colormap used for atom type.
             hatches: List of strings with matplotlib hatching patterns. None or empty list to disable hatching.
             fontsize: Legend and title fontsize.
@@ -1399,11 +1407,9 @@ class PhononBands(object):
 
         what = r"\epsilon" if use_eigvec else "d"
         if icart is None:
-            ax.set_ylabel(r"Stacked ${|\vec{%s}({type})|^2}$" % what)
-            #ax.set_ylabel(r"${|\vec{d}|^2} / {|\vec{d}({type})|^2}$")
+            ax.set_ylabel(r"${|\vec{%s}_{type}|} (stacked)$" % what, fontsize=fontsize)
         else:
-            ax.set_ylabel(r"$Stacked {|\vec{%s}_{%s}({type})|^2}$" % (what, cart_dir))
-            #ax.set_ylabel(r"${|\vec{d}_{%s}|^2} / {|\vec{d}({type})|^2}$" % cart_dir)
+            ax.set_ylabel(r"${|\vec{%s}_{%s,type}|} (stacked)$" % (what, cart_dir), fontsize=fontsize)
 
         # {Mg: [0], B: [1, 2]}
         symbol2indices = self.structure.get_symbol2indices()
@@ -1440,10 +1446,9 @@ class PhononBands(object):
             bottom, height = 0.0, 0.0
             for itype, (symbol, inds) in enumerate(symbol2indices.items()):
                 if icart is None:
-                    #assert all(len(d) == 3 for d in vcart_qnu[inds])
-                    height = sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds]) / vnorm2
+                    height = np.sqrt(sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds]) / vnorm2)
                 else:
-                    height = sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds, icart]) / vnorm2
+                    height = np.sqrt(sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds, icart]) / vnorm2)
 
                 ax.bar(x, height, width, bottom, align="center",
                        color=cmap(float(itype) / max(1, ntypat - 1)),
@@ -1465,7 +1470,7 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
                               is_non_analytical_direction=False, use_eigvec=False,
-                              colormap="viridis", hatches="default", fontsize=12, **kwargs):
+                              colormap="viridis", hatches="default", fontsize=8, **kwargs):
         """
         Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
         to all the phonon displacements at the given ``qpoint`` along on the Cartesian directions in ``cart_dirs``.
@@ -1486,6 +1491,8 @@ class PhononBands(object):
             # Disable artists.
             if i != 0:
                 set_visible(ax, False, "legend", "title")
+            #if len(cart_dirs) == 3 and i != 1:
+            #    set_visible(ax, False, "ylabel")
             if i != len(cart_dirs) - 1:
                 set_visible(ax, False, "xlabel")
 
@@ -2148,25 +2155,26 @@ class PhdosReader(ETSF_Reader):
         return self.read_value("wmesh")
 
     def read_pjdos_type(self):
-        """[ntypat, nomega] array with PH-DOS projected over atom types."""
+        """[ntypat, nomega] array with Phonon DOS projected over atom types."""
         return self.read_value("pjdos_type")
 
     def read_pjdos_atdir(self):
         """
-        Return [natom, three, nomega] array with Phonon DOS projected over atoms and reduced directions.
+        Return [natom, three, nomega] array with Phonon DOS projected over atoms and cartesian directions.
         """
         return self.read_value("pjdos")
 
     def read_phdos(self):
-        """Return the |PhononDos|. with the total phonon DOS"""
+        """Return |PhononDos| object with the total phonon DOS"""
         return PhononDos(self.wmesh, self.read_value("phdos"))
 
-    def read_pjdos_symbol_rc_dict(self):
+    def read_pjdos_symbol_xyz_dict(self):
         """
         Return :class:`OrderedDict` mapping element symbol --> [3, nomega] array
         with the the phonon DOSes summed over atom-types and decomposed along
-        the three reduced directions.
+        the three cartesian directions.
         """
+        # The name is a bit confusing: rc stands for "real-space cartesian"
         # phdos_rc_type[ntypat, 3, nomega]
         values = self.read_value("pjdos_rc_type")
 
@@ -2325,11 +2333,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_pjdos_redirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
+    def plot_pjdos_cartdirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
+                                 xlims=None, ylims=None, axlist=None, fontsize=8, **kwargs):
         """
-        Plot type-projected phonon DOS decomposed along the three reduced directions.
-        Three rows for each reduced direction. Each row shows the contribution of each atomic type + Total Phonon DOS.
+        Plot type-projected phonon DOS decomposed along the three cartesian directions.
+        Three rows for each cartesian direction. Each row shows the contribution of each atomic type + Total Phonon DOS.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -2350,7 +2358,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ntypat = self.structure.ntypesp
         factor = abu.phfactor_ev2units(units)
 
-        # Three rows for each reduced direction.
+        # Three rows for each direction.
         # Each row shows the contribution of each atomic type + Total PH DOS.
         import matplotlib.pyplot as plt
         nrows, ncols = 3, 1
@@ -2361,8 +2369,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         cmap = plt.get_cmap(colormap)
 
-        # symbol --> [three, number_of_frequencies]
-        pjdos_symbol_rc = self.reader.read_pjdos_symbol_rc_dict()
+        # symbol --> [three, number_of_frequencies] in cart dirs
+        pjdos_symbol_rc = self.reader.read_pjdos_symbol_xyz_dict()
 
         xx = self.phdos.mesh * factor
         for idir, ax in enumerate(axlist):
@@ -2370,11 +2378,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
 
-            ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+            ax.set_ylabel(r'PJDOS along %s' % {0: "x", 1: "y", 2: "z"}[idir])
             if idir == 2:
                 ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
 
-            # Plot Type projected DOSes along reduced direction idir
+            # Plot Type projected DOSes along cartesian direction idir
             cumulative = np.zeros(len(self.wmesh))
             for itype, symbol in enumerate(self.reader.chemical_symbols):
                 color = cmap(float(itype) / max(1, ntypat - 1))
@@ -2394,8 +2402,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_pjdos_redirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                               xlims=None, ylims=None, axlist=None, fontsize=12, **kwargs):
+    def plot_pjdos_cartdirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
+                                 xlims=None, ylims=None, axlist=None, fontsize=8, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
@@ -2430,7 +2438,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         else:
             raise ValueError("Wrong value for view: %s" % str(view))
 
-        # Three rows for each reduced direction.
+        # Three rows for each cartesian direction.
         # Each row shows the contribution of each site + Total PH DOS.
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
@@ -2440,7 +2448,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         else:
             axlist = np.reshape(axlist, (nrows, ncols)).ravel()
 
-        # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+        # [natom, three, nomega] array with PH-DOS projected over atoms and cartesian directions
         pjdos_atdir = self.reader.read_pjdos_atdir()
 
         xx = self.phdos.mesh * factor
@@ -2450,11 +2458,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             set_axlims(ax, ylims, "y")
 
             if idir in (0, 2):
-                ax.set_ylabel(r'PJDOS along $L_{%d}$' % idir)
+                ax.set_ylabel(r'PJDOS along %s' % {0: "x", 1: "y", 2: "z"}[idir])
                 if idir == 2:
                     ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
 
-            # Plot Type projected DOSes along reduced direction idir
+            # Plot Type projected DOSes along cartesian direction idir
             cumulative = np.zeros(len(self.wmesh))
             for iatom in iatom_list:
                 site = self.structure[iatom]
@@ -2487,8 +2495,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             nbv.new_code_cell("print(ncfile)"),
             nbv.new_code_cell("ncfile.phdos.plot();"),
             nbv.new_code_cell("ncfile.plot_pjdos_type();"),
-            nbv.new_code_cell("ncfile.plot_pjdos_redirs_type();"),
-            #nbv.new_code_cell("ncfile.plot_pjdos_redirs_site();"),
+            nbv.new_code_cell("ncfile.plot_pjdos_cartdirs_type(units='meV', stacked=True);"),
+            nbv.new_code_cell("ncfile.plot_pjdos_cartdirs_site(view='inequivalent', units='meV', stacked=True);"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -2499,7 +2507,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         total_dos = self.phdos.to_pymatgen()
 
-        # [natom, three, nomega] array with PH-DOS projected over atoms and reduced directions"""
+        # [natom, three, nomega] array with PH-DOS projected over atoms and cartesian directions"""
         pjdos_atdir = self.reader.read_pjdos_atdir()
 
         factor = abu.phfactor_ev2units("thz")
@@ -3080,8 +3088,7 @@ class PhononBandsPlotter(NotebookWriter):
                                                 sharex=False, sharey=False, squeeze=False)
 
         for i, (ax, (label, phbands)) in enumerate(zip(ax_list.ravel(), self.phbands_dict.items())):
-            phbands.plot_phdispl(qpoint, cart_dir=None, ax=ax, units="eV",
-                                  colormap="viridis", hatches="default", fontsize=12, show=False, **kwargs)
+            phbands.plot_phdispl(qpoint, cart_dir=None, ax=ax, show=False, **kwargs)
             # Disable artists.
             if i != 0:
                 set_visible(ax, False, "title")

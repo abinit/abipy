@@ -148,7 +148,7 @@ class TestStructure(AbipyTest):
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
         self.assert_equal(ksamp.shiftk, shiftk)
 
-        si = Structure.from_material_id("mp-149")
+        si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
 
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)

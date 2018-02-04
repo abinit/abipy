@@ -619,11 +619,12 @@ def abicomp_time(options):
     Analyze/plot the timing data of single or multiple runs.
     """
     paths = options.paths
+    from abipy.abio.timer import AbinitTimerParser
 
     if len(options.paths) == 1 and os.path.isdir(paths[0]):
         top = options.paths[0]
         print("Walking directory tree from top:", top, "Looking for file extension:", options.ext)
-        parser, paths_found, okfiles = abilab.AbinitTimerParser.walk(top=top, ext=options.ext)
+        parser, paths_found, okfiles = AbinitTimerParser.walk(top=top, ext=options.ext)
 
         if not paths_found:
             cprint("Empty file list!", color="magenta")
@@ -636,7 +637,7 @@ def abicomp_time(options):
             for bad in badfiles: print(bad)
 
     else:
-        parser = abilab.AbinitTimerParser()
+        parser = AbinitTimerParser()
         okfiles = parser.parse(options.paths)
 
         if okfiles != options.paths:

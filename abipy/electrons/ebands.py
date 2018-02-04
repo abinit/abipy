@@ -399,7 +399,7 @@ class ElectronBands(Has_Structure):
         raise TypeError("Don't know how to extract ebands from object %s" % type(obj))
 
     @classmethod
-    def from_material_id(cls, material_id, api_key=None, endpoint=None,
+    def from_mpid(cls, material_id, api_key=None, endpoint=None,
                          nelect=None, has_timerev=True, nspinor=1, nspden=None):
         """
         Read bandstructure data corresponding to a materials project ``material_id``.

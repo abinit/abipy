@@ -1380,7 +1380,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         Return inputs for the calculation of the Born effective charges.
 
-        This functions should be called with an input the represents a GS run.
+        This functions should be called with an input that represents a GS run.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-10}

@@ -23,8 +23,8 @@ def get_structure(options):
         return abilab.Structure.from_file(options.filepath)
 
     elif options.filepath.startswith("mp-"):
-        return abilab.Structure.from_material_id(options.filepath, final=True,
-                                                 api_key=options.mapi_key, endpoint=options.endpoint)
+        return abilab.Structure.from_mpid(options.filepath, final=True,
+                                          api_key=options.mapi_key, endpoint=options.endpoint)
 
     raise TypeError("Don't know how to extract structure object from %s" % options.filepath)
 

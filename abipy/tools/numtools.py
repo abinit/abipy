@@ -156,12 +156,32 @@ def gaussian(x, width, center=0.0, height=None):
     """
     Returns the values of gaussian(x) where x is array-like.
 
-    If height is None, a normalized gaussian is returned.
+    Args:
+        x: Input array.
+        width: Width of the gaussian.
+        center: Center of the gaussian.
+        height: height of the gaussian. If height is None, a normalized gaussian is returned.
     """
     x = np.asarray(x)
     if height is None: height = 1.0 / (width * np.sqrt(2 * np.pi))
 
     return height * np.exp(-((x - center) / width) ** 2 / 2.)
+
+
+def lorentzian(x, width, center=0.0, height=None):
+    """
+    Returns the values of gaussian(x) where x is array-like.
+
+    Args:
+        x: Input array.
+        width: Width of the Lorentzian (half-width at half-maximum)
+        center: Center of the Lorentzian.
+        height: height of the Lorentzian. If height is None, a normalized Lorentzian is returned.
+    """
+    x = np.asarray(x)
+    if height is None: height = 1.0 / (width * np.pi)
+
+    return height * width**2 / ((x - center) ** 2 + width ** 2)
 
 #=====================================
 # === Data Interpolation/Smoothing ===

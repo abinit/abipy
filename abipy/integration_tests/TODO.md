@@ -71,6 +71,8 @@ TODO list:
 
 * Add memory error to Abinit errors
 
+* Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
+
 * DONE: Remove Old workflow model. 
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.

@@ -706,8 +706,8 @@ def main():
 
     elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.
-        structure = abilab.Structure.from_material_id(options.mpid, final=True,
-                                                      api_key=options.mapi_key, endpoint=options.endpoint)
+        structure = abilab.Structure.from_mpid(options.mpid, final=True,
+                                               api_key=options.mapi_key, endpoint=options.endpoint)
         # Convert to format and print it.
         print(structure.convert(fmt=options.format))
 

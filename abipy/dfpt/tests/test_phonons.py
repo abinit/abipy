@@ -319,7 +319,7 @@ class PhononDosTest(AbipyTest):
 
         # Read PJDOSes
         assert list(ncfile.pjdos_symbol.keys()) == ["Al", "As"]
-        od = ncfile.reader.read_pjdos_symbol_rc_dict()
+        od = ncfile.reader.read_pjdos_symbol_xyz_dict()
         assert list(od.keys()) == ["Al", "As"]
         assert all(v.shape == (3, nw) for v in od.values())
 
@@ -365,10 +365,10 @@ class PhononDosTest(AbipyTest):
         if self.has_matplotlib():
             assert ncfile.plot_pjdos_type(show=False)
             assert ncfile.plot_pjdos_type(units="cm-1", stacked=False, colormap="viridis", show=False)
-            assert ncfile.plot_pjdos_redirs_type(units="Thz", stacked=True, show=False)
-            assert ncfile.plot_pjdos_redirs_type(units="meV", stacked=False, alpha=0.5, show=False)
-            assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=False, alpha=0.5, show=False)
-            assert ncfile.plot_pjdos_redirs_site(units="meV", stacked=True, alpha=0.5, show=False)
+            assert ncfile.plot_pjdos_cartdirs_type(units="Thz", stacked=True, show=False)
+            assert ncfile.plot_pjdos_cartdirs_type(units="meV", stacked=False, alpha=0.5, show=False)
+            assert ncfile.plot_pjdos_cartdirs_site(units="meV", stacked=False, alpha=0.5, show=False)
+            assert ncfile.plot_pjdos_cartdirs_site(units="meV", view="all", stacked=True, alpha=0.5, show=False)
 
             assert phdos.plot(units="cm-1", show=False)
             assert phdos.plot_harmonic_thermo(tstar=20, tstop=350, units="eV", formula_units=1, show=False)

@@ -24,7 +24,6 @@ ArrayWithUnit = units.ArrayWithUnit
 ### Abipy import ###
 ####################
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Mrggkk, Flow, TaskManager, AbinitBuild, flow_main
-
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core import restapi

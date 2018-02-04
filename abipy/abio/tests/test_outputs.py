@@ -150,6 +150,10 @@ class AbinitOutputTest(AbipyTest):
             assert abo.ndtset == 1
             assert abo.initial_structure.abi_spacegroup is not None
             assert abo.initial_structure.abi_spacegroup.spgid == 142
+            assert abo.proc0_cputime == 0.7
+            assert abo.proc0_walltime == 0.7
+            assert abo.overall_cputime == 0.7
+            assert abo.overall_walltime == 0.7
 
             # Test the parsing of dimension and spginfo
             dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset()
@@ -184,6 +188,8 @@ class AbinitOutputTest(AbipyTest):
             assert robot._repr_html_()
             dims = robot.get_dims_dataframe()
             df = robot.get_dataframe(with_geo=True)
+            time_df = robot.get_time_dataframe()
+            self.assert_equal(time_df["overall_walltime"].values, [4.0, 26.1])
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -144,12 +144,6 @@ nqsmall = {nqsmall}, ndivsm = {ndivsm};
 asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_splitting}, dos_method = {dos_method}
 """.format(**locals()))
 
-        # Autodetect presence of data for lo_to_splitting data in DDB.
-        #lo_to_splitting = ddb.has_lo_to_data()
-        #lo_to_splitting = False
-        #if lo_to_splitting:
-        #    print("DDB file contains Zeff and Becs, activating LO-TO computation.")
-
         phbst, phdos = ddb.anaget_phbst_and_phdos_files(
             nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
             lo_to_splitting=lo_to_splitting, verbose=options.verbose, mpi_procs=1)
@@ -165,7 +159,7 @@ asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_spli
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
         elif options.phononwebsite:
-            return phbands.view_phononwebsite(browser=options.browser)
+            return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
         else:
             phbands.plot_with_phdos(phdos)
 

@@ -110,6 +110,10 @@ class _File(object):
 
 class TextFile(_File):
 
+    #@classmethood
+    #def from_string(cls, s):
+    #    return cls.from_file(filepath)
+
     def __enter__(self):
         # Open the file
         self._file

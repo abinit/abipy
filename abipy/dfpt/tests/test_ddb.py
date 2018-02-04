@@ -264,6 +264,11 @@ class DdbTest(AbipyTest):
                     nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
                 assert plotter.gridplot(show=False)
 
+                plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
+                    nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
+                assert plotter.gridplot(show=False)
+
+
     def test_mgb2_ddbs_ngkpt_tsmear(self):
         """Testing multiple DDB files and gridplot_with_hue."""
         paths = [

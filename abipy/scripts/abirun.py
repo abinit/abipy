@@ -420,9 +420,9 @@ def flow_get_dims_dataframe(flow, nids=None, printout=False, with_colors=False):
 
     if not abo_paths: return
 
-    # Get dimensions from output files.
+    # Get dimensions from output files as well as walltime/cputime
     robot = abilab.AboRobot.from_files(abo_paths)
-    df = robot.get_dims_dataframe(index=index)
+    df = robot.get_dims_dataframe(with_time=True, index=index)
 
     # Add columns to the dataframe.
     status = [str(s) for s in status]
