@@ -308,7 +308,7 @@ class ElectronBands(Has_Structure):
 
     # FIXME
     # Increase a bit the value of fermie used in bisection routines to solve the problem mentioned below
-    pad_fermie = 1e-6
+    pad_fermie = 1e-3
     # One should check whether fermie is recomputed at the end of the SCF cyle
     # I have problems in finding homos/lumos in semiconductors (e.g. Si)
     # because fermie is slightly smaller than the CBM:

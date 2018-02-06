@@ -1486,7 +1486,7 @@ class PhononBands(object):
 
         for i, (cart_dir, ax) in enumerate(zip(cart_dirs, ax_list.ravel())):
             self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
-                              is_non_analytical_direction=is_non_analytical_direction, use_eigeec=use_eigvec,
+                              is_non_analytical_direction=is_non_analytical_direction, use_eigvec=use_eigvec,
                               fontsize=fontsize, hatches=hatches, show=False)
             # Disable artists.
             if i != 0:

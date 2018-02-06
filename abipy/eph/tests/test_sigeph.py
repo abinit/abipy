@@ -66,6 +66,7 @@ class SigEPhFileTest(AbipyTest):
         if self.has_matplotlib():
             # Test ncfile plot methods.
             assert ncfile.plot_qpgaps_t(show=False)
+            assert ncfile.plot_qpgaps_t(plot_qpmks=True, show=False)
             assert ncfile.plot_qpdata_t(spin=0, sigma_kpoint=(0, 0, 0), show=False)
 
         if self.has_nbformat():
@@ -172,11 +173,12 @@ class SigEPhFileTest(AbipyTest):
             # Test plot methods
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, show=False)
+                assert robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, sortby="nbsum", hue="nqibz", show=False)
                 #assert robot.plot_qp_convergence(show=False)
                 #assert robot.plot_qps_vs_e0(show=False)
                 try:
                     assert robot.plot_qpgaps_t(show=False)
-                    assert robot.plot_qpgaps_t(plot_delta=True, show=False)
+                    assert robot.plot_qpgaps_t(plot_qpmks=True, show=False)
                 except ValueError:
                     # workaround for matplotlib bug
                     pass
@@ -188,6 +190,12 @@ class SigEPhFileTest(AbipyTest):
                         itemp=-1, show=False)
                 assert robot.plot_qpdata_convergence(spin=0, sigma_kpoint=(0, 0, 0), band=3,
                         itemp=0, sortby="nbsum", hue="nqibz", show=False)
+
+                # Test plot_qpfield_vs_e0
+                assert robot.plot_qpfield_vs_e0("qpeme0", itemp=1, sortby=None, hue=None,
+                        colormap="viridis", show=False)
+                assert robot.plot_qpfield_vs_e0("ze0", itemp=1, sortby="nbsum", hue="nqibz",
+                        colormap="viridis", show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

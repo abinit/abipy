@@ -75,7 +75,13 @@ TODO list:
 
 * DONE: Remove Old workflow model. 
 
+* Add support for DVDV, DDB in plot_networkx
+
+* Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
+
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
+
+* Had to increase fermie again to get correct gap in diamond treated if FD smearing
 
 * Create git repo for Abipy webisite to facilitate integration with binder + sphinx-gallery?
 

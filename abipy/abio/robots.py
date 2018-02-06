@@ -7,6 +7,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import os
+import six
 import inspect
 import itertools
 
@@ -37,7 +38,7 @@ class Robot(NotebookWriter):
     start = None
 
     # Used in iter_lineopt to generate matplotlib linestyles.
-    _LINE_COLORS = ["b", "r", "g", "m", "y", "k"]
+    _LINE_COLORS = ["b", "r", "g", "m", "y", "k", "c"]
     _LINE_STYLES = ["-", ":", "--", "-.",]
     _LINE_WIDTHS = [2, ]
 
@@ -994,3 +995,10 @@ class HueGroup(object):
         self.abifiles = abifiles
         self.labels = labels
         self.xvalues = xvalues
+
+    def __len__(self):
+        return len(self.abifiles)
+
+    def __iter__(self):
+        """Iterate over (label, abifile, xvalue)."""
+        return six.moves.zip(self.labels, self.abifiles, self.xvalues)

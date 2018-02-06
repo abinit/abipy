@@ -27,6 +27,13 @@ __all__ = [
     "Marker",
 ]
 
+def ax_append_title(ax, title, loc="center", fontsize=None):
+    """Add title to previous ax.title. Return new title."""
+    prev_title = ax.get_title(loc=loc)
+    new_title = prev_title + title
+    ax.set_title(new_title, loc=loc, fontsize=fontsize)
+    return new_title
+
 
 def set_axlims(ax, lims, axname):
     """
