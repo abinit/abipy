@@ -3865,7 +3865,6 @@ class RobotWithEbands(object):
         """
         # Group abifiles by hue.
         groups = self.group_and_sortby(hue, func_or_string=None)
-
         nrows, ncols = len(groups), 1
 
         # Plot grid with phonon bands only.

@@ -1242,7 +1242,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
-                    fermie=fermie, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
+                    e0=e0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
                     label=label, show=False)
                 ax_list = fig.axes
         else:
@@ -1256,7 +1256,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
-                        fermie=fermie, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
+                        e0=e0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
                         label="%s: %s" % (self._get_label(sortby), param), show=False)
 
                 if ig != 0:
