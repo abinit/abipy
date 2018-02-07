@@ -364,13 +364,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ax.grid(True)
 
     @add_fig_kwargs
-    def plot(self, axlist=None, **kwargs):
+    def plot(self, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
 
         Args:
-            axlist: List of |matplotlib-Axes|. If None, a new figure is created.
+            ax_list: List of |matplotlib-Axes|. If None, a new figure is created.
+            fontsize: fontsize for legend
 
         Returns: |matplotlib-Figure|
         """
@@ -381,7 +382,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         assert len(ax_list) == len(what_list)
 
         for what, ax in zip(what_list, ax_list):
-            self.plot_ax(ax, what, marker="o")
+            self.plot_ax(ax, what, fontsize=fontsize, marker="o")
 
         return fig
 

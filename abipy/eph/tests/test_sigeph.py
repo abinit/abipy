@@ -186,9 +186,9 @@ class SigEPhFileTest(AbipyTest):
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
-                assert robot.plot_qpdata_convergence(spin=0, sigma_kpoint=(0, 0, 0), band=3,
+                assert robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=3,
                         itemp=-1, show=False)
-                assert robot.plot_qpdata_convergence(spin=0, sigma_kpoint=(0, 0, 0), band=3,
+                assert robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=3,
                         itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
                 # Test plot_qpfield_vs_e0

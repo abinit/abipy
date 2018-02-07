@@ -510,18 +510,20 @@ class ElectronBands(Has_Structure):
         # Find the k-point names in the pymatgen database.
         # We'll use _auto_klabels to label the point in the matplotlib plot
         # if klabels are not specified by the user.
+
         _auto_klabels = OrderedDict()
+        # If the first or the last k-point are not recognized in findname_in_hsym_stars
+        # matplotlib won't show the full band structure along the k-path
+        # because the labels are not defined. So we have to make sure that
+        # the labels for the extrema of the path are always defined.
+        _auto_klabels[0] = " "
+
         for idx, kpoint in enumerate(self.kpoints):
             name = kpoint.name if kpoint.name is not None else self.structure.findname_in_hsym_stars(kpoint)
             if name is not None:
                 _auto_klabels[idx] = name
                 if kpoint.name is None: kpoint.set_name(name)
 
-        # If the first or the last k-point are not recognized in findname_in_hsym_stars
-        # matplotlib won't show the full band structure along the k-path
-        # because the labels are not defined. Here we make sure that
-        # the labels for the extrema of the path are always defined.
-        if 0 not in _auto_klabels: _auto_klabels[0] = " "
         last = len(self.kpoints) - 1
         if last not in _auto_klabels: _auto_klabels[last] = " "
 
@@ -1655,17 +1657,17 @@ class ElectronBands(Has_Structure):
 
     def decorate_ax(self, ax, **kwargs):
         """
-        Decorate matplotlib Axis
+        Add k-labels, title and unit name to axis ax.
 
-        Accept:
+        Args:
             title:
-            klabels
+            klabels:
             klabel_size:
         """
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
-
         ax.grid(True)
+
         ax.set_ylabel('Energy [eV]')
 
         # Set ticks and labels.
@@ -1677,7 +1679,8 @@ class ElectronBands(Has_Structure):
                 if labels[il] == labels[il-1]: labels[il] = ""
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
-            ax.set_xlim(0, ticks[-1])
+            #print("ticks", len(ticks), ticks)
+            ax.set_xlim(ticks[0], ticks[-1])
 
     def get_e0(self, e0):
         """
@@ -1718,11 +1721,12 @@ class ElectronBands(Has_Structure):
         if "label" not in kwargs:
             kwargs["label"] = "_no_legend_" # Actively suppress.
 
-        xx, lines = range(self.nkpt), []
+        xx, lines = np.arange(self.nkpt), []
         e0 = self.get_e0(e0)
         for spin in spin_range:
             for band in band_range:
-                yy = self.eigens[spin,:,band] - e0
+                yy = self.eigens[spin, :, band] - e0
+                #print("xx", xx, "\nyy", yy)
                 lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines

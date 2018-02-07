@@ -16,6 +16,7 @@ from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from abipy.core.mixins import NotebookWriter
+from abipy.tools import sort_and_groupby, getattrd, hasattrd
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     rotate_ticklabels, set_visible)
 
@@ -511,16 +512,30 @@ class Robot(NotebookWriter):
         If raise_exc is True, AttributeError with an explicit message is raised.
         """
         try:
-            obj = getattr(self.abifiles[0], aname)
-            #return not (callable(obj) or hasattr(obj, "__len__"))
+            obj = None
+            try:
+                # abiifile.foo.bar?
+                obj = getattrd(self.abifiles[0], aname)
+            except AttributeError:
+                # abifile.params[aname] ?
+                if hasattr(self.abifiles[0], "params") and aname in self.abifiles[0].params:
+                    obj = self.abifiles[0].params[aname]
+
+            # Let's try to convert obj to scalar.
+            float(obj)
             return True
-        except AttributeError:
+
+        except Exception:
             if not raise_exc: return False
             attrs = []
             for key, obj in inspect.getmembers(self.abifiles[0]):
                 # Ignores anything starting with underscore
                 if key.startswith('_') or callable(obj) or hasattr(obj, "__len__"): continue
                 attrs.append(key)
+
+            # Add entries in params.
+            if hasattr(self.abifiles[0], "params") and hasattr(self.abifiles[0].params, "keys"):
+                attrs.extend(self.abifiles[0].keys())
 
             raise AttributeError("""\
 `%s` object has no attribute `%s`. Choose among:
@@ -536,6 +551,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
             or labels, abifiles, params if ``unpack``
         """
         if not func_or_string:
+            # Catch None or empty
             items = [(label, abifile, label) for (label, abifile) in labelfile_list]
             if not unpack:
                 return items
@@ -547,9 +563,12 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         else:
             # Assume string and attribute with the same name.
-            # TODO: Could try in abifile.params if not getattr(abifile, func_or_string)
+            # try in abifile.params if not hasattrd(abifile, func_or_string)
             self.is_sortable(func_or_string, raise_exc=True)
-            items = [(label, abifile, getattr(abifile, func_or_string)) for (label, abifile) in labelfile_list]
+            if hasattrd(self.abifiles[0], func_or_string):
+                items = [(label, abifile, getattrd(abifile, func_or_string)) for (label, abifile) in labelfile_list]
+            else:
+                items = [(label, abifile, abifile.params[func_or_string]) for (label, abifile) in labelfile_list]
 
         items = sorted(items, key=lambda t: t[2], reverse=reverse)
         if not unpack:
@@ -592,16 +611,31 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
 
         Return: List of :class:`HueGroup` instance.
         """
-        from abipy.tools import sort_and_groupby, getattrd
-        # Group by hue
+        # Group by hue.
+        # This is the section in which we support: callable, abifile.attr.name syntax or abifile.params["key"]
         items = list(self.items())
-        key = lambda t: hue(t[1]) if callable(hue) else getattrd(t[1], hue)
+
+        if callable(hue):
+            key = lambda t: hue(t[1])
+        else:
+            # Assume string.
+            if hasattrd(self.abifiles[0], hue):
+                key = lambda t: getattrd(t[1], hue)
+            else:
+                # Try in abifile.params
+                if hasattr(self.abifiles[0], "params") and hue in self.abifiles[0].params:
+                    key = lambda t: t[1].params[hue]
+                else:
+                    raise TypeError("""\
+Cannot interpret hue argument of type `%s` and value `%s`.
+Expecting callable or attribute name or key in abifile.params""" % (type(hue), str(hue)))
 
         groups = []
         for hvalue, labelfile_list in sort_and_groupby(items, key=key):
             # Use func_or_string to sort each group
             labels, abifiles, xvalues = self._sortby_labelfile_list(labelfile_list, func_or_string, unpack=True)
             groups.append(HueGroup(hvalue, xvalues, abifiles, labels))
+
         return groups
 
     def close(self):
@@ -995,6 +1029,8 @@ class HueGroup(object):
         self.abifiles = abifiles
         self.labels = labels
         self.xvalues = xvalues
+        assert len(abifiles) == len(labels)
+        assert len(abifiles) == len(xvalues)
 
     def __len__(self):
         return len(self.abifiles)

@@ -60,9 +60,13 @@ class TestQPList(AbipyTest):
         # Test QPState object.
         qp = qplist[0]
         repr(qp); str(qp)
-        #qp.to_string(verbose=verbose, title="QP State")
-        print(qp.tips)
+        #qp.to_string(verbose=2, title="QP State")
+        assert str(qp.tips)
+        assert qp.spin == 0
+        assert qp.kpoint == self.sigres.gwkpoints[0]
+        assert qp.kpoint is self.sigres.gwkpoints[0]
 
+        self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         self.assert_almost_equal(qp.e0, -5.04619941555265, decimal=5)
         self.assert_almost_equal(qp.qpe.real, -4.76022137474714)
         self.assert_almost_equal(qp.qpe.imag, -0.011501666037697)
@@ -75,6 +79,7 @@ class TestSigresFile(AbipyTest):
         for path in abidata.SIGRES_NCFILES:
             with abilab.abiopen(path) as sigres:
                 repr(sigres); str(sigres)
+                assert sigres.to_string(verbose=2)
                 assert len(sigres.structure)
 
     def test_base(self):
@@ -119,12 +124,15 @@ class TestSigresFile(AbipyTest):
         assert marker and len(marker.x)
 
         if self.has_matplotlib():
-            sigres.plot_qps_vs_e0(show=False)
+            assert sigres.plot_qps_vs_e0(fontsize=8, fermie=1.0, xlims=(-10, 10), show=False)
             with self.assertRaises(ValueError):
                 sigres.plot_qps_vs_e0(with_fields="qqeme0", show=False)
-            sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
-            sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
-            sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
+            assert sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
+            assert sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
+            assert sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
+
+            assert sigres.plot_qpgaps(plot_qpmks=True, show=False)
+            assert sigres.plot_qpgaps(plot_qpmks=False, show=False)
 
         if self.has_nbformat():
             sigres.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -242,6 +250,25 @@ class SigresRobotTest(AbipyTest):
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
             qpdata = robot.get_qpgaps_dataframe(with_geo=True)
 
+            # Test plotting methods.
+            if self.has_matplotlib():
+                assert robot.plot_qpgaps_convergence(plot_qpmks=False, sortby=None, hue=None, show=False)
+                assert robot.plot_qpgaps_convergence(plot_qpmks=True, sortby="nband", hue="ecuteps", show=False)
+
+                assert robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=3, show=False)
+                assert robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=5,
+                        sortby="nband", hue="ecuteps", show=False)
+                with self.assertRaises(TypeError):
+                    robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=5,
+                            sortby="nband", hue="ecueps", show=False)
+
+                # Test plot_qpfield_vs_e0
+                assert robot.plot_qpfield_vs_e0("qpeme0", sortby=None, hue=None, fermie=0,
+                        colormap="viridis", show=False)
+                assert robot.plot_qpfield_vs_e0("ze0", itemp=1, sortby="ebands.nkpt", hue="nband",
+                        colormap="viridis", show=False)
+
+
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
@@ -253,5 +280,4 @@ class SigresRobotTest(AbipyTest):
 
             new2old = robot.remap_labels(lambda af: af.filepath, dryrun=False)
             assert len(new2old) == 2
-            #print(new2old)
-            assert all([k.endswith(v) for k, v in new2old.items()])
+            assert all(key == abifile.filepath for key, abifile in robot.items())

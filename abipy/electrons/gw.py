@@ -19,7 +19,8 @@ from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, Marker
+from abipy.tools.plotting import (ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
+    set_axlims, set_visible, rotate_ticklabels, ax_append_title)
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
@@ -64,12 +65,32 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         return self.qpe - self.e0
 
     @property
+    def re_qpe(self):
+        """Real part of the QP energy."""
+        return self.qpe.real
+
+    @property
+    def imag_qpe(self):
+        """Imaginay part of the QP energy."""
+        return self.qpe.imag
+
+    @property
     def skb(self):
         """Tuple with (spin, kpoint, band)"""
         return self.spin, self.kpoint, self.band
 
+    #def __str__(self):
+    #    return self.to_string()
+
+    #def to_string(self, verbose=0, title=None):
+    #    """
+    #    String representation with verbosity level ``verbose`` and optional ``title``.
+    #    """
+    #    s = str(self.get_dataframe())
+    #    return "\n".join([marquee(title, mark="="), s]) if title is not None else s
+
     def copy(self):
-        """Shallow copy."""
+        """Return Shallow copy."""
         d = {f: copy.copy(getattr(self, f)) for f in self._fields}
         return self.__class__(**d)
 
@@ -81,13 +102,17 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         return tuple(fields)
 
     def as_dict(self, **kwargs):
-        """Convert self into a dictionary."""
+        """
+        Convert self into a dictionary.
+        """
         od = OrderedDict(zip(self._fields, self))
         od["qpeme0"] = self.qpeme0
         return od
 
     def to_strdict(self, fmt=None):
-        """Ordered dictionary mapping fields --> strings."""
+        """
+        Ordered dictionary mapping fields --> strings.
+        """
         d = self.as_dict()
         for k, v in d.items():
             if duck.is_intlike(v):
@@ -159,7 +184,7 @@ def _get_fields_for_plot(with_fields, exclude_fields):
     """
     Return list of QPState fields to plot from input arguments.
     """
-    all_fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))
+    all_fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))[:]
 
     # Initialize fields.
     if is_string(with_fields) and with_fields == "all":
@@ -175,7 +200,10 @@ def _get_fields_for_plot(with_fields, exclude_fields):
         if is_string(exclude_fields):
             exclude_fields = exclude_fields.split()
         for e in exclude_fields:
-            fields.remove(e)
+            try:
+                fields.remove(e)
+            except ValueError:
+                pass
 
     return fields
 
@@ -269,8 +297,8 @@ class QPList(list):
         return self.__class__(qps)
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermi=None,
-                       axlist=None, label=None, **kwargs):
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermie=0.0,
+                       ax_list=None, xlims=None, fontsize=12, **kwargs):
         """
         Plot the QP results as function of the initial KS energy.
 
@@ -279,9 +307,9 @@ class QPList(list):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to ``with_field`` but excludes fields.
-            axlist: List of |matplotlib-Axes| for plot. If None, new figure is produced.
-            label: Label for plot.
-            fermi: Value of the Fermi level used in plot. None to disable plot
+            fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
+            kwargs: linestyle, color, label, marker
 
         Returns: |matplotlib-Figure|
         """
@@ -291,43 +319,39 @@ class QPList(list):
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
         # Build grid of plots.
-        import matplotlib.pyplot as plt
-        if axlist is None:
-            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
-            axlist = axlist.ravel()
-        else:
-            axlist = np.reshape(axlist, (1, len(fields))).ravel()
-            fig = plt.gcf()
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
 
         # Get qplist and sort it.
         qps = self if self.is_e0sorted else self.sort_by_e0()
-        e0mesh = qps.get_e0mesh()
+        e0mesh = qps.get_e0mesh() - fermie
+        xlabel = r"$\epsilon_0\;[eV]$" if fermie == 0 else r"$\epsilon_0-\epsilon_F\;[eV]$"
 
-        linestyle = kwargs.pop("linestyle", "o")
-        for ii, (field, ax) in enumerate(zip(fields, axlist)):
+        kw_linestyle = kwargs.pop("linestyle", "o")
+        kw_color = kwargs.pop("color", None)
+        kw_label = kwargs.pop("label", None)
+
+        for ii, (field, ax) in enumerate(zip(fields, ax_list)):
             irow, icol = divmod(ii, ncols)
             ax.grid(True)
-            if irow == nrows - 1: ax.set_xlabel('e0 [eV]')
-            ax.set_ylabel(field)
+            if irow == nrows - 1: ax.set_xlabel(xlabel)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(field, fontsize=fontsize)
             yy = qps.get_field(field)
-            lbl = label if ii == 0 and label is not None else None
 
             # TODO real and imag?
-            ax.plot(e0mesh, yy.real, linestyle, label=lbl, **kwargs)
+            ax.plot(e0mesh, yy.real, kw_linestyle, color=kw_color, label=kw_label, **kwargs)
+            set_axlims(ax, xlims, "x")
 
-            if fermi is not None:
-                ax.plot(2*[fermi], [min(yy), max(yy)])
+        if kw_label:
+            ax_list[0].legend(loc="best", fontsize=fontsize, shadow=True)
 
         # Get around a bug in matplotlib
-        if num_plots % ncols != 0:
-            axlist[-1].plot([0,1], [0,1], lw=0)
-            axlist[-1].axis('off')
-
-        if label is not None:
-            axlist[0].legend(loc="best")
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
 
@@ -485,14 +509,14 @@ class Sigmaw(object):
         import matplotlib.pyplot as plt
 
         nrows = len(what)
-        fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
-        axlist = axlist.ravel()
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
+        ax_list = ax_list.ravel()
 
         title = 'spin %s, k-point %s, band %s' % (self.spin, repr(self.kpoint), self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
-            ax = axlist[i]
+            ax = ax_list[i]
             ax.grid(True)
             if i == len(what): ax.set_xlabel('Frequency [eV]')
             if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
@@ -502,6 +526,7 @@ class Sigmaw(object):
         return fig
 
 
+@deprecated(message="SigresPlotter is deprecated and will be removed in v0.4. Use SigresRobot")
 class SigresPlotter(Iterable):
     """
     This object receives a list of |SigresFile| objects and provides methods
@@ -751,7 +776,6 @@ class SigresPlotter(Iterable):
             kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
         self.prepare_plot()
-
         ax, fig, plt = get_ax_fig_plt(ax)
 
         xx = self.xvalues
@@ -760,7 +784,6 @@ class SigresPlotter(Iterable):
                 label = "spin %d, kpoint %s" % (spin, repr(kpoint))
                 gaps = self.extract_qpgaps(spin, kpoint)
                 ax.plot(xx, gaps, "o-", label=label, **kwargs)
-
                 if hspan is not None:
                     last = gaps[-1]
                     ax.axhspan(last-hspan, last+hspan, facecolor='0.5', alpha=0.5)
@@ -798,15 +821,14 @@ class SigresPlotter(Iterable):
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
-        fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
-        axlist = axlist.ravel()
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
+        ax_list = ax_list.ravel()
 
         if num_plots % ncols != 0:
-            axlist[-1].axis('off')
+            ax_list[-1].axis('off')
 
         xx = self.xvalues
-        for kpoint, ax in zip(kpoints_for_plot, axlist):
-
+        for kpoint, ax in zip(kpoints_for_plot, ax_list):
             for spin in spin_range:
                 for band in band_range:
                     label = "spin %d, band %d" % (spin, band)
@@ -831,7 +853,7 @@ class SigresPlotter(Iterable):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to `with_field` but excludes fields
-            axlist: List of matplotlib axes for plot. If None, new figure is produced
+            ax_list: List of matplotlib axes for plot. If None, new figure is produced
 
         Returns: |matplotlib-Figure|
         """
@@ -845,12 +867,11 @@ class SigresPlotter(Iterable):
             ncols = 2
             nrows = (num_plots//ncols) + (num_plots % ncols)
 
-        fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, squeeze=False)
 
         for sigres in self:
-            label = sigres.basename
-            fig = sigres.plot_qps_vs_e0(with_fields=fields, axlist=axlist,
-                                        label=label, show=False, **kwargs)
+            fig = sigres.plot_qps_vs_e0(with_fields=fields, ax_list=ax_list,
+                                        label=sigres.basename, show=False, **kwargs)
         return fig
 
 
@@ -868,6 +889,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresFile
     """
+    # Markers used for up/down bands.
+    marker_spin = {0: "^", 1: "v"}
+    color_spin = {0: "k", 1: "r"}
+
     @classmethod
     def from_file(cls, filepath):
         """Initialize an instance from file."""
@@ -884,6 +909,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self.gwcalctyp = reader.gwcalctyp
         self.ibz = reader.ibz
         self.gwkpoints = reader.gwkpoints
+        self.nkcalc = len(self.gwkpoints)
 
         self.gwbstart_sk = reader.gwbstart_sk
         self.gwbstop_sk = reader.gwbstop_sk
@@ -901,6 +927,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # TODO handle the case in which nkptgw < nkibz
         self.qpgaps = reader.read_qpgaps()
         self.qpenes = reader.read_qpenes()
+        self.ksgaps = reader.read_ksgaps()
+
+    @property
+    def sigma_kpoints(self):
+        """The K-points where QP corrections have been calculated."""
+        return self.gwkpoints
 
     def get_marker(self, qpattr):
         """
@@ -921,11 +953,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 s.append(size)
 
         return Marker(*(x, y, s))
-
-    #@lazy_property
-    #def params(self):
-    #    """AttrDict dictionary with the GW convergence parameters, e.g. ecuteps"""
-    #    return self.reader.read_params()
 
     @lazy_property
     def params(self):
@@ -1004,10 +1031,13 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """|numpy-array| of shape [nsppol, nkibz] with the QP direct gaps in eV."""
         return self.reader.read_qpgaps()
 
-    def get_qpgap(self, spin, kpoint):
+    def get_qpgap(self, spin, kpoint, with_ksgap=False):
         """Return the QP gap in eV at the given (spin, kpoint)"""
         k = self.reader.kpt2fileindex(kpoint)
-        return self.qpgaps[spin, k]
+        if not with_ksgap:
+            return self.qpgaps[spin, k]
+        else:
+            return self.qpgaps[spin, k], self.ksgaps[spin, k]
 
     def get_sigmaw(self, spin, kpoint, band):
         """"
@@ -1045,25 +1075,72 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                 precision=precision, file=file)
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, axlist=None, label=None, **kwargs):
+    def plot_qpgaps(self, ax=None, plot_qpmks=False, fontsize=8, **kwargs):
         """
-        Plot QP result as function of the KS energy.
+        Plot the KS and the QP direct gaps for all the k-points and spins available on file.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            plot_qpmks: If True, plot QP_gap - KS_gap
+            fontsize: legend and title fontsize.
+            kwargs: Passed to ax.plot method except for marker.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        label = kwargs.pop("label", None)
+        xs = np.arange(self.nkcalc)
+
+        for spin in range(self.nsppol):
+            qp_gaps, ks_gaps = map(np.array, zip(*[self.get_qpgap(spin, kgw, with_ksgap=True) for kgw in self.gwkpoints]))
+            if not plot_qpmks:
+                # Plot QP gaps
+                ax.plot(xs, qp_gaps, marker=self.marker_spin[spin], label=label, **kwargs)
+                # Add KS gaps
+                #ax.scatter(xx, ks_gaps) #, label="KS gap %s" % label)
+            else:
+                # Plot QP_gap - KS_gap
+                ax.plot(xs, qp_gaps - ks_gaps, marker=self.marker_spin[spin]) #, label="QP-KS gap %s")
+
+            ax.grid(True)
+            ax.set_xlabel("K-point")
+            if plot_qpmks:
+                ax.set_ylabel("QP-KS gap [eV]")
+            else:
+                ax.set_ylabel("QP direct gap [eV]")
+            #ax.set_title("k:%s" % (repr(kgw)), fontsize=fontsize)
+            if label:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermie=0.0,
+                       xlims=None, ax_list=None, fontsize=8, **kwargs):
+        """
+        Plot QP result in SIGRES file as function of the KS energy.
 
         Args:
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
-            exclude_fields: Similar to `with_field` but excludes fields
-            axlist: List of matplotlib axes for plot. If None, new figure is produced
-            label: Label for plot.
+            exclude_fields: Similar to ``with_fields`` but excludes fields
+            fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
         with_fields = _get_fields_for_plot(with_fields, exclude_fields)
 
         for spin in range(self.nsppol):
-            qps = self.qplist_spin[spin].sort_by_e0()
-            fig = qps.plot_qps_vs_e0(with_fields=with_fields, axlist=axlist, label=label, show=False, **kwargs)
+            fig = self.qplist_spin[spin].plot_qps_vs_e0(
+                with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,
+                xlims=xlims, ax_list=ax_list, fontsize=fontsize,
+                marker=self.marker_spin[spin], show=False, **kwargs)
+            ax_list = fig.axes
 
         return fig
 
@@ -1296,7 +1373,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
             egw_rarr -= self.reader.read_value("e0")
 
-        # Note there's no guarantee that the gw_kpoints and the corrections have the same k-point index.
+        # Note there's no guarantee that the gwkpoints and the corrections have the same k-point index.
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
         qpdata = np.empty(egw_rarr.shape)
         for gwk in self.gwkpoints:
@@ -1556,7 +1633,6 @@ class SigresReader(ETSF_Reader):
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
-
         super(SigresReader, self).__init__(path)
 
         try:
@@ -1578,6 +1654,9 @@ class SigresReader(ETSF_Reader):
         # 2) The K-points where QPState corrections have been calculated.
         gwred_coords = self.read_redc_gwkpoints()
         self.gwkpoints = KpointList(self.structure.reciprocal_lattice, gwred_coords)
+        # Find k-point name
+        for kpoint in self.gwkpoints:
+            kpoint.set_name(self.structure.findname_in_hsym_stars(kpoint))
 
         # minbnd[nkptgw,nsppol] gives the minimum band index computed
         # Note conversion between Fortran and python convention.
@@ -1726,6 +1805,10 @@ class SigresReader(ETSF_Reader):
         """Read the QP gaps. Returns [nsppol, nkibz] array with QP gaps in eV."""
         return self.read_value("egwgap")
 
+    def read_ksgaps(self):
+        """Read the KS gaps. Returns [nsppol, nkibz] array with KS gaps in eV."""
+        return self.read_value("e0gap")
+
     def read_e0(self, spin, kfile, band):
         return self.ks_bands.eigens[spin, kfile, band]
 
@@ -1816,7 +1899,64 @@ class SigresRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresRobot
     """
+    # Try to have API similar to SigEPhRobot
     EXT = "SIGRES"
+
+    def __init__(self, *args):
+        super(SigresRobot, self).__init__(*args)
+        if len(self.abifiles) in (0, 1): return
+
+        # TODO
+        # Check dimensions and self-energy states and issue warning.
+        #warns = []; wapp = warns.append
+        #nc0 = self.abifiles[0]
+        #same_nsppol, same_nkcalc = True, True
+        #if any(nc.nsppol != nc0.nsppol for nc in self.abifiles):
+        #    same_nsppol = False
+        #    wapp("Comparing ncfiles with different values of nsppol.")
+        #if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles):
+        #    same_nkcalc = False
+        #    wapp("Comparing ncfiles with different number of k-points in self-energy. Doh!")
+
+        #if same_nsppol and same_nkcalc:
+        #    # FIXME
+        #    # Different values of bstart_ks are difficult to handle
+        #    # Because the high-level API assumes an absolute global index
+        #    # Should decide how to treat this case: either raise or interpret band as an absolute band index.
+        #    if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
+        #        wapp("Comparing ncfiles with different values of bstart_sk")
+        #    if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
+        #        wapp("Comparing ncfiles with different values of bstop_sk")
+
+        #if warns:
+        #    for w in warns:
+        #        cprint(w, color="yellow")
+
+    def _check_dims_and_params(self):
+        """Test that nsppol, sigma_kpoints, tlist are consistent."""
+        if not len(self.abifiles) > 1:
+            return
+
+        #nc0 = self.abifiles[0]
+        #errors = []
+        #eapp = errors.append
+
+        #if any(nc.nsppol != nc0.nsppol for nc in self.abifiles[1:]):
+        #    eapp("Files with different values of `nsppol`")
+
+        #if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles[1:]):
+        #    eapp("Files with different values of `nkcalc`")
+        #else:
+        #    for nc in self.abifiles[1:]:
+        #        for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
+        #            if k0 != k1:
+        #                eapp("Files with different values of `sigma_kpoints`")
+
+        #if any(not np.allclose(nc.tmesh, nc0.tmesh) for nc in self.abifiles[1:]):
+        #    eapp("Files with different tmesh")
+
+        #if errors:
+        #    raise ValueError("Cannot compare multiple SIGEPH.nc files. Reason:\n %s" % "\n".join(errors))
 
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
         for i, (label, sigr) in enumerate(self.items()):
@@ -1879,11 +2019,192 @@ class SigresRobot(Robot, RobotWithEbands):
     # An alias to have a common API for robots.
     get_dataframe = get_qpgaps_dataframe
 
-    #@add_fig_kwargs
-    #def plot_qpgaps(self, ax=None, spin=None, kpoint=None, **kwargs):
+    @add_fig_kwargs
+    def plot_qpgaps_convergence(self, plot_qpmks=False, sortby=None, hue=None, fontsize=8, **kwargs):
+        """
+        Plot the convergence of the direct QP gaps for all the k-points available in the robot.
 
-    #@add_fig_kwargs
-    #def plot_qpenes(self, spin=None, kpoint=None, band=None, hspan=0.01, **kwargs):
+        Args:
+            plot_qpmks: If True, plot QP_gap - KS_gap
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # TODO
+        # Make sure that nsppol, sigma_kpoints
+        #self._check_dims_and_params()
+
+        nc0 = self.abifiles[0]
+        nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
+        # Build grid with (nkpt, 1) plots.
+        ncols, nrows = 1, len(sigma_kpoints)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        if hue is None:
+            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+
+        for ik, kgw in enumerate(sigma_kpoints):
+            ax = ax_list[ik]
+            for spin in range(nsppol):
+                ax.set_title("QP dirgap k:%s" % (repr(kgw)), fontsize=fontsize)
+
+                # Extract QP dirgap for [spin, kgw, itemp]
+                if hue is None:
+                    qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+                        for ncfile in ncfiles]))
+                    yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
+                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                else:
+                    for g in groups:
+                        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+                            for ncfile in g.abifiles]))
+                        yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
+                        label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                        ax.plot(g.xvalues, qp_gaps, marker=nc0.marker_spin[spin], label=label)
+
+            ax.grid(True)
+            if ik == len(sigma_kpoints) - 1:
+                ax.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax, 15)
+            if ik == 0:
+                if plot_qpmks:
+                    ax.set_ylabel("QP-KS direct gap [eV]", fontsize=fontsize)
+                else:
+                    ax.set_ylabel("QP direct gap [eV]", fontsize=fontsize)
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpdata_conv_skb(self, spin, sigma_kpoint, band,
+                             sortby=None, hue=None, fontsize=8, **kwargs):
+        """
+        Plot the convergence of the QP results for given (spin, kpoint, band)
+
+        Args:
+            spin: Spin index.
+            sigma_kpoint:
+            band: Band index.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Make sure that nsppol, sigma_kpoints
+        #self._check_dims_and_params()
+
+        # TODO: Add more quantities DW, Fan(0)
+        # TODO: Decide how to treat complex quantities, avoid annoying ComplexWarning
+        # TODO: Format for g.hvalue
+        # Treat fundamental gaps
+        # Quantities to plot.
+        what_list = ["re_qpe", "imag_qpe", "ze0"]
+
+        # Build grid plot.
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        nc0 = self.abifiles[0]
+        ik = nc0.reader.gwkpt2seqindex(sigma_kpoint)
+        sigma_kpoint = nc0.sigma_kpoints[ik]
+
+        # Sort and read QP data.
+        if hue is None:
+            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+            qplist = [ncfile.reader.read_qp(spin, sigma_kpoint, band) for ncfile in ncfiles]
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+            qplist_group = []
+            for g in groups:
+                lst = [ncfile.reader.read_qp(spin, sigma_kpoint, band) for ncfile in g.abifiles]
+                qplist_group.append(lst)
+
+        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+            if hue is None:
+                # Extract QP data.
+                yvals = [getattr(qp, what) for qp in qplist]
+                ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+            else:
+                for g, qplist in zip(groups, qplist_group):
+                    # Extract QP data.
+                    yvals = [getattr(qp, what) for qp in qplist]
+                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                    ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+
+            ax.grid(True)
+            ax.set_ylabel(what)
+            if i == len(what_list) - 1:
+                ax.set_xlabel("%s" % self._get_label(sortby))
+                if sortby is None: rotate_ticklabels(ax, 15)
+            if i == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        if "title" not in kwargs:
+            title = "QP results spin: %s, k:%s, band: %s" % (spin, repr(sigma_kpoint), band)
+            fig.suptitle(title, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_qpfield_vs_e0(self, field, sortby=None, hue=None, fontsize=8,
+                           colormap="jet", fermie=None, **kwargs):
+        """
+        """
+        import matplotlib.pyplot as plt
+        cmap = plt.get_cmap(colormap)
+
+        if hue is None:
+            ax_list = None
+            lnp_list = self.sortby(sortby)
+            for i, (label, ncfile, param) in enumerate(lnp_list):
+                if sortby is not None:
+                    label = "%s: %s" % (self._get_label(sortby), param)
+                fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
+                    fermie=0.0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
+                    label=label, show=False)
+                ax_list = fig.axes
+        else:
+            # group_and_sortby and build (ngroups,) subplots
+            groups = self.group_and_sortby(hue, sortby)
+            nrows, ncols = 1, len(groups)
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                   sharex=True, sharey=True, squeeze=False)
+            for ig, g in enumerate(groups):
+                subtitle = "%s: %s" % (self._get_label(hue), g.hvalue)
+                ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
+                for i, (nclabel, ncfile, param) in enumerate(g):
+                    fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
+                        fermie=0.0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
+                        label="%s: %s" % (self._get_label(sortby), param), show=False)
+
+                if ig != 0:
+                    for ax in ax_mat[:, ig]:
+                        set_visible(ax, False, "ylabel")
+
+        return fig
 
     def write_notebook(self, nbpath=None):
         """

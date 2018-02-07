@@ -297,17 +297,19 @@ class PhononBands(object):
         # We'll use _auto_qlabels to label the point in the matplotlib plot
         # if qlabels are not specified by the user.
         _auto_qlabels = OrderedDict()
+
+        # If the first or the last q-point are not recognized in findname_in_hsym_stars
+        # matplotlib won't show the full band structure along the k-path
+        # because the labels are not defined. Here we make sure that
+        # the labels for the extrema of the path are always defined.
+        _auto_qlabels[0] = " "
+
         for idx, qpoint in enumerate(self.qpoints):
             name = qpoint.name if qpoint.name is not None else self.structure.findname_in_hsym_stars(qpoint)
             if name is not None:
                 _auto_qlabels[idx] = name
                 if qpoint.name is None: qpoint.set_name(name)
 
-        # If the first or the last q-point are not recognized in findname_in_hsym_stars
-        # matplotlib won't show the full band structure along the k-path
-        # because the labels are not defined. Here we make sure that
-        # the labels for the extrema of the path are always defined.
-        if 0 not in _auto_qlabels: _auto_qlabels[0] = " "
         last = len(self.qpoints) - 1
         if last not in _auto_qlabels: _auto_qlabels[last] = " "
 
@@ -839,8 +841,13 @@ class PhononBands(object):
 
     def decorate_ax(self, ax, units='eV', **kwargs):
         """
-        Add k-labels, title and unit name to axis ax.
+        Add q-labels, title and unit name to axis ax.
         Use units = "" to add k-labels without adding unit name.
+
+        Args:
+            title:
+            qlabels:
+            qlabel_size:
         """
         title = kwargs.pop("title", None)
         if title is not None: ax.set_title(title)
@@ -853,8 +860,13 @@ class PhononBands(object):
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
         if ticks:
+            # Don't show label if previous k-point is the same.
+            for il in range(1, len(labels)):
+                if labels[il] == labels[il-1]: labels[il] = ""
             ax.set_xticks(ticks, minor=False)
-            ax.set_xticklabels(labels, fontdict=None, minor=False)
+            ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("qlabel_size", "large"))
+            #print("ticks", len(ticks), ticks)
+            ax.set_xlim(ticks[0], ticks[-1])
 
     @add_fig_kwargs
     def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, **kwargs):
