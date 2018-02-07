@@ -119,8 +119,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
         return pd.DataFrame(od, index=index)
 
     @add_fig_kwargs
-    def plot(self, with_fields="all", exclude_fields=None, fermie=None,
-             ax_list=None, label=None, **kwargs):
+    def plot(self, with_fields="all", exclude_fields=None, ax_list=None, label=None, **kwargs):
         """
         Plot the QP results as function of temperature.
 
@@ -131,8 +130,6 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
             exclude_fields: Similar to `with_field` but excludes fields.
             ax_list: List of matplotlib axes for plot. If None, new figure is produced.
             label: Label for plot.
-            # FIXME
-            fermie: Value of the Fermi level used in plot.
 
         Returns: |matplotlib-Figure|
         """
@@ -147,9 +144,11 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
         # Build plot grid.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
+        ax_list = np.array(ax_list).ravel()
 
         linestyle = kwargs.pop("linestyle", "o")
+        #kw_color = kwargs.pop("color", None)
+        #kw_label = kwargs.pop("label", None)
         for i, (field, ax) in enumerate(zip(fields, ax_list)):
             irow, icol = divmod(i, ncols)
             ax.grid(True)
@@ -165,15 +164,10 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
             #else:
             ax.plot(self.tmesh, yy.real, linestyle, label=lbl, **kwargs)
 
-            #if fermie is not None:
-            #    ax.plot(2*[fermie], [min(yy), max(yy)])
-
         # Get around a bug in matplotlib
-        if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
-        if label is not None:
+        if lbl is not None:
             ax_list[0].legend(loc="best")
 
         fig.tight_layout()
@@ -293,7 +287,7 @@ class QpTempList(list):
         return self.__class__(qps)
 
     @add_fig_kwargs
-    def plot_vs_e0(self, itemp_list="all", with_fields="all", exclude_fields=None, fermie=0.0, colormap="jet",
+    def plot_vs_e0(self, itemp_list="all", with_fields="all", exclude_fields=None, fermie=None, colormap="jet",
                    ax_list=None, xlims=None, fontsize=12, **kwargs):
         """
         Plot the QP results as a function of the initial KS energy.
@@ -304,7 +298,7 @@ class QpTempList(list):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to `with_field` but excludes fields.
-            fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            fermie: Value of the Fermi level used in plot. None for absolute e0s.
             colormap: matplotlib color map.
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
@@ -330,8 +324,11 @@ class QpTempList(list):
 
         # Get QpTempList and sort it.
         qps = self if self.is_e0sorted else self.sort_by_e0()
-        e0mesh = qps.get_e0mesh() - fermie
-        xlabel = r"$\epsilon_0\;[eV]$" if fermie == 0 else r"$\epsilon_0-\epsilon_F\;[eV]$"
+        e0mesh = qps.get_e0mesh()
+        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        if fermie is not None:
+            e0mesh -= fermie
+            xlabel = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         kw_color = kwargs.pop("color", None)
@@ -342,7 +339,8 @@ class QpTempList(list):
         for i, (field, ax) in enumerate(zip(fields, ax_list)):
             irow, icol = divmod(i, ncols)
             ax.grid(True)
-            if irow == nrows - 1: ax.set_xlabel(xlabel)
+            if irow == nrows - 1:
+                ax.set_xlabel(xlabel)
             ax.set_ylabel(field, fontsize=fontsize)
             for itemp in itemp_list:
                 yt = qps.get_field_itemp(field, itemp)
@@ -358,8 +356,8 @@ class QpTempList(list):
         # Get around a bug in matplotlib
         if num_plots % ncols != 0: ax_list[-1].axis('off')
 
-        #if label is not None:
-        ax_list[0].legend(loc="best", fontsize=fontsize, shadow=True)
+        if kw_label:
+            ax_list[0].legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -812,8 +810,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.reader.read_allqps()
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, itemp_list="all", with_fields="all", exclude_fields=None,
-                       fermie=0.0, colormap="jet", xlims=None, ax_list=None, fontsize=8, **kwargs):
+    def plot_qps_vs_e0(self, itemp_list="all", with_fields="all", exclude_fields=None, e0="fermie",
+                       colormap="jet", xlims=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the QP results in the SIGEPH file as function of the initial KS energy.
 
@@ -823,7 +821,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to ``with_field`` but excludes fields.
-            fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             colormap: matplotlib color map.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
@@ -832,6 +833,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: |matplotlib-Figure|
         """
+        fermie = self.ebands.get_e0(e0)
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_vs_e0(itemp_list=itemp_list,
                 with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,
@@ -1215,8 +1217,20 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_qpfield_vs_e0(self, field, itemp=0, sortby=None, hue=None, fontsize=8,
-                            colormap="jet", fermie=None, **kwargs):
+                           colormap="jet", e0="fermie", **kwargs):
         """
+        For each file in the robot, plot one of the attributes of :class:`QpTempState`
+        at temperature `itemp` as a function of the KS energy.
+
+        Args:
+            field (str): String defining the attribute to plot.
+            itemp (int): Temperature index.
+
+        .. note::
+
+            For the meaning of the other arguments, see other robot methods.
+
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
@@ -1228,7 +1242,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
-                    fermie=0.0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
+                    fermie=fermie, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
                     label=label, show=False)
                 ax_list = fig.axes
         else:
@@ -1242,7 +1256,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
-                        fermie=0.0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
+                        fermie=fermie, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
                         label="%s: %s" % (self._get_label(sortby), param), show=False)
 
                 if ig != 0:

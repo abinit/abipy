@@ -436,15 +436,15 @@ class ElectronBandsTest(AbipyTest):
             str(ebands)
             ebands.to_bxsf(self.get_tmpname(text=True))
 
+            # Test Ebands3d
             eb3d = ebands.get_ebands3d()
             repr(eb3d); str(eb3d)
+            assert eb3d.to_string(verbose=2)
 
-            #if self.has_matplotlib():
-            #    try
-            #        from skimage import measure
-            #    except:
-            #    assert eb3b.plot_isosurfaces(e0="fermie", verbose=1, show=False)
-            #    assert eb3d.plot_contour(band=4, spin=1, plane="xy", elevation=0, show=False)
+            if self.has_matplotlib():
+                assert eb3d.plot_contour(band=4, spin=0, plane="xy", elevation=0, show=False)
+                if self.has_skimage():
+                    assert eb3d.plot_isosurfaces(e0="fermie", verbose=1, show=False)
 
             # Test Mayavi
             if self.has_mayavi():
@@ -509,6 +509,8 @@ class ElectronBandsPlotterTest(AbipyTest):
 
         if self.has_matplotlib():
             assert plotter.combiplot(title="Silicon band structure", show=False)
+            # Alias for combiplot
+            assert plotter.plot(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
             if self.has_seaborn():
                 plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
             assert plotter.gridplot(title="Silicon band structure", show=False)

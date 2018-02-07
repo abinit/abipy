@@ -1018,7 +1018,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             errors = []
             for i, (site1, site2) in enumerate(zip(self.structure, new_structure)):
                 if site1.specie.symbol != site2.specie.symbol:
-                    errors.append("[%d] %s != %s" % (i, site1.specie.symbol != site2.specie.symbol))
+                    errors.append("[%d] %s != %s" % (i, site1.specie.symbol, site2.specie.symbol))
             if errors:
                 raise ValueError("Structures must have same order of atomic types:\n" + "\n".join(errors))
 

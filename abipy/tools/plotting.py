@@ -25,6 +25,7 @@ __all__ = [
     "ArrayPlotter",
     "data_from_cplx_mode",
     "Marker",
+    "plot_unit_cell",
 ]
 
 def ax_append_title(ax, title, loc="center", fontsize=None):
@@ -375,6 +376,43 @@ class Marker(collections.namedtuple("Marker", "x y s")):
                 neg_s.append(s)
 
         return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
+
+
+def plot_unit_cell(lattice, ax=None, **kwargs):
+    """
+    Adds the unit cell of the lattice to a matplotlib Axes3D
+
+    Args:
+        lattice: Lattice object
+        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to black
+            and linewidth to 3.
+
+    Returns:
+        matplotlib figure and matplotlib ax
+    """
+    ax, fig, plt = get_ax3d_fig_plt(ax)
+
+    if "color" not in kwargs:
+        kwargs["color"] = "k"
+    if "linewidth" not in kwargs:
+        kwargs["linewidth"] = 3
+
+    v = 8 * [None]
+    v[0] = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
+    v[1] = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
+    v[2] = lattice.get_cartesian_coords([1.0, 1.0, 0.0])
+    v[3] = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
+    v[4] = lattice.get_cartesian_coords([0.0, 1.0, 1.0])
+    v[5] = lattice.get_cartesian_coords([1.0, 1.0, 1.0])
+    v[6] = lattice.get_cartesian_coords([1.0, 0.0, 1.0])
+    v[7] = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
+
+    for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
+                 (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
+        ax.plot(*zip(v[i], v[j]), **kwargs)
+
+    return fig, ax
 
 
 #class Node(object):

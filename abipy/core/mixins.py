@@ -131,7 +131,7 @@ class TextFile(_File):
         """Close the file."""
         try:
             self._file.close()
-        except:
+        except Exception:
             pass
 
     def seek(self, offset, whence=0):

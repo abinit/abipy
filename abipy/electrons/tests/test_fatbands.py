@@ -52,6 +52,7 @@ class TestElectronFatbands(AbipyTest):
             assert fbnc_kmesh.plot_pjdos_lview(tight_layout=True, stacked=False, show=False)
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="type", tight_layout=True, show=False)
             assert fbnc_kpath.plot_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="lview", tight_layout=True, show=False)
+            assert fbnc_kpath.plot_spilling(e0=0, tight_layout=True, show=False)
 
             # These calls should return None
             #assert fbnc_kpath.plot_fatbands_spinor() is None

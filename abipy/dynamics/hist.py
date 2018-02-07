@@ -616,9 +616,7 @@ class HistRobot(Robot):
                 ax.set_xlabel('')
 
         # Get around a bug in matplotlib.
-        if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
 
@@ -661,9 +659,7 @@ class HistRobot(Robot):
                 ax.set_xlabel("")
 
         # Get around a bug in matplotlib.
-        if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
 

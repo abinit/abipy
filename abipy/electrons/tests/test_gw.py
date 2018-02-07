@@ -124,7 +124,7 @@ class TestSigresFile(AbipyTest):
         assert marker and len(marker.x)
 
         if self.has_matplotlib():
-            assert sigres.plot_qps_vs_e0(fontsize=8, fermie=1.0, xlims=(-10, 10), show=False)
+            assert sigres.plot_qps_vs_e0(fontsize=8, e0=1.0, xlims=(-10, 10), show=False)
             with self.assertRaises(ValueError):
                 sigres.plot_qps_vs_e0(with_fields="qqeme0", show=False)
             assert sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
@@ -263,7 +263,7 @@ class SigresRobotTest(AbipyTest):
                             sortby="nband", hue="ecueps", show=False)
 
                 # Test plot_qpfield_vs_e0
-                assert robot.plot_qpfield_vs_e0("qpeme0", sortby=None, hue=None, fermie=0,
+                assert robot.plot_qpfield_vs_e0("qpeme0", sortby=None, hue=None, e0="fermie",
                         colormap="viridis", show=False)
                 assert robot.plot_qpfield_vs_e0("ze0", itemp=1, sortby="ebands.nkpt", hue="nband",
                         colormap="viridis", show=False)

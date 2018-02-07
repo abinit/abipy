@@ -307,6 +307,16 @@ class AbipyTest(PymatgenTest):
         if version is None: return True
         return cmp_version(ase.__version__, version, op=op)
 
+    def has_skimage(self):
+        """
+        True if skimage package is available.
+        """
+        try:
+            from skimage import measure
+            return True
+        except ImportError:
+            return False
+
     def has_mayavi(self):
         """
         True if mayavi_ is available. Set also offscreen to True

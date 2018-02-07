@@ -14,9 +14,8 @@ class TestScissors(AbipyTest):
     def test_scissors_polyfit(self):
         """Testing scissors from SIGRES file."""
         # Get the quasiparticle results from the SIGRES.nc database.
-        sigma_file = abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))
-        qplist_spin = sigma_file.qplist_spin
-        sigma_file.close()
+        with abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc")) as sigma_file:
+            qplist_spin = sigma_file.qplist_spin
 
         # Construct the scissors operator
         domains = [[-10, 6.1], [6.1, 18]]

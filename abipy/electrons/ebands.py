@@ -32,7 +32,7 @@ from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import gaussian, duck
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels)
+    get_ax3d_fig_plt, rotate_ticklabels, plot_unit_cell)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1679,6 +1679,7 @@ class ElectronBands(Has_Structure):
                 if labels[il] == labels[il-1]: labels[il] = ""
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
+
             #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
@@ -3269,44 +3270,7 @@ class ElectronDosPlotter(NotebookWriter):
         return len(set(labels)) == len(labels)
 
 
-def plot_unit_cell(lattice, ax=None, **kwargs):
-    """
-    Adds the unit cell of the lattice to a matplotlib Axes3D
-
-    Args:
-        lattice: Lattice object
-        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to black
-            and linewidth to 3.
-
-    Returns:
-        matplotlib figure and matplotlib ax
-    """
-    ax, fig, plt = get_ax3d_fig_plt(ax)
-
-    if "color" not in kwargs:
-        kwargs["color"] = "k"
-    if "linewidth" not in kwargs:
-        kwargs["linewidth"] = 3
-
-    v = 8 * [None]
-    v[0] = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
-    v[1] = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
-    v[2] = lattice.get_cartesian_coords([1.0, 1.0, 0.0])
-    v[3] = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
-    v[4] = lattice.get_cartesian_coords([0.0, 1.0, 1.0])
-    v[5] = lattice.get_cartesian_coords([1.0, 1.0, 1.0])
-    v[6] = lattice.get_cartesian_coords([1.0, 0.0, 1.0])
-    v[7] = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
-
-    for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
-                 (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
-        ax.plot(*zip(v[i], v[j]), **kwargs)
-
-    return fig, ax
-
-
-class Bands3D(object):
+class Bands3D(Has_Structure):
 
     def __init__(self, structure, ibz, has_timrev, eigens, fermie):
         """
@@ -3321,7 +3285,7 @@ class Bands3D(object):
             fermie
         """
         self.ibz = ibz
-        self.structure = structure
+        self._structure = structure
         self.reciprocal_lattice = structure.lattice.reciprocal_lattice
         self.has_timrev = has_timrev
         self.fermie = fermie
@@ -3361,6 +3325,11 @@ class Bands3D(object):
         #    self.reference_sb[spin] = {band: band for band in self.bands}
         #else:
 
+    @property
+    def structure(self):
+        """|Structure| object."""
+        return self._structure
+
     # Handy variables used to loop
     @property
     def spins(self):
@@ -3377,6 +3346,10 @@ class Bands3D(object):
         """String representation."""
         lines = []
         app = lines.append
+        # TODO: Finalize implementation
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+
         return "\n".join(lines)
 
     def add_ucell_scalars(self, name, scalars):
@@ -3527,7 +3500,7 @@ class Bands3D(object):
         if isobands is None: return None
         if verbose: print("Bands for isosurface:", isobands)
 
-        from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz # plot_unit_cell
+        from pymatgen.electronic_structure.plotter import plot_lattice_vectors, plot_wigner_seitz
         ax, fig, plt = get_ax3d_fig_plt(ax=None)
         plot_unit_cell(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)
         #plot_wigner_seitz(self.reciprocal_lattice, ax=ax, color="k", linewidth=1)
@@ -3554,7 +3527,7 @@ class Bands3D(object):
 
         return fig
 
-    def mvplot_isosurfaces(self, e0="fermie", verbose=0, figure=None, show=True):
+    def mvplot_isosurfaces(self, e0="fermie", verbose=0, figure=None, show=True):  # pragma: no cover
         """
         Plot isosurface with mayavi_
 
@@ -3609,11 +3582,11 @@ class Bands3D(object):
         Contour plot with matplotlib_.
 
         Args:
-            band:
-            spin:
+            band: Band index
+            spin: Spin index.
             plane:
             elevation:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Label and title fontsize.
 
         Return: |matplotlib-Figure|
@@ -3622,14 +3595,14 @@ class Bands3D(object):
 
         x = np.arange(self.kdivs[0]) / (self.kdivs[0] - 1)
         y = np.arange(self.kdivs[1]) / (self.kdivs[1] - 1)
-        fxy = data[:, :, 0]
+        fxy = data[:, :, elevation]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         x, y = np.meshgrid(x, y)
         c = ax.contour(x, y, fxy, **kwargs)
         ax.clabel(c, inline=1, fontsize=fontsize)
         kvert = dict(xy="z", xz="y", yz="x")[plane]
-        ax.set_title("Band %s in %s plane at $K_%s=%d$" % (band, plane, kvert, elevation), fontsize=fontsize)
+        ax.set_title(r"Band %s in %s plane at $K_{%s}=%d$" % (band, plane, kvert, elevation), fontsize=fontsize)
         ax.grid(True)
         ax.set_xlabel("$K_%s$" % plane[0])
         ax.set_ylabel("$K_%s$" % plane[1])
@@ -3671,7 +3644,7 @@ class Bands3D(object):
         #if show: mlab.show()
         #return
 
-    def mvplot_cutplanes(self, band, spin=0, figure=None, show=True, **kwargs):
+    def mvplot_cutplanes(self, band, spin=0, figure=None, show=True, **kwargs): # pragma: no cover
         """Plot cutplanes with mayavi_."""
         data = np.reshape(self.ucdata_sbk[spin, band], self.kdivs) - self.fermie
         contours = [-1.0, 0.0, 1.0]
@@ -3695,7 +3668,6 @@ class Bands3D(object):
 
 class ElectronBands3D(Bands3D):
     pass
-
 
 #class PhononBands3D(Bands3D):
 #    pass

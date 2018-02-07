@@ -125,7 +125,7 @@ class ScissorsBuilder(object):
 
     Usage:
 
-        builder = ScissorsBuilder.from_file("sigres_file")
+        builder = ScissorsBuilder.from_file("out_SIGRES.nc")
 
         # To plot the QP results as function of the KS energy:
         builder.plot_qpe_vs_e0()
@@ -137,11 +137,13 @@ class ScissorsBuilder(object):
         builder.plot_fit()
 
         # To plot the corrected bands:
-        builder.plot_qpbands(abidata.ref_file("si_nscf_WFK-etsf.nc"))
+        builder.plot_qpbands(abidata.ref_file("si_nscf_WFK.nc"))
     """
     @classmethod
     def from_file(cls, filepath):
-        """Generate an instance of `ScissorsBuilder` from file. Main entry point for client code."""
+        """
+        Generate an instance of `ScissorsBuilder` from file. Main entry point for client code.
+        """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
             return cls(qps_spin=ncfile.qplist_spin, sigres_ebands=ncfile.ebands)
@@ -333,7 +335,8 @@ class ScissorsBuilder(object):
         # Read the band energies computed on the Monkhorst-Pack (MP) mesh and compute the DOS.
         ks_dos, qp_dos = None, None
         if dos_filepath is not None:
-            with abiopen(dos_filepath) as ncfile: ks_mpbands = ncfile.ebands
+            with abiopen(dos_filepath) as ncfile:
+                ks_mpbands = ncfile.ebands
 
             dos_args = {} if not dos_args else dos_args
             ks_dos = ks_mpbands.get_edos(**dos_args)

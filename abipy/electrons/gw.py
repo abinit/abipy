@@ -297,7 +297,7 @@ class QPList(list):
         return self.__class__(qps)
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermie=0.0,
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermie=None,
                        ax_list=None, xlims=None, fontsize=12, **kwargs):
         """
         Plot the QP results as function of the initial KS energy.
@@ -307,7 +307,7 @@ class QPList(list):
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to ``with_field`` but excludes fields.
-            fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            fermie: Value of the Fermi level used in plot. None for absolute e0s.
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             kwargs: linestyle, color, label, marker
 
@@ -328,8 +328,11 @@ class QPList(list):
 
         # Get qplist and sort it.
         qps = self if self.is_e0sorted else self.sort_by_e0()
-        e0mesh = qps.get_e0mesh() - fermie
-        xlabel = r"$\epsilon_0\;[eV]$" if fermie == 0 else r"$\epsilon_0-\epsilon_F\;[eV]$"
+        e0mesh = qps.get_e0mesh()
+        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        if fermie is not None:
+            xlable = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
+            e0mesh -= fermie
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         kw_color = kwargs.pop("color", None)
@@ -338,8 +341,8 @@ class QPList(list):
         for ii, (field, ax) in enumerate(zip(fields, ax_list)):
             irow, icol = divmod(ii, ncols)
             ax.grid(True)
-            if irow == nrows - 1: ax.set_xlabel(xlabel)
-            ax.set_xlabel(xlabel)
+            if irow == nrows - 1:
+                ax.set_xlabel(xlabel)
             ax.set_ylabel(field, fontsize=fontsize)
             yy = qps.get_field(field)
 
@@ -464,9 +467,10 @@ class Sigmaw(object):
         self.spfunc = Function1D(self.wmesh, spfunc_values)
 
     def plot_ax(self, ax, w="a", fontsize=12, **kwargs):
-        """Helper function to plot data on the axis ax with fontsize"""
+        """
+        Helper function to plot data on the axis ax with fontsize
+        """
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
-
         lines = []
         extend = lines.extend
 
@@ -507,20 +511,18 @@ class Sigmaw(object):
         Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
-
         nrows = len(what)
         fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        title = 'spin %s, k-point %s, band %s' % (self.spin, repr(self.kpoint), self.band)
+        title = "spin %s, k-point %s, band %s" % (self.spin, repr(self.kpoint), self.band)
         fig.suptitle(title)
 
         for i, w in enumerate(what):
             ax = ax_list[i]
             ax.grid(True)
-            if i == len(what): ax.set_xlabel('Frequency [eV]')
+            if i == len(what): ax.set_xlabel("Frequency [eV]")
             if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
-
             self.plot_ax(ax, w=w, **kwargs)
 
         return fig
@@ -1115,17 +1117,20 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermie=0.0,
+    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, e0="fermie",
                        xlims=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot QP result in SIGRES file as function of the KS energy.
 
         Args:
-            with_fields: The names of the qp attributes to plot as function of e0.
+            with_fields: The names of the qp attributes to plot as function of eKS.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
             exclude_fields: Similar to ``with_fields`` but excludes fields
-            fermie: Value of the Fermi level used in plot. 0 for absolute e0s.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
@@ -1135,6 +1140,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         with_fields = _get_fields_for_plot(with_fields, exclude_fields)
 
+        fermie = self.ebands.get_e0(e0)
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_qps_vs_e0(
                 with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,
@@ -1908,55 +1914,55 @@ class SigresRobot(Robot, RobotWithEbands):
 
         # TODO
         # Check dimensions and self-energy states and issue warning.
-        #warns = []; wapp = warns.append
-        #nc0 = self.abifiles[0]
-        #same_nsppol, same_nkcalc = True, True
-        #if any(nc.nsppol != nc0.nsppol for nc in self.abifiles):
-        #    same_nsppol = False
-        #    wapp("Comparing ncfiles with different values of nsppol.")
-        #if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles):
-        #    same_nkcalc = False
-        #    wapp("Comparing ncfiles with different number of k-points in self-energy. Doh!")
+        warns = []; wapp = warns.append
+        nc0 = self.abifiles[0]
+        same_nsppol, same_nkcalc = True, True
+        if any(nc.nsppol != nc0.nsppol for nc in self.abifiles):
+            same_nsppol = False
+            wapp("Comparing ncfiles with different values of nsppol.")
+        if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles):
+            same_nkcalc = False
+            wapp("Comparing ncfiles with different number of k-points in self-energy. Doh!")
 
-        #if same_nsppol and same_nkcalc:
-        #    # FIXME
-        #    # Different values of bstart_ks are difficult to handle
-        #    # Because the high-level API assumes an absolute global index
-        #    # Should decide how to treat this case: either raise or interpret band as an absolute band index.
-        #    if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
-        #        wapp("Comparing ncfiles with different values of bstart_sk")
-        #    if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
-        #        wapp("Comparing ncfiles with different values of bstop_sk")
+        if same_nsppol and same_nkcalc:
+            # FIXME
+            # Different values of bstart_ks are difficult to handle
+            # Because the high-level API assumes an absolute global index
+            # Should decide how to treat this case: either raise or interpret band as an absolute band index.
+            if any(np.any(nc.gwbstart_sk != nc0.gwbstart_sk) for nc in self.abifiles):
+                wapp("Comparing ncfiles with different values of gwbstart_sk")
+            if any(np.any(nc.gwbstop_sk != nc0.gwbstop_sk) for nc in self.abifiles):
+                wapp("Comparing ncfiles with different values of gwbstop_sk")
 
-        #if warns:
-        #    for w in warns:
-        #        cprint(w, color="yellow")
+        if warns:
+            for w in warns:
+                cprint(w, color="yellow")
 
     def _check_dims_and_params(self):
         """Test that nsppol, sigma_kpoints, tlist are consistent."""
         if not len(self.abifiles) > 1:
             return
 
-        #nc0 = self.abifiles[0]
-        #errors = []
-        #eapp = errors.append
+        nc0 = self.abifiles[0]
+        errors = []
+        eapp = errors.append
 
-        #if any(nc.nsppol != nc0.nsppol for nc in self.abifiles[1:]):
-        #    eapp("Files with different values of `nsppol`")
+        if any(nc.nsppol != nc0.nsppol for nc in self.abifiles[1:]):
+            eapp("Files with different values of `nsppol`")
 
-        #if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles[1:]):
-        #    eapp("Files with different values of `nkcalc`")
-        #else:
-        #    for nc in self.abifiles[1:]:
-        #        for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
-        #            if k0 != k1:
-        #                eapp("Files with different values of `sigma_kpoints`")
+        if any(nc.nkcalc != nc0.nkcalc for nc in self.abifiles[1:]):
+            eapp("Files with different values of `nkcalc`")
+        else:
+            for nc in self.abifiles[1:]:
+                for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
+                    if k0 != k1:
+                        eapp("Files with different values of `sigma_kpoints`")
 
-        #if any(not np.allclose(nc.tmesh, nc0.tmesh) for nc in self.abifiles[1:]):
-        #    eapp("Files with different tmesh")
+        if any(not np.allclose(nc.tmesh, nc0.tmesh) for nc in self.abifiles[1:]):
+            eapp("Files with different tmesh")
 
-        #if errors:
-        #    raise ValueError("Cannot compare multiple SIGEPH.nc files. Reason:\n %s" % "\n".join(errors))
+        if errors:
+            raise ValueError("Cannot compare multiple SIGEPH.nc files. Reason:\n %s" % "\n".join(errors))
 
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
         for i, (label, sigr) in enumerate(self.items()):
@@ -2092,7 +2098,7 @@ class SigresRobot(Robot, RobotWithEbands):
     def plot_qpdata_conv_skb(self, spin, sigma_kpoint, band,
                              sortby=None, hue=None, fontsize=8, **kwargs):
         """
-        Plot the convergence of the QP results for given (spin, kpoint, band)
+        For each file in the robot, plot the convergence of the QP results for given (spin, kpoint, band)
 
         Args:
             spin: Spin index.
@@ -2170,8 +2176,19 @@ class SigresRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_qpfield_vs_e0(self, field, sortby=None, hue=None, fontsize=8,
-                           colormap="jet", fermie=None, **kwargs):
+                           colormap="jet", e0="fermie", **kwargs):
         """
+        For each file in the robot, plot one of the attributes of :class:`QpState`
+        as a function of the KS energy.
+
+        Args:
+            field (str): String defining the attribute to plot.
+
+        .. note::
+
+            For the meaning of the other arguments, see other robot methods.
+
+        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
@@ -2183,7 +2200,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
-                    fermie=0.0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
+                    e0=e0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
                     label=label, show=False)
                 ax_list = fig.axes
         else:
@@ -2197,7 +2214,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
-                        fermie=0.0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
+                        e0=e0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
                         label="%s: %s" % (self._get_label(sortby), param), show=False)
 
                 if ig != 0:

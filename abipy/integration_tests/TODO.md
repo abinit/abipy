@@ -89,6 +89,11 @@ TODO list:
 
 * Use parser subclass to avoid boiler plate code.
 
+* Rationalze wrappers for mrgdddb .... (raise exception in python if clear error, retcode 
+  is the returncode of the script not necessarily the retcode of the exe, need to
+  parse log file and make sure that all scripts write log files in "abinit" format
+  that can be read with EventsParser.
+
 * Add support for PSML format
 
 * Refactor PyLauncher logic
