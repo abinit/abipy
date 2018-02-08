@@ -548,16 +548,10 @@ def _invoke_robot(options):
         cprint("Warning: robot is empty. No file found", "red")
         return 1
 
-    if options.ipython:
-        import IPython
-        robot.trim_paths()
-        IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
-                      robot=robot)
-
-    elif options.notebook:
+    if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground)
 
-    else:
+    elif options.print:
         robot.trim_paths()
         #df = robot.get_params_dataframe()
         #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
@@ -578,6 +572,13 @@ def _invoke_robot(options):
 
         if not options.verbose:
             print("\nUse --verbose for more information")
+
+    #elif options.ipython:
+    else:
+        import IPython
+        robot.trim_paths()
+        IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
+                      robot=robot)
 
     return 0
 
@@ -884,7 +885,16 @@ def get_parser(with_epilog=False):
     p_getattr.add_argument('--list', default=False, action="store_true", help="Print attributes available in file")
 
     # Subparser for robot commands
-    robot_parents = [copts_parser, ipy_parser, robot_parser]
+    # Use own version of ipy_parser with different default values.
+    robot_ipy_parser = argparse.ArgumentParser(add_help=False)
+    robot_ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    robot_ipy_parser.add_argument('--foreground', action='store_true', default=False,
+        help="Run jupyter notebook in the foreground.")
+    #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
+    robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
+
+    #robot_parents = [copts_parser, ipy_parser, robot_parser]
+    robot_parents = [copts_parser, robot_ipy_parser, robot_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)

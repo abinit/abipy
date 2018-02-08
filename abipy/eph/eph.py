@@ -27,7 +27,6 @@ class A2f(object):
     """
     Eliashberg function a2F(w). Energies are in eV.
     """
-
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
 
@@ -244,7 +243,7 @@ class A2f(object):
         return fig
 
     @add_fig_kwargs
-    def plot_nuterms(self, units="eV", axmat=None, with_lambda=True,
+    def plot_nuterms(self, units="eV", ax_mat=None, with_lambda=True,
                      xlims=None, ylims=None, label=None, **kwargs):
         """
         Plot a2F(w), its primitive lambda(w) and optionally the individual
@@ -253,7 +252,7 @@ class A2f(object):
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-            axmat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
+            ax_mat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
 		or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
@@ -261,19 +260,19 @@ class A2f(object):
 
         Returns: |matplotlib-Figure|
         """""
-        # Get axmat and fig.
+        # Get ax_mat and fig.
         import matplotlib.pyplot as plt
-        if axmat is None:
-            fig, axmat = plt.subplots(nrows=self.natom, ncols=3, sharex=True, sharey=True, squeeze=False)
+        if ax_mat is None:
+            fig, ax_mat = plt.subplots(nrows=self.natom, ncols=3, sharex=True, sharey=True, squeeze=False)
         else:
-            axmat = np.reshape(axmat, (self.natom, 3))
+            ax_mat = np.reshape(ax_mat, (self.natom, 3))
             fig = plt.gcf()
 
         wfactor = abu.phfactor_ev2units(units)
         wvals = self.mesh * wfactor
 
         if with_lambda:
-            lax_nu = [ax.twinx() for ax in axmat.flat]
+            lax_nu = [ax.twinx() for ax in ax_mat.flat]
             # Share axis after creation. Based on
             # https://stackoverflow.com/questions/42973223/how-share-x-axis-of-two-subplots-after-they-are-created
             lax_nu[0].get_shared_x_axes().join(*lax_nu)
@@ -295,7 +294,7 @@ class A2f(object):
         import itertools
         for idir, iatom in itertools.product(range(3), range(self.natom)):
             nu = idir + 3 * iatom
-            ax = axmat[iatom, idir]
+            ax = ax_mat[iatom, idir]
             ax.grid(True)
             ax.set_title(r"$\nu = %d$" % nu)
             if idir == 0:
@@ -685,6 +684,11 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_a2f_interpol(self, units="eV", ax=None, ylims=None, **kwargs):
         """
         Plot
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         #linestyle_qsamp = dict(qcoarse="--", qintp="-")
@@ -709,6 +713,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if self.has_a2ftr:
             ncols += 1
             width_ratios.append(0.2)
+
         if phdos is not None:
             phdos = PhononDos.as_phdos(phdos)
             ncols += 1
@@ -855,7 +860,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         Plot the convergence of the lambda(q, nu) parameters wrt to the ``sortby`` parameter.
 
         Args:
-            what: ``lambda`` for eph strength, gamma for phonon linewidths.
+            what: "lambda" for eph strength, gamma for phonon linewidths.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -863,6 +868,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 If callable, the output of sortby(abifile) is used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|

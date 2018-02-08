@@ -20,7 +20,7 @@ from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import (ArrayPlotter, plot_array, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
+from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_visible, rotate_ticklabels, ax_append_title)
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -1041,13 +1041,14 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 #ks_dirgap =
                 app("QP_dirgap: %.3f for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
 
-        strio = cStringIO()
-        self.print_qps(file=strio)
-        strio.seek(0)
-        app("")
-        app(marquee("QP results for each k-point and spin (All in eV)", mark="="))
-        app("".join(strio))
-        app("")
+        #if verbose > 1
+        #    strio = cStringIO()
+        #    self.print_qps(file=strio)
+        #    strio.seek(0)
+        #    app("")
+        #    app(marquee("QP results for each k-point and spin (All in eV)", mark="="))
+        #    app("".join(strio))
+        #    app("")
 
         # TODO: Fix header.
         #if verbose > 1:
@@ -1139,16 +1140,23 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         label = kwargs.pop("label", None)
         xs = np.arange(self.nkcalc)
 
+        # Add xticklabels from k-points.
+        tick_labels = [repr(k) for k in self.gwkpoints]
+        ax.set_xticks(xs)
+        ax.set_xticklabels(tick_labels, fontdict=None, rotation=30, minor=False, size="x-small")
+
         for spin in range(self.nsppol):
             qp_gaps, ks_gaps = map(np.array, zip(*[self.get_qpgap(spin, kgw, with_ksgap=True) for kgw in self.gwkpoints]))
             if not plot_qpmks:
                 # Plot QP gaps
-                ax.plot(xs, qp_gaps, marker=self.marker_spin[spin], label=label, **kwargs)
+                ax.plot(xs, qp_gaps, marker=self.marker_spin[spin],
+                        label=label if spin == 0 else None, **kwargs)
                 # Add KS gaps
                 #ax.scatter(xx, ks_gaps) #, label="KS gap %s" % label)
             else:
                 # Plot QP_gap - KS_gap
-                ax.plot(xs, qp_gaps - ks_gaps, marker=self.marker_spin[spin]) #, label="QP-KS gap %s")
+                ax.plot(xs, qp_gaps - ks_gaps, marker=self.marker_spin[spin],
+                    label=label if spin == 0 else None, **kwargs)
 
             ax.grid(True)
             ax.set_xlabel("K-point")
@@ -1231,13 +1239,16 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
+    def plot_eigvec_qp(self, spin=0, kpoint=None, band=None, **kwargs):
         """
 
         Args:
             spin: Spin index
-            kpoint:
-            band: band index. If None all bands are displayed.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+                If None, all k-points for the given ``spin`` are shown.
+            band: band index. If None all bands are displayed else
+                only <KS_b|QP_{b'}> for the given b.
+            kwargs: Passed to plot method of :class:`ArrayPlotter`.
 
         Returns: |matplotlib-Figure|
         """
@@ -1252,10 +1263,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
             plotter.add_array(repr(kpoint), ksqp_arr)
             return plotter.plot(show=False, **kwargs)
-            #return plot_array(ksqp_arr, show=False, **kwargs)
 
     @add_fig_kwargs
-    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", e0="fermie", fact=1, ax=None, **kwargs):
+    def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", e0="fermie", fact=1000, ax=None, **kwargs):
         """
         Plot the KS energies as function of k-points and add markers whose size
         is proportional to the QPState attribute ``qpattr``
