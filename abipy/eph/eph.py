@@ -849,28 +849,27 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_lambda_convergence(self, what="lambda", sortby="", ylims=None,
-                                ax=None, cmap="jet", **kwargs):
+    def plot_lambda_convergence(self, what="lambda", sortby=None, ylims=None,
+                                ax=None, colormap="jet", **kwargs):
         """
         Plot the convergence of the lambda(q, nu) parameters wrt to the ``sortby`` parameter.
 
         Args:
             what: ``lambda`` for eph strength, gamma for phonon linewidths.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-            Can be None, string or function.
-                If None, no sorting is performed.
-                If string, it's assumed that the ncfile has an attribute with the same name
-                and ``getattr`` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-            cmap:
+            colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|
         """
+        # TODO Add hue
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        cmap = plt.get_cmap(cmap)
+        cmap = plt.get_cmap(colormap)
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             ncfile.plot_eph_strength(
                     ax=ax,
@@ -882,29 +881,28 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return fig
 
     @add_fig_kwargs
-    def plot_a2f_convergence(self, sortby="", qsamps="all", ax=None, xlims=None,
-                             cmap="jet", **kwargs):
+    def plot_a2f_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None, colormap="jet", **kwargs):
         """
         Plot the convergence of the Eliashberg function wrt to the ``sortby`` parameter.
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
-		Can be None, string or function.
-                If None, no sorting is performed.
-                If string, it's assumed that the ncfile has an attribute with the same name
-                and `getattr` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
             qsamps:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
-            cmap: matplotlib color map.
+            colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|
         """
+        # TODO Add hue
         qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        cmap = plt.get_cmap(cmap)
+        cmap = plt.get_cmap(colormap)
 
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             for qsamp in qsamps:
@@ -920,11 +918,11 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return fig
 
     #@add_fig_kwargs
-    #def plot_a2ftr_convergence(self, sortby="", qsamps="all", ax=None, xlims=None,
-    #                           cmap="viridis", **kwargs):
+    #def plot_a2ftr_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None,
+    #                           colormap="viridis", **kwargs):
     #    qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    cmap = plt.get_cmap(cmap)
+    #    cmap = plt.get_cmap(colormap)
     #    for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
     #        for qsamp in qsamps:
     #            ncfile.get_a2ftr_qsamp(qsamp).plot(

@@ -85,6 +85,7 @@ class TestPlotting(AbipyTest):
         assert len(plotter) == 0
         hello = np.ones((5, 2), dtype=np.complex)
         plotter.add_array("hello", hello)
+        assert "hello" in plotter.keys()
         with self.assertRaises(ValueError):
             plotter.add_array("hello", hello)
 

@@ -17,7 +17,7 @@ sigres = abiopen(abidata.ref_file("QPSC_SIGRES.nc"))
 #print(qp)
 
 # Visualize matrix at the Gamma point
-sigres.plot_eigvec_qp(spin=0, kpoint=[0,0,0], title="<KS_b|QP_b'> components")
+sigres.plot_eigvec_qp(spin=0, kpoint=[0, 0, 0], title="<KS_b|QP_b'> components")
 
-# Plott all k-points in SIGRES.
+# Plot all k-points in the SIGRES file.
 sigres.plot_eigvec_qp(spin=0, kpoint=None, title="<KS_b|QP_b'> components")

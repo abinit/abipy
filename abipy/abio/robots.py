@@ -535,7 +535,7 @@ class Robot(NotebookWriter):
 
             # Add entries in params.
             if hasattr(self.abifiles[0], "params") and hasattr(self.abifiles[0].params, "keys"):
-                attrs.extend(self.abifiles[0].keys())
+                attrs.extend(self.abifiles[0].params.keys())
 
             raise AttributeError("""\
 `%s` object has no attribute `%s`. Choose among:

@@ -17,7 +17,7 @@ sigres.print_qps()
 sigres.plot_qps_vs_e0(tight_layout=True)
 
 qp = sigres.get_qpcorr(spin=0, kpoint=(0, 0, 0), band=0)
-print(qp)
+#print(qp)
 
 #qplist_spin = sigres.qplist_spin
 #qplist_spin[0].plot_qps_vs_e0(title="QPState corrections of Si", exclude_fields="vUme")

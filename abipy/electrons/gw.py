@@ -4,6 +4,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import sys
 import copy
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -313,6 +314,12 @@ class QPList(list):
 
         Returns: |matplotlib-Figure|
         """
+        # TODO: This is to maintain the old API.
+        fermi = kwargs.pop("fermi", None)
+        if fermi is not None:
+            fermie = fermi
+            warnings.warn("fermi keyword argument have beeen renamed fermie. Old arg will be removed in version 0.4")
+
         fields = _get_fields_for_plot(with_fields, exclude_fields)
         if not fields: return None
 
@@ -454,78 +461,125 @@ class QPList(list):
         return sciss
 
 
-class Sigmaw(object):
+class SelfEnergy(object):
     """
-    This object stores the values of the self-energy as function of frequency
+    This object stores the values of the electron-electron self-energy
+    and the associated spectral function as function of frequency
     """
+    # Symbols used in matplotlib plots.
+    latex_symbol = dict(
+        re=r"$\Re{\Sigma(\omega)}$",
+        im=r"$\Im{\Sigma(\omega)}$",
+        spfunc=r"$A(\omega)}$",
+    )
 
     def __init__(self, spin, kpoint, band, wmesh, sigmaxc_values, spfunc_values):
         self.spin, self.kpoint, self.band = spin, kpoint, band
         self.wmesh = np.array(wmesh)
-
         self.xc = Function1D(self.wmesh, sigmaxc_values)
         self.spfunc = Function1D(self.wmesh, spfunc_values)
+        assert len(sigmaxc_values) == len(spfunc_values)
 
-    def plot_ax(self, ax, w="a", fontsize=12, **kwargs):
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0, title=None):
+        """String representation."""
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
+        app("K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin))
+        app("Number of frequencies: %d, from %.1f to %.1f [eV]" % (len(self.wmesh), self.wmesh[0], self.wmesh[-1]))
+
+        return "\n".join(lines)
+
+    def plot_ax(self, ax, what="a", fontsize=12, **kwargs):
         """
         Helper function to plot data on the axis ax with fontsize
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            what:
+            fontsize: legend and title fontsize.
+
+        Return: List of lines.
         """
         #if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
         lines = []
         extend = lines.extend
+        ax.grid(True)
 
-        if w == "s":
+        if what == "s":
             f = self.xc
             label = kwargs.get("label", r"$\Sigma(\omega)$")
             extend(f.plot_ax(ax, cplx_mode="re", label="Re " + label))
             extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
             #ax.set_ylabel('Energy [eV]')
 
-        elif w == "a":
+        elif what == "a":
             f = self.spfunc
             label = kwargs.get("label", r"$A(\omega)$")
             extend(f.plot_ax(ax, label=label))
-            # Plot I(w)
-            #ax2 = ax.twinx()
-            #extend(f.cumintegral().plot_ax(ax2, label="$I(\omega) = \int_{-\infty}^{\omega} A(\omega')d\omega'$"))
-            #ax.set_ylabel('Energy [eV]')
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
-
         else:
-            raise ValueError("Don't know how to handle what option %s" % w)
+            raise ValueError("Don't know how to handle what option %s" % str(what))
+
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return lines
 
     @add_fig_kwargs
-    def plot(self, what="sa", **kwargs):
+    def plot(self, ax_list=None, what_list=("re", "im", "spfunc"), fermie=None,
+             xlims=None, fontsize=12, **kwargs):
         """
-        Plot the self-energy and the spectral function
+        Plot the real/imaginary part of self-energy as well as the spectral function
 
         Args:
-            what: String specifying what to plot:
-                    - s for the self-energy
-                    - a for spectral function
-                  Characters can be concatenated.
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
+            what_list: List of strings selecting the quantity to plot.
+            fermie: Value of the Fermi level used in plot. None for absolute e0s.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                or scalar e.g. ``left``. If left (right) is None, default values are used.
+            fontsize: legend and label fontsize.
+            kwargs: Keyword arguments passed to ax.plot
 
         Returns: |matplotlib-Figure|
         """
-        import matplotlib.pyplot as plt
-        nrows = len(what)
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
-        ax_list = ax_list.ravel()
+        what_list = list_strings(what_list)
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
+        xlabel = r"$\omega\;[eV]$"
+        wmesh = self.wmesh
+        if fermie is not None:
+            xlabel = r"$\omega - \epsilon_F}\;[eV]$"
+            wmesh = self.wmesh - fermie
 
-        title = "spin %s, k-point %s, band %s" % (self.spin, repr(self.kpoint), self.band)
-        fig.suptitle(title)
-
-        for i, w in enumerate(what):
-            ax = ax_list[i]
+        kw_color = kwargs.pop("color", None)
+        kw_label = kwargs.pop("label", None)
+        for i, (what, ax) in enumerate(zip(what_list, ax_list)):
             ax.grid(True)
-            if i == len(what): ax.set_xlabel("Frequency [eV]")
-            if not kwargs: kwargs = {"color": "black", "linewidth": 2.0}
-            self.plot_ax(ax, w=w, **kwargs)
+            ax.set_ylabel(self.latex_symbol[what])
+            if (i == len(ax_list) - 1): ax.set_xlabel(xlabel)
+            ax.plot(wmesh, self._get_ys(what),
+                    color=kw_color,
+                    label=kw_label if i == 0 else None,
+            )
+            set_axlims(ax, xlims, "x")
+            if i == 0 and kw_label:
+                ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        if "title" not in kwargs:
+            title = "K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin)
+            fig.suptitle(title, fontsize=fontsize)
 
         return fig
+
+    def _get_ys(self, what):
+        """Return array to plot from what string."""
+        return dict(
+            re=self.xc.values.real,
+            im=self.xc.values.imag,
+            spfunc=self.spfunc.values,
+        )[what]
 
 
 @deprecated(message="SigresPlotter is deprecated and will be removed in v0.4. Use SigresRobot")
@@ -644,7 +698,7 @@ class SigresPlotter(Iterable):
         param_list = defaultdict(list)
 
         for sigres in self:
-            for pname in sigres.params.keys():
+            for pname in sigres.params:
                 param_list[pname].append(sigres.params[pname])
 
         return param_list
@@ -915,10 +969,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         self.gwbstart_sk = reader.gwbstart_sk
         self.gwbstop_sk = reader.gwbstop_sk
-
         self.min_gwbstart = reader.min_gwbstart
         self.max_gwbstart = reader.max_gwbstart
-
         self.min_gwbstop = reader.min_gwbstop
         self.max_gwbstop = reader.max_gwbstop
 
@@ -1041,23 +1093,17 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             return self.qpgaps[spin, k], self.ksgaps[spin, k]
 
-    def get_sigmaw(self, spin, kpoint, band):
+    def read_sigee_skb(self, spin, kpoint, band):
         """"
         Read self-energy(w) for (spin, kpoint, band)
-        Return: |Function1D| object
+        Return: :class:`SelfEnergy` object
         """
-        wmesh, sigxc_values = self.reader.read_sigmaw(spin, kpoint, band)
-        wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
+        ik = self.reader.kpt2fileindex(kpoint)
+        kpoint = self.ibz[ik]
+        wmesh, sigxc_values = self.reader.read_sigmaw(spin, ik, band)
+        wmesh, spf_values = self.reader.read_spfunc(spin, ik, band)
 
-        return Sigmaw(spin, kpoint, band, wmesh, sigxc_values, spf_values)
-
-    def get_spfunc(self, spin, kpoint, band):
-        """"
-        Read spectral function for (spin, kpoint, band)
-        Return: |Function1D| object
-        """
-        wmesh, spf_values = self.reader.read_spfunc(spin, kpoint, band)
-        return Function1D(wmesh, spf_values)
+        return SelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values)
 
     def print_qps(self, precision=3, ignore_imag=True, file=sys.stdout):
         """
@@ -1151,51 +1197,62 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_spectral_functions(self, spin, kpoint, bands, ax=None, **kwargs):
+    def plot_spectral_functions(self, include_bands=None, fontsize=8, **kwargs):
         """
+        Plot the spectral function for all k-points, bands and spins available in the SIGRES file.
+
         Args:
-            spin: Spin index.
-            kpoint: Required kpoint.
-            bands: List of bands
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            include_bands: List of bands to include. Note means all.
+            fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        if not isinstance(bands, Iterable): bands = [bands]
+        if include_bands is not None:
+            include_bands = set(include_bands)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
-        ax.grid(True)
+        # Build grid of plots.
+        nrows, ncols = len(self.sigma_kpoints), 1
+        ax_list = None
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
 
-        errlines = []
-        for band in bands:
-            try:
-                sigw = self.get_sigmaw(spin, kpoint, band)
-            except ValueError as exc:
-                errlines.append(str(exc))
-                continue
-            label = r"$A(\omega)$: skb = %s, %s, %s" % (spin, kpoint, band)
-            sigw.plot_ax(ax, label=label, **kwargs)
+        for ik_gw, (kgw, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
+            for spin in range(self.nsppol):
+                for band in range(self.gwbstart_sk[spin, ik_gw], self.gwbstop_sk[spin, ik_gw]):
+                    if include_bands and band not in include_bands: continue
+                    sigw = self.read_sigee_skb(spin, kgw, band)
+                    label = r"$A(\omega)$: band: %d, spin: %d" % (spin, band)
+                    sigw.plot_ax(ax, what="a", label=label, fontsize=fontsize, **kwargs)
 
-        if errlines:
-            cprint("\n".join(errlines), "red")
-            return None
+            ax.set_title("K-point: %s" % repr(sigw.kpoint), fontsize=fontsize)
+            #if ik_gw == len(self.sigma_kpoints) - 1:
 
         return fig
 
     @add_fig_kwargs
     def plot_eigvec_qp(self, spin, kpoint, band=None, **kwargs):
+        """
 
+        Args:
+            spin: Spin index
+            kpoint:
+            band: band index. If None all bands are displayed.
+
+        Returns: |matplotlib-Figure|
+        """
+        plotter = ArrayPlotter()
         if kpoint is None:
-            plotter = ArrayPlotter()
             for kpoint in self.ibz:
                 ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
-                plotter.add_array(str(kpoint), ksqp_arr)
-
+                plotter.add_array(repr(kpoint), ksqp_arr)
             return plotter.plot(show=False, **kwargs)
 
         else:
             ksqp_arr = self.reader.read_eigvec_qp(spin, kpoint, band=band)
-            return plot_array(ksqp_arr, show=False, **kwargs)
+            plotter.add_array(repr(kpoint), ksqp_arr)
+            return plotter.plot(show=False, **kwargs)
+            #return plot_array(ksqp_arr, show=False, **kwargs)
 
     @add_fig_kwargs
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", e0="fermie", fact=1, ax=None, **kwargs):
@@ -1487,6 +1544,9 @@ class SigresReader(ETSF_Reader):
     r"""
     This object provides method to read data from the SIGRES file produced ABINIT.
 
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: SigresReader
+
     # See 70gw/m_sigma_results.F90
 
     # Name of the diagonal matrix elements stored in the file.
@@ -1632,9 +1692,6 @@ class SigresReader(ETSF_Reader):
     complex(dpc),pointer :: omega4sd(:,:,:,:)
     ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
     ! Frequencies used to evaluate the Derivative of Sigma.
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: SigresReader
     """
     def __init__(self, path):
         self.ks_bands = ElectronBands.from_file(path)
@@ -1668,7 +1725,6 @@ class SigresReader(ETSF_Reader):
         # Note conversion between Fortran and python convention.
         self.gwbstart_sk = self.read_value("minbnd") - 1
         self.gwbstop_sk = self.read_value("maxbnd")
-
         # min and Max band index for GW corrections.
         self.min_gwbstart = np.min(self.gwbstart_sk)
         self.max_gwbstart = np.max(self.gwbstart_sk)
@@ -1692,6 +1748,7 @@ class SigresReader(ETSF_Reader):
         self._ze0 = self.read_value("ze0", cmode="c")
 
         # Frequencies for the spectral function.
+        # Note that omega_r does not depend on (s, k, b).
         if self.has_spfunc:
             self._omega_r = self.read_value("omega_r")
             self._sigcme = self.read_value("sigcme", cmode="c")
@@ -1699,7 +1756,6 @@ class SigresReader(ETSF_Reader):
 
         # Self-consistent case
         self._en_qp_diago = self.read_value("en_qp_diago")
-
         # <KS|QPState>
         self._eigvec_qp = self.read_value("eigvec_qp", cmode="c")
 
@@ -1824,7 +1880,11 @@ class SigresReader(ETSF_Reader):
             raise ValueError("%s does not contain spectral function data." % self.path)
 
         ik = self.kpt2fileindex(kpoint)
-        return self._omega_r, self._sigxcme[spin,:,ik,band]
+        # Must shift band index (see fortran code that allocates with mdbgw)
+        ib_gw = band - self.min_gwbstart
+        #ib_gw = band - self.gwbstart_sk[spin, self.gwkpt2seqindex(kpoint)]
+
+        return self._omega_r, self._sigxcme[spin,:, ik, ib_gw]
 
     def read_spfunc(self, spin, kpoint, band):
         """
@@ -1843,8 +1903,8 @@ class SigresReader(ETSF_Reader):
         #ib_gw = band - self.gwbstart_sk[spin, self.gwkpt2seqindex(kpoint)]
 
         aim_sigc = np.abs(self._sigcme[spin,:,ik,ib_gw].imag)
-
         den = np.zeros(self.nomega_r)
+
         for io, omega in enumerate(self._omega_r):
             den[io] = (omega - self._hhartree[spin,ik,ib_gw,ib_gw].real - self._sigxcme[spin,io,ik,ib_gw].real) ** 2 + \
                 self._sigcme[spin,io,ik,ib_gw].imag ** 2
@@ -1853,13 +1913,14 @@ class SigresReader(ETSF_Reader):
 
     def read_eigvec_qp(self, spin, kpoint, band=None):
         """
-        Returns <KS|QPState> for the given spin, kpoint and band. If band is None, <KS_b|QP_{b'}> is returned.
+        Returns <KS|QPState> for the given spin, kpoint and band.
+        If band is None, <KS_b|QP_{b'}> is returned.
         """
         ik = self.kpt2fileindex(kpoint)
         if band is not None:
-            return self._eigvec_qp[spin,ik,:,band]
+            return self._eigvec_qp[spin, ik, :, band]
         else:
-            return self._eigvec_qp[spin,ik,:,:]
+            return self._eigvec_qp[spin, ik, :, :]
 
     def read_params(self):
         """
@@ -1882,9 +1943,6 @@ class SigresReader(ETSF_Reader):
         #params["nkibz"] = len(self.ibz)
 
         return params
-
-    #def read_mel(self, mel_name, spin, kpoint, band, band2=None):
-    #    array = self.read_value(mel_name)
 
     #def read_mlda_to_qp(self, spin, kpoint, band=None):
     #    """Returns the unitary transformation KS --> QPS"""
@@ -1958,11 +2016,8 @@ class SigresRobot(Robot, RobotWithEbands):
                     if k0 != k1:
                         eapp("Files with different values of `sigma_kpoints`")
 
-        if any(not np.allclose(nc.tmesh, nc0.tmesh) for nc in self.abifiles[1:]):
-            eapp("Files with different tmesh")
-
         if errors:
-            raise ValueError("Cannot compare multiple SIGEPH.nc files. Reason:\n %s" % "\n".join(errors))
+            raise ValueError("Cannot compare multiple SIGRES.nc files. Reason:\n %s" % "\n".join(errors))
 
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
         for i, (label, sigr) in enumerate(self.items()):
@@ -2045,9 +2100,8 @@ class SigresRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
-        # TODO
-        # Make sure that nsppol, sigma_kpoints
-        #self._check_dims_and_params()
+        # Make sure that nsppol, sigma_kpoints are consistent.
+        self._check_dims_and_params()
 
         nc0 = self.abifiles[0]
         nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
@@ -2062,8 +2116,7 @@ class SigresRobot(Robot, RobotWithEbands):
         else:
             groups = self.group_and_sortby(hue, sortby)
 
-        for ik, kgw in enumerate(sigma_kpoints):
-            ax = ax_list[ik]
+        for ik, (kgw, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
                 ax.set_title("QP dirgap k:%s" % (repr(kgw)), fontsize=fontsize)
 
@@ -2095,14 +2148,14 @@ class SigresRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpdata_conv_skb(self, spin, sigma_kpoint, band,
-                             sortby=None, hue=None, fontsize=8, **kwargs):
+    def plot_qpdata_conv_skb(self, spin, kpoint, band, sortby=None, hue=None,
+                            fontsize=8, **kwargs):
         """
         For each file in the robot, plot the convergence of the QP results for given (spin, kpoint, band)
 
         Args:
             spin: Spin index.
-            sigma_kpoint:
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
@@ -2113,12 +2166,13 @@ class SigresRobot(Robot, RobotWithEbands):
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
+            what_list: List of strings selecting the quantity to plot.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        # Make sure that nsppol, sigma_kpoints
-        #self._check_dims_and_params()
+        # Make sure that nsppol and sigma_kpoints are consistent
+        self._check_dims_and_params()
 
         # TODO: Add more quantities DW, Fan(0)
         # TODO: Decide how to treat complex quantities, avoid annoying ComplexWarning
@@ -2134,18 +2188,18 @@ class SigresRobot(Robot, RobotWithEbands):
         ax_list = ax_list.ravel()
 
         nc0 = self.abifiles[0]
-        ik = nc0.reader.gwkpt2seqindex(sigma_kpoint)
-        sigma_kpoint = nc0.sigma_kpoints[ik]
+        ik = nc0.reader.gwkpt2seqindex(kpoint)
+        kpoint = nc0.sigma_kpoints[ik]
 
         # Sort and read QP data.
         if hue is None:
             labels, ncfiles, params = self.sortby(sortby, unpack=True)
-            qplist = [ncfile.reader.read_qp(spin, sigma_kpoint, band) for ncfile in ncfiles]
+            qplist = [ncfile.reader.read_qp(spin, kpoint, band) for ncfile in ncfiles]
         else:
             groups = self.group_and_sortby(hue, sortby)
             qplist_group = []
             for g in groups:
-                lst = [ncfile.reader.read_qp(spin, sigma_kpoint, band) for ncfile in g.abifiles]
+                lst = [ncfile.reader.read_qp(spin, kpoint, band) for ncfile in g.abifiles]
                 qplist_group.append(lst)
 
         for i, (ax, what) in enumerate(zip(ax_list, what_list)):
@@ -2169,7 +2223,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         if "title" not in kwargs:
-            title = "QP results spin: %s, k:%s, band: %s" % (spin, repr(sigma_kpoint), band)
+            title = "QP results spin: %s, k:%s, band: %s" % (spin, repr(kpoint), band)
             fig.suptitle(title, fontsize=fontsize)
 
         return fig
@@ -2220,6 +2274,70 @@ class SigresRobot(Robot, RobotWithEbands):
                 if ig != 0:
                     for ax in ax_mat[:, ig]:
                         set_visible(ax, False, "ylabel")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_selfenergy_conv(self, spin, kpoint, band, sortby=None, hue=None,
+                             colormap="jet", xlims=None, fontsize=8, **kwargs):
+        """
+        Plot the convergence of the e-e self-energy wrt to the ``sortby`` parameter.
+        Values can be optionally grouped by `hue`.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy (can be |Kpoint|, list/tuple or int)
+            band: Band index.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            colormap: matplotlib color map.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            fontsize: Legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Make sure that nsppol and sigma_kpoints are consistent
+        self._check_dims_and_params()
+        import matplotlib.pyplot as plt
+        cmap = plt.get_cmap(colormap)
+
+        if hue is None:
+            ax_list = None
+            lnp_list = self.sortby(sortby)
+            for i, (label, ncfile, param) in enumerate(lnp_list):
+                sigma = ncfile.read_sigee_skb(spin, kpoint, band)
+                fig = sigma.plot(ax_list=ax_list,
+                    label=label, color=cmap(i/len(lnp_list)), show=False)
+                ax_list = fig.axes
+        else:
+            # group_and_sortby and build (3, ngroups) subplots
+            groups = self.group_and_sortby(hue, sortby)
+            nrows, ncols = 3, len(groups)
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                   sharex=True, sharey=True, squeeze=False)
+            for ig, g in enumerate(groups):
+                subtitle = "%s: %s" % (self._get_label(hue), g.hvalue)
+                ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
+                for i, (nclabel, ncfile, param) in enumerate(g):
+                    sigma = ncfile.read_sigee_skb(spin, kpoint, band)
+                    fig = sigma.plot(ax_list=ax_mat[:, ig],
+                        label="%s: %s" % (self._get_label(sortby), param),
+                        color=cmap(i/len(g)), show=False)
+
+            if ig != 0:
+                for ax in ax_mat[:, ig]:
+                    set_visible(ax, False, "ylabel")
+
+            for ax in ax_mat.ravel():
+                set_axlims(ax, xlims, "x")
 
         return fig
 

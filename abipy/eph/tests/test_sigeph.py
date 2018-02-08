@@ -55,7 +55,7 @@ class SigEPhFileTest(AbipyTest):
         assert ncfile.sigkpt2index([0.5, 0.0, 0.0]) == 1
 
         # Test Dataframe construction.
-        data_sk = ncfile.get_dataframe_sk(spin=0, sigma_kpoint=[0.5, 0.0, 0.0])
+        data_sk = ncfile.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0])
         assert "qpeme0" in data_sk
         assert np.all(data_sk["spin"] == 0)
         self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
@@ -67,7 +67,7 @@ class SigEPhFileTest(AbipyTest):
             # Test ncfile plot methods.
             assert ncfile.plot_qpgaps_t(show=False)
             assert ncfile.plot_qpgaps_t(plot_qpmks=True, show=False)
-            assert ncfile.plot_qpdata_t(spin=0, sigma_kpoint=(0, 0, 0), show=False)
+            assert ncfile.plot_qpdata_t(spin=0, kpoint=(0, 0, 0), show=False)
 
         if self.has_nbformat():
             ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -76,13 +76,13 @@ class SigEPhFileTest(AbipyTest):
         with self.assertRaises(ValueError):
             ncfile.reader.sigkpt2index([0.3, 0.5, 0.4])
         with self.assertRaises(ValueError):
-            ncfile.reader.read_sigma_eph(spin=0, sigma_kpoint=5, band=0)
+            ncfile.reader.read_sigeph_skb(spin=0, kpoint=5, band=0)
         with self.assertRaises(ValueError):
-            ncfile.reader.read_sigma_eph(spin=0, sigma_kpoint=[0.3, 0.5, 0.4], band=0)
+            ncfile.reader.read_sigeph_skb(spin=0, kpoint=[0.3, 0.5, 0.4], band=0)
         with self.assertRaises(ValueError):
-            ncfile.reader.read_sigma_eph(spin=0, sigma_kpoint=0, band=100)
+            ncfile.reader.read_sigeph_skb(spin=0, kpoint=0, band=100)
 
-        sigma = ncfile.reader.read_sigma_eph(spin=0, sigma_kpoint=[0.5, 0, 0], band=3)
+        sigma = ncfile.reader.read_sigeph_skb(spin=0, kpoint=[0.5, 0, 0], band=3)
         repr(sigma); str(sigma)
         assert sigma.to_string(verbose=2, title="Fan-Migdal Self-energy.")
         assert sigma.spin == 0 and sigma.band == 3 and sigma.kpoint == [0.5, 0, 0]
@@ -92,7 +92,7 @@ class SigEPhFileTest(AbipyTest):
             assert sigma.plot_tdep(show=False)
 
         # Test QpTempState
-        qp = ncfile.reader.read_qp(spin=0, sigma_kpoint=0, band=3, ignore_imag=False)
+        qp = ncfile.reader.read_qp(spin=0, kpoint=0, band=3, ignore_imag=False)
         repr(qp); str(qp)
         assert qp.to_string(verbose=2, title="QPTempState")
         assert qp._repr_html_()
@@ -112,7 +112,7 @@ class SigEPhFileTest(AbipyTest):
             assert qp.plot(show=False)
 
         # Test QPList
-        qplist = ncfile.reader.read_qplist_sk(spin=0, sigma_kpoint=[0, 0, 0], ignore_imag=False)
+        qplist = ncfile.reader.read_qplist_sk(spin=0, kpoint=[0, 0, 0], ignore_imag=False)
         assert isinstance(qplist, collections.Iterable)
         # TODO
         #self.serialize_with_pickle(qplist, protocols=[-1])
@@ -141,7 +141,7 @@ class SigEPhFileTest(AbipyTest):
         with self.assertRaises(ValueError):
             qplist.merge(qplist)
 
-        other_qplist = ncfile.reader.read_qplist_sk(spin=0, sigma_kpoint=ncfile.sigma_kpoints[1])
+        other_qplist = ncfile.reader.read_qplist_sk(spin=0, kpoint=ncfile.sigma_kpoints[1])
         qpl_merge = qplist.merge(other_qplist)
 
         assert all(qp in qpl_merge for qp in qplist)
@@ -172,8 +172,8 @@ class SigEPhFileTest(AbipyTest):
 
             # Test plot methods
             if self.has_matplotlib():
-                assert robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, show=False)
-                assert robot.plot_selfenergy_conv(spin=0, sigma_kpoint=0, band=0, sortby="nbsum", hue="nqibz", show=False)
+                assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, show=False)
+                assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby="nbsum", hue="nqibz", show=False)
                 #assert robot.plot_qp_convergence(show=False)
                 #assert robot.plot_qps_vs_e0(show=False)
                 try:
@@ -186,9 +186,9 @@ class SigEPhFileTest(AbipyTest):
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", show=False)
                 assert robot.plot_qpgaps_convergence(itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
-                assert robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=3,
+                assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3,
                         itemp=-1, show=False)
-                assert robot.plot_qpdata_conv_skb(spin=0, sigma_kpoint=(0, 0, 0), band=3,
+                assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3,
                         itemp=0, sortby="nbsum", hue="nqibz", show=False)
 
                 # Test plot_qpfield_vs_e0

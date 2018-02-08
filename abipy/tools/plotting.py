@@ -216,7 +216,6 @@ class ArrayPlotter(object):
             labels_and_arrays: List [("label1", arr1), ("label2", arr2")]
         """
         self._arr_dict = collections.OrderedDict()
-
         for label, array in labels_and_arrays:
             self.add_array(label, array)
 
@@ -252,11 +251,14 @@ class ArrayPlotter(object):
             self.add_array(label, arr)
 
     @add_fig_kwargs
-    def plot(self, cplx_mode="abs", color_map="jet", **kwargs):
+    def plot(self, cplx_mode="abs", colormap="jet", fontsize=8, **kwargs):
         """
         Args:
             cplx_mode: "abs" for absolute value, "re", "im", "angle"
-            color_map: matplotlib colormap
+            colormap: matplotlib colormap.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
         """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self), 1, 1
@@ -266,7 +268,7 @@ class ArrayPlotter(object):
 
         import matplotlib.pyplot as plt
         fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
-        # don't show the last ax if num_plots is odd.
+        # Don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: axmat[-1, -1].axis("off")
 
         from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -274,12 +276,9 @@ class ArrayPlotter(object):
 
         for ax, (label, arr) in zip(axmat.flat, self.items()):
             data = data_from_cplx_mode(cplx_mode, arr)
-            # use origin to place the [0,0] index of the array in the lower left corner of the axes.
-            #img = ax.imshow(data, interpolation='nearest', cmap=color_map, origin='lower', aspect="auto")
-            img = ax.matshow(data, interpolation='nearest', cmap=color_map, origin='lower', aspect="auto")
-            #img = ax.matshow(data, cmap=color_map)
-
-            ax.set_title(label + " (%s)" % cplx_mode)
+            # Use origin to place the [0, 0] index of the array in the lower left corner of the axes.
+            img = ax.matshow(data, interpolation='nearest', cmap=colormap, origin='lower', aspect="auto")
+            ax.set_title("(%s) %s" % (cplx_mode, label), fontsize=fontsize)
 
             # Make a color bar for this ax
             # Create divider for existing axes instance
