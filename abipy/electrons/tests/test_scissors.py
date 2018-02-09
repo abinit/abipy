@@ -76,4 +76,4 @@ class TestScissors(AbipyTest):
 
             dos_filepath = abidata.ref_file("si_scf_GSR.nc")
             assert builder.plot_qpbands(bands_filepath, dos_filepath=dos_filepath,
-                    dos_args=None, qp_marker=None, show=False)
+                    dos_args=None, show=False)

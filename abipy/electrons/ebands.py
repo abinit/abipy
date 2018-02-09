@@ -323,7 +323,7 @@ class ElectronBands(Has_Structure):
     @classmethod
     def from_file(cls, filepath):
         """
-        Initialize an instance of :class:`ElectronBands` from the netCDF file ``filepath``.
+        Initialize an instance of |ElectronBands| from the netCDF file ``filepath``.
         """
         if filepath.endswith(".nc"):
             with ElectronsReader(filepath) as r:
@@ -372,7 +372,7 @@ class ElectronBands(Has_Structure):
     @classmethod
     def as_ebands(cls, obj):
         """
-        Return an instance of :class:`ElectronBands` from a generic object `obj`.
+        Return an instance of |ElectronBands| from a generic object `obj`.
         Supports:
 
             - instances of cls
@@ -716,7 +716,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             spin: Spin index.
-            kpoint: K-point index or :class:`Kpoint` object
+            kpoint: K-point index or |Kpoint| object
             bands_range: List of band indices to analyze.
             tol_ediff: Tolerance on the energy difference (in eV)
 
@@ -1044,7 +1044,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             spin: Spin index
-            kpoint: Index of the kpoint or :class:`Kpoint` object.
+            kpoint: Index of the kpoint or |Kpoint| object.
         """
         return self._electron_state(spin, kpoint, 0)
 
@@ -1054,7 +1054,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             spin: Spin index
-            kpoint: Index of the kpoint or :class:`Kpoint` object.
+            kpoint: Index of the kpoint or |Kpoint| object.
         """
         k = self.kindex(kpoint)
         # Find rightmost value less than or equal to fermie.
@@ -1067,7 +1067,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             spin: Spin index
-            kpoint: Index of the kpoint or :class:`Kpoint` object.
+            kpoint: Index of the kpoint or |Kpoint| object.
         """
         k = self.kindex(kpoint)
         # Find leftmost value greater than fermie.
@@ -1217,7 +1217,7 @@ class ElectronBands(Has_Structure):
 
     def new_with_irred_kpoints(self, prune_step=None):
         """
-        Return a new :class:`ElectronBands` object in which only the irreducible k-points are kept.
+        Return a new |ElectronBands| object in which only the irreducible k-points are kept.
         This method is mainly used to prepare the band structure interpolation as the interpolator
         will likely fail if the input k-path contains symmetrical k-points.
 
@@ -1963,7 +1963,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             spin: Spin index.
-            kpoint: integer or class:`Kpoint` object. Note that if kpoint is not an integer,
+            kpoint: integer or |Kpoint| object. Note that if kpoint is not an integer,
                 and the path contains duplicated k-points, the first k-point is selected.
             band: Band index.
             acc: accuracy
@@ -2176,9 +2176,9 @@ class ElectronBandsPlotter(NotebookWriter):
         """
         Args:
             key_ebands: List of (label, ebands) tuples.
-                ebands is any object that can be converted into :class:`ElectronBands` e.g. ncfile, path.
+                ebands is any object that can be converted into |ElectronBands| e.g. ncfile, path.
             key_edos: List of (label, edos) tuples.
-                edos is any object that can be converted into :class:`ElectronDos`
+                edos is any object that can be converted into |ElectronDos|.
         """
         if key_ebands is None: key_ebands = []
         key_ebands = [(k, ElectronBands.as_ebands(v)) for k, v in key_ebands]
