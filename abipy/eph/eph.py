@@ -243,7 +243,7 @@ class A2f(object):
         return fig
 
     @add_fig_kwargs
-    def plot_nuterms(self, units="eV", ax_mat=None, with_lambda=True,
+    def plot_nuterms(self, units="eV", ax_mat=None, with_lambda=True, fontsize=12,
                      xlims=None, ylims=None, label=None, **kwargs):
         """
         Plot a2F(w), its primitive lambda(w) and optionally the individual
@@ -253,6 +253,7 @@ class A2f(object):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             ax_mat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
+            fontsize: Legend and title fontsize.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
 		or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
@@ -296,7 +297,7 @@ class A2f(object):
             nu = idir + 3 * iatom
             ax = ax_mat[iatom, idir]
             ax.grid(True)
-            ax.set_title(r"$\nu = %d$" % nu)
+            ax.set_title(r"$\nu = %d$" % nu, fontsize=fontsize)
             if idir == 0:
                 ax.set_ylabel(r"$\alpha^2F(\omega)$")
             else:
@@ -854,7 +855,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_lambda_convergence(self, what="lambda", sortby=None, ylims=None,
+    def plot_lambda_convergence(self, what="lambda", sortby=None, ylims=None, fontsize=8,
                                 ax=None, colormap="jet", **kwargs):
         """
         Plot the convergence of the lambda(q, nu) parameters wrt to the ``sortby`` parameter.
@@ -868,6 +869,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 If callable, the output of sortby(abifile) is used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: Legend and title fontsize.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib color map.
 
@@ -881,13 +883,14 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                     ax=ax,
                     what=what, ylims=ylims,
                     label=self.sortby_label(sortby, param),
-                    color=cmap(i / len(self)),
+                    color=cmap(i / len(self)), fontsize=fontsize,
                     show=False,
                     )
         return fig
 
     @add_fig_kwargs
-    def plot_a2f_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None, colormap="jet", **kwargs):
+    def plot_a2f_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None,
+                            fontsize=8, colormap="jet", **kwargs):
         """
         Plot the convergence of the Eliashberg function wrt to the ``sortby`` parameter.
 
@@ -901,6 +904,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
+            fontsize: Legend and title fontsize.
             colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|
@@ -915,7 +919,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 ncfile.get_a2f_qsamp(qsamp).plot(
                     ax=ax,
                     label=self.sortby_label(sortby, param) + " " + qsamp,
-                    color=cmap(i / len(self)),
+                    color=cmap(i / len(self)), fontsize=fontsize,
                     linestyle=self.linestyle_qsamp[qsamp],
                     show=False,
                 )
@@ -925,7 +929,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     #@add_fig_kwargs
     #def plot_a2ftr_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None,
-    #                           colormap="viridis", **kwargs):
+    #                           fontsize=8, colormap="jey", **kwargs):
     #    qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
     #    cmap = plt.get_cmap(colormap)

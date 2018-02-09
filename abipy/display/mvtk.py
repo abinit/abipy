@@ -8,7 +8,7 @@ import numpy as np
 DEFAULT_FIGURE_KWARGS = dict(size=(1024, 768), bgcolor=(1, 1, 1), fgcolor=(0, 0, 0))
 
 
-def get_fig_mlab(figure=None, **kwargs):
+def get_fig_mlab(figure=None, **kwargs):  # pragma: no cover
     try:
         from mayavi import mlab
     except ImportError as exc:
@@ -29,7 +29,7 @@ def get_fig_mlab(figure=None, **kwargs):
     return figure, mlab
 
 
-def plot_wigner_seitz(lattice, figure=None, **kwargs):
+def plot_wigner_seitz(lattice, figure=None, **kwargs):  # pragma: no cover
     """
     Adds the skeleton of the Wigner-Seitz cell of the lattice to a mayavi_ figure
 
@@ -69,7 +69,7 @@ def plot_wigner_seitz(lattice, figure=None, **kwargs):
     return figure
 
 
-def plot_unit_cell(lattice, figure=None, **kwargs):
+def plot_unit_cell(lattice, figure=None, **kwargs):  # pragma: no cover
     """
     Adds the unit cell of the lattice to a mayavi_ figure.
 
@@ -111,7 +111,7 @@ def plot_unit_cell(lattice, figure=None, **kwargs):
     return figure
 
 
-def plot_lattice_vectors(lattice, figure=None, **kwargs):
+def plot_lattice_vectors(lattice, figure=None, **kwargs): # pragma: no cover
     """
     Adds the basis vectors of the lattice provided to a mayavi_ figure.
 
@@ -144,7 +144,7 @@ def plot_lattice_vectors(lattice, figure=None, **kwargs):
 
 
 def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="points+labels",
-                   unit_cell_color=(0, 0, 0), color_scheme="VESTA", figure=None, show=False, **kwargs):
+                   unit_cell_color=(0, 0, 0), color_scheme="VESTA", figure=None, show=False, **kwargs):  # pragma: no cover
     """
     Plot structure
 
@@ -184,7 +184,7 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
     return figure
 
 
-def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, **kwargs):
+def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, **kwargs):  # pragma: no cover
     """
     Adds labels to a mayavi_ figure.
 
@@ -227,7 +227,7 @@ def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, *
     return figure
 
 
-class MayaviFieldAnimator(object):
+class MayaviFieldAnimator(object): # pragma: no cover
 
     def __init__(self, filepaths):
         self.filepaths = filepaths

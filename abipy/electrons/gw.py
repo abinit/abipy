@@ -299,7 +299,7 @@ class QPList(list):
 
     @add_fig_kwargs
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, fermie=None,
-                       ax_list=None, xlims=None, fontsize=12, **kwargs):
+                       ax_list=None, sharey=False, xlims=None, fontsize=12, **kwargs):
         """
         Plot the QP results as function of the initial KS energy.
 
@@ -310,6 +310,7 @@ class QPList(list):
             exclude_fields: Similar to ``with_field`` but excludes fields.
             fermie: Value of the Fermi level used in plot. None for absolute e0s.
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
+            sharey: True if y-axis should be shared.
             kwargs: linestyle, color, label, marker
 
         Returns: |matplotlib-Figure|
@@ -330,7 +331,7 @@ class QPList(list):
 
         # Build grid of plots.
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+                                                sharex=True, sharey=sharey, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
         # Get qplist and sort it.
@@ -1172,7 +1173,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @add_fig_kwargs
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, e0="fermie",
-                       xlims=None, ax_list=None, fontsize=8, **kwargs):
+                       xlims=None, sharey=False, ax_list=None, fontsize=8, **kwargs):
         """
         Plot QP result in SIGRES file as function of the KS energy.
 
@@ -1188,6 +1189,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
+            sharey: True if y-axis should be shared.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1198,7 +1200,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_qps_vs_e0(
                 with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,
-                xlims=xlims, ax_list=ax_list, fontsize=fontsize,
+                xlims=xlims, sharey=sharey, ax_list=ax_list, fontsize=fontsize,
                 marker=self.marker_spin[spin], show=False, **kwargs)
             ax_list = fig.axes
 
@@ -2118,7 +2120,7 @@ class SigresRobot(Robot, RobotWithEbands):
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(sigma_kpoints)
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+                                                sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
         if hue is None:
@@ -2240,13 +2242,14 @@ class SigresRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_qpfield_vs_e0(self, field, sortby=None, hue=None, fontsize=8,
-                           colormap="jet", e0="fermie", **kwargs):
+                           sharey=False, colormap="jet", e0="fermie", **kwargs):
         """
         For each file in the robot, plot one of the attributes of :class:`QpState`
         as a function of the KS energy.
 
         Args:
             field (str): String defining the attribute to plot.
+            sharey: True if y-axis should be shared.
 
         .. note::
 
@@ -2265,21 +2268,21 @@ class SigresRobot(Robot, RobotWithEbands):
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
                     e0=e0, ax_list=ax_list, color=cmap(i/ len(lnp_list)), fontsize=fontsize,
-                    label=label, show=False)
+                    sharey=sharey, label=label, show=False)
                 ax_list = fig.axes
         else:
             # group_and_sortby and build (ngroups,) subplots
             groups = self.group_and_sortby(hue, sortby)
             nrows, ncols = 1, len(groups)
             ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                   sharex=True, sharey=True, squeeze=False)
+                                                   sharex=True, sharey=sharey, squeeze=False)
             for ig, g in enumerate(groups):
                 subtitle = "%s: %s" % (self._get_label(hue), g.hvalue)
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(with_fields=list_strings(field),
                         e0=e0, ax_list=ax_mat[:, ig], color=cmap(i/ len(g)), fontsize=fontsize,
-                        label="%s: %s" % (self._get_label(sortby), param), show=False)
+                        sharey=sharey, label="%s: %s" % (self._get_label(sortby), param), show=False)
 
                 if ig != 0:
                     for ax in ax_mat[:, ig]:

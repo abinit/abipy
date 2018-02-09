@@ -3103,7 +3103,8 @@ class PhononBandsPlotter(NotebookWriter):
             phbands.plot_phdispl(qpoint, cart_dir=None, ax=ax, show=False, **kwargs)
             # Disable artists.
             if i != 0:
-                set_visible(ax, False, "title")
+                #set_visible(ax, False, "title")
+                ax.set_title(label, fontsize=kwargs.get("fontsize", 8))
             if i != len(self.phbands_dict) - 1:
                 set_visible(ax, False, "xlabel")
 

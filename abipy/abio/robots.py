@@ -506,6 +506,23 @@ class Robot(NotebookWriter):
         """List of netcdf files."""
         return list(self._abifiles.values())
 
+    #def apply(self, func_or_string, args=(), **kwargs):
+    #    """
+    #    Applies function to all ``abifiles`` available in the robot.
+
+    #    Args:
+    #        func_or_string: If callable, the output of func_or_string(abifile, ...) is used.
+    #            If string, the output of getattr(abifile, func_or_string)(...)
+    #        args (tuple): Positional arguments to pass to function in addition to the array/series
+    #        kwargs: Additional keyword arguments will be passed as keywords to the function
+
+    #    Return: List of results
+    #    """
+    #    if callable(func_or_string):
+    #        return [func_or_string(abifile, *args, *kwargs) for abifile in self.abifiles]
+    #    else:
+    #        return [getattrd(abifile, func_or_string)(*args, **kwargs) for abifile in self.abifiles]
+
     def is_sortable(self, aname, raise_exc=False):
         """
         Return True if ``aname`` is an attribute of the netcdf file

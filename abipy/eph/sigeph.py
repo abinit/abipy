@@ -1105,7 +1105,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(sigma_kpoints)
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+                                                sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
         if hue is None:

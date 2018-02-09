@@ -49,7 +49,7 @@ def build_flow(options):
         occopt=7,    # include metallic occupation function with a small smearing
         tsmear=0.04,
         tolvrs=1e-7,
-        timopt=-1,
+        #timeopt=-1,
     )
 
     # The kpoint grid is minimalistic to keep the calculation manageable.
