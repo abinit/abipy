@@ -375,9 +375,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        import matplotlib.pyplot as plt
         what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
-        fig, ax_list = plt.subplots(nrows=3, ncols=2, sharex=True, squeeze=False)
+        nrows, ncols = 3, 2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
         assert len(ax_list) == len(what_list)
 

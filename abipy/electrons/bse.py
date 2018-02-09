@@ -12,7 +12,7 @@ from collections import OrderedDict
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from monty.string import marquee, is_string
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -732,29 +732,29 @@ class MultipleMdfPlotter(object):
         else:
             raise ValueError("Invalid value of qview: %s" % str(qview))
 
-        import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=True, squeeze=False)
 
         if qview == "avg":
             # Plot averaged values
-            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlims=xlims, ylims=ylims,
+            self.plot_mdftype_cplx(mdf_type, "Re", ax=ax_mat[0, 0], xlims=xlims, ylims=ylims,
                                    with_legend=True, show=False)
-            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlims=xlims, ylims=ylims,
+            self.plot_mdftype_cplx(mdf_type, "Im", ax=ax_mat[0, 1], xlims=xlims, ylims=ylims,
                                    with_legend=False, show=False)
         elif qview == "all":
             # Plot MDF(q)
             nqpt = len(qpoints)
             for iq, qpt in enumerate(qpoints):
                 islast = (iq == nqpt - 1)
-                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlims=xlims, ylims=ylims,
+                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=ax_mat[iq, 0], xlims=xlims, ylims=ylims,
                                        with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
-                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlims=xlims, ylims=ylims,
+                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=ax_mat[iq, 1], xlims=xlims, ylims=ylims,
                                        with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
         else:
             raise ValueError("Invalid value of qview: %s" % str(qview))
 
-        #axmat[0, 0].legend(loc="best")
+        #ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
         #fig.tight_layout()
 
         return fig
@@ -780,14 +780,14 @@ class MultipleMdfPlotter(object):
     #        raise ValueError("Invalid value of qview: %s" % str(qview))
 
     #    import matplotlib.pyplot as plt
-    #    fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
+    #    fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
 
     #    if qview == "avg":
     #        # Plot averaged values
     #        for mdf_type in self.MDF_TYPES:
-    #            self.plot_mdftype_cplx(mdf_type, "Re", ax=axmat[0, 0], xlims=xlims, ylims=ylims,
+    #            self.plot_mdftype_cplx(mdf_type, "Re", ax=ax_mat[0, 0], xlims=xlims, ylims=ylims,
     #                                   with_legend=True, show=False)
-    #            self.plot_mdftype_cplx(mdf_type, "Im", ax=axmat[0, 1], xlims=xlims, ylims=ylims,
+    #            self.plot_mdftype_cplx(mdf_type, "Im", ax=ax_mat[0, 1], xlims=xlims, ylims=ylims,
     #                                   with_legend=False, show=False)
     #    elif qview == "all":
     #        # Plot MDF(q)
@@ -795,15 +795,15 @@ class MultipleMdfPlotter(object):
     #        for iq, qpt in enumerate(qpoints):
     #            islast = (iq == nqpt - 1)
     #            for mdf_type in self.MDF_TYPES:
-    #                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=axmat[iq, 0], xlims=xlims, ylims=ylims,
+    #                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=ax_mat[iq, 0], xlims=xlims, ylims=ylims,
     #                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
-    #                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=axmat[iq, 1], xlims=xlims, ylims=ylims,
+    #                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=ax_mat[iq, 1], xlims=xlims, ylims=ylims,
     #                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
     #    else:
     #        raise ValueError("Invalid value of qview: %s" % str(qview))
 
-    #    #axmat[0, 0].legend(loc="best")
+    #    #ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
     #    #fig.tight_layout()
 
     #    return fig

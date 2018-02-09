@@ -21,7 +21,7 @@ from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure
 from abipy.tools import transpose_last3dims, duck
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 
 
@@ -424,13 +424,14 @@ class _Field(Has_Structure):
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes.
-        import matplotlib.pyplot as plt
-        nrows = len(nn_list)
-        fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, sharey=True, squeeze=True)
+        nrows, ncols = len(nn_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=True)
+        ax_list = ax_list.ravel()
 
         interpolator = self.get_interpolator()
 
-        for i, (nn, ax) in enumerate(zip(nn_list, axlist)):
+        for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
             nn_site, nn_dist, nn_sc_index  = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 

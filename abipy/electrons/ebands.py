@@ -2437,12 +2437,12 @@ class ElectronBandsPlotter(NotebookWriter):
 
         if not edos_list or not with_dos:
             # Plot grid with bands only.
-            fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
-            axes = axes.ravel()
+            fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+            ax_list = ax_list.ravel()
             # don't show the last ax if numeb is odd.
-            if numeb % ncols != 0: axes[-1].axis("off")
+            if numeb % ncols != 0: ax_list[-1].axis("off")
 
-            for i, (ebands, ax) in enumerate(zip(ebands_list, axes)):
+            for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list)):
                 ebands.plot(ax=ax, e0=e0, show=False)
                 set_axlims(ax, ylims, "y")
                 if titles is not None: ax.set_title(titles[i], fontsize=fontsize)
@@ -2494,11 +2494,12 @@ class ElectronBandsPlotter(NotebookWriter):
         num_plots, ncols, nrows = len(self.ebands_dict), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
+
         # don't show the last ax if numeb is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
@@ -2552,8 +2553,8 @@ class ElectronBandsPlotter(NotebookWriter):
             # Generate two subplots for spin-up / spin-down channels.
             if ax is not None:
                 raise NotImplementedError("ax == None not implemented when nsppol==2")
-            fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)
-            for spin, ax in zip(range(2), axes.ravel()):
+            fig, ax_list = plt.subplots(nrows=2, ncols=1, sharex=True, squeeze=False)
+            for spin, ax in zip(range(2), ax_list.ravel()):
                 ax.grid(True)
                 data_spin = data[data["spin"] == spin]
                 sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
@@ -3209,7 +3210,6 @@ class ElectronDosPlotter(NotebookWriter):
         titles = list(self.edoses_dict.keys())
         edos_list = self.edos_list
 
-        import matplotlib.pyplot as plt
         nrows, ncols = 1, 1
         numeb = len(edos_list)
         if numeb > 1:
@@ -3217,13 +3217,15 @@ class ElectronDosPlotter(NotebookWriter):
             nrows = numeb // ncols + numeb % ncols
 
         # Build Grid
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
-        axes = axes.ravel()
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
         # don't show the last ax if numeb is odd.
-        if numeb % ncols != 0: axes[-1].axis("off")
+        if numeb % ncols != 0: ax_list[-1].axis("off")
 
         for i, (label, edos) in enumerate(self.edoses_dict.items()):
-            ax = axes[i]
+            ax = ax_list[i]
             edos.plot(ax=ax, e0=e0, show=False)
             ax.set_title(label)
             set_axlims(ax, xlims, "x")

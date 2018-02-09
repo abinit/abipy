@@ -17,7 +17,7 @@ from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 from abipy.electrons.ebands import ElectronsReader, ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
 from abipy.abio.robots import Robot
@@ -262,12 +262,10 @@ class A2f(object):
         Returns: |matplotlib-Figure|
         """""
         # Get ax_mat and fig.
-        import matplotlib.pyplot as plt
-        if ax_mat is None:
-            fig, ax_mat = plt.subplots(nrows=self.natom, ncols=3, sharex=True, sharey=True, squeeze=False)
-        else:
-            ax_mat = np.reshape(ax_mat, (self.natom, 3))
-            fig = plt.gcf()
+        nrows, ncols = self.natom, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_mat = np.reshape(ax_mat, (self.natom, 3))
 
         wfactor = abu.phfactor_ev2units(units)
         wvals = self.mesh * wfactor
@@ -342,8 +340,10 @@ class A2f(object):
         Returns: |matplotlib-Figure|
         """
         phdos = PhononDos.as_phdos(phdos)
-        import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=3, ncols=1, sharex=True, sharey=False, squeeze=True)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=1,
+                                                sharex=True, sharey=False, squeeze=True)
+        ax_list = ax_list.ravel()
 
         # Spline phdos onto a2f mesh and compute a2F(w) / F(w)
         f = phdos.spline(self.mesh)

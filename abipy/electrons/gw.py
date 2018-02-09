@@ -872,17 +872,16 @@ class SigresPlotter(Iterable):
         self.prepare_plot()
 
         # Build grid of plots.
-        import matplotlib.pyplot as plt
         num_plots, ncols, nrows = len(kpoints_for_plot), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        if num_plots % ncols != 0:
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         xx = self.xvalues
         for kpoint, ax in zip(kpoints_for_plot, ax_list):

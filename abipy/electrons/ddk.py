@@ -118,7 +118,7 @@ class DdksAnalyzer(object):
         Return: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=False, squeeze=True)
+        fig, ax_mat = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=False, squeeze=True)
         r = self.get_doses(method=method, step=step, width=width)
         #r.edos
         #r.vdos

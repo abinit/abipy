@@ -11,7 +11,7 @@ from collections import OrderedDict
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, data_from_cplx_mode
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, data_from_cplx_mode
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
@@ -281,11 +281,12 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         if select == "all": select = list(LINEPS_WHAT2EFUNC.keys())
         select = list_strings(select)
 
-        import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=len(select), ncols=1, sharex=True, sharey=False, squeeze=True)
+        nrows, ncols = len(select), 1
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=True)
 
         components = self.reader.computed_components[key]
-        for i, (what, ax) in enumerate(zip(select, axmat)):
+        for i, (what, ax) in enumerate(zip(select, ax_mat)):
             self.plot_linear_epsilon(what=what, itemp=itemp, components=components,
                                      ax=ax, xlims=xlims, with_xlabel=(i == len(select) - 1),
                                      show=False)
@@ -504,14 +505,15 @@ class OpticRobot(Robot, RobotWithEbands):
         # Build grid plot: computed tensors along the rows, what_list along columns.
         key = "linopt"
         components = self.computed_components_intersection[key]
-        import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=len(components), ncols=len(what_list),
-                                  sharex=True, sharey=False, squeeze=False)
+
+        nrows, ncols = len(components), len(what_list)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
 
         label_ncfile_param = self.sortby(sortby)
         for i, comp in enumerate(components):
             for j, what in enumerate(what_list):
-                ax = axmat[i, j]
+                ax = ax_mat[i, j]
                 for ifile, (label, ncfile, param) in enumerate(label_ncfile_param):
 
                     ncfile.plot_linear_epsilon(components=comp, what=what, itemp=itemp, ax=ax,
@@ -564,14 +566,15 @@ class OpticRobot(Robot, RobotWithEbands):
         """
         # Build grid plot: computed tensors along the rows, what_list along columns.
         components = self.computed_components_intersection[key]
-        import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=len(components), ncols=len(what_list),
-                                  sharex=True, sharey=False, squeeze=False)
+
+        nrows, ncols = len(components), len(what_list)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
 
         label_ncfile_param = self.sortby(sortby)
         for i, comp in enumerate(components):
             for j, what in enumerate(what_list):
-                ax = axmat[i, j]
+                ax = ax_mat[i, j]
                 for ifile, (label, ncfile, param) in enumerate(label_ncfile_param):
 
                     ncfile.plot_chi2(key=key, components=comp, what=what, itemp=itemp, decompose=decompose,

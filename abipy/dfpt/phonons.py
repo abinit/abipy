@@ -2117,12 +2117,12 @@ class PhononDos(Function1D):
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
+        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
-        for iax, (qname, ax) in enumerate(zip(quantities, axmat.flat)):
+        for iax, (qname, ax) in enumerate(zip(quantities, ax_mat.flat)):
             # Compute thermodinamic quantity associated to qname.
             f1d = getattr(self, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
             ys = f1d.values
@@ -2372,12 +2372,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # Three rows for each direction.
         # Each row shows the contribution of each atomic type + Total PH DOS.
-        import matplotlib.pyplot as plt
         nrows, ncols = 3, 1
-        if axlist is None:
-            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=True)
-        else:
-            axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+        axlist, fig, plt = get_axarray_fig_plt(axlist, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=True, squeeze=True)
+        axlist = np.reshape(axlist, (nrows, ncols)).ravel()
 
         cmap = plt.get_cmap(colormap)
 
@@ -2452,13 +2450,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # Three rows for each cartesian direction.
         # Each row shows the contribution of each site + Total PH DOS.
-        import matplotlib.pyplot as plt
-        cmap = plt.get_cmap(colormap)
         nrows, ncols = 3, 1
-        if axlist is None:
-            fig, axlist = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
-        else:
-            axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+        axlist, fig, plt = get_axarray_fig_plt(axlist, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=True, squeeze=True)
+        axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+        cmap = plt.get_cmap(colormap)
 
         # [natom, three, nomega] array with PH-DOS projected over atoms and cartesian directions
         pjdos_atdir = self.reader.read_pjdos_atdir()
@@ -2573,12 +2569,12 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
 
     if not phdos_list:
         # Plot grid with phonon bands only.
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
-        axes = axes.ravel()
+        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
         # don't show the last ax if numeb is odd.
-        if numeb % ncols != 0: axes[-1].axis("off")
+        if numeb % ncols != 0: ax_list[-1].axis("off")
 
-        for i, (phbands, ax) in enumerate(zip(phbands_list, axes)):
+        for i, (phbands, ax) in enumerate(zip(phbands_list, ax_list)):
             phbands.plot(ax=ax, units=units, show=False)
             if titles is not None: ax.set_title(titles[i])
             if i % ncols != 0:
@@ -3029,11 +3025,12 @@ class PhononBandsPlotter(NotebookWriter):
         num_plots, ncols, nrows = len(self.phbands_dict), 1, 1
         if num_plots > 1:
             ncols = 2
-            nrows = (num_plots//ncols) + (num_plots % ncols)
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=nrows, ncols=ncols, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
+
         # don't show the last ax if numeb is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
@@ -3321,13 +3318,15 @@ class PhononDosPlotter(NotebookWriter):
             nrows = numeb // ncols + numeb % ncols
 
         # Build Grid
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
-        axes = axes.ravel()
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
         # don't show the last ax if numeb is odd.
-        if numeb % ncols != 0: axes[-1].axis("off")
+        if numeb % ncols != 0: ax_list[-1].axis("off")
 
         for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
-            ax = axes[i]
+            ax = ax_list[i]
             phdos.plot_dos_idos(ax, units=units)
 
             ax.set_xlabel('Energy %s' % abu.phunit_tag(units))
@@ -3370,12 +3369,12 @@ class PhononDosPlotter(NotebookWriter):
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
+        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
-        for iax, (qname, ax) in enumerate(zip(quantities, axmat.flat)):
+        for iax, (qname, ax) in enumerate(zip(quantities, ax_mat.flat)):
             for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
                 # Compute thermodinamic quantity associated to qname.
                 f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)

@@ -137,6 +137,7 @@ TODO list:
   as well as Abinit input as string)
 
 * Replace boilerplate code with get_axmat_fig_plt.
+  Standardize kwargs (use ax_list, ax_mat, deprecate axlist, axmat...)
 
 * Initialize job.sh with max number of MPI procs?
 
