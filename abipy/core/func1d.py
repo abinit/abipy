@@ -523,8 +523,7 @@ class Function1D(object):
 
         Returns: |matplotlib-Figure|.
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
-
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         exchange_xy = kwargs.pop("exchange_xy", False)
         self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)

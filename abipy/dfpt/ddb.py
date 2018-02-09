@@ -1422,7 +1422,7 @@ class DielectricTensorGenerator(Has_Structure):
         for i, w in enumerate(w_range):
             t[i] = self.tensor_at_frequency(w, units=units)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         if 'linewidth' not in kwargs:
             kwargs['linewidth'] = 2

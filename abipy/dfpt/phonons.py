@@ -889,7 +889,7 @@ class PhononBands(object):
         else:
             branch_range = range(branch_range[0], branch_range[1], 1)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
@@ -963,7 +963,7 @@ class PhononBands(object):
         else:
             branch_range = range(branch_range[0], branch_range[1], 1)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
@@ -2314,7 +2314,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         lw = kwargs.pop("lw", 2)
         factor = abu.phfactor_ev2units(units)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
 
         ax.grid(True)
@@ -3276,8 +3276,7 @@ class PhononDosPlotter(NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
-
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
@@ -3738,7 +3737,7 @@ class InteratomicForceConstants(Has_Structure):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         ind = self._filter_ifc_indices(atom_indices=atom_indices, atom_element=atom_element,
                                        neighbour_element=neighbour_element, min_dist=min_dist, max_dist=max_dist)

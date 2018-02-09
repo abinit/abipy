@@ -174,8 +174,6 @@ class SigEPhFileTest(AbipyTest):
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, show=False)
                 assert robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby="nbsum", hue="nqibz", show=False)
-                #assert robot.plot_qp_convergence(show=False)
-                #assert robot.plot_qps_vs_e0(show=False)
                 try:
                     assert robot.plot_qpgaps_t(show=False)
                     assert robot.plot_qpgaps_t(plot_qpmks=True, show=False)

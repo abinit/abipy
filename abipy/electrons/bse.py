@@ -112,8 +112,7 @@ class DielectricTensor(object):
         Returns: |matplotlib-Figure|
         """
         red_coords = kwargs.pop("red_coords", True)
-        ax, fig, plt = get_ax_fig_plt(ax)
-
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Dielectric tensor')
@@ -260,8 +259,7 @@ class DielectricFunction(object):
         """
         only_mean = kwargs.pop("only_mean", True)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
-
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
@@ -596,9 +594,8 @@ class MdfPlotter(object):
 
         Return: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-
         ax.set_xlabel('Frequency [eV]')
         ax.set_ylabel('Macroscopic DF')
 
@@ -833,7 +830,7 @@ class MultipleMdfPlotter(object):
 
         Return: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
         if with_xlabel: ax.set_xlabel(r'$\omega [eV]$')

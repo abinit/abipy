@@ -833,7 +833,7 @@ class SigresPlotter(Iterable):
             kpoints_for_plot = np.reshape(kpoint, (-1, 3))
 
         self.prepare_plot()
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         xx = self.xvalues
         for spin in spin_range:
@@ -1283,7 +1283,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         gwband_range = self.min_gwbstart, self.max_gwbstop
         self.ebands.plot(band_range=gwband_range, e0=e0, ax=ax, show=False, **kwargs)

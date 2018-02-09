@@ -980,6 +980,10 @@ class ElectronBands(Has_Structure):
         else:
             raise TypeError("Don't know how to handle type: %s" % type(pmg_bands))
 
+        # Find names of the kpoints.
+        for kpoint in abipy_kpoints:
+            name = abipy_structure.findname_in_hsym_stars(kpoint)
+
         return cls(abipy_structure, abipy_kpoints, abipy_eigens, pmg_bands.efermi, abipy_occfacts,
                    nelect, nspinor, nspden, smearing=smearing)
 
@@ -1966,6 +1970,9 @@ class ElectronBands(Has_Structure):
         """
         if not self.kpoints.is_path:
             raise ValueError("effmass_line requires points along a path.")
+
+        import warnings
+        warnings.warn("This code is still under development. API may change!")
 
         # Find index associate to the k-point
         ik = self.kindex(kpoint)

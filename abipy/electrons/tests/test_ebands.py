@@ -429,6 +429,10 @@ class ElectronBandsTest(AbipyTest):
 
         self.assert_almost_equal(np.array(values), 1.0)
 
+        em = ebands.effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
+        repr(em); str(em)
+        #self.assert_almost_equal(np.array(values), 1.0)
+
     def test_fermi_surface(self):
         """Testing Fermi surface tools."""
         with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:

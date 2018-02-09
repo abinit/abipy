@@ -126,7 +126,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         linewidth = kwargs.pop("linewidth", 2.0)
         rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
@@ -160,7 +160,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
@@ -210,7 +210,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
@@ -256,7 +256,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
