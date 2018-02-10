@@ -1753,7 +1753,7 @@ class ElectronBands(Has_Structure):
         return list(d.keys()), list(d.values())
 
     @add_fig_kwargs
-    def plot_with_edos(self, edos, klabels=None, axlist=None, e0="fermie", ylims=None, width_ratios=(2, 1), **kwargs):
+    def plot_with_edos(self, edos, klabels=None, ax_list=None, e0="fermie", ylims=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the band structure and the DOS.
 
@@ -1761,7 +1761,7 @@ class ElectronBands(Has_Structure):
             edos: An instance of |ElectronDos|.
             klabels: dictionary whose keys are tuple with the reduced coordinates of the k-points.
                 The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
-            axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
+            ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
                 is created and the two axes are automatically generated.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -1784,15 +1784,15 @@ class ElectronBands(Has_Structure):
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec
 
-        if axlist is None:
+        if ax_list is None:
             # Build axes and align bands and DOS.
             fig = plt.figure()
             gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
-            # Take them from axlist.
-            ax1, ax2 = axlist
+            # Take them from ax_list.
+            ax1, ax2 = ax_list
             fig = plt.gcf()
 
         # Define the zero of energy.
@@ -2465,7 +2465,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
                 # Define the zero of energy and plot
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
-                ebands.plot_with_edos(edos, e0=mye0, axlist=(ax1, ax2), show=False)
+                ebands.plot_with_edos(edos, e0=mye0, ax_list=(ax1, ax2), show=False)
 
                 if titles is not None: ax1.set_title(titles[i], fontsize=fontsize)
                 if i % ncols != 0:

@@ -267,14 +267,14 @@ class ArrayPlotter(object):
             nrows = num_plots // ncols + (num_plots % ncols)
 
         import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
+        fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
         # Don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
+        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from matplotlib.ticker import MultipleLocator
 
-        for ax, (label, arr) in zip(axmat.flat, self.items()):
+        for ax, (label, arr) in zip(ax_mat.flat, self.items()):
             data = data_from_cplx_mode(cplx_mode, arr)
             # Use origin to place the [0, 0] index of the array in the lower left corner of the axes.
             img = ax.matshow(data, interpolation='nearest', cmap=colormap, origin='lower', aspect="auto")

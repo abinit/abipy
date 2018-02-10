@@ -8,7 +8,7 @@ TODO list:
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
 
-* Check PJDOS in abinit@gitlab
+* DONE Check PJDOS in abinit@gitlab
 
 * DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
 
@@ -26,6 +26,9 @@ TODO list:
 * Rename EPH.nc
 
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
+
+
+* Add support for DVDV, DDB in plot_networkx
 
 ## Medium priority
 
@@ -62,7 +65,7 @@ TODO list:
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
-* Fix bug with SCGW and SKW interpolation.
+* Fix bug with SCGW and SKW interpolation reported by Ahn.
 
 * Add integration test for dilatmx error handler
 
@@ -74,8 +77,6 @@ TODO list:
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
 
 * DONE: Remove Old workflow model. 
-
-* Add support for DVDV, DDB in plot_networkx
 
 * Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
 
@@ -94,7 +95,7 @@ TODO list:
   parse log file and make sure that all scripts write log files in "abinit" format
   that can be read with EventsParser.
 
-* Add support for PSML format
+* Add support for PSML/UPF format
 
 * Refactor PyLauncher logic
 
@@ -103,11 +104,12 @@ TODO list:
 
 * Finalize DDK.nc 
 
-* Remove abipy.core.mixis.AbinitOutNcFile
+* Remove abipy.core.mixis.AbinitOutNcFile (deprecated, will be removed in 0.4)
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
+  FIXED with graphviz
 
 * DONE Use ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -136,7 +138,7 @@ TODO list:
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
   as well as Abinit input as string)
 
-* Replace boilerplate code with get_axmat_fig_plt.
+* DONE: Replace boilerplate code with get_axmat_fig_plt.
   Standardize kwargs (use ax_list, ax_mat, deprecate axlist, axmat...)
 
 * Initialize job.sh with max number of MPI procs?
@@ -160,3 +162,5 @@ TODO list:
 * DONE ecut is not reported in the GSR file. Similar problem for the k-sampling (see SIGRES.nc)
 
 * FFTProf (use file extension and interface it with abiopen)
+
+* Create new github package for benchmakr/Abinit tests + template for new python projects.

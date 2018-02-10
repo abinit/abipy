@@ -1318,7 +1318,7 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, phdos, units="eV", qlabels=None, axlist=None, width_ratios=(2, 1), **kwargs):
+    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None, width_ratios=(2, 1), **kwargs):
         r"""
         Plot the phonon band structure with the phonon DOS.
 
@@ -1327,17 +1327,17 @@ class PhononBands(object):
             units: Units for plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
-            axlist: The axes for the bandstructure plot and the DOS plot. If axlist is None, a new figure
+            ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
                 is created and the two axes are automatically generated.
             width_ratios: Ratio between the width of the bands plots and the DOS plots.
-                Used if ``axlist`` is None
+                Used if ``ax_list`` is None
 
         Returns: |matplotlib-Figure|
         """
         phdos = PhononDos.as_phdos(phdos, phdos_kwargs=None)
 
         import matplotlib.pyplot as plt
-        if axlist is None:
+        if ax_list is None:
             # Build axes and align bands and DOS.
             from matplotlib.gridspec import GridSpec
             fig = plt.figure()
@@ -1345,8 +1345,8 @@ class PhononBands(object):
             ax1 = plt.subplot(gspec[0])
             ax2 = plt.subplot(gspec[1], sharey=ax1)
         else:
-            # Take them from axlist.
-            ax1, ax2 = axlist
+            # Take them from ax_list.
+            ax1, ax2 = ax_list
             fig = plt.gcf()
 
         if not kwargs:
@@ -2346,7 +2346,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, axlist=None, fontsize=8, **kwargs):
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot type-projected phonon DOS decomposed along the three cartesian directions.
         Three rows for each cartesian direction. Each row shows the contribution of each atomic type + Total Phonon DOS.
@@ -2361,7 +2361,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: y-axis limits.
-            axlist: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
 
         Returns: |matplotlib-Figure|.
@@ -2373,9 +2373,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Three rows for each direction.
         # Each row shows the contribution of each atomic type + Total PH DOS.
         nrows, ncols = 3, 1
-        axlist, fig, plt = get_axarray_fig_plt(axlist, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=True, squeeze=True)
-        axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=True)
+        ax_list = np.reshape(ax_list, (nrows, ncols)).ravel()
 
         cmap = plt.get_cmap(colormap)
 
@@ -2383,7 +2383,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         pjdos_symbol_rc = self.reader.read_pjdos_symbol_xyz_dict()
 
         xx = self.phdos.mesh * factor
-        for idir, ax in enumerate(axlist):
+        for idir, ax in enumerate(ax_list):
             ax.grid(True)
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
@@ -2413,7 +2413,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, axlist=None, fontsize=8, **kwargs):
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
@@ -2427,7 +2427,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
-            axlist: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -2451,16 +2451,16 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Three rows for each cartesian direction.
         # Each row shows the contribution of each site + Total PH DOS.
         nrows, ncols = 3, 1
-        axlist, fig, plt = get_axarray_fig_plt(axlist, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=True, squeeze=True)
-        axlist = np.reshape(axlist, (nrows, ncols)).ravel()
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=True)
+        ax_list = np.reshape(ax_list, (nrows, ncols)).ravel()
         cmap = plt.get_cmap(colormap)
 
         # [natom, three, nomega] array with PH-DOS projected over atoms and cartesian directions
         pjdos_atdir = self.reader.read_pjdos_atdir()
 
         xx = self.phdos.mesh * factor
-        for idir, ax in enumerate(axlist):
+        for idir, ax in enumerate(ax_list):
             ax.grid(True)
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
@@ -2592,7 +2592,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
             # Get axes and align bands and DOS.
             ax1 = plt.subplot(subgrid[0])
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
-            phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), units=units, show=False)
+            phbands.plot_with_phdos(phdos, ax_list=(ax1, ax2), units=units, show=False)
 
             if titles is not None: ax1.set_title(titles[i])
             if i % ncols != 0:
@@ -2998,7 +2998,7 @@ class PhononBandsPlotter(NotebookWriter):
                 phdos_list = [all_phdos_objects[j] for j in indices]
                 for j, (phbands, phdos, lineopts) in enumerate(zip(phb_list, phdos_list, self.iter_lineopt())):
                     # Plot all branches with DOS and lineopts and set the label of the last line produced
-                    phbands.plot_with_phdos(phdos, axlist=(ax1, ax2), units=units, show=False, **lineopts)
+                    phbands.plot_with_phdos(phdos, ax_list=(ax1, ax2), units=units, show=False, **lineopts)
                     ax1.lines[-1].set_label(labels[j])
 
                 # Set legends on ax1
