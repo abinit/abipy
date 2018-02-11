@@ -416,7 +416,7 @@ class NotebookWriter(object):
     Mixin class for objects that are able to generate jupyter_ notebooks.
     Subclasses must provide a concrete implementation of `write_notebook`.
     """
-    def make_and_open_notebook(self, nbpath=None, foreground=False):
+    def make_and_open_notebook(self, nbpath=None, foreground=False):  # pragma: no cover
         """
         Generate an jupyter_ notebook and open it in the browser.
 
@@ -501,21 +501,24 @@ abilab.enable_notebook(with_seaborn=True)
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file is created.
-        Return path to the notebook. A typical template is given below.
+        Return path to the notebook. A typical template:
+
+        .. code-block:: python
+
+            # Preable.
+            nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+            #####################
+            # Put your code here
+            nb.cells.extend([
+                nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("a = 1"),
+            ])
+            #####################
+
+            # Call _write_nb_nbpath
+            return self._write_nb_nbpath(nb, nbpath)
         """
-        # Preable.
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        #####################
-        # Put your code here
-        nb.cells.extend([
-            nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("a = 1"),
-        ])
-        #####################
-
-        # Call _write_nb_nbpath
-        return self._write_nb_nbpath(nb, nbpath)
 
     @staticmethod
     def _write_nb_nbpath(nb, nbpath):

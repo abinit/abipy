@@ -2,6 +2,8 @@ TODO list:
 
 ## High priority
 
+* Send PR to phononwebsite with phonon band structures for tutorials.
+
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
   (tricky because input settings should be preserved)
 

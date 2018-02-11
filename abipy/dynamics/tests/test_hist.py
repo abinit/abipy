@@ -35,6 +35,8 @@ class HistFileTest(AbipyTest):
         #self.assert_almost_equal(cart_forces_step[0], [
         #    6.42133418983323e-32, -1.92640025694997e-31, 6.42133418983323e-32,
         #   -6.42133418983323e-32, 1.92640025694997e-31, -6.42133418983323e-32])
+        fred = hist.reader.read_reduced_forces()
+        assert fred.shape == cart_forces_step.shape
 
         # Cartesian components of stress tensor (hartree/bohr^3)
         #  sigma(1 1)=  5.01170783E-08  sigma(3 2)=  0.00000000E+00

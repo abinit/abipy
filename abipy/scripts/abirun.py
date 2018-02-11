@@ -1670,6 +1670,7 @@ def list_of_dict_with_vars(task):
             else:  # Work
                 node = flow[w_pos]
 
+        import shutil
         directory = tempfile.mkdtemp()
         print("Producing source files in:", directory)
 

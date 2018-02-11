@@ -169,10 +169,15 @@ class DdbTest(AbipyTest):
         phdos_file.close()
 
         # Test DOS computation via anaddb.
-        c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=1)
+        c = ddb.anacompare_phdos(nqsmalls=[2, 3, 4], dipdip=0, num_cpus=1, verbose=2)
         assert c.phdoses and c.plotter is not None
         if self.has_matplotlib():
             assert c.plotter.combiplot(show=False)
+
+        # Use threads and gaussian DOS.
+        c = ddb.anacompare_phdos(nqsmalls=[2, 3, 4], dos_method="gaussian", dipdip=0, asr=0,
+                num_cpus=2, verbose=2)
+        assert c.phdoses and c.plotter is not None
 
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()
@@ -239,7 +244,7 @@ class DdbTest(AbipyTest):
             assert becs.to_string(verbose=2)
 
             # get the dielectric tensor generator from anaddb
-            dtg = ddb.anaget_dielectric_tensor_generator()
+            dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
             assert dtg is not None and hasattr(dtg, "phfreqs")
 
     def test_mgo_becs_emacro(self):

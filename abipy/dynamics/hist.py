@@ -250,7 +250,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
-    def visualize(self, appname="ovito"):
+    def visualize(self, appname="ovito"):  # pragma: no cover
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
@@ -413,7 +413,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return fig
 
-    def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True, with_forces=True, **kwargs):
+    def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
+                            with_forces=True, **kwargs):  # pragma: no cover
         """
         Call mayavi_ to plot atomic trajectories and the variation of the unit cell.
         """
@@ -445,7 +446,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if show: mlab.show()
         return figure
 
-    def mvanimate(self, delay=500):
+    def mvanimate(self, delay=500):  # pragma: no cover
         from abipy.display import mvtk
         figure, mlab = mvtk.get_fig_mlab(figure=None)
         style = "points"

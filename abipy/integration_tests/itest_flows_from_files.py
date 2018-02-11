@@ -8,7 +8,7 @@ import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
-#from abipy.core.testing import has_abinit, has_matplotlib
+from abipy.core.testing import AbipyTest
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -62,8 +62,12 @@ def itest_nscf_from_denfile(fwp, tvars):
     # Note that the file must exist when the work is created
     # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
-    #work = flowtk.Work()
-    den_filepath = abidata.ref_file("si_DEN.nc")
+    # Need to copy DEN.nc to temp dir to avoid problem with multiple extensions.
+    import shutil
+    tmp_directory = AbipyTest.mkdtemp()
+    den_filepath = os.path.join(tmp_directory, "si_DEN.nc")
+    shutil.copyfile(abidata.ref_file("si_DEN.nc"), den_filepath)
+
     flow.register_nscf_task(nscf_input, deps={den_filepath: "DEN"}, append=True)
 
     flow.allocate(use_smartio=True)
@@ -80,24 +84,23 @@ def itest_nscf_from_denfile(fwp, tvars):
     assert not filenode.depends_on(task)
     assert filenode in task.get_parents()
     assert not filenode.get_parents()
-    #assert task in filenode.get_children()
+    assert task in filenode.get_children()
+    assert len(filenode.get_children()) == 1
     assert task.str_deps
     assert filenode.str_deps
     assert not task.get_children()
-    #assert filenode.set_manager()
+    #assert filenode.set_manager(fwp.manager)
     repr(filenode); str(filenode)
     assert filenode.filepath == den_filepath
     assert filenode.status == filenode.S_OK
 
-    #assert callable(filenode.get_graphviz_dirtree().view)
-    #assert callable(task.get_graphviz_dirtree().view)
-    #assert callable(flow.get_graphviz().view)
-    #assert 0
+    if AbipyTest.has_python_graphviz():
+        assert callable(filenode.get_graphviz_dirtree().view)
+        assert callable(task.get_graphviz_dirtree().view)
+        assert callable(flow.get_graphviz().view)
 
-"""
     # Will remove output files (WFK)
     flow.set_garbage_collector()
-
     scheduler = flow.make_scheduler()
     assert scheduler.start() == 0
     assert not scheduler.exceptions
@@ -112,4 +115,5 @@ def itest_nscf_from_denfile(fwp, tvars):
     for task in flow[0]:
         assert not task.outdir.has_abiext("WFK")
     assert os.path.isfile(den_filepath)
-"""
+
+    shutil.rmtree(tmp_directory)

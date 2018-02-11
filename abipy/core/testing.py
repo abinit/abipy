@@ -321,7 +321,7 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
-    def has_python_graphviz(self):
+    def has_python_graphviz(need_dotexec=False):
         """
         True if python-graphviz package is installed and dot executable in path.
         """
@@ -330,7 +330,7 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
-        return which("dot") is not None
+        return which("dot") is not None if need_dotexec else True
 
     @staticmethod
     def has_mayavi():
