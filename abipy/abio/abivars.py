@@ -238,13 +238,13 @@ class Dataset(dict, Has_Structure):
         app = lines.append
         for k in sorted(list(self.keys())):
             vname = k + post
-            if mode == "html": vname = var_database[k].html_link(tag=vname)
+            if mode == "html": vname = var_database[k].html_link(label=vname)
             app("%s %s" % (vname, str(self[k])))
 
         return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         return self.to_string(mode="html")
 
 

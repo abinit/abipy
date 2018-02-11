@@ -274,7 +274,11 @@ def get_gsinput_si(usepaw=0, as_task=False):
 
 
 class AbipyTest(PymatgenTest):
-    """Extends PymatgenTest with Abinit-specific methods """
+    """
+    Extends PymatgenTest with Abinit-specific methods.
+    Several helper functions are implemented as static methods so that we
+    can easily reuse the code in the pytest integration tests.
+    """
 
     SkipTest = unittest.SkipTest
 
@@ -307,16 +311,16 @@ class AbipyTest(PymatgenTest):
         if version is None: return True
         return cmp_version(ase.__version__, version, op=op)
 
-    def has_skimage(self):
-        """
-        True if skimage package is available.
-        """
+    @staticmethod
+    def has_skimage():
+        """True if skimage package is available."""
         try:
             from skimage import measure
             return True
         except ImportError:
             return False
 
+    @staticmethod
     def has_python_graphviz(self):
         """
         True if python-graphviz package is installed and dot executable in path.
@@ -328,7 +332,8 @@ class AbipyTest(PymatgenTest):
 
         return which("dot") is not None
 
-    def has_mayavi(self):
+    @staticmethod
+    def has_mayavi():
         """
         True if mayavi_ is available. Set also offscreen to True
         """
@@ -463,7 +468,8 @@ class AbipyTest(PymatgenTest):
         """Return mock module for testing. Raises ImportError if not found."""
         return get_mock_module()
 
-    def abivalidate_input(self, abinput, must_fail=False):
+    @staticmethod
+    def abivalidate_input(abinput, must_fail=False):
         """
         Invoke Abinit to test validity of an |AbinitInput| object
         Print info to stdout if failure before raising AssertionError.
@@ -482,7 +488,8 @@ class AbipyTest(PymatgenTest):
 
             assert v.retcode == 0
 
-    def abivalidate_multi(self, multi):
+    @staticmethod
+    def abivalidate_multi(multi):
         """
         Invoke Abinit to test validity of a |MultiDataset| or a list of |AbinitInput| objects.
         """
@@ -494,9 +501,9 @@ class AbipyTest(PymatgenTest):
         errors = []
         for inp in inputs:
             try:
-                self.abivalidate_input(inp)
+                AbipyTest.abivalidate_input(inp)
             except Exception as exc:
-                errors.append(self.straceback())
+                errors.append(AbipyTest.straceback())
                 errors.append(str(exc))
 
         if errors:

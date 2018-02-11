@@ -68,8 +68,35 @@ def itest_nscf_from_denfile(fwp, tvars):
 
     flow.allocate(use_smartio=True)
     assert len(flow) == 1 and len(flow[0]) == 1
+
+    task = flow[0][0]
+    assert len(task.deps) == 1
+    print(task.deps[0])
+    filenode = task.deps[0].node
+    assert filenode.is_file
+    assert not filenode.is_task and not filenode.is_work and not filenode.is_flow
+    assert not filenode.deps
+    assert task.depends_on(filenode)
+    assert not filenode.depends_on(task)
+    assert filenode in task.get_parents()
+    assert not filenode.get_parents()
+    #assert task in filenode.get_children()
+    assert task.str_deps
+    assert filenode.str_deps
+    assert not task.get_children()
+    #assert filenode.set_manager()
+    repr(filenode); str(filenode)
+    assert filenode.filepath == den_filepath
+    assert filenode.status == filenode.S_OK
+
+    #assert callable(filenode.get_graphviz_dirtree().view)
+    #assert callable(task.get_graphviz_dirtree().view)
+    #assert callable(flow.get_graphviz().view)
+    #assert 0
+
+"""
     # Will remove output files (WFK)
-    #flow.set_garbage_collector()
+    flow.set_garbage_collector()
 
     scheduler = flow.make_scheduler()
     assert scheduler.start() == 0
@@ -82,6 +109,7 @@ def itest_nscf_from_denfile(fwp, tvars):
 
     # The WFK files should have been removed because we called set_garbage_collector
     # but the input DEN.nc should exist
-    #for task in flow[0]:
-    #    assert not task.outdir.has_abiext("WFK")
+    for task in flow[0]:
+        assert not task.outdir.has_abiext("WFK")
     assert os.path.isfile(den_filepath)
+"""
