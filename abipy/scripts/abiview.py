@@ -78,6 +78,20 @@ def abiview_log(options):
     return 0
 
 
+def abiview_dirviz(options):
+    """
+    Visualize directory tree with graphviz.
+    """
+    from pymatgen.io.abinit.utils import Dirviz
+    import tempfile
+    graph = Dirviz(options.filepath).get_cluster_graph(engine=options.engine)
+    directory = tempfile.mkdtemp()
+    print("Producing source files in:", directory)
+    graph.view(directory=directory)
+
+    return 0
+
+
 def abiview_ebands(options):
     """
     Plot electronic bands if file contains high-symmetry k-path or DOS if k-sampling.
@@ -290,9 +304,9 @@ Usage example:
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize phonon bands and displacements with phononwebsite.
     abiview.py phdos out_PHDOS.nc         ==>  Plot phonon DOS.
 
-#########
+#######
 # E-PH
-#########
+#######
 
   abiview.py eph out_EPH.nc              ==> Plot EPH results.
   abiview.py sigeph out_SIGEPH.nc        ==> Plot Fan-Migdal self-energy.
@@ -305,6 +319,11 @@ Usage example:
   abiview.py mdf out_MDF.nc --seaborn    ==> Plot macroscopic dielectric functions with excitonic effects.
                                              Use seaborn settings for plots.
 
+###############
+# Miscelleanous
+###############
+
+  abiview.py dirviz DIRECTORY            ==> Visualize directory tree with graphviz.
 
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -376,6 +395,13 @@ def get_parser(with_epilog=False):
 
     # Subparser for log command.
     p_log = subparsers.add_parser('log', parents=[copts_parser], help=abiview_log.__doc__)
+
+    # Subparser for log command.
+    p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)
+    p_dirviz.add_argument("-e", "--engine", type=str, default="fdp",
+        help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
+            "See http://www.graphviz.org/pdf/dot.1.pdf "
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
 
     # Subparser for ebands commands.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser], help=abiview_ebands.__doc__)

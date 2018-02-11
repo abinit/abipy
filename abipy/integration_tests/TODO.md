@@ -27,12 +27,13 @@ TODO list:
 
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
 
-
-* Add support for DVDV, DDB in plot_networkx
+* DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
 ## Medium priority
 
 * remove phononflow
+
+* Add with_becs to PhononWork
 
 * video with atom and hydrogen
 
@@ -164,3 +165,5 @@ TODO list:
 * FFTProf (use file extension and interface it with abiopen)
 
 * Create new github package for benchmakr/Abinit tests + template for new python projects.
+
+* _repr_html_ for structure and other basic objects (pymatgen/and abipy)

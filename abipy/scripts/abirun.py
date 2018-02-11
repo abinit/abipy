@@ -670,7 +670,8 @@ Usage example:
   abirun.py FLOWDIR ipython               => Open flow in ipython terminal.
   abirun.py FLOWDIR notebook              => Generate jupyter notebook.
   abirun.py FLOWDIR networkx              => Plot flow graph with networkx.
-  abirun.py FLOWDIR graphviz              => Plot flow graph with graphviz.
+  abirun.py FLOWDIR graphviz              => Plot flow graph with graphviz
+                                            (can also select tasks/works and show files with -d).
   abirun.py abibuild                      => Show ABINIT build information and exit.
 
 ###############
@@ -1061,6 +1062,8 @@ Default: o
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "
             "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
+    p_graphviz.add_argument("-d", '--dirtree', default=False, action="store_true",
+        help='Visualize files and directories in workdir instead of tasks/works.')
 
     # Subparser for listext.
     p_listext = subparsers.add_parser('listext', parents=[copts_parser],
@@ -1667,9 +1670,14 @@ def list_of_dict_with_vars(task):
             else:  # Work
                 node = flow[w_pos]
 
-        graph = node.get_graphviz(engine=options.engine)
         directory = tempfile.mkdtemp()
         print("Producing source files in:", directory)
+
+        if options.dirtree:
+            graph = node.get_graphviz_dirtree(engine=options.engine)
+        else:
+            graph = node.get_graphviz(engine=options.engine)
+
         graph.view(directory=directory, cleanup=False)
 
     elif options.command == "listext":

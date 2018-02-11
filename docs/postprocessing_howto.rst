@@ -99,6 +99,41 @@ to get space group information, the list of k-points in the IBZ.
 the list of atomic perturbations for phonons or the list of autoparal configurations.
 See ``abinp.py --help`` for futher info.
 
+Print the warnings in the log file
+----------------------------------
+
+Use::
+
+    abiopen.py run.log -p
+
+to get:
+
+.. code-block:: shell
+
+    Events found in /Users/gmatteo/git_repos/abipy/abipy/examples/flows/develop/flow_from_files/w0/t0/run.log
+
+    [1] <AbinitWarning at m_nctk.F90:568>
+        netcdf lib does not support MPI-IO and: NetCDF: Parallel operation on file opened for non-parallel access
+
+    [2] <AbinitWarning at m_nctk.F90:588>
+        The netcdf library does not support parallel IO, see message above
+        Abinit won't be able to produce files in parallel e.g. when paral_kgb==1 is used.
+        Action: install a netcdf4+HDF5 library with MPI-IO support.
+
+    [3] <AbinitWarning at m_hdr.F90:4258>
+        input kptrlatt= 0 0 0 0 0 0 0 0 0  /= disk file kptrlatt=8 0 0 0 8 0 0 0 8
+
+    [4] <AbinitWarning at m_hdr.F90:4261>
+        input kptopt= -2  /= disk file kptopt= 1
+
+    num_errors: 0, num_warnings: 4, num_comments: 0, completed: True
+
+
+A similar interface is also available via::
+
+    abiview.py log run.log
+
+
 Get a quick look to a file
 --------------------------
 

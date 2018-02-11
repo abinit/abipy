@@ -1,17 +1,14 @@
-#!/usr/bin/env python
-r"""
-Band structure flow
-===================
-
-Flow for computing the band structure of silicon.
+"""
+Integration tests for flows/works/tasks that rely on external files e.g. DEN --> NscfTask.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
 import os
+import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
+#from abipy.core.testing import has_abinit, has_matplotlib
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -53,47 +50,38 @@ def make_scf_nscf_inputs(paral_kgb=1):
     return scf_input, nscf_input
 
 
-def build_flow(options):
-    # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
-    if not options.workdir:
-        options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
-
+def itest_nscf_from_denfile(fwp, tvars):
+    """Testing NscTask from pre-existent DEN file."""
     # Get the SCF and the NSCF input.
-    scf_input, nscf_input = make_scf_nscf_inputs()
+    scf_input, nscf_input = make_scf_nscf_inputs(paral_kgb=1)
 
     # Build the flow.
-    flow = flowtk.Flow(options.workdir, manager=options.manager)
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
     # Create a Work, all tasks in work will start from the DEN file.
     # Note that the file must exist when the work is created
     # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
-    work = flowtk.Work()
+    #work = flowtk.Work()
     den_filepath = abidata.ref_file("si_DEN.nc")
-    work.register_nscf_task(nscf_input, deps={den_filepath: "DEN"})
-    flow.register_work(work)
+    flow.register_nscf_task(nscf_input, deps={den_filepath: "DEN"}, append=True)
 
-    return flow
+    flow.allocate(use_smartio=True)
+    assert len(flow) == 1 and len(flow[0]) == 1
+    # Will remove output files (WFK)
+    #flow.set_garbage_collector()
 
+    scheduler = flow.make_scheduler()
+    assert scheduler.start() == 0
+    assert not scheduler.exceptions
+    assert scheduler.nlaunch == 1
 
-# This block generates the thumbnails in the Abipy gallery.
-# You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("GENERATE_SPHINX_GALLERY", False):
-    __name__ = None
-    import tempfile
-    options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
-    build_flow(options).plot_networkx(tight_layout=True)
+    flow.check_status(show=True)
+    assert flow.all_ok
+    assert all(work.finalized for work in flow)
 
-
-@flowtk.flow_main
-def main(options):
-    """
-    This is our main function that will be invoked by the script.
-    flow_main is a decorator implementing the command line interface.
-    Command line args are stored in `options`.
-    """
-    return build_flow(options)
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    # The WFK files should have been removed because we called set_garbage_collector
+    # but the input DEN.nc should exist
+    #for task in flow[0]:
+    #    assert not task.outdir.has_abiext("WFK")
+    assert os.path.isfile(den_filepath)

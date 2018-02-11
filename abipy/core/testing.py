@@ -317,6 +317,17 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
+    def has_python_graphviz(self):
+        """
+        True if python-graphviz package is installed and dot executable in path.
+        """
+        try:
+            from graphviz import Digraph
+        except ImportError:
+            return False
+
+        return which("dot") is not None
+
     def has_mayavi(self):
         """
         True if mayavi_ is available. Set also offscreen to True
