@@ -412,3 +412,58 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
         ax.plot(*zip(v[i], v[j]), **kwargs)
 
     return fig, ax
+
+
+class Slideshow(object): # pragma: no cover
+    """
+    Example:
+
+        with Slideshow() as s:
+            s(obj.plot1(show=False))
+            s(obj.plot2(show=False))
+    """
+    def __init__(self, slide_mode=False, slide_timeout=None, verbose=0):
+        self.figures = []
+        self.slide_mode = bool(slide_mode)
+        self.timeout_ms = slide_timeout
+        self.verbose = verbose
+        if self.timeout_ms is not None:
+            self.timeout_ms = int(self.timeout_ms * 1000)
+            assert self.timeout_ms >= 0
+
+        if self.verbose:
+            if self.slide_mode:
+                print("Sliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
+            else:
+                print("Will load all figures before showing them. Could take some time...")
+
+    def __call__(self, fig):
+        if fig is None: return
+
+        if not self.slide_mode:
+            self.figures.append(fig)
+        else:
+            #print("Printing and closing", fig)
+            import matplotlib.pyplot as plt
+            if self.timeout_ms is not None:
+                # Creating a timer object
+                # timer calls plt.close after interval milliseconds to close the window.
+                timer = fig.canvas.new_timer(interval=self.timeout_ms)
+                timer.add_callback(plt.close, fig)
+                timer.start()
+
+            plt.show()
+            fig.clear()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Activated at the end of the with statement. Clear figures if needed.
+        """
+        if not self.slide_mode:
+            import matplotlib.pyplot as plt
+            plt.show()
+            for fig in self.figures:
+                fig.clear()

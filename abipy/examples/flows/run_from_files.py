@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 r"""
-Band structure flow
-===================
+Starting a Flow from external files
+===================================
 
-Flow for computing the band structure of silicon.
+This example shows how to build a flow for Nscf calculations
+in which the dependency is given by an external density file.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -78,7 +79,7 @@ def build_flow(options):
 
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("GENERATE_SPHINX_GALLERY", False):
+if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])

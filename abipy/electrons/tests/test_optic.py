@@ -26,10 +26,16 @@ class OpticTest(AbipyTest):
             assert optic.reader.ntemp == 1
             assert optic.params["nspden"] == 1
 
+            assert optic.has_linopt
             assert optic.reader.computed_components["linopt"] == ["xx", "zz"]
+
+            assert optic.has_shg
             assert optic.reader.computed_components["shg"] == ["xyz", "yyy"]
+
+            assert optic.has_leo
             assert optic.reader.computed_components["leo"] == ["xyz"]
             #assert not optic.reader.computed_components["leo2"]
+
 
             # Test plot methods
             if self.has_matplotlib():

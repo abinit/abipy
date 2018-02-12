@@ -4,7 +4,7 @@ Integration tests for flows/works/tasks that rely on external files e.g. DEN -->
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
-import pytest
+#import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk

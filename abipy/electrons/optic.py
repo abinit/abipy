@@ -184,6 +184,21 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """|Structure| object."""
         return self.ebands.structure
 
+    @lazy_property
+    def has_linopt(self):
+        """True if the ncfile contains Second Harmonic Generation tensor."""
+        return "linopt" in self.reader.computed_components
+
+    @lazy_property
+    def has_shg(self):
+        """True if the ncfile contains Second Harmonic Generation tensor."""
+        return "shg" in self.reader.computed_components
+
+    @lazy_property
+    def has_leo(self):
+        """True if the ncfile contains the Linear Electro-optic tensor"""
+        return "leo" in self.reader.computed_components
+
     #@lazy_property
     #def xc(self):
     #    """:class:`XcFunc object with info on the exchange-correlation functional."""
@@ -336,12 +351,12 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
     @add_fig_kwargs
     def plot_shg(self, **kwargs):
         """Plot Second Harmonic Generation. See plot_chi2 for args supported."""
-        return self.plot_chi2(key="shg", **kwargs)
+        return self.plot_chi2(key="shg", show=False, **kwargs)
 
     @add_fig_kwargs
     def plot_leo(self, **kwargs):
         """Plot Linear Electro-optic. See plot_chi2 for args supported."""
-        return self.plot_chi2(key="leo", **kwargs)
+        return self.plot_chi2(key="leo", show=False, **kwargs)
 
     def write_notebook(self, nbpath=None):
         """

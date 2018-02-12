@@ -106,9 +106,7 @@ Use::
 
     abiopen.py run.log -p
 
-to get:
-
-.. code-block:: shell
+to get::
 
     Events found in /Users/gmatteo/git_repos/abipy/abipy/examples/flows/develop/flow_from_files/w0/t0/run.log
 
@@ -127,7 +125,6 @@ to get:
         input kptopt= -2  /= disk file kptopt= 1
 
     num_errors: 0, num_warnings: 4, num_comments: 0, completed: True
-
 
 A similar interface is also available via::
 

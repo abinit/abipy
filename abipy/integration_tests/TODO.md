@@ -21,7 +21,7 @@ TODO list:
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
   qadapter package ... (postponed to v0.4)
 
-* Try to reintegrate AbiPy with new abivars
+* Reintegrate AbiPy with new abivars
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
@@ -47,10 +47,8 @@ TODO list:
 
 * Read LO-TO data from PHBST.nc instead of anaddb.nc (postponed to v0.4)
 
-* DONE Remove ddb.update_header
-
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
-  phonon group velocities (requires extensio in netcdf files)
+  phonon group velocities (requires extension in netcdf files).
 
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 
@@ -61,8 +59,6 @@ TODO list:
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
 * Fix problem with get_edos if we don't have enough bands 
-
-* DONE Finalize interface with phononwebsite.
 
 * Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
@@ -79,9 +75,7 @@ TODO list:
 
 * Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
 
-* DONE: Remove Old workflow model. 
-
-* Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
+* DONE: Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
 
@@ -114,8 +108,6 @@ TODO list:
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
   FIXED with graphviz
 
-* DONE Use ax.legend(loc="best", fontsize=fontsize, shadow=True)
-
 * Check xsf_write_data and visualization of potentials.
 
 * Add phbands.to_bxsf and histogram for phonon modes at a given q-point.
@@ -141,9 +133,6 @@ TODO list:
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
   as well as Abinit input as string)
 
-* DONE: Replace boilerplate code with get_axmat_fig_plt.
-  Standardize kwargs (use ax_list, ax_mat, deprecate axlist, axmat...)
-
 * Initialize job.sh with max number of MPI procs?
 
 * Improvement in the dilatmx error handler:
@@ -158,7 +147,6 @@ TODO list:
         [30/03/15 15:19:48] guido petretto: a questo punto il job viene riavviato, ma in in c'è ancora la vecchia density e nell'input c'è irdden=1, ma la
         struttura è diversa
 
-
 * DONE Add the fermi level to the DEN file (netcdf and fortran version) so that the NSCF run can read 
   it and can report this value in the final band structure.
 
@@ -166,6 +154,16 @@ TODO list:
 
 * FFTProf (use file extension and interface it with abiopen)
 
-* Create new github package for benchmakr/Abinit tests + template for new python projects.
+* Create new github package for benchmarks/Abinit tests + template for new python projects.
 
 * _repr_html_ for structure and other basic objects (pymatgen/and abipy)
+
+* nbjsmol (build system, refactor API?)
+
+* fatbands with SOC (waiting for Matthieu's refactoring)
+
+* integrate improvements in skw by Nicholas.
+
+* lobster interface from Guido
+
+* interface abistruct with marylin
