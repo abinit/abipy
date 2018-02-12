@@ -10,6 +10,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import collections
+import time
 import numpy as np
 
 from monty.string import list_strings
@@ -377,6 +378,66 @@ class Marker(collections.namedtuple("Marker", "x y s")):
         return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
+class MplExpose(object): # pragma: no cover
+    """
+    Example:
+
+        with MplExpose() as e:
+            e(obj.plot1(show=False))
+            e(obj.plot2(show=False))
+    """
+    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+        self.figures = []
+        self.slide_mode = bool(slide_mode)
+        self.timeout_ms = slide_timeout
+        self.verbose = verbose
+        if self.timeout_ms is not None:
+            self.timeout_ms = int(self.timeout_ms * 1000)
+            assert self.timeout_ms >= 0
+
+        if self.verbose:
+            if self.slide_mode:
+                print("\nSliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
+            else:
+                print("\nLoading all mpl figures before showing them. Could take some time...")
+
+        self.start_time = time.time()
+
+    def __call__(self, fig):
+        if fig is None: return
+
+        if not self.slide_mode:
+            self.figures.append(fig)
+        else:
+            #print("Printing and closing", fig)
+            import matplotlib.pyplot as plt
+            if self.timeout_ms is not None:
+                # Creating a timer object
+                # timer calls plt.close after interval milliseconds to close the window.
+                timer = fig.canvas.new_timer(interval=self.timeout_ms)
+                timer.add_callback(plt.close, fig)
+                timer.start()
+
+            plt.show()
+            fig.clear()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. """
+        self.expose()
+
+    def expose(self):
+        """Show all figures. Clear figures if needed."""
+        if not self.slide_mode:
+            print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
+            import matplotlib.pyplot as plt
+            plt.show()
+            for fig in self.figures:
+                fig.clear()
+
+
 def plot_unit_cell(lattice, ax=None, **kwargs):
     """
     Adds the unit cell of the lattice to a matplotlib Axes3D
@@ -414,56 +475,50 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
     return fig, ax
 
 
-class Slideshow(object): # pragma: no cover
+def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
+                   style="points+labels", color_scheme="VESTA", **kwargs):
     """
-    Example:
+    Plot structure with matplotlib (minimalistic version)
 
-        with Slideshow() as s:
-            s(obj.plot1(show=False))
-            s(obj.plot2(show=False))
+    Args:
+        structure: Structure object
+        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
+        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+        to_unit_cell: True if sites should be wrapped to the first unit cell.
+        style: "points+labels" to show atoms sites with labels.
+        color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
+
+    Returns: |matplotlib-Figure|
     """
-    def __init__(self, slide_mode=False, slide_timeout=None, verbose=0):
-        self.figures = []
-        self.slide_mode = bool(slide_mode)
-        self.timeout_ms = slide_timeout
-        self.verbose = verbose
-        if self.timeout_ms is not None:
-            self.timeout_ms = int(self.timeout_ms * 1000)
-            assert self.timeout_ms >= 0
+    fig, ax = plot_unit_cell(structure.lattice, ax=ax, linewidth=1)
 
-        if self.verbose:
-            if self.slide_mode:
-                print("Sliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
-            else:
-                print("Will load all figures before showing them. Could take some time...")
+    from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+    from pymatgen.vis.structure_vtk import EL_COLORS
+    xyzs, colors = np.empty((len(structure), 4)), []
 
-    def __call__(self, fig):
-        if fig is None: return
+    for i, site in enumerate(structure):
+        symbol = site.specie.symbol
+        color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
+        radius = CovalentRadius.radius[symbol]
+        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell
+        # Use cartesian coordinates.
+        x, y, z = site.coords
+        xyzs[i] = (x, y, z, radius)
+        colors.append(color)
+        if "labels" in style:
+            ax.text(x, y, z, symbol)
 
-        if not self.slide_mode:
-            self.figures.append(fig)
-        else:
-            #print("Printing and closing", fig)
-            import matplotlib.pyplot as plt
-            if self.timeout_ms is not None:
-                # Creating a timer object
-                # timer calls plt.close after interval milliseconds to close the window.
-                timer = fig.canvas.new_timer(interval=self.timeout_ms)
-                timer.add_callback(plt.close, fig)
-                timer.start()
+    # The definition of sizes is not optimal because matplotlib uses points
+    # wherease we would like something that depends on the radius (5000 seems to give reasonable plots)
+    # For possibile approaches, see
+    # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
+    # https://gist.github.com/syrte/592a062c562cd2a98a83
+    if "points" in style:
+        x, y, z, s = xyzs.T.copy()
+        s = 5000 * s **2
+        ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
 
-            plt.show()
-            fig.clear()
+    ax.set_title(structure.composition.formula)
+    ax.set_axis_off()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        Activated at the end of the with statement. Clear figures if needed.
-        """
-        if not self.slide_mode:
-            import matplotlib.pyplot as plt
-            plt.show()
-            for fig in self.figures:
-                fig.clear()
+    return fig

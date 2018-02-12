@@ -1,5 +1,9 @@
 # coding: utf-8
-"""mayavi_ toolkit."""
+"""
+mayavi_ toolkit.
+
+WARNING: This code is still under development.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import itertools
@@ -146,15 +150,15 @@ def plot_lattice_vectors(lattice, figure=None, **kwargs): # pragma: no cover
 def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="points+labels",
                    unit_cell_color=(0, 0, 0), color_scheme="VESTA", figure=None, show=False, **kwargs):  # pragma: no cover
     """
-    Plot structure
+    Plot structure with mayavi.
 
     Args:
-        structure:
-        frac_coords
-        to_unit_cell
-        style
+        structure: |Structure| object
+        frac_coords:
+        to_unit_cell: True if sites should be wrapped to the first unit cell.
+        style: "points+labels" to show atoms sites with labels.
         unit_cell_color:
-        color_scheme
+        color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
         figure:
         kwargs:
 
@@ -164,9 +168,9 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
 
     #if not frac_coords:
     plot_unit_cell(structure.lattice, color=unit_cell_color, figure=figure)
-
     from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
     from pymatgen.vis.structure_vtk import EL_COLORS
+
     for site in structure:
         symbol = site.specie.symbol
         color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])

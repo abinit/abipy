@@ -1336,7 +1336,8 @@ class ElectronBands(Has_Structure):
         return edos
 
     @add_fig_kwargs
-    def plot_transitions(self, omega_ev, qpt=(0, 0, 0), atol_ev=0.1, atol_kdiff=1e-4, ylims=None, ax=None, **kwargs):
+    def plot_transitions(self, omega_ev, qpt=(0, 0, 0), atol_ev=0.1, atol_kdiff=1e-4,
+                         ylims=None, ax=None, alpha=0.4, **kwargs):
         """
         Plot energy bands with arrows signaling possible k --> k + q indipendent-particle transitions
         of energy ``omega_ev`` connecting occupied to empty states.
@@ -1348,6 +1349,7 @@ class ElectronBands(Has_Structure):
             atol_kdiff: Tolerance used to compare k-points.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                 or scalar e.g. `left`. If left (right) is None, default values are used
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
         Returns: |matplotlib-Figure|
@@ -1392,7 +1394,7 @@ class ElectronBands(Has_Structure):
                         # http://matthiaseisen.com/matplotlib/shapes/arrow/
                         p = FancyArrowPatch((ik, y), (ik + dx, y + dy),
                                 connectionstyle='arc3', mutation_scale=20,
-                                alpha=0.4, **arrow_opts)
+                                alpha=alpha, **arrow_opts)
                         ax.add_patch(p)
         return fig
 
@@ -1484,6 +1486,7 @@ class ElectronBands(Has_Structure):
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             cumulative: True for cumulative plots (default).
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
@@ -1656,6 +1659,9 @@ class ElectronBands(Has_Structure):
         ax.set_ylabel("$K_y$")
         ax.set_zlabel("$K_z$")
         fig.colorbar(p)
+
+        #ax.set_title(structure.composition.formula)
+        ax.set_axis_off()
 
         return fig
 
@@ -3533,6 +3539,8 @@ class Bands3D(Has_Structure):
                 ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
                 # mayavi package:
                 #mlab.triangular_mesh([v[0] for v in verts], [v[1] for v in verts], [v[2] for v in verts], faces) #, color=(0, 0, 0))
+
+        ax.set_axis_off()
 
         return fig
 

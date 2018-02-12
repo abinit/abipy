@@ -157,6 +157,7 @@ TODO list:
 * Create new github package for benchmarks/Abinit tests + template for new python projects.
 
 * _repr_html_ for structure and other basic objects (pymatgen/and abipy)
+   matplotlib plot for structure?
 
 * nbjsmol (build system, refactor API?)
 

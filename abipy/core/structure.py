@@ -1058,6 +1058,11 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return od
 
     @add_fig_kwargs
+    def plot(self, **kwargs):
+        from abipy.tools.plotting import plot_structure
+        return plot_structure(self, **kwargs)
+
+    @add_fig_kwargs
     def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
@@ -1196,6 +1201,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Visualize the crystalline structure with visualizer.
         See |Visualizer| for the list of applications and formats supported.
         """
+        if appname in ("mpl", "matplotlib"): return self.plot()
         if appname == "vtk": return self.vtkview()
         if appname == "mayavi": return self.mayaview()
 

@@ -14,7 +14,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import Slideshow
+from abipy.tools.plotting import MplExpose
 
 
 def handle_overwrite(path, options):
@@ -108,13 +108,14 @@ def abiview_ebands(options):
         else:
             print(abifile.to_string(verbose=options.verbose))
 
-            with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
+            with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
                 if abifile.ebands.kpoints.is_path:
-                    s(abifile.ebands.plot(show=False))
-                    s(abifile.ebands.kpoints.plot(show=False))
+                    e(abifile.ebands.plot(show=False))
+                    e(abifile.ebands.kpoints.plot(show=False))
                 else:
                     edos = abifile.ebands.get_edos()
-                    s(abifile.ebands.plot_with_edos(edos, show=False))
+                    e(abifile.ebands.plot_with_edos(edos, show=False))
+                    e(edos.plot(show=False))
 
         return 0
 
@@ -127,14 +128,14 @@ def abiview_fatbands(options):
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
 
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
             if abifile.ebands.kpoints.is_path:
-                s(abifile.ebands.kpoints.plot(show=False))
-                s(abifile.plot_fatbands_lview(show=False))
-                s(abifile.plot_fatbands_typeview(show=False))
+                e(abifile.ebands.kpoints.plot(show=False))
+                e(abifile.plot_fatbands_lview(show=False))
+                e(abifile.plot_fatbands_typeview(show=False))
             else:
-                s(abifile.plot_pjdos_lview(show=False))
-                s(abifile.plot_pjdos_typeview(show=False))
+                e(abifile.plot_pjdos_lview(show=False))
+                e(abifile.plot_pjdos_typeview(show=False))
 
     return 0
 
@@ -146,15 +147,15 @@ def abiview_optic(options):
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
 
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
             if abifile.has_linopt:
-                s(abifile.plot_linear_epsilon(what="re", show=False))
-                s(abifile.plot_linear_epsilon(what="im", show=False))
-                s(abifile.plot_linopt(show=False))
+                e(abifile.plot_linear_epsilon(what="re", show=False))
+                e(abifile.plot_linear_epsilon(what="im", show=False))
+                e(abifile.plot_linopt(show=False))
             if abifile.has_shg:
-                s(abifile.plot_shg(show=False))
+                e(abifile.plot_shg(show=False))
             if abifile.has_leo:
-                s(abifile.plot_leo(show=False))
+                e(abifile.plot_leo(show=False))
     return 0
 
 
@@ -195,13 +196,13 @@ asr = {asr}, chneut = {chneut}, dipdip = {dipdip}, lo_to_splitting = {lo_to_spli
             return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
         else:
             units = "mev"
-            with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-                s(phbands.qpoints.plot(show=False))
-                s(phbands.plot_with_phdos(phdos, units=units, show=False))
-                s(phbands.plot_colored_matched(units=units, show=False))
-                s(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
-                s(phdos.plot(units=units, show=False))
-                s(phdos_file.plot_pjdos_type(units=units, show=False))
+            with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+                e(phbands.qpoints.plot(show=False))
+                e(phbands.plot_with_phdos(phdos, units=units, show=False))
+                e(phbands.plot_colored_matched(units=units, show=False))
+                e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
+                e(phdos.plot(units=units, show=False))
+                e(phdos_file.plot_pjdos_type(units=units, show=False))
 
         phbst_file.close()
         phdos_file.close()
@@ -225,10 +226,10 @@ def abiview_phbands(options):
             units = "mev"
             phbands = abifile.phbands
             print(abifile.to_string(verbose=options.verbose))
-            with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-                s(phbands.qpoints.plot(show=False))
-                s(phbands.plot(units=units, show=False))
-                s(phbands.plot_colored_matched(units=units, show=False))
+            with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+                e(phbands.qpoints.plot(show=False))
+                e(phbands.plot(units=units, show=False))
+                e(phbands.plot_colored_matched(units=units, show=False))
 
         return 0
 
@@ -239,9 +240,40 @@ def abiview_phdos(options):
         phdos = abifile.phdos
         print(abifile.to_string(verbose=options.verbose))
         units = "mev"
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-            s(phdos.plot(units=units, show=False))
-            s(abifile.plot_pjdos_type(units=units, show=False))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(phdos.plot(units=units, show=False))
+            e(abifile.plot_pjdos_type(units=units, show=False))
+
+    return 0
+
+
+def abiview_scr(options):
+    """
+    Plot screening results computed by GW code. Requires SCR.nc file.
+    """
+    with abilab.abiopen(options.filepath) as abifile:
+        print(abifile.to_string(verbose=options.verbose))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            edos = abifile.ebands.get_edos()
+            e(abifile.ebands.plot_with_edos(edos, show=False))
+            # Plot spectra if there are enough frequencies.
+            if abifile.nrew > 2:
+                e(abifile.plot_emacro(show=False))
+                e(abifile.plot_eelf(show=False))
+
+    return 0
+
+
+def abiview_sigres(options):
+    """
+    Plot the QP results. Requires SIGRES.nc file.
+    """
+    with abilab.abiopen(options.filepath) as abifile:
+        print(abifile.to_string(verbose=options.verbose))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(abifile.plot_qpgaps(show=False))
+            e(abifile.plot_qps_vs_e0(show=False))
+            e(abifile.plot_ksbands_with_qpmarkers(show=False))
 
     return 0
 
@@ -253,8 +285,8 @@ def abiview_mdf(options):
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-            s(abifile.plot_mdfs(show=False))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(abifile.plot_mdfs(show=False))
 
     return 0
 
@@ -283,9 +315,9 @@ def abiview_gruns(options):
     """Plot Grunesein parameters. Requires GRUNS.nc file."""
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-            s(abifile.plot_phbands_with_gruns(show=False))
-            s(abifile.plot_doses(show=False))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(abifile.plot_phbands_with_gruns(show=False))
+            e(abifile.plot_doses(show=False))
 
     return 0
 
@@ -294,10 +326,10 @@ def abiview_eph(options):
     """Plot Eliashberg function. Requires EPH.nc file."""
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-            s(abifile.plot(show=False))
-            s(abifile.plot_eph_strength(show=False))
-            s(abifile.plot_with_a2f(show=False))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(abifile.plot(show=False))
+            e(abifile.plot_eph_strength(show=False))
+            e(abifile.plot_with_a2f(show=False))
             #abifile.plot_nuterms()
             #abifile.plot_a2()
             #abifile.plot_tc_vs_mustar()
@@ -309,9 +341,9 @@ def abiview_sigeph(options):
     """Plot e-ph self-energy. Requires SIGEPH.nc file."""
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
-        with Slideshow(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as s:
-            s(abifile.plot_qpgaps_t(show=False))
-            s(abifile.plot_qps_vs_e0(show=False))
+        with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
+            e(abifile.plot_qpgaps_t(show=False))
+            e(abifile.plot_qps_vs_e0(show=False))
 
     return 0
 
@@ -334,8 +366,8 @@ Usage example:
 # Text files
 ############
 
-    abiview.py abo run.abo          ==> Plot SCF iterations extracted from Abinit output file.
-    abiview.py log run.log          ==> Print warnings/comments/errors found in Abinit log file.
+    abiview.py abo run.abo   ==> Plot SCF iterations extracted from Abinit output file.
+    abiview.py log run.log   ==> Print warnings/comments/errors found in Abinit log file.
 
 ###########
 # Electrons
@@ -365,8 +397,10 @@ Usage example:
 # GW/BSE
 ########
 
+  abiview.py scr out_SCR.nc              ==> Plot results stored in SCR file (GW code).
   abiview.py sigres out_SIGRES.nc        ==> Plot QP results stored in SIGRES.
   abiview.py mdf out_MDF.nc --seaborn    ==> Plot macroscopic dielectric functions with excitonic effects.
+                                             Use seaborn settings for plots.
 
 ###############
 # Miscelleanous
@@ -398,7 +432,7 @@ def get_parser(with_epilog=False):
               "Possible values: GTKAgg GTK3Agg GTK GTKCairo GTK3Cairo WXAgg WX TkAgg Qt4Agg Qt5Agg macosx. "
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
-    # Parent parser for commands supporting slideshow.
+    # Parent parser for commands supporting MplExpose.
     slide_parser = argparse.ArgumentParser(add_help=False)
     slide_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")
@@ -448,7 +482,7 @@ def get_parser(with_epilog=False):
     p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)
     p_hist.add_argument("-a", "--appname", nargs="?", default=None, const="ovito",
         help=("Application name. Default: ovito. "
-              "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+              "Possible options: `%s`, `mpl` (matplotlib) `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
     p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
 
     # Subparser for abo command.
@@ -485,10 +519,16 @@ def get_parser(with_epilog=False):
     # Subparser for gruns command.
     p_gruns = subparsers.add_parser('gruns', parents=[copts_parser, slide_parser], help=abiview_gruns.__doc__)
 
+    # Subparser for scr command.
+    p_scr = subparsers.add_parser('scr', parents=[copts_parser, slide_parser], help=abiview_scr.__doc__)
+
+    # Subparser for sigres command.
+    p_sigres = subparsers.add_parser('sigres', parents=[copts_parser, slide_parser], help=abiview_sigres.__doc__)
+
     # Subparser for mdf command.
     p_mdf = subparsers.add_parser('mdf', parents=[copts_parser, slide_parser], help=abiview_mdf.__doc__)
 
-    # Subparser for mdf command.
+    # Subparser for optic command.
     p_optic = subparsers.add_parser('optic', parents=[copts_parser, slide_parser], help=abiview_optic.__doc__)
 
     # Subparser for eph command.

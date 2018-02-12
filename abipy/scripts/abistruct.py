@@ -107,7 +107,7 @@ Usage example:
 ###############
 
   abistruct.py visualize FILE -a vesta     => Visualize the structure with vesta (default if -a is not given)
-                                              Supports also ovito, xcrysden, vtk, mayavi. See --help
+                                              Supports also ovito, xcrysden, vtk, mayavi, matplotlib See --help
   abistruct.py ipython FILE                => Read structure from FILE and open it in the Ipython terminal.
   abistruct.py notebook FILE               => Read structure from FILE and generate jupyter notebook.
 
@@ -347,7 +347,7 @@ closest points in this particular structure. This is usually what you want in a 
         help=("Visualize the structure with the specified application. "
               "Requires external app or optional python modules (mayavi, vtk)."))
     p_visualize.add_argument("-a", "--appname", type=str, default="vesta",
-        help=("Application name. Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
+        help=("Application name. Possible options: %s, mpl (matplotlib), mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)

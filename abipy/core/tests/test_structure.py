@@ -128,6 +128,7 @@ class TestStructure(AbipyTest):
             assert si.plot_bz(show=False)
             assert si.plot_bz(pmg_path=False, show=False)
             assert si.plot_xrd(show=False)
+            assert si.plot(show=False)
 
         if self.has_mayavi():
             #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
