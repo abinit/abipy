@@ -25,7 +25,7 @@ TODO list:
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* Rename EPH.nc
+* Rename EPH.nc (A2F.nc, ELI.nc)
 
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
 
@@ -168,3 +168,5 @@ TODO list:
 * lobster interface from Guido
 
 * interface abistruct with marylin
+
+* Remove Prettytable

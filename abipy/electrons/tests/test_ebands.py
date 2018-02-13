@@ -97,6 +97,20 @@ class ElectronBandsTest(AbipyTest):
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
+        assert ni_edos.to_string(verbose=2)
+
+        # Get ElectronDosPlotter with nsppol == 2 and test matplotlib methods.
+        edos_plotter = ni_ebands_kmesh.compare_gauss_edos(widths=[0.2, 0.4], step=0.2)
+        assert len(edos_plotter) == 2
+        if self.has_matplotlib():
+            # Combiplot.
+            assert edos_plotter.combiplot(title="default values", show=False)
+            assert edos_plotter.combiplot(what_list=("dos", "idos"), spin_mode="resolved", show=False)
+            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="resolved", fontsize=12, show=False)
+            # Gridplot
+            assert edos_plotter.gridplot(title="default values", show=False)
+            assert edos_plotter.gridplot(what="idos", spin_mode="resolved", xlims=(-10, 10), show=False)
+            assert edos_plotter.gridplot(e0=0, what="dos", spin_mode="resolved", fontsize=12, show=False)
 
         ni_ebands_kpath = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
 

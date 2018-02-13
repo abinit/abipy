@@ -1059,6 +1059,10 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot(self, **kwargs):
+        """
+        Plot structure with matplotlib. Return matplotlib Figure
+        See plot_structure for kwargs
+        """
         from abipy.tools.plotting import plot_structure
         return plot_structure(self, **kwargs)
 

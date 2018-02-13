@@ -3975,7 +3975,7 @@ class RobotWithPhbands(object):
             nbv.new_code_cell("#robot.plot_phdispl(qpoint=(0, 0, 0));"),
         ]
 
-
+# TODO: PhdosRobot
 class PhbstRobot(Robot, RobotWithPhbands):
     """
     This robot analyzes the results contained in multiple PHBST.nc files.

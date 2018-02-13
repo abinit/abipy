@@ -24,9 +24,7 @@ job: &job
         PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
     modules:
         - intel-para/2015.07
-    # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit unlimited
+    pre_run: "ulimit -s unlimited"
 
 # queues 
 qadapters:

@@ -60,6 +60,10 @@ class SigEPhFileTest(AbipyTest):
         assert np.all(data_sk["spin"] == 0)
         self.assert_almost_equal(data_sk["kpoint"].values[0].frac_coords, [0.5, 0.0, 0.0])
 
+        itemp = 0
+        data_sk = ncfile.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0], itemp=itemp)
+        self.assert_equal(data_sk["tmesh"].values, ncfile.tmesh[itemp])
+
         data = ncfile.get_dataframe()
         assert "ze0" in data
 

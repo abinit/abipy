@@ -101,6 +101,8 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
     def get_dataframe(self, index=None, params=None):
         """
+        Build pandas dataframe with QP data
+
         Args:
             index: dataframe index.
             params: Optional (Ordered) dictionary with extra parameters.
@@ -689,13 +691,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return pd.concat(df_list)
 
-    def get_dataframe_sk(self, spin, kpoint, index=None, with_params=True, ignore_imag=False):
+    def get_dataframe_sk(self, spin, kpoint, itemp=None, index=None, with_params=True, ignore_imag=False):
         """
         Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
 
         Args:
             spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            itemp: Temperature index, if None all temperatures are returned.
             index: dataframe index.
             with_params: False to exclude calculation parameters from the dataframe.
             ignore_imag: Only real part is returned if ``ignore_imag``.
@@ -708,7 +711,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # Convert to dataframe and add other entries useful when comparing different calculations.
             rows.append(qp.get_dataframe(params=self.params if with_params else None))
 
-        return pd.concat(rows)
+        df = pd.concat(rows)
+        if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
+        return df
 
     #def get_dirgaps_dataframe(self):
 
@@ -1033,7 +1038,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_qpgaps_t(self, plot_qpmks=False, sortby=None, hue=None, fontsize=8, **kwargs):
         """
-        Compare the QP(T) direct gaps for all the k-points available on file.
+        Compare the QP(T) direct gaps for all the k-points available in the robot.
 
         Args:
             plot_qpmks: If True, plot QP_gap - KS_gap
@@ -1054,7 +1059,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             ax_list = None
             for i, ((label, ncfile, param), lineopt) in enumerate(zip(self.sortby(sortby), self.iter_lineopt())):
                 fig = ncfile.plot_qpgaps_t(ax_list=ax_list, plot_qpmks=plot_qpmks,
-                    label=label, show=False, fontsize=fontsize, **lineopt)
+                    label=label if i == 0 else None, show=False, fontsize=fontsize, **lineopt)
                 ax_list = fig.axes
         else:
             # (nkcalc, ngroups) subplots
@@ -1074,13 +1079,18 @@ class SigEPhRobot(Robot, RobotWithEbands):
                     for ax in ax_mat[:, ig]:
                         set_visible(ax, False, "ylabel")
 
+            # Hide legends except first one
+            if nrows > 1:
+                for ax in ax_mat[1:, :].ravel():
+                    set_visible(ax, False, "legend")
+
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, itemp=0, sortby=None, hue=None, fontsize=8, **kwargs):
+    def plot_qpgaps_convergence(self, itemp=0, sortby=None, hue=None, plot_qpmks=False, fontsize=8, **kwargs):
         """
         Plot the convergence of the direct QP gaps at given temperature
-        for all the k-points available on file.
+        for all the k-points treated by the robot.
 
         Args:
             itemp: Temperature index.
@@ -1093,6 +1103,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
+            plot_qpmks: If True, plot QP_gap - KS_gap
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1105,7 +1116,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(sigma_kpoints)
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+                                                sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
         if hue is None:
@@ -1113,26 +1124,33 @@ class SigEPhRobot(Robot, RobotWithEbands):
         else:
             groups = self.group_and_sortby(hue, sortby)
 
+        name = "QP dirgap" if not plot_qpmks else "QP-KS dirgap"
         for ik, (kpt, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
-                ax.set_title("QP dirgap k:%s, T = %.1f K" % (repr(kpt), nc0.tmesh[itemp]), fontsize=fontsize)
+                ax.set_title("%s k:%s, T = %.1f K" % (
+                    name, repr(kpt), nc0.tmesh[itemp]), fontsize=fontsize)
 
                 # Extract QP dirgap for [spin, kpt, itemp]
                 if hue is None:
                     yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in ncfiles]
+                    if plot_qpmks:
+                        yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ik] for ncfile in ncfiles])
                     ax.plot(params, yvals, marker=nc0.marker_spin[spin])
                 else:
                     for g in groups:
                         yvals = [ncfile.qp_dirgaps_t[spin, ik, itemp] for ncfile in g.abifiles]
+                        if plot_qpmks:
+                            yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ik] for ncfile in g.abifiles])
                         label = "%s: %s" % (self._get_label(hue), g.hvalue)
                         ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
 
             ax.grid(True)
+            ax.set_ylabel("%s [eV]" % name)
             if ik == len(sigma_kpoints) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            ax.set_ylabel("QP direct gap [eV]")
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            if hue is not None:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -1201,14 +1219,15 @@ class SigEPhRobot(Robot, RobotWithEbands):
                     # Extract QP data.
                     yvals = [getattr(qp, what)[itemp] for qp in qplist]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                    ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+                    ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin],
+                            label=label if i == 0 else None)
 
             ax.grid(True)
             ax.set_ylabel(what)
             if i == len(what_list) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            if i == 0:
+            if i == 0 and hue is not None:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         if "title" not in kwargs:

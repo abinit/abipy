@@ -22,12 +22,12 @@ job: &job
     mpi_runner: mpirun
     shell_env:
          PATH: /home/users/g/m/gmatteo/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH
-    pre_run: |
-        ulimit -s unlimited  # pre_run is a string in verbatim mode (note |)
-        export OMP_NUM_THREADS=1
-        unset SLURM_CPUS_PER_TASK
-        module purge
-        module load gompi/2016a FFTW/3.3.4-gompi-2016a
+    pre_run: 
+        - "ulimit -s unlimited" 
+        - "export OMP_NUM_THREADS=1"
+        - "unset SLURM_CPUS_PER_TASK"
+        - "module purge"
+        - "module load gompi/2016a FFTW/3.3.4-gompi-2016a"
 
 #policy:
 #   frozen_timeout: 0-12:0:0

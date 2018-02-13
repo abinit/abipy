@@ -11,9 +11,7 @@ job: &job
         PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH"
     modules: # Abinit compiled with abiconfig settings
         - openmpi/1.6.5/intel-13.0.1.117
-    # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit unlimited
+    pre_run: "ulimit -s unlimited"
 
 # queues 
 qadapters:

@@ -155,7 +155,7 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
     Args:
         structure: |Structure| object
         frac_coords:
-        to_unit_cell: True if sites should be wrapped to the first unit cell.
+        to_unit_cell: True if sites should be wrapped into the first unit cell.
         style: "points+labels" to show atoms sites with labels.
         unit_cell_color:
         color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")

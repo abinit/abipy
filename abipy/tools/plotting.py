@@ -484,7 +484,7 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
         structure: Structure object
         ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
         alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-        to_unit_cell: True if sites should be wrapped to the first unit cell.
+        to_unit_cell: True if sites should be wrapped into the first unit cell.
         style: "points+labels" to show atoms sites with labels.
         color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
 
