@@ -1604,7 +1604,7 @@ class ElectronBands(Has_Structure):
     @add_fig_kwargs
     def plot(self, ax=None, klabels=None, band_range=None, e0="fermie", ylims=None, **kwargs):
         r"""
-        Plot the band structure.
+        Plot the electronic band structure.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2942,6 +2942,16 @@ class ElectronDos(object):
         #print("mu linear", mu)
         return mu
 
+    @lazy_property
+    def up_minus_down(self):
+        """
+        Function1D with dos_up - dos_down
+        """
+        if self.nsppol == 1: # DOH!
+            return Function1D.from_constant(self.spin_dos[0].mesh, 0.0)
+        else:
+            return self.spin_dos[0] - self.spin_dos[1]
+
     def get_e0(self, e0):
         """
         e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -2966,7 +2976,7 @@ class ElectronDos(object):
             # Assume number
             return float(e0)
 
-    def plot_ax(self, ax, e0, spin=None, what="d", fact=1.0, exchange_xy=False, **kwargs):
+    def plot_ax(self, ax, e0, spin=None, what="dos", fact=1.0, exchange_xy=False, **kwargs):
         """
         Helper function to plot the DOS data on the axis ``ax``.
 
@@ -2974,30 +2984,25 @@ class ElectronDos(object):
             ax: |matplotlib-Axes|.
             e0: Option used to define the zero of energy in the band structure plot.
             spin: selects the spin component, None for total DOS, IDOS.
-            what: string selecting what will be plotted:
-                "d" for DOS, "i" for IDOS. chars can be concatenated
-                hence what="id" plots both IDOS and DOS. (default "d").
+            what: string selecting what will be plotted. "dos" for DOS, "idos" for IDOS
             fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
             exchange_xy: True to exchange x-y axis.
             kwargs: Options passed to matplotlib ``ax.plot``
 
-        Return: list of lines added to the axis.
+        Return: list of lines added to the axis ax.
         """
-        opts = [c.lower() for c in what]
         dosf, idosf = self.dos_idos(spin=spin)
         e0 = self.get_e0(e0)
 
+        w2f = {"dos": dosf, "idos": idosf}
+        if what not in w2f:
+            raise ValueError("Unknown value for what: `%s`" % str(what))
+        f = w2f[what]
+
+        xx, yy = f.mesh - e0, f.values * fact
+        if exchange_xy: xx, yy = yy, xx
         lines = []
-        for c in opts:
-            if c == "d":
-                f = dosf
-            elif c == "i":
-                f = idosf
-            else:
-                raise ValueError("Unknown value for what: `%s`" % str(c))
-            xx, yy = f.mesh - e0, f.values * fact
-            if exchange_xy: xx, yy = yy, xx
-            lines.extend(ax.plot(xx, yy, **kwargs))
+        lines.extend(ax.plot(xx, yy, **kwargs))
 
         return lines
 
@@ -3085,15 +3090,15 @@ class ElectronDos(object):
                 opts = {"color": "red", "linewidth": 1.0}
             # Plot Total dos if unpolarized.
             if self.nsppol == 1: spin = None
-            self.plot_ax(ax_list[0], e0, spin=spin, what="i", **opts)
-            self.plot_ax(ax_list[1], e0, spin=spin, what="d", **opts)
+            self.plot_ax(ax_list[0], e0, spin=spin, what="idos", **opts)
+            self.plot_ax(ax_list[1], e0, spin=spin, what="dos", **opts)
 
         return fig
 
     @add_fig_kwargs
     def plot_up_minus_down(self, e0="fermie", ax=None, xlims=None, **kwargs):
         """
-        Plot DOS
+        Plot Dos_up -Dow_down
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -3107,11 +3112,8 @@ class ElectronDos(object):
 
         Return: |matplotlib-Figure|
         """
-        if self.nsppol == 1: # DOH!
-            dos_diff = Function1D.from_constant(self.spin_dos[0].mesh, 0.0)
-        else:
-            dos_diff = self.spin_dos[0] - self.spin_dos[1]
-        idos_diff= dos_diff.integral()
+        dos_diff = self.up_minus_down
+        idos_diff = dos_diff.integral()
 
         e0 = self.get_e0(e0)
         if not kwargs:
@@ -3123,7 +3125,7 @@ class ElectronDos(object):
 
         ax.grid(True)
         set_axlims(ax, xlims, "x")
-        #ax.set_ylabel('DOS (UP - DOWN)')
+        ax.set_ylabel('Dos_up - Dos_down [states/eV]')
         ax.set_xlabel('Energy [eV]')
 
         return fig
@@ -3211,7 +3213,6 @@ class ElectronDosPlotter(NotebookWriter):
 
         can_use_basename = self._can_use_basenames_as_labels()
         for i, (what, ax) in enumerate(zip(what_list, ax_list)):
-            wax = dict(dos="d", idos="i")[what]
             for label, edos in self.edoses_dict.items():
                 if can_use_basename:
                     label = os.path.basename(label)
@@ -3222,14 +3223,14 @@ class ElectronDosPlotter(NotebookWriter):
                 # Here I handle spin and spin_mode.
                 if edos.nsppol == 1 or spin_mode == "total":
                     # Plot total values
-                    edos.plot_ax(ax, e0, what=wax, spin=None, label=label)
+                    edos.plot_ax(ax, e0, what=what, spin=None, label=label)
 
                 elif spin_mode == "resolved":
                     # Plot spin resolved quantiies with sign.
                     # Note get_color to have same color for both spins.
                     for spin in range(edos.nsppol):
                         fact = 1 if spin == 0 else -1
-                        lines = edos.plot_ax(ax, e0, what=wax, spin=spin, fact=fact,
+                        lines = edos.plot_ax(ax, e0, what=what, spin=spin, fact=fact,
                             color=None if spin == 0 else lines[0].get_color(),
                             label=label if spin == 0 else None)
                 else:
@@ -3292,22 +3293,20 @@ class ElectronDosPlotter(NotebookWriter):
         # don't show the last ax if numeb is odd.
         if numeb % ncols != 0: ax_list[-1].axis("off")
 
-        wax = dict(dos="d", idos="i")[what]
-
         for i, ((label, edos), ax) in enumerate(zip(self.edoses_dict.items(), ax_list)):
             irow, icol = divmod(i, ncols)
 
             # Here I handle spin and spin_mode.
             if edos.nsppol == 1 or spin_mode == "total":
                 opts = {"color": "black", "linewidth": 1.0}
-                edos.plot_ax(ax, e0=e0, what=wax, spin=None, **opts)
+                edos.plot_ax(ax, e0=e0, what=what, spin=None, **opts)
 
             elif spin_mode == "resolved":
                 # Plot spin resolved quantiies with sign.
                 # Note get_color to have same color for both spins.
                 for spin in range(edos.nsppol):
                     fact = 1 if spin == 0 else -1
-                    lines = edos.plot_ax(ax, e0, what=wax, spin=spin, fact=fact,
+                    lines = edos.plot_ax(ax, e0, what=what, spin=spin, fact=fact,
                         color=None if spin == 0 else lines[0].get_color(),
                         label=label if spin == 0 else None)
             else:

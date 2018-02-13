@@ -267,6 +267,8 @@ class ElectronBandsTest(AbipyTest):
         tot_d, tot_i = si_edos.dos_idos()
         self.assert_almost_equal(2 * d.values, tot_d.values)
         self.assert_almost_equal(2 * i.values, tot_i.values)
+        self.assert_equal(si_edos.up_minus_down.mesh, si_edos.tot_dos.mesh)
+        self.assert_equal(si_edos.up_minus_down.values, 0)
 
         # Test ElectronDos get_e0
         assert si_edos.get_e0("fermie") == si_edos.fermie

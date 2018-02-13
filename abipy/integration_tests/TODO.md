@@ -170,3 +170,5 @@ TODO list:
 * interface abistruct with marylin
 
 * Remove Prettytable
+
+* context manager to change variables (e.g. autoparal)
