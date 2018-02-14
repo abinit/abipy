@@ -179,7 +179,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         emlf = self.reader.read_emacro_lf()
         xx, yy = emlf.mesh * pmgu.Ha_to_eV, emlf.values
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         for c in cplx_mode.lower().split("-"):
             ax.plot(xx, data_from_cplx_mode(c, yy),
                     color=_COLOR_CMODE[c], linewidth=kwargs.get("linewidth", 2),
@@ -209,7 +209,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         eelf = self.reader.read_eelf()
         xx, yy = eelf.mesh * pmgu.Ha_to_eV, eelf.values
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.plot(xx, yy, linewidth=kwargs.get("linewidth", 2),
                 linestyle=kwargs.get("linestyle", "solid"), label="EELF")
 
@@ -586,7 +586,7 @@ class _AwggMatrix(object):
         ig1 = self.gindex(gvec1)
         ig2 = ig1 if gvec2 is None else self.gindex(gvec2)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         if waxis == "real":
             if self.nrew == 0: return fig
             xx = self.real_wpoints.real * pmgu.Ha_to_eV

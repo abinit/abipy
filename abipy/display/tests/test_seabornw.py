@@ -3,7 +3,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import numpy as np
 import pandas as pd
-import seaborn.apionly as sns
+import seaborn as sns
 import abipy.display.seabornw as snw
 
 from abipy.core.testing import AbipyTest

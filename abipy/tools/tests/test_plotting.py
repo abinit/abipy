@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import numpy as np
 
+from abipy import abilab
 from abipy.tools.plotting import *
 from abipy.core.testing import AbipyTest
 
@@ -84,6 +85,7 @@ class TestPlotting(AbipyTest):
         assert len(plotter) == 0
         hello = np.ones((5, 2), dtype=np.complex)
         plotter.add_array("hello", hello)
+        assert "hello" in plotter.keys()
         with self.assertRaises(ValueError):
             plotter.add_array("hello", hello)
 
@@ -118,3 +120,11 @@ class TestPlotting(AbipyTest):
         with self.assertRaises(TypeError):
             x.append(-1)
             marker.extend((x, y, s))
+
+    def test_plot_cell_tools(self):
+        """Testing plot_unit_cell."""
+        lattice = abilab.Lattice.hexagonal(a=2, c=4)
+
+        if self.has_matplotlib():
+            fig, ax = plot_unit_cell(lattice, ax=None, linestyle="-")
+            assert hasattr(fig, "show")

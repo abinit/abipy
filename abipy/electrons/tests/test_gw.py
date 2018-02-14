@@ -60,9 +60,13 @@ class TestQPList(AbipyTest):
         # Test QPState object.
         qp = qplist[0]
         repr(qp); str(qp)
-        #qp.to_string(verbose=verbose, title="QP State")
-        print(qp.tips)
+        #qp.to_string(verbose=2, title="QP State")
+        assert str(qp.tips)
+        assert qp.spin == 0
+        assert qp.kpoint == self.sigres.gwkpoints[0]
+        assert qp.kpoint is self.sigres.gwkpoints[0]
 
+        self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
         self.assert_almost_equal(qp.e0, -5.04619941555265, decimal=5)
         self.assert_almost_equal(qp.qpe.real, -4.76022137474714)
         self.assert_almost_equal(qp.qpe.imag, -0.011501666037697)
@@ -75,6 +79,7 @@ class TestSigresFile(AbipyTest):
         for path in abidata.SIGRES_NCFILES:
             with abilab.abiopen(path) as sigres:
                 repr(sigres); str(sigres)
+                assert sigres.to_string(verbose=2)
                 assert len(sigres.structure)
 
     def test_base(self):
@@ -87,6 +92,10 @@ class TestSigresFile(AbipyTest):
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6
         assert sigres.gwkpoints == sigres.ibz
+        # No spectral function
+        assert not sigres.reader.has_spfunc
+        with self.assertRaises(ValueError):
+            sigres.read_sigee_skb(0, 0, 0)
 
         kptgw_coords = np.reshape([
             -0.25, -0.25, 0,
@@ -119,17 +128,46 @@ class TestSigresFile(AbipyTest):
         assert marker and len(marker.x)
 
         if self.has_matplotlib():
-            sigres.plot_qps_vs_e0(show=False)
+            assert sigres.plot_qps_vs_e0(fontsize=8, e0=1.0, xlims=(-10, 10), show=False)
             with self.assertRaises(ValueError):
                 sigres.plot_qps_vs_e0(with_fields="qqeme0", show=False)
-            sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
-            sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
-            sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
+            assert sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
+            assert sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
+            assert sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
+
+            assert sigres.plot_eigvec_qp(spin=0, kpoint=0, show=False)
+            assert sigres.plot_eigvec_qp(spin=0, kpoint=None, show=False)
+
+            assert sigres.plot_qpgaps(plot_qpmks=True, show=False)
+            assert sigres.plot_qpgaps(plot_qpmks=False, show=False)
 
         if self.has_nbformat():
             sigres.write_notebook(nbpath=self.get_tmpname(text=True))
 
         sigres.close()
+
+    def test_sigres_with_spectral_function(self):
+        """Test methods to plot spectral function from SIGRES."""
+        filepath = abidata.ref_file("al_g0w0_sigmaw_SIGRES.nc")
+        with abilab.abiopen(filepath) as sigres:
+            assert sigres.reader.has_spfunc
+            sigma = sigres.read_sigee_skb(spin=0, kpoint=(0, 0, 0), band=0)
+            repr(sigma); str(sigma)
+            assert sigma.to_string(verbose=2)
+
+            if self.has_matplotlib():
+                assert sigma.plot(what_list="spfunc", xlims=(-10, 10), fontsize=12, show=False)
+                assert sigres.plot_spectral_functions(show=False)
+                assert sigres.plot_spectral_functions(include_bands=range(0, 4), show=False)
+
+            with abilab.SigresRobot() as robot:
+                robot.add_file("foo", filepath)
+                robot.add_file("same", filepath)
+                if self.has_matplotlib():
+                    assert robot.plot_selfenergy_conv(0, (0.5, 0, 0), band=3, show=False)
+                    assert robot.plot_selfenergy_conv(0, (0.5, 0, 0), band=3, sortby="nkpt", hue="nband", show=False)
+                    with self.assertRaises(AttributeError):
+                        assert robot.plot_selfenergy_conv(0, (0.5, 0, 0), band=3, sortby="foonkpt", hue="nband", show=False)
 
     def test_interpolator(self):
         """Test QP interpolation."""
@@ -178,8 +216,8 @@ class TestSigresFile(AbipyTest):
         plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
 
         if self.has_matplotlib():
-            plotter.combiplot(title="Silicon band structure", show=False)
-            plotter.gridplot(title="Silicon band structure", show=False)
+            assert plotter.combiplot(title="Silicon band structure", show=False)
+            assert plotter.gridplot(title="Silicon band structure", show=False)
 
         sigres.close()
 
@@ -219,11 +257,11 @@ class SigresRobotTest(AbipyTest):
         assert abilab.SigresRobot.class_handles_filename(filepaths[0])
         assert len(filepaths) == 3
 
-        with abilab.SigresRobot.from_files(filepaths) as robot:
+        with abilab.SigresRobot.from_files(filepaths, abspath=True) as robot:
             assert robot.start is None
             start = robot.trim_paths(start=None)
             assert robot.start == start
-            for p, _ in robot:
+            for p, _ in robot.items():
                 assert p == os.path.relpath(p, start=start)
 
             assert robot.EXT == "SIGRES"
@@ -231,7 +269,7 @@ class SigresRobotTest(AbipyTest):
             assert robot.to_string(verbose=2)
             assert robot._repr_html_()
 
-            df_params = robot.get_dataframe_params()
+            df_params = robot.get_params_dataframe()
             self.assert_equal(df_params["nsppol"].values, 1)
 
             label_ncfile_param = robot.sortby("nband")
@@ -242,6 +280,24 @@ class SigresRobotTest(AbipyTest):
             df_sk = robot.merge_dataframes_sk(spin=0, kpoint=[0, 0, 0])
             qpdata = robot.get_qpgaps_dataframe(with_geo=True)
 
+            # Test plotting methods.
+            if self.has_matplotlib():
+                assert robot.plot_qpgaps_convergence(plot_qpmks=False, sortby=None, hue=None, show=False)
+                assert robot.plot_qpgaps_convergence(plot_qpmks=True, sortby="nband", hue="ecuteps", show=False)
+
+                assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3, show=False)
+                assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=5,
+                        sortby="sigma_nband", hue="ecuteps", show=False)
+                with self.assertRaises(TypeError):
+                    robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=5,
+                            sortby="sigma_nband", hue="fooecueps", show=False)
+
+                # Test plot_qpfield_vs_e0
+                assert robot.plot_qpfield_vs_e0("qpeme0", sortby=None, hue=None, e0="fermie",
+                        colormap="viridis", show=False)
+                assert robot.plot_qpfield_vs_e0("ze0", itemp=1, sortby="ebands.nkpt", hue="scr_nband",
+                        colormap="viridis", show=False)
+
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
@@ -250,3 +306,7 @@ class SigresRobotTest(AbipyTest):
             robot.pop_label("foobar")
             new2old = robot.change_labels(["hello", "world"], dryrun=True)
             assert len(new2old) == 2 and "hello" in new2old
+
+            new2old = robot.remap_labels(lambda af: af.filepath, dryrun=False)
+            assert len(new2old) == 2
+            assert all(key == abifile.filepath for key, abifile in robot.items())

@@ -428,6 +428,13 @@ def abicomp_ddb(options):
     return _invoke_robot(options)
 
 
+def abicomp_phbst(options):
+    """
+    Compare multiple PHBST.nc files.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_sigres(options):
     """
     Compare multiple SIGRES files.
@@ -518,6 +525,7 @@ def _invoke_robot(options):
     # To define an Help action
     # http://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output?rq=1
     paths = options.paths
+    #print(paths)
 
     if os.path.isdir(paths[0]):
         # Assume directory.
@@ -540,17 +548,13 @@ def _invoke_robot(options):
         cprint("Warning: robot is empty. No file found", "red")
         return 1
 
-    if options.ipython:
-        import IPython
-        IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
-                      robot=robot)
-
-    elif options.notebook:
+    if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground)
 
-    else:
-        #df = robot.get_dataframe_params()
-        #abilab.print_dataframe(df, title="Output of robot.get_dataframe_params():")
+    elif options.print:
+        robot.trim_paths()
+        #df = robot.get_params_dataframe()
+        #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
 
         # Print dataframe if robot provides get_dataframe method.
         if hasattr(robot, "get_dataframe"):
@@ -568,6 +572,13 @@ def _invoke_robot(options):
 
         if not options.verbose:
             print("\nUse --verbose for more information")
+
+    #elif options.ipython:
+    else:
+        import IPython
+        robot.trim_paths()
+        IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
+                      robot=robot)
 
     return 0
 
@@ -609,11 +620,12 @@ def abicomp_time(options):
     Analyze/plot the timing data of single or multiple runs.
     """
     paths = options.paths
+    from abipy.abio.timer import AbinitTimerParser
 
     if len(options.paths) == 1 and os.path.isdir(paths[0]):
         top = options.paths[0]
         print("Walking directory tree from top:", top, "Looking for file extension:", options.ext)
-        parser, paths_found, okfiles = abilab.AbinitTimerParser.walk(top=top, ext=options.ext)
+        parser, paths_found, okfiles = AbinitTimerParser.walk(top=top, ext=options.ext)
 
         if not paths_found:
             cprint("Empty file list!", color="magenta")
@@ -626,7 +638,7 @@ def abicomp_time(options):
             for bad in badfiles: print(bad)
 
     else:
-        parser = abilab.AbinitTimerParser()
+        parser = AbinitTimerParser()
         okfiles = parser.parse(options.paths)
 
         if okfiles != options.paths:
@@ -688,6 +700,7 @@ Usage example:
 #########
 
   abicomp.py phbands *_PHBST.nc -nb             => Compare phonon bands in the jupyter notebook.
+  abicomp.py phbst *_PHBST.nc -ipy              => Compare phonon bands with robot in ipython terminal.
   abicomp.py phdos *_PHDOS.nc -nb               => Compare phonon DOSes in the jupyter notebook.
   abicomp.py ddb outdir1 outdir2 out_DDB -nb    => Analyze all DDB files in directories outdir1, outdir2 and out_DDB file.
 
@@ -725,12 +738,35 @@ Usage example:
                                                      parse timing data and plot results.
   abicomp.py text run1.abo run2.abo               => Produce diff of 2+ text files in the browser.
 
-TIP: Use Unix find to select all files with the a given extension and pass them to abicomp.py:
-For instance:
+TIP:
+
+The python code operates on a list of files/directories passed via the command line interface.
+The arguments are interpreted by the shell before invoking the script.
+This means that one can use the bash syntax and the unix tools to precompute the list of files/directories.
+
+For example, one can use Unix find to select all files with the a given extension and pass them to abicomp.py.
+For command:
 
     abicomp.py structure `find . -name "*_GSR.nc"`
 
-will compare the structurs extracted from all GSR.nc files found within the current working directory (note backticks).
+will compare the structures extracted from all GSR.nc files found within the current working directory (note backticks).
+
+Also, remember that in bash {#..#} generates a sequence of numbers or chars, similarly to range() in Python
+For instance:
+
+    {1..5} --> 1 2 3 4 5
+
+and this trick can be used to select files/directories as in:
+
+    abicomp.py structure w1/t{2..4}/outdata/*_GSR.nc
+
+The [!name] syntax can be used to exclude patterns, so
+
+    abicomp.py structure w1/t[!2]*/outdata/*_GSR.nc
+
+excludes all the GSR.nc files in the t2/outdata directory.
+
+See also http://wiki.bash-hackers.org/syntax/pattern
 
 NOTE: The `gsr`, `ddb`, `sigres`, `mdf` commands use robots to analyze files.
 In this case, one can provide a list of files and/or list of directories on the command-line interface e.g.:
@@ -849,10 +885,20 @@ def get_parser(with_epilog=False):
     p_getattr.add_argument('--list', default=False, action="store_true", help="Print attributes available in file")
 
     # Subparser for robot commands
-    robot_parents = [copts_parser, ipy_parser, robot_parser]
+    # Use own version of ipy_parser with different default values.
+    robot_ipy_parser = argparse.ArgumentParser(add_help=False)
+    robot_ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    robot_ipy_parser.add_argument('--foreground', action='store_true', default=False,
+        help="Run jupyter notebook in the foreground.")
+    #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
+    robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
+
+    #robot_parents = [copts_parser, ipy_parser, robot_parser]
+    robot_parents = [copts_parser, robot_ipy_parser, robot_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
+    p_phbst = subparsers.add_parser('phbst', parents=robot_parents, help=abicomp_phbst.__doc__)
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)

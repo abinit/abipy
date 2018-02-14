@@ -13,7 +13,7 @@ from abipy.core import Mesh3D
 from abipy.core.kpoints import Kpoint
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 
 
 __all__ = [
@@ -70,7 +70,7 @@ class WaveFunction(object):
 
     @property
     def kpoint(self):
-        """:class:`Kpoint` object"""
+        """|Kpoint| object"""
         return self.gsphere.kpoint
 
     @property
@@ -160,7 +160,7 @@ class WaveFunction(object):
         Returns u(G) on the FFT mesh
 
         Args:
-            mesh: :class:`Mesh3d` object. If mesh is None, the internal mesh is used.
+            mesh: |Mesh3d| object. If mesh is None, the internal mesh is used.
         """
         mesh = self.mesh if mesh is None else mesh
         return self.gsphere.tofftmesh(mesh, self.ug)
@@ -171,7 +171,7 @@ class WaveFunction(object):
         differen mesh. Data on the initial mesh is already available in `self.ur`
 
         Args:
-            mesh: :class:`Mesh3d` object.
+            mesh: |Mesh3d| object.
             copy: By default, we return a copy of ur if mesh == self.mesh.
         """
         if mesh == self.mesh:
@@ -184,7 +184,7 @@ class WaveFunction(object):
         Performs the FFT transform of :math:`u(g)` on mesh.
 
         Args:
-            mesh: :class:`Mesh3d` object. If mesh is None, self.mesh is used.
+            mesh: |Mesh3d| object. If mesh is None, self.mesh is used.
 
         Returns:
             :math:`u(r)` on the real space FFT box.
@@ -233,7 +233,7 @@ class PWWaveFunction(WaveFunction):
             nspinor: number of spinorial components.
             spin: spin index (only used if collinear-magnetism).
             band: band index (>=0)
-            gsphere :class:`GSphere` instance.
+            gsphere |GSphere| instance.
             ug: 2D array containing u[nspinor,G] for G in gsphere.
         """
         self.structure = structure
@@ -455,16 +455,17 @@ class PWWaveFunction(WaveFunction):
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes (one row for neighbor)
-        import matplotlib.pyplot as plt
-        nrows = len(nn_list)
-        fig, axlist = plt.subplots(nrows=nrows, ncols=1, sharex=True, sharey=True, squeeze=True)
+        nrows, ncols = len(nn_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=True)
+        ax_list = ax_list.ravel()
 
         interpolator = self.get_interpolator()
         kpoint = None if not with_krphase else self.kpoint
         which = r"\psi(r)" if with_krphase else "u(r)"
 
         # For each neighbor, plot psi along the line connecting site to nn.
-        for i, (nn, ax) in enumerate(zip(nn_list, axlist)):
+        for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
             nn_site, nn_dist, nn_sc_index  = nn
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 

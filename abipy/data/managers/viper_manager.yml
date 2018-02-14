@@ -7,9 +7,9 @@ hardware: &hardware
 job: &job
     mpi_runner: ~/bin/mpirun.openmpi
     # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit -s unlimited
-        source ~/.bashrc
+    pre_run: 
+        - "ulimit -s unlimited"
+        - "source ~/.bashrc"
 
 # queues 
 qadapters:

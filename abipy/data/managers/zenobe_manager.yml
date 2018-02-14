@@ -20,8 +20,7 @@ job: &job
         - compiler/intel/composerxe/2013_sp1.1.106
         - intelmpi
         - python/2.7
-    pre_run: |
-        ulimit  # pre_run is a string in verbatim mode (note |)
+    pre_run: "ulimit -s unlimited"
 
 # List of qdapters. 
 qadapters:

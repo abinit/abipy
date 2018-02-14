@@ -141,7 +141,7 @@ class GSRFileTestCase(AbipyTest):
                 gsr.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
-class GstRobotTest(AbipyTest):
+class GsrRobotTest(AbipyTest):
 
     def test_gsr_robot(self):
         """Testing GSR robot"""
@@ -150,8 +150,11 @@ class GstRobotTest(AbipyTest):
         robot = abilab.GsrRobot()
         robot.add_file("gsr0", gsr_path)
         assert len(robot.abifiles) == 1
+        assert "gsr0" in robot.keys()
+        assert "gsr0" in robot.labels
         assert robot.EXT == "GSR"
         repr(robot); str(robot)
+        assert robot.to_string(verbose=2)
 
 	# Cannot have same label
         with self.assertRaises(ValueError):
@@ -164,7 +167,10 @@ class GstRobotTest(AbipyTest):
         with self.assertRaises(AttributeError):
             robot.is_sortable("foobar", raise_exc=True)
         assert not robot.is_sortable("foobar")
-        assert robot.is_sortable("nkpt")
+        # Test different syntax.
+        assert robot.is_sortable("nkpt")         # gsr.nkpt
+        assert robot.is_sortable("ebands.nkpt")  # gsr.ebands.nkpt
+        assert robot.is_sortable("ecut")         # in gsr.params
 
         dfs = robot.get_structure_dataframes()
         assert dfs.lattice is not None
@@ -187,9 +193,12 @@ class GstRobotTest(AbipyTest):
 
             assert robot.plot_gsr_convergence(show=False)
             assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+            y_vars = ["energy", "structure.lattice.a", "structure.volume"]
+            assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", show=False)
 
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")
+            assert robot.gridplot_with_hue("structure.formula", show=False)
 
 	# Get pandas dataframe.
         df = robot.get_dataframe()
@@ -197,11 +206,14 @@ class GstRobotTest(AbipyTest):
         self.assert_equal(df["ecut"].values, 6.0)
         self.assert_almost_equal(df["energy"].values, -241.2364683)
 
-        df_params = robot.get_dataframe_params()
+        df_params = robot.get_params_dataframe()
         assert "nband" in df_params
 
         assert "angle1" in robot.get_lattice_dataframe()
         assert hasattr(robot.get_coords_dataframe(), "keys")
+
+        eterms_df = robot.get_energyterms_dataframe(iref=0)
+        assert "energy" in eterms_df
 
         if self.has_matplotlib():
             assert robot.plot_xy_with_hue(df, x="nkpt", y="pressure", hue="a", show=False)

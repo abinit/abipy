@@ -35,6 +35,8 @@ class HistFileTest(AbipyTest):
         #self.assert_almost_equal(cart_forces_step[0], [
         #    6.42133418983323e-32, -1.92640025694997e-31, 6.42133418983323e-32,
         #   -6.42133418983323e-32, 1.92640025694997e-31, -6.42133418983323e-32])
+        fred = hist.reader.read_reduced_forces()
+        assert fred.shape == cart_forces_step.shape
 
         # Cartesian components of stress tensor (hartree/bohr^3)
         #  sigma(1 1)=  5.01170783E-08  sigma(3 2)=  0.00000000E+00
@@ -98,7 +100,8 @@ class HistFileTest(AbipyTest):
                 for what in robot.what_list:
                     assert robot.gridplot(what=what, show=False)
                     assert robot.combiplot(show=False)
-                assert robot.plot_lattice_convergence(show=False)
+                assert robot.plot_lattice_convergence(fontsize=10, show=False)
+                assert robot.plot_lattice_convergence(what_list=("a", "alpha"), show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

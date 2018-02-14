@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 r"""
-Band structure flow
-===================
+Starting a Flow from external files
+===================================
 
-Flow for computing the band structure of silicon.
+This example shows how to build a flow for Nscf calculations
+in which the dependency is given by an external density file.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
@@ -21,11 +22,12 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     # Global variables
     ecut = 6
-    global_vars = dict(ecut=ecut,
-                       nband=8,
-                       nstep=15,
-                       paral_kgb=paral_kgb,
-                    )
+    global_vars = dict(
+        ecut=ecut,
+        nband=8,
+        nstep=15,
+        paral_kgb=paral_kgb,
+    )
 
     if multi.ispaw:
         global_vars.update(pawecutdg=2*ecut)
@@ -33,7 +35,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
     multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
@@ -68,8 +70,8 @@ def build_flow(options):
     # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
     work = flowtk.Work()
-    denfile = abidata.ref_file("si_DEN.nc")
-    work.register(nscf_input, deps={denfile: "DEN"})
+    den_filepath = abidata.ref_file("si_DEN.nc")
+    work.register_nscf_task(nscf_input, deps={den_filepath: "DEN"})
     flow.register_work(work)
 
     return flow
@@ -77,7 +79,7 @@ def build_flow(options):
 
 # This block generates the thumbnails in the Abipy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
-if os.getenv("GENERATE_SPHINX_GALLERY", False):
+if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
@@ -91,9 +93,7 @@ def main(options):
     flow_main is a decorator implementing the command line interface.
     Command line args are stored in `options`.
     """
-    flow = build_flow(options)
-    flow.build_and_pickle_dump()
-    return flow
+    return build_flow(options)
 
 
 if __name__ == "__main__":

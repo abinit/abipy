@@ -1,10 +1,12 @@
 from __future__ import print_function, division, absolute_import, unicode_literals
 
+import numpy as np
+
 from abipy.tools.numtools import *
 from abipy.core.testing import AbipyTest
 
 
-class TestTools(AbipyTest):
+class TestNumTools(AbipyTest):
     """Test numtools."""
 
     def test_transpose_last3dims(self):
@@ -21,25 +23,31 @@ class TestTools(AbipyTest):
         # 1D nd 2D case
         arr = np.array([1, 2, 3, 4, 5, 6])
         new_arr = add_periodic_replicas(arr)
-        self.assertTrue(new_arr[-1] == 1)
+        assert new_arr[-1] == 1
 
-        arr.shape = (2,3)
+        arr.shape = (2, 3)
         new_arr = add_periodic_replicas(arr)
-        self.assertTrue(np.all(new_arr[-1] == [1,2,3,1]))
-        self.assertTrue(np.all(new_arr[:,-1] == [1,4,1]))
+        assert np.all(new_arr[-1] == [1, 2, 3, 1])
+        assert np.all(new_arr[:,-1] == [1, 4, 1])
 
         # 4D case.
         arr = np.arange(120)
-        arr.shape = (2,2,10,3)
+        arr.shape = (2, 2, 10, 3)
 
         new_arr = add_periodic_replicas(arr)
+        assert np.all(new_arr[:,:-1,:-1,:-1] == arr)
 
-        self.assertTrue(np.all(new_arr[:,:-1,:-1,:-1] == arr))
-
-        axes = [[0,1,2,3], [0,2,3,1], [0,3,1,2],]
+        axes = [[0, 1, 2, 3], [0, 2, 3, 1], [0, 3, 1, 2],]
 
         for ax in axes:
             view = np.transpose(new_arr, axes=ax)
-            self.assertTrue(np.all(view[...,0] == view[...,-1]))
-            self.assertTrue(np.all(view[...,0,0] == view[...,-1,-1]))
-            self.assertTrue(np.all(view[...,0,0,0] == view[...,-1,-1,-1]))
+            assert np.all(view[...,0] == view[...,-1])
+            assert np.all(view[...,0,0] == view[...,-1,-1])
+            assert np.all(view[...,0,0,0] == view[...,-1,-1,-1])
+
+    def test_special_functions(self):
+        """Testing special functions."""
+        assert gaussian(x=0.0, width=1.0, center=0.0, height=1.0) == 1.0
+
+        assert lorentzian(x=0.0, width=1.0, center=0.0, height=1.0) == 1.0
+        self.assert_almost_equal(lorentzian(x=0.0, width=1.0, center=0.0, height=None), 1/np.pi)

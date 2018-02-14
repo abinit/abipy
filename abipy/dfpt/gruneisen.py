@@ -15,7 +15,7 @@ from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 #from abipy.tools import duck
 from abipy.core.func1d import Function1D
 
@@ -193,18 +193,17 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
-        if not self.doses:
-            return None
+        if not self.doses: return None
 
         dos_names = _ALL_DOS_NAMES.keys() if dos_names == "all" else list_strings(dos_names)
         wmesh = self.doses["wmesh"]
 
-        import matplotlib.pyplot as plt
-        nrows = len(dos_names)
-        fig, axes = plt.subplots(nrows=nrows, ncols=1, sharex=True, squeeze=False)
-        axes = axes.ravel()
+        nrows, ncols = len(dos_names), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
 
-        for i, (name, ax) in enumerate(zip(dos_names, axes)):
+        for i, (name, ax) in enumerate(zip(dos_names, ax_list)):
             dos, idos = self.doses[name][0], self.doses[name][1]
             ax.plot(wmesh, dos, color="k")
             ax.grid(True)

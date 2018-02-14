@@ -590,7 +590,10 @@ class Kpoint(SlotPickleMixin):
         return np.any(diff < _ATOL_KDIFF)
 
     def __repr__(self):
-        return "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
+        if self.name is not None:
+            s += " %s" % self.name
+        return s
 
     def __str__(self):
         return self.to_string()
@@ -598,7 +601,8 @@ class Kpoint(SlotPickleMixin):
     def to_string(self, verbose=0):
         """String representation."""
         s =  "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
-        if self.name is not None: s += ", name: %s" % self.name
+        if self.name is not None:
+            s += ", name: %s" % self.name
         if self._weight is not None: s += ", weight: %.3f" % self.weight
         return s
 
@@ -995,6 +999,7 @@ class KpointList(collections.Sequence):
         """Plot k-points with matplotlib."""
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
+        #print("is_path:", self.is_path)
         if self.is_path:
             labels = {k.name: k.frac_coords for k in self if k.name}
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]

@@ -250,7 +250,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return filepath
 
-    def visualize(self, appname="ovito"):
+    def visualize(self, appname="ovito"):  # pragma: no cover
         """
         Visualize the crystalline structure with visualizer.
         See :class:`Visualizer` for the list of applications and formats supported.
@@ -364,24 +364,26 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ax.grid(True)
 
     @add_fig_kwargs
-    def plot(self, axlist=None, **kwargs):
+    def plot(self, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
 
         Args:
-            axlist: List of |matplotlib-Axes|. If None, a new figure is created.
+            ax_list: List of |matplotlib-Axes|. If None, a new figure is created.
+            fontsize: fontsize for legend
 
         Returns: |matplotlib-Figure|
         """
-        import matplotlib.pyplot as plt
         what_list = ["abc", "angles", "volume", "pressure", "forces", "energy"]
-        fig, ax_list = plt.subplots(nrows=3, ncols=2, sharex=True, squeeze=False)
+        nrows, ncols = 3, 2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
         assert len(ax_list) == len(what_list)
 
         for what, ax in zip(what_list, ax_list):
-            self.plot_ax(ax, what, marker="o")
+            self.plot_ax(ax, what, fontsize=fontsize, marker="o")
 
         return fig
 
@@ -411,7 +413,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         return fig
 
-    def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True, with_forces=True, **kwargs):
+    def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
+                            with_forces=True, **kwargs):  # pragma: no cover
         """
         Call mayavi_ to plot atomic trajectories and the variation of the unit cell.
         """
@@ -443,7 +446,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if show: mlab.show()
         return figure
 
-    def mvanimate(self, delay=500):
+    def mvanimate(self, delay=500):  # pragma: no cover
         from abipy.display import mvtk
         figure, mlab = mvtk.get_fig_mlab(figure=None)
         style = "points"
@@ -549,7 +552,7 @@ class HistRobot(Robot):
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, hist in self:
+        for label, hist in self.items():
             row_names.append(label)
             d = OrderedDict()
 
@@ -615,9 +618,7 @@ class HistRobot(Robot):
                 ax.set_xlabel('')
 
         # Get around a bug in matplotlib.
-        if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
 
@@ -660,9 +661,7 @@ class HistRobot(Robot):
                 ax.set_xlabel("")
 
         # Get around a bug in matplotlib.
-        if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
-            ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
 

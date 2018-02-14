@@ -17,7 +17,7 @@ from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 from abipy.electrons.ebands import ElectronsReader, ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
 from abipy.abio.robots import Robot
@@ -27,7 +27,6 @@ class A2f(object):
     """
     Eliashberg function a2F(w). Energies are in eV.
     """
-
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
 
@@ -244,7 +243,7 @@ class A2f(object):
         return fig
 
     @add_fig_kwargs
-    def plot_nuterms(self, units="eV", axmat=None, with_lambda=True,
+    def plot_nuterms(self, units="eV", ax_mat=None, with_lambda=True, fontsize=12,
                      xlims=None, ylims=None, label=None, **kwargs):
         """
         Plot a2F(w), its primitive lambda(w) and optionally the individual
@@ -253,7 +252,8 @@ class A2f(object):
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
-            axmat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
+            ax_mat: Matrix of axis of shape [natom, 3]. None if a new figure should be created.
+            fontsize: Legend and title fontsize.
             xlims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
 		or scalar e.g. ``left``. If left (right) is None, default values are used
             ylims: Limits for y-axis. See xlims for API.
@@ -261,19 +261,17 @@ class A2f(object):
 
         Returns: |matplotlib-Figure|
         """""
-        # Get axmat and fig.
-        import matplotlib.pyplot as plt
-        if axmat is None:
-            fig, axmat = plt.subplots(nrows=self.natom, ncols=3, sharex=True, sharey=True, squeeze=False)
-        else:
-            axmat = np.reshape(axmat, (self.natom, 3))
-            fig = plt.gcf()
+        # Get ax_mat and fig.
+        nrows, ncols = self.natom, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_mat = np.reshape(ax_mat, (self.natom, 3))
 
         wfactor = abu.phfactor_ev2units(units)
         wvals = self.mesh * wfactor
 
         if with_lambda:
-            lax_nu = [ax.twinx() for ax in axmat.flat]
+            lax_nu = [ax.twinx() for ax in ax_mat.flat]
             # Share axis after creation. Based on
             # https://stackoverflow.com/questions/42973223/how-share-x-axis-of-two-subplots-after-they-are-created
             lax_nu[0].get_shared_x_axes().join(*lax_nu)
@@ -295,9 +293,9 @@ class A2f(object):
         import itertools
         for idir, iatom in itertools.product(range(3), range(self.natom)):
             nu = idir + 3 * iatom
-            ax = axmat[iatom, idir]
+            ax = ax_mat[iatom, idir]
             ax.grid(True)
-            ax.set_title(r"$\nu = %d$" % nu)
+            ax.set_title(r"$\nu = %d$" % nu, fontsize=fontsize)
             if idir == 0:
                 ax.set_ylabel(r"$\alpha^2F(\omega)$")
             else:
@@ -342,8 +340,10 @@ class A2f(object):
         Returns: |matplotlib-Figure|
         """
         phdos = PhononDos.as_phdos(phdos)
-        import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=3, ncols=1, sharex=True, sharey=False, squeeze=True)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=1,
+                                                sharex=True, sharey=False, squeeze=True)
+        ax_list = ax_list.ravel()
 
         # Spline phdos onto a2f mesh and compute a2F(w) / F(w)
         f = phdos.spline(self.mesh)
@@ -685,6 +685,11 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_a2f_interpol(self, units="eV", ax=None, ylims=None, **kwargs):
         """
         Plot
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         #linestyle_qsamp = dict(qcoarse="--", qintp="-")
@@ -709,6 +714,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if self.has_a2ftr:
             ncols += 1
             width_ratios.append(0.2)
+
         if phdos is not None:
             phdos = PhononDos.as_phdos(phdos)
             ncols += 1
@@ -818,7 +824,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         Return: |pandas-DataFrame|
         """
         rows, row_names = [], []
-        for i, (label, ncfile) in enumerate(self):
+        for i, (label, ncfile) in enumerate(self.items()):
             row_names.append(label)
             d = OrderedDict()
 
@@ -849,69 +855,71 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_lambda_convergence(self, what="lambda", sortby="", ylims=None,
-                                ax=None, cmap="jet", **kwargs):
+    def plot_lambda_convergence(self, what="lambda", sortby=None, ylims=None, fontsize=8,
+                                ax=None, colormap="jet", **kwargs):
         """
         Plot the convergence of the lambda(q, nu) parameters wrt to the ``sortby`` parameter.
 
         Args:
-            what: ``lambda`` for eph strength, gamma for phonon linewidths.
+            what: "lambda" for eph strength, gamma for phonon linewidths.
             sortby: Define the convergence parameter, sort files and produce plot labels.
-            Can be None, string or function.
-                If None, no sorting is performed.
-                If string, it's assumed that the ncfile has an attribute with the same name
-                and ``getattr`` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: Legend and title fontsize.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            cmap:
+            colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|
         """
+        # TODO Add hue
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        cmap = plt.get_cmap(cmap)
+        cmap = plt.get_cmap(colormap)
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             ncfile.plot_eph_strength(
                     ax=ax,
                     what=what, ylims=ylims,
                     label=self.sortby_label(sortby, param),
-                    color=cmap(i / len(self)),
+                    color=cmap(i / len(self)), fontsize=fontsize,
                     show=False,
                     )
         return fig
 
     @add_fig_kwargs
-    def plot_a2f_convergence(self, sortby="", qsamps="all", ax=None, xlims=None,
-                             cmap="jet", **kwargs):
+    def plot_a2f_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None,
+                            fontsize=8, colormap="jet", **kwargs):
         """
         Plot the convergence of the Eliashberg function wrt to the ``sortby`` parameter.
 
         Args:
             sortby: Define the convergence parameter, sort files and produce plot labels.
-		Can be None, string or function.
-                If None, no sorting is performed.
-                If string, it's assumed that the ncfile has an attribute with the same name
-                and `getattr` is invoked.
-                If callable, the output of callable(ncfile) is used.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
             qsamps:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
-            cmap: matplotlib color map.
+            fontsize: Legend and title fontsize.
+            colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|
         """
+        # TODO Add hue
         qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        cmap = plt.get_cmap(cmap)
+        cmap = plt.get_cmap(colormap)
 
         for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
             for qsamp in qsamps:
                 ncfile.get_a2f_qsamp(qsamp).plot(
                     ax=ax,
                     label=self.sortby_label(sortby, param) + " " + qsamp,
-                    color=cmap(i / len(self)),
+                    color=cmap(i / len(self)), fontsize=fontsize,
                     linestyle=self.linestyle_qsamp[qsamp],
                     show=False,
                 )
@@ -920,11 +928,11 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return fig
 
     #@add_fig_kwargs
-    #def plot_a2ftr_convergence(self, sortby="", qsamps="all", ax=None, xlims=None,
-    #                           cmap="viridis", **kwargs):
+    #def plot_a2ftr_convergence(self, sortby=None, qsamps="all", ax=None, xlims=None,
+    #                           fontsize=8, colormap="jey", **kwargs):
     #    qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    cmap = plt.get_cmap(cmap)
+    #    cmap = plt.get_cmap(colormap)
     #    for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
     #        for qsamp in qsamps:
     #            ncfile.get_a2ftr_qsamp(qsamp).plot(

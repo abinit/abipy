@@ -8,7 +8,7 @@ This example shows how to use the Function1D object to analyze and plot results.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from abipy.core.func1d import Function1D
+from abipy.abilab import Function1D
 
 # Build mesh [0, 2pi] with 100 points.
 mesh = np.linspace(0, 2*np.pi, num=100)
@@ -18,7 +18,7 @@ sine = Function1D.from_func(np.sin, mesh)
 
 # Call matplotlib to plot data.
 fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
+ax = fig.add_subplot(1, 1, 1)
 
 # Plot sine.
 sine.plot_ax(ax, label="sin(x)")

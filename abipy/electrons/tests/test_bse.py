@@ -115,7 +115,7 @@ class MdfRobotTest(AbipyTest):
 
         df = robot.get_dataframe(with_geo=True)
         assert df is not None
-        df_params = robot.get_dataframe_params()
+        df_params = robot.get_params_dataframe()
         assert "nsppol" in df_params
 
         plotter = robot.get_multimdf_plotter()

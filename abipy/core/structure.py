@@ -67,7 +67,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
         try:
             mpids = rest.find_structure(structure)
             if mpids:
-                structures = [Structure.from_material_id(mid, final=final, api_key=api_key, endpoint=endpoint)
+                structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
                         for mid in mpids]
 
         except rest.Error as exc:
@@ -275,7 +275,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         return new
 
     @classmethod
-    def from_material_id(cls, material_id, final=True, api_key=None, endpoint=None):
+    def from_mpid(cls, material_id, final=True, api_key=None, endpoint=None):
         """
         Get a Structure corresponding to a material_id.
 
@@ -960,8 +960,22 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return None
 
+    def get_symbol2indices(self):
+
+        """
+        Return a dictionary mapping chemical symbols to numpy array with the position of the atoms.
+
+        Example:
+
+            MgB2 --> {Mg: [0], B: [1, 2]}
+        """
+        return {symbol: np.array(self.indices_from_symbol(symbol)) for symbol in self.symbol_set}
+
     def get_symbol2coords(self):
-        """Return a dictionary mapping chemical symbols to coordinates."""
+        """
+        Return a dictionary mapping chemical symbols to a [ntype_symbol, 3] numpy array
+        with the fractional coordinates.
+        """
         # TODO:
         #use structure.frac_coords but add reshape in pymatgen.
         #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
@@ -1042,6 +1056,15 @@ class Structure(pymatgen.Structure, NotebookWriter):
             od["spglib_num"] = spglib_number
 
         return od
+
+    @add_fig_kwargs
+    def plot(self, **kwargs):
+        """
+        Plot structure with matplotlib. Return matplotlib Figure
+        See plot_structure for kwargs
+        """
+        from abipy.tools.plotting import plot_structure
+        return plot_structure(self, **kwargs)
 
     @add_fig_kwargs
     def plot_bz(self, ax=None, pmg_path=True, with_labels=True, **kwargs):
@@ -1182,6 +1205,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Visualize the crystalline structure with visualizer.
         See |Visualizer| for the list of applications and formats supported.
         """
+        if appname in ("mpl", "matplotlib"): return self.plot()
         if appname == "vtk": return self.vtkview()
         if appname == "mayavi": return self.mayaview()
 

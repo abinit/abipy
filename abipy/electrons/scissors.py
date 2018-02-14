@@ -13,7 +13,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
 __all__ = [
     "Scissors",
-    "ScissorsBuilder"
+    "ScissorsBuilder",
 ]
 
 
@@ -23,9 +23,10 @@ class ScissorsError(Exception):
 
 class Scissors(object):
     """
-    This object represents an energy-dependent scissors operator. The operator is defined by a list of domains
-    (energy intervals) and a list of functions defined in these domains. The domains should fulfill the constraints
-    documented in the main constructor.
+    This object represents an energy-dependent scissors operator.
+    The operator is defined by a list of domains (energy intervals)
+    and a list of functions defined in these domains.
+    The domains should fulfill the constraints documented in the main constructor.
 
     .. note::
 
@@ -40,13 +41,14 @@ class Scissors(object):
         """
         Args:
             func_list: List of callable objects. Each function takes an eigenvalue and returns
-                       the corrected value.
+                the corrected value.
             domains: Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]
             bounds: Specify how to handle energies that do not fall inside one of the domains.
-                    At present, only constant boundaries are implemented.
+                At present, only constant boundaries are implemented.
             residues: A list of the residues of the fitting per domain
 
         .. note::
+
             #. Domains should not overlap, cover e0mesh, and given in increasing order.
 
             #. Holes are permitted but the interpolation will raise an exception if the
@@ -125,23 +127,26 @@ class ScissorsBuilder(object):
 
     Usage:
 
-        builder = ScissorsBuilder.from_file("sigres_file")
+        builder = ScissorsBuilder.from_file("out_SIGRES.nc")
 
         # To plot the QP results as function of the KS energy:
         builder.plot_qpe_vs_e0()
 
-        # To select the domains esplicitly (optional)
+        # To select the domains esplicitly (optional but highly recommended)
         builder.build(domains_spin=[[-10, 6.02], [6.1, 20]])
 
         # To compare the fitted results with the ab-initio data:
         builder.plot_fit()
 
         # To plot the corrected bands:
-        builder.plot_qpbands(abidata.ref_file("si_nscf_WFK-etsf.nc"))
+        builder.plot_qpbands(abidata.ref_file("si_nscf_WFK.nc"))
     """
+
     @classmethod
     def from_file(cls, filepath):
-        """Generate an instance of `ScissorsBuilder` from file. Main entry point for client code."""
+        """
+        Generate object from (SIGRES.nc) file. Main entry point for client code.
+        """
         from abipy.abilab import abiopen
         with abiopen(filepath) as ncfile:
             return cls(qps_spin=ncfile.qplist_spin, sigres_ebands=ncfile.ebands)
@@ -178,7 +183,7 @@ class ScissorsBuilder(object):
         """
         Args:
             qps_spin: List of :class:`QPlist`, for each spin.
-            sigres_ebands: :class:`ElectronBands` read from the SIGRES file
+            sigres_ebands: |ElectronBands| obtained from the SIGRES file
         """
         # Sort quasiparticle data by e0.
         self._qps_spin = tuple([qps.sort_by_e0() for qps in qps_spin])
@@ -271,21 +276,29 @@ class ScissorsBuilder(object):
         self._scissors_spin = scissors_spin
         return domains_spin
 
+    @add_fig_kwargs
     def plot_qpe_vs_e0(self, with_fields="all", **kwargs):
         """Plot the quasiparticle corrections as function of the KS energy."""
+        ax_list = None
         for spin, qps in enumerate(self._qps_spin):
             kwargs["title"] = "spin %s" % spin
-            qps.plot_qps_vs_e0(with_fields=with_fields, **kwargs)
+            fig = qps.plot_qps_vs_e0(with_fields=with_fields, ax_list=ax_list, show=False, **kwargs)
+            ax_list = fig.axes
+
+        return fig
 
     @add_fig_kwargs
-    def plot_fit(self, ax=None, **kwargs):
+    def plot_fit(self, ax=None, fontsize=8, **kwargs):
         """
         Compare fit functions with input quasi-particle corrections.
 
         Args:
-            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for titles and legend.
+
+        Return: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         for spin in range(self.nsppol):
             qps = self._qps_spin[spin]
@@ -299,11 +312,11 @@ class ScissorsBuilder(object):
         ax.grid(True)
         ax.set_xlabel('KS energy [eV]')
         ax.set_ylabel('QP-KS [eV]')
-        ax.legend(loc="best", shadow=True)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
-    def plot_qpbands(self, bands_filepath, bands_label=None, dos_filepath=None, dos_args=None, qp_marker=None, **kwargs):
+    def plot_qpbands(self, bands_filepath, bands_label=None, dos_filepath=None, dos_args=None, **kwargs):
         """
         Correct the energies found in the netcdf file bands_filepath and plot the band energies (both the initial
         and the corrected ones) with matplotlib. The plot contains the KS and the QP DOS if dos_filepath is not None.
@@ -315,11 +328,10 @@ class ScissorsBuilder(object):
                 (used to compute the KS and the QP dos)
             dos_args: Dictionary with the arguments passed to get_dos to compute the DOS
                 Used if dos_filepath is not None.
-            qp_marker: if int > 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50
+
             kwargs: Options passed to the plotter.
 
-        Returns:
-            matplotlib figure
+        Return: |matplotlib-Figure|
         """
         from abipy.abilab import abiopen, ElectronBandsPlotter
 
@@ -333,7 +345,8 @@ class ScissorsBuilder(object):
         # Read the band energies computed on the Monkhorst-Pack (MP) mesh and compute the DOS.
         ks_dos, qp_dos = None, None
         if dos_filepath is not None:
-            with abiopen(dos_filepath) as ncfile: ks_mpbands = ncfile.ebands
+            with abiopen(dos_filepath) as ncfile:
+                ks_mpbands = ncfile.ebands
 
             dos_args = {} if not dos_args else dos_args
             ks_dos = ks_mpbands.get_edos(**dos_args)
@@ -348,22 +361,23 @@ class ScissorsBuilder(object):
         plotter.add_ebands(bands_label, ks_bands, dos=ks_dos)
         plotter.add_ebands(bands_label + " + scissors", qp_bands, dos=qp_dos)
 
+        #qp_marker: if int > 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50
         #qp_marker = 50
-        if qp_marker is not None:
-            # Compute correspondence between the k-points in qp_list and the k-path in qp_bands.
-            # TODO
-            # WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.
-            # but compute_star is too slow if written in pure python.
-            x, y, s = [], [], []
-            for ik_path, kpoint in enumerate(qp_bands.kpoints):
-                #kstar = kpoint.compute_star(structure.fm_symmops)
-                for spin in range(self.nsppol):
-                    for ik_qp, qp in enumerate(self._qps_spin[spin]):
-                        if qp.kpoint == kpoint:
-                        #if qp.kpoint in kstar:
-                            x.append(ik_path)
-                            y.append(np.real(qp.qpe))
-                            s.append(qp_marker)
-            plotter.set_marker("ab-initio QP", [x, y, s])
+        #if qp_marker is not None:
+        #    # Compute correspondence between the k-points in qp_list and the k-path in qp_bands.
+        #    # TODO
+        #    # WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.
+        #    # but compute_star is too slow if written in pure python.
+        #    x, y, s = [], [], []
+        #    for ik_path, kpoint in enumerate(qp_bands.kpoints):
+        #        #kstar = kpoint.compute_star(structure.fm_symmops)
+        #        for spin in range(self.nsppol):
+        #            for ik_qp, qp in enumerate(self._qps_spin[spin]):
+        #                #if qp.kpoint in kstar:
+        #                if qp.kpoint == kpoint:
+        #                    x.append(ik_path)
+        #                    y.append(np.real(qp.qpe))
+        #                    s.append(qp_marker)
+        #    plotter.set_marker("ab-initio QP", [x, y, s])
 
         return plotter.combiplot(**kwargs)

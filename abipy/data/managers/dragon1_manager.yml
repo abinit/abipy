@@ -11,9 +11,7 @@ job: &job
         PATH: "/home/users/g/m/gmatteo/git/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
     modules:
         - mpich/3.0.4/intel-13.0.0
-    # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit unlimited
+    pre_run: "ulimit -s unlimited"
 
 # queues 
 qadapters:

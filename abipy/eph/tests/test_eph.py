@@ -91,7 +91,7 @@ class EphRobotTest(AbipyTest):
             robot.to_string(verbose=2)
             #assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
 
-            df_params = robot.get_dataframe_params()
+            df_params = robot.get_params_dataframe()
             self.assert_equal(df_params["nspden"].values, 1)
 
             data = robot.get_dataframe(with_geo=True)
@@ -106,15 +106,17 @@ class EphRobotTest(AbipyTest):
             # Test plot methods
             if self.has_matplotlib():
                 assert phbands_plotter.boxplot(show=False)
-                assert robot.plot_lambda_convergence(show=False)
-                assert robot.plot_a2f_convergence(show=False)
-                #assert robot.plot_a2ftr_convergence(show=False)
 
                 # Test wrappers provided by RobotWithPhbands
                 assert robot.combiplot_phbands(show=False)
                 assert robot.gridplot_phbands(show=False)
                 assert robot.boxplot_phbands(show=False)
                 assert robot.combiboxplot_phbands(show=False)
+
+                # Test EPHRobot plot methods
+                assert robot.plot_lambda_convergence(show=False)
+                assert robot.plot_a2f_convergence(show=False)
+                #assert robot.plot_a2ftr_convergence(show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

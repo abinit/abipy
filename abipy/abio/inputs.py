@@ -1018,7 +1018,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             errors = []
             for i, (site1, site2) in enumerate(zip(self.structure, new_structure)):
                 if site1.specie.symbol != site2.specie.symbol:
-                    errors.append("[%d] %s != %s" % (i, site1.specie.symbol != site2.specie.symbol))
+                    errors.append("[%d] %s != %s" % (i, site1.specie.symbol, site2.specie.symbol))
             if errors:
                 raise ValueError("Structures must have same order of atomic types:\n" + "\n".join(errors))
 
@@ -1380,7 +1380,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         """
         Return inputs for the calculation of the Born effective charges.
 
-        This functions should be called with an input the represents a GS run.
+        This functions should be called with an input that represents a GS run.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-10}
@@ -1506,8 +1506,11 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         # Avoid modifications in self.
         inp = self.deepcopy()
         if tolsym is not None: inp["tolsym"] = float(tolsym)
+
         # Bypass Abinit check as we always want to return results.
         inp["chksymbreak"] = 0
+        # Disable memory check.
+        inp["mem_test"] = 0
 
         # Build a Task to run Abinit in --dry-run mode.
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -1545,6 +1548,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         inp["prtkpt"] = -2
         # Bypass Abinit check as we always want to return results.
         inp["chksymbreak"] = 0
+        # Disable memory check.
+        inp["mem_test"] = 0
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
@@ -1552,6 +1557,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
+        #print("Computing ibz with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -1656,6 +1662,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         )
 
         if kptopt is not None: inp["kptopt"] = kptopt
+        #print("Computing irred_perts with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
@@ -1830,6 +1837,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
         # Bypass Abinit check as we always want to return results.
         inp["chksymbreak"] = 0
+        # Disable memory check.
+        inp["mem_test"] = 0
 
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0
@@ -2346,9 +2355,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
         new.set_vars(
             ifcflag=ifcflag,        # Interatomic force constant flag
-            asr=asr,          # Acoustic Sum Rule
-            chneut=chneut,    # Charge neutrality requirement for effective charges.
-            dipdip=dipdip,    # Dipole-dipole interaction treatment
+            asr=asr,                # Acoustic Sum Rule
+            chneut=chneut,          # Charge neutrality requirement for effective charges.
+            dipdip=dipdip,          # Dipole-dipole interaction treatment
             # This part is fixed
             nph1l=1,
             qph1l=np.append(qpoint, 1)

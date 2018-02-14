@@ -32,4 +32,5 @@ omit =
     abipy/gui/*
     abipy/gw/*
     abipy/scripts/*
+    abipy/tools/functools_lru_cache.py
     ./docs/

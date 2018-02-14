@@ -2,13 +2,15 @@ TODO list:
 
 ## High priority
 
+* Send PR to phononwebsite with phonon band structures for tutorials.
+
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
   (tricky because input settings should be preserved)
 
 * introduce new status for tasks that are removed at runtime e.g. S_CANCELLED
   and handle new case in flow machinery. Be careful with pickle, status comparison and ordering though.
 
-* Check PJDOS in abinit@gitlab
+* DONE Check PJDOS in abinit@gitlab
 
 * DONE Add mpirun_args see e.g nic4 and mpirun --bind-to None
 
@@ -19,17 +21,21 @@ TODO list:
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
   qadapter package ... (postponed to v0.4)
 
-* Try to reintegrate AbiPy with new abivars
+* Reintegrate AbiPy with new abivars
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* Rename EPH.nc
+* Rename EPH.nc (A2F.nc, ELI.nc)
 
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
+
+* DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
 ## Medium priority
 
 * remove phononflow
+
+* Add with_becs to PhononWork
 
 * video with atom and hydrogen
 
@@ -41,10 +47,8 @@ TODO list:
 
 * Read LO-TO data from PHBST.nc instead of anaddb.nc (postponed to v0.4)
 
-* DONE Remove ddb.update_header
-
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
-  phonon group velocities (requires extensio in netcdf files)
+  phonon group velocities (requires extension in netcdf files).
 
 * DONE: Autodetect presence of data for lo_to_splitting in DDB.
 
@@ -56,13 +60,11 @@ TODO list:
 
 * Fix problem with get_edos if we don't have enough bands 
 
-* DONE Finalize interface with phononwebsite.
-
 * Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
 * Add nsppol, nspinor, nspden to HIST file (and other stuff?)
 
-* Fix bug with SCGW and SKW interpolation.
+* Fix bug with SCGW and SKW interpolation reported by Ahn.
 
 * Add integration test for dilatmx error handler
 
@@ -71,9 +73,13 @@ TODO list:
 
 * Add memory error to Abinit errors
 
-* DONE: Remove Old workflow model. 
+* Investigate NaN issue in BECS reported by Ahn if tolvrs instead of tolwfr (tolwfr could activate nbdbuf)
+
+* DONE: Fix possible error reported by Henrique (NscfTask from file that tries to change ngfft)
 
 * Add iscf to GSR.nc so that we know if we have SCF|NSCF run.
+
+* Had to increase fermie again to get correct gap in diamond treated if FD smearing
 
 * Create git repo for Abipy webisite to facilitate integration with binder + sphinx-gallery?
 
@@ -81,7 +87,12 @@ TODO list:
 
 * Use parser subclass to avoid boiler plate code.
 
-* Add support for PSML format
+* Rationalze wrappers for mrgdddb .... (raise exception in python if clear error, retcode 
+  is the returncode of the script not necessarily the retcode of the exe, need to
+  parse log file and make sure that all scripts write log files in "abinit" format
+  that can be read with EventsParser.
+
+* Add support for PSML/UPF format
 
 * Refactor PyLauncher logic
 
@@ -90,13 +101,12 @@ TODO list:
 
 * Finalize DDK.nc 
 
-* Remove abipy.core.mixis.AbinitOutNcFile
+* Remove abipy.core.mixis.AbinitOutNcFile (deprecated, will be removed in 0.4)
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 
 * plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
-
-* DONE Use ax.legend(loc="best", fontsize=fontsize, shadow=True)
+  FIXED with graphviz
 
 * Check xsf_write_data and visualization of potentials.
 
@@ -123,8 +133,6 @@ TODO list:
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
   as well as Abinit input as string)
 
-* Replace boilerplate code with get_axmat_fig_plt.
-
 * Initialize job.sh with max number of MPI procs?
 
 * Improvement in the dilatmx error handler:
@@ -139,10 +147,30 @@ TODO list:
         [30/03/15 15:19:48] guido petretto: a questo punto il job viene riavviato, ma in in c'è ancora la vecchia density e nell'input c'è irdden=1, ma la
         struttura è diversa
 
-
 * DONE Add the fermi level to the DEN file (netcdf and fortran version) so that the NSCF run can read 
   it and can report this value in the final band structure.
 
 * DONE ecut is not reported in the GSR file. Similar problem for the k-sampling (see SIGRES.nc)
 
 * FFTProf (use file extension and interface it with abiopen)
+
+* Create new github package for benchmarks/Abinit tests + template for new python projects.
+
+* _repr_html_ for structure and other basic objects (pymatgen/and abipy)
+   matplotlib plot for structure?
+
+* nbjsmol (build system, refactor API?)
+
+* fatbands with SOC (waiting for Matthieu's refactoring)
+
+* integrate improvements in skw by Nicholas.
+
+* lobster interface from Guido
+
+* interface abistruct with marylin
+
+* Remove Prettytable
+
+* context manager to change variables (e.g. autoparal)
+
+* Cleanup and refactoring in OpticTask

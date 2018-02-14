@@ -24,9 +24,7 @@ job: &job
         PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
     modules:
         - openmpi/1.5.3/intel-12.0.0.084
-    # pre_run is a string in verbatim mode (note |)
-    pre_run: |
-        ulimit unlimited
+    pre_run: "ulimit -s unlimited"
 
 # queues 
 qadapters:

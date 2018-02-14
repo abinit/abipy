@@ -62,7 +62,7 @@ class AbinitOutputTest(AbipyTest):
             self.assert_almost_equal(dims2["wfk_size_mb"], 0.340)
             self.assert_almost_equal(dims2["denpot_size_mb"], 0.046)
 
-            print(abo.events)
+            str(abo.events)
             gs_cycle = abo.next_gs_scf_cycle()
             assert gs_cycle is not None
             if self.has_matplotlib():
@@ -140,6 +140,28 @@ class AbinitOutputTest(AbipyTest):
             assert spg_dataset[1]["spg_number"] == 227
             assert spg_dataset[1]["bravais"] == "Bravais cF (face-center cubic)"
 
+    def test_abinit_output_with_ctrlm(self):
+        """Testing AbinitOutputFile with file containing CTRL+M char."""
+        test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+        with abilab.abiopen(os.path.join(test_dir, "ctrlM_run.abo")) as abo:
+            assert abo.version == "8.7.1"
+            assert abo.run_completed
+            assert abo.to_string(verbose=2)
+            assert abo.ndtset == 1
+            assert abo.initial_structure.abi_spacegroup is not None
+            assert abo.initial_structure.abi_spacegroup.spgid == 142
+            assert abo.proc0_cputime == 0.7
+            assert abo.proc0_walltime == 0.7
+            assert abo.overall_cputime == 0.7
+            assert abo.overall_walltime == 0.7
+
+            # Test the parsing of dimension and spginfo
+            dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset()
+            dims1 = dims_dataset[1]
+            assert dims1["mqgrid"] == 5580
+            assert spginfo_dataset[1]["spg_symbol"] == "I4_1/acd"
+            assert spginfo_dataset[1]["spg_number"] == 142
+
     def test_all_outputs_in_tests(self):
         """
         Try to parse all Abinit output files inside the Abinit `tests` directory.
@@ -166,6 +188,8 @@ class AbinitOutputTest(AbipyTest):
             assert robot._repr_html_()
             dims = robot.get_dims_dataframe()
             df = robot.get_dataframe(with_geo=True)
+            time_df = robot.get_time_dataframe()
+            self.assert_equal(time_df["overall_walltime"].values, [4.0, 26.1])
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -97,6 +97,20 @@ class ElectronBandsTest(AbipyTest):
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
+        assert ni_edos.to_string(verbose=2)
+
+        # Get ElectronDosPlotter with nsppol == 2 and test matplotlib methods.
+        edos_plotter = ni_ebands_kmesh.compare_gauss_edos(widths=[0.2, 0.4], step=0.2)
+        assert len(edos_plotter) == 2
+        if self.has_matplotlib():
+            # Combiplot.
+            assert edos_plotter.combiplot(title="default values", show=False)
+            assert edos_plotter.combiplot(what_list=("dos", "idos"), spin_mode="resolved", show=False)
+            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="resolved", fontsize=12, show=False)
+            # Gridplot
+            assert edos_plotter.gridplot(title="default values", show=False)
+            assert edos_plotter.gridplot(what="idos", spin_mode="resolved", xlims=(-10, 10), show=False)
+            assert edos_plotter.gridplot(e0=0, what="dos", spin_mode="resolved", fontsize=12, show=False)
 
         ni_ebands_kpath = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
 
@@ -253,6 +267,8 @@ class ElectronBandsTest(AbipyTest):
         tot_d, tot_i = si_edos.dos_idos()
         self.assert_almost_equal(2 * d.values, tot_d.values)
         self.assert_almost_equal(2 * i.values, tot_i.values)
+        self.assert_equal(si_edos.up_minus_down.mesh, si_edos.tot_dos.mesh)
+        self.assert_equal(si_edos.up_minus_down.values, 0)
 
         # Test ElectronDos get_e0
         assert si_edos.get_e0("fermie") == si_edos.fermie
@@ -429,6 +445,10 @@ class ElectronBandsTest(AbipyTest):
 
         self.assert_almost_equal(np.array(values), 1.0)
 
+        em = ebands.effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
+        repr(em); str(em)
+        #self.assert_almost_equal(np.array(values), 1.0)
+
     def test_fermi_surface(self):
         """Testing Fermi surface tools."""
         with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
@@ -436,15 +456,15 @@ class ElectronBandsTest(AbipyTest):
             str(ebands)
             ebands.to_bxsf(self.get_tmpname(text=True))
 
+            # Test Ebands3d
             eb3d = ebands.get_ebands3d()
             repr(eb3d); str(eb3d)
+            assert eb3d.to_string(verbose=2)
 
-            #if self.has_matplotlib():
-            #    try
-            #        from skimage import measure
-            #    except:
-            #    assert eb3b.plot_isosurfaces(e0="fermie", verbose=1, show=False)
-            #    assert eb3d.plot_contour(band=4, spin=1, plane="xy", elevation=0, show=False)
+            if self.has_matplotlib():
+                assert eb3d.plot_contour(band=4, spin=0, plane="xy", elevation=0, show=False)
+                if self.has_skimage():
+                    assert eb3d.plot_isosurfaces(e0="fermie", verbose=1, show=False)
 
             # Test Mayavi
             if self.has_mayavi():
@@ -466,12 +486,12 @@ class ElectronBandsTest(AbipyTest):
 
 class ElectronBandsFromRestApi(AbipyTest):
 
-    def test_from_material_id(self):
+    def test_from_mpid(self):
         """Testing interpolation of SnO2 band energies from MP database."""
         #mpid = "mp-149"
         #mpid = "mp-856"
         mpid = "mp-3079"
-        ebands = abilab.ElectronBands.from_material_id(mpid)
+        ebands = abilab.ElectronBands.from_mpid(mpid)
         # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
         ebands = ebands.new_with_irred_kpoints(prune_step=2)
         # Interpolate on k-path + kmesh.
@@ -509,6 +529,8 @@ class ElectronBandsPlotterTest(AbipyTest):
 
         if self.has_matplotlib():
             assert plotter.combiplot(title="Silicon band structure", show=False)
+            # Alias for combiplot
+            assert plotter.plot(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
             if self.has_seaborn():
                 plotter.combiboxplot(title="Silicon band structure", swarm=True, show=False)
             assert plotter.gridplot(title="Silicon band structure", show=False)

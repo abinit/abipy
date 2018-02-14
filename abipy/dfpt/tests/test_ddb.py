@@ -50,6 +50,7 @@ class DdbTest(AbipyTest):
 
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], verbose=1)
             assert phbands is not None and hasattr(phbands, "phfreqs")
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=ddb.qpoints[0], lo_to_splitting=False, verbose=1)
 
             # Wrong qpoint
             with self.assertRaises(ValueError):
@@ -149,6 +150,8 @@ class DdbTest(AbipyTest):
         phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(verbose=1)
         phbands, phdos = phbands_file.phbands, phdos_file.phdos
 
+        assert ddb.view_phononwebsite(verbose=1, dryrun=True) == 0
+
         if self.has_matplotlib():
             assert phbands.plot_with_phdos(phdos, show=False,
                 title="Phonon bands and DOS of %s" % phbands.structure.formula)
@@ -166,10 +169,15 @@ class DdbTest(AbipyTest):
         phdos_file.close()
 
         # Test DOS computation via anaddb.
-        c = ddb.anacompare_phdos(nqsmalls=[2, 4, 6], num_cpus=1)
+        c = ddb.anacompare_phdos(nqsmalls=[2, 3, 4], dipdip=0, num_cpus=1, verbose=2)
         assert c.phdoses and c.plotter is not None
         if self.has_matplotlib():
             assert c.plotter.combiplot(show=False)
+
+        # Use threads and gaussian DOS.
+        c = ddb.anacompare_phdos(nqsmalls=[2, 3, 4], dos_method="gaussian", dipdip=0, asr=0,
+                num_cpus=2, verbose=2)
+        assert c.phdoses and c.plotter is not None
 
         # Execute anaddb to compute the interatomic forces.
         ifc = ddb.anaget_ifc()
@@ -236,7 +244,7 @@ class DdbTest(AbipyTest):
             assert becs.to_string(verbose=2)
 
             # get the dielectric tensor generator from anaddb
-            dtg = ddb.anaget_dielectric_tensor_generator()
+            dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
             assert dtg is not None and hasattr(dtg, "phfreqs")
 
     def test_mgo_becs_emacro(self):
@@ -256,9 +264,46 @@ class DdbTest(AbipyTest):
                 str(plotter)
                 assert plotter.combiplot(show=False)
 
+                # Test nqsmall == 0
                 plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
                     nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
                 assert plotter.gridplot(show=False)
+
+                plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
+                    nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
+                assert plotter.gridplot(show=False)
+
+
+    def test_mgb2_ddbs_ngkpt_tsmear(self):
+        """Testing multiple DDB files and gridplot_with_hue."""
+        paths = [
+            #"mgb2_444k_0.01tsmear_DDB",
+            #"mgb2_444k_0.02tsmear_DDB",
+            #"mgb2_444k_0.04tsmear_DDB",
+            "mgb2_888k_0.01tsmear_DDB",
+            #"mgb2_888k_0.02tsmear_DDB",
+            "mgb2_888k_0.04tsmear_DDB",
+            "mgb2_121212k_0.01tsmear_DDB",
+            #"mgb2_121212k_0.02tsmear_DDB",
+            "mgb2_121212k_0.04tsmear_DDB",
+        ]
+        paths = [os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", f) for f in paths]
+
+        robot = abilab.DdbRobot.from_files(paths)
+        robot.remap_labels(lambda ddb: "nkpt: %s, tsmear: %.3f" % (ddb.header["nkpt"], ddb.header["tsmear"]))
+
+        # Invoke anaddb to get bands and doses
+        r = robot.anaget_phonon_plotters(nqsmall=2)
+
+        data = robot.get_dataframe_at_qpoint(qpoint=(0, 0, 0), units="meV", with_geo=False)
+        assert "tsmear" in data
+        self.assert_equal(data["ixc"].values, 1)
+
+        if self.has_matplotlib():
+            assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=True, show=False)
+            assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=False, show=False)
+
+        robot.close()
 
 
 class DielectricTensorGeneratorTest(AbipyTest):
@@ -279,8 +324,10 @@ class DielectricTensorGeneratorTest(AbipyTest):
         self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha')[0,0], 11.917178540635028)
 
         if self.has_matplotlib():
-            assert d.plot_vs_w(0.0001, 0.01, 10, units="Ha", show=False)
-            assert d.plot_vs_w(0, None, 10, units="cm-1", show=False)
+            assert d.plot_vs_w(w_min=0.0001, w_max=0.01, num=10, units="Ha", show=False)
+            assert d.plot_vs_w(w_min=0, w_max=None, num=10, units="cm-1", show=False)
+            for comp in ["diag", "all", "diag_av"]:
+                assert d.plot_vs_w(num=10, component=comp, units="cm-1", show=False)
 
 
 class DdbRobotTest(AbipyTest):
@@ -299,7 +346,7 @@ class DdbRobotTest(AbipyTest):
         assert robot.EXT == "DDB"
 
         data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
-                dipdip=0, with_geo=True, abspath=True, verbose=2)
+                dipdip=0, with_geo=True, abspath=True)
         assert "mode1" in data and "angle1" in data
 
         r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)
@@ -311,3 +358,58 @@ class DdbRobotTest(AbipyTest):
             robot.write_notebook(nbpath=self.get_tmpname(text=True))
 
         robot.close()
+
+
+class PhononComputationTest(AbipyTest):
+
+    def test_phonon_computation(self):
+        """Testing if pjdoses compute by anaddb integrate to 3*natom"""
+        path = os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", "mgb2_121212k_0.04tsmear_DDB")
+        ddb = abilab.abiopen(path)
+
+        #for dos_method in ("gaussian",):
+        #for dos_method in ("tetra",):
+        for dos_method in ("tetra", "gaussian"):
+            # Get phonon bands and Dos with anaddb.
+            phbands_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, ndivsm=2,
+                dipdip=0, chneut=0, dos_method=dos_method, lo_to_splitting=False, verbose=1)
+
+            phbands, phdos = phbands_file.phbands, phdos_file.phdos
+            natom3 = len(phbands.structure) * 3
+
+            # Test that amu is present with correct values.
+            assert phbands.amu is not None
+            self.assert_almost_equal(phbands.amu[12.0], 0.24305e+02)
+            self.assert_almost_equal(phbands.amu[5.0], 0.10811e+02)
+            self.assert_almost_equal(phbands.amu_symbol["Mg"], phbands.amu[12.0])
+            self.assert_almost_equal(phbands.amu_symbol["B"],  phbands.amu[5.0])
+
+            # Total PHDOS should integrate to 3 * natom
+            # Note that anaddb does not renormalize the DOS so we have to increate the tolerance.
+            #E       Arrays are not almost equal to 2 decimals
+            #E        ACTUAL: 8.9825274146312282
+            #E        DESIRED: 9
+            self.assert_almost_equal(phdos.integral_value, natom3, decimal=1)
+
+            # Test convertion to eigenvectors. Verify that they are orthonormal
+            cidentity = np.eye(natom3, dtype=np.complex)
+            eig = phbands.dyn_mat_eigenvect
+            for iq in range(phbands.nqpt):
+                #print("About to test iq", iq, np.dot(eig[iq].T.conjugate(), eig[iq]))
+                #assert np.allclose(np.dot(eig[iq], eig[iq].T), cidentity , atol=1e-5, rtol=1e-3)
+                self.assert_almost_equal(np.dot(eig[iq].conjugate().T, eig[iq]), cidentity) #, decimal=1)
+
+            # Summing projected DOSes over types should give the total DOS.
+            pj_sum = sum(pjdos.integral_value for pjdos in phdos_file.pjdos_symbol.values())
+            self.assert_almost_equal(phdos.integral_value, pj_sum)
+
+            # Summing projected DOSes over types and directions should give the total DOS.
+            # phdos_rc_type[ntypat, 3, nomega]
+            values = phdos_file.reader.read_value("pjdos_rc_type").sum(axis=(0, 1))
+            tot_dos = abilab.Function1D(phdos.mesh, values)
+            self.assert_almost_equal(phdos.integral_value, tot_dos.integral_value)
+
+            phbands_file.close()
+            phdos_file.close()
+
+        ddb.close()

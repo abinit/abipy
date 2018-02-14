@@ -13,7 +13,7 @@ class TestFunction1D(AbipyTest):
     """Test Function1d."""
 
     def setUp(self):
-        self.xmin, self.xmax = 0, 2*np.pi
+        self.xmin, self.xmax = 0, 2 * np.pi
         mesh, self.h = np.linspace(self.xmin, self.xmax, 500, retstep=True)
         self.sinf = Function1D.from_func(np.sin, mesh)
         self.cosf = Function1D.from_func(np.cos, mesh)
@@ -23,8 +23,7 @@ class TestFunction1D(AbipyTest):
         """Basic methods of TestFunction1D."""
         sinf, cosf, eix = self.sinf, self.cosf, self.eix
 
-        repr(sinf)
-        str(sinf)
+        repr(sinf); str(sinf)
         assert isinstance(sinf, collections.Iterable)
         assert len(sinf) == len(sinf.mesh)
         assert self.h == sinf.h
@@ -55,6 +54,7 @@ class TestFunction1D(AbipyTest):
         assert 1 - cosf ** 2 == sinf ** 2
         self.assert_almost_equal((1-cosf).integral()[-1], 2*np.pi)
         self.assert_almost_equal(sinf.l1_norm, 4., decimal=4)
+        self.assert_almost_equal(sinf.integral_value, 0.0, decimal=4)
 
         one = Function1D.from_constant(cosf.mesh, 1.0)
         assert one == sinf ** 2 + cosf ** 2
@@ -76,6 +76,12 @@ class TestFunction1D(AbipyTest):
         self.assert_almost_equal(abs(sinf).min, 0)
         self.assert_almost_equal(eix.max, 1.)
         self.assert_almost_equal(eix.min, 1.)
+
+        # Convolution
+        #sg = sinf.gaussian_convolution(0.01)
+        #self.assert_almost_equal(sg.integral_value, sinf.integral_value, decimal=3)
+        #sl = sinf.lorentzian_convolution(0.01)
+        #self.assert_almost_equal(sl.integral_value, sinf.integral_value, decimal=3)
 
         # Test Kramers-Kronig methods.
         # TODO: This is not a response function. Should use realistic values.

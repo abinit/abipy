@@ -83,7 +83,7 @@ if __name__ == "__main__":
 #
 #    abirun.py flow_eos structures
 #
-# to get info about the intial and final structures.
+# to get info about the initial and final structures.
 #
 # .. code-block:: bash
 #

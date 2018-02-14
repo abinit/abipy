@@ -10,8 +10,7 @@ job: &job
     mpi_runner_options: "--bind-to none"
     shell_env:
         PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
-    pre_run:
-       - "ulimit -s unlimited"
+    pre_run: "ulimit -s unlimited"
     modules:
         - shared
         - openmpi/1.7.5/intel2013_sp1.1.106

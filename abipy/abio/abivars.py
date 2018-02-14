@@ -136,7 +136,7 @@ def str2array_bohr(obj):
     elif unit in ("bohr", "bohrs", "au"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ")
     else:
-        raise ValueError("Don't know how to handle unit: %s" % unit)
+        raise ValueError("Don't know how to handle unit: %s" % str(unit))
 
 
 def str2array(obj, dtype=float):
@@ -206,10 +206,7 @@ class Dataset(dict, Has_Structure):
             return Structure.from_abivars(acell=acell, znucl=znucl, typat=typat, **kwargs)
         except Exception as exc:
             print("Wrong inputs passed to Structure.from_abivars:")
-            print("  acell", acell)
-            print("  znucl", znucl)
-            print("  typat", typat)
-            print("  kwargs", kwargs)
+            print("acell:", acell, "znucl:", znucl, "typat:", typat, "kwargs:", kwargs, sep="\n")
             raise exc
 
     def get_vars(self):
@@ -241,13 +238,13 @@ class Dataset(dict, Has_Structure):
         app = lines.append
         for k in sorted(list(self.keys())):
             vname = k + post
-            if mode == "html": vname = var_database[k].html_link(tag=vname)
+            if mode == "html": vname = var_database[k].html_link(label=vname)
             app("%s %s" % (vname, str(self[k])))
 
         return "\n".join(lines) if mode=="text" else "\n".join(lines).replace("\n", "<br>")
 
     def _repr_html_(self):
-        """Integration with jupyter notebooks."""
+        """Integration with jupyter_ notebooks."""
         return self.to_string(mode="html")
 
 

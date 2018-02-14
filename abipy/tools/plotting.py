@@ -10,6 +10,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import collections
+import time
 import numpy as np
 
 from monty.string import list_strings
@@ -25,7 +26,15 @@ __all__ = [
     "ArrayPlotter",
     "data_from_cplx_mode",
     "Marker",
+    "plot_unit_cell",
 ]
+
+def ax_append_title(ax, title, loc="center", fontsize=None):
+    """Add title to previous ax.title. Return new title."""
+    prev_title = ax.get_title(loc=loc)
+    new_title = prev_title + title
+    ax.set_title(new_title, loc=loc, fontsize=fontsize)
+    return new_title
 
 
 def set_axlims(ax, lims, axname):
@@ -58,6 +67,20 @@ def set_axlims(ax, lims, axname):
     set_lim(left, right)
 
     return left, right
+
+
+def set_visible(ax, boolean, *args):
+    """
+    Hide/Show the artists of axis ax listed in args.
+    """
+    if "legend" in args and ax.legend():
+        ax.legend().set_visible(boolean)
+    if "title" in args and ax.title:
+        ax.title.set_visible(boolean)
+    if "xlabel" in args and ax.xaxis.label:
+        ax.xaxis.label.set_visible(boolean)
+    if "ylabel" in args and ax.yaxis.label:
+        ax.yaxis.label.set_visible(boolean)
 
 
 def rotate_ticklabels(ax, rotation, axname="x"):
@@ -109,7 +132,7 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     Returns: |matplotlib-Figure|
     """
-    # Check here because pandas messages are a bit criptic.
+    # Check here because pandas error messages are a bit criptic.
     miss = [k for k in (x, y, hue) if k not in data]
     if miss:
         raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
@@ -120,7 +143,11 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
     for key, grp in data.groupby(hue):
-        xvals, yvals = grp[x], grp[y]
+        #xvals, yvals = grp[x], grp[y]
+        # Sort xs and rearrange ys
+        xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
+        xvals, yvals = xy[:, 0], xy[:, 1]
+
         label = "{} = {}".format(hue, key)
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)
@@ -190,7 +217,6 @@ class ArrayPlotter(object):
             labels_and_arrays: List [("label1", arr1), ("label2", arr2")]
         """
         self._arr_dict = collections.OrderedDict()
-
         for label, array in labels_and_arrays:
             self.add_array(label, array)
 
@@ -226,11 +252,14 @@ class ArrayPlotter(object):
             self.add_array(label, arr)
 
     @add_fig_kwargs
-    def plot(self, cplx_mode="abs", color_map="jet", **kwargs):
+    def plot(self, cplx_mode="abs", colormap="jet", fontsize=8, **kwargs):
         """
         Args:
             cplx_mode: "abs" for absolute value, "re", "im", "angle"
-            color_map: matplotlib colormap
+            colormap: matplotlib colormap.
+            fontsize: legend and label fontsize.
+
+        Returns: |matplotlib-Figure|
         """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self), 1, 1
@@ -239,21 +268,18 @@ class ArrayPlotter(object):
             nrows = num_plots // ncols + (num_plots % ncols)
 
         import matplotlib.pyplot as plt
-        fig, axmat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
-        # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: axmat[-1, -1].axis("off")
+        fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
+        # Don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from matplotlib.ticker import MultipleLocator
 
-        for ax, (label, arr) in zip(axmat.flat, self.items()):
+        for ax, (label, arr) in zip(ax_mat.flat, self.items()):
             data = data_from_cplx_mode(cplx_mode, arr)
-            # use origin to place the [0,0] index of the array in the lower left corner of the axes.
-            #img = ax.imshow(data, interpolation='nearest', cmap=color_map, origin='lower', aspect="auto")
-            img = ax.matshow(data, interpolation='nearest', cmap=color_map, origin='lower', aspect="auto")
-            #img = ax.matshow(data, cmap=color_map)
-
-            ax.set_title(label + " (%s)" % cplx_mode)
+            # Use origin to place the [0, 0] index of the array in the lower left corner of the axes.
+            img = ax.matshow(data, interpolation='nearest', cmap=colormap, origin='lower', aspect="auto")
+            ax.set_title("(%s) %s" % (cplx_mode, label), fontsize=fontsize)
 
             # Make a color bar for this ax
             # Create divider for existing axes instance
@@ -352,123 +378,147 @@ class Marker(collections.namedtuple("Marker", "x y s")):
         return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
-#class Node(object):
-#    def __init__(self, path):
-#        self.path = path
-#        self.basename = os.path.basename(path)
-#        self.isdir = os.path.isdir(self.path)
-#        self.isfile = os.path.isfile(self.path)
-#
-#    def __eq__(self, other):
-#        if not isinstance(other, self.__class__): return False
-#        return self.path == other.path
-#
-#    def __ne__(self, other):
-#        return not self.__eq__(other)
-#
-#    def __hash__(self):
-#        return hash(self.path)
-#
-#
-#class FileNode(Node):
-#    color = np.array((255, 0, 0)) / 255
-#
-#
-#class DirNode(Node):
-#    color = np.array((0, 0, 255)) / 255
-#
-#    @lazy_property
-#    def isempty(self):
-#        """True if empty directory."""
-#        return bool(os.listdir(self.path))
-#
-#
-#class DirTreePlotter(object):
-#
-#    def __init__(self, top):
-#        self.top = os.path.abspath(top)
-#        self.build_graph()
-#
-#    def build_graph(self):
-#        import networkx as nx
-#        g = nx.Graph()
-#        g.add_node(DirNode(self.top))
-#
-#        for root, dirs, files in os.walk(self.top):
-#            for dirpath in dirs:
-#                dirpath = os.path.join(root, dirpath)
-#                head, basename = os.path.split(dirpath)
-#                node = DirNode(dirpath)
-#                g.add_node(node)
-#                g.add_edge(DirNode(head), node)
-#
-#            for f in files:
-#                filepath = os.path.join(root, f)
-#                node = FileNode(filepath)
-#                g.add_node(node)
-#                g.add_edge(DirNode(os.path.dirname(filepath)), node)
-#
-#        self.graph = g
-#
-#    @add_fig_kwargs
-#    def plot(self, filter_ends=None, ax=None, **kwargs):
-#        """
-#        Plot directory tree with files
-#
-#        Args:
-#            filter_ends: List of file extensions (actually file ends) that should be displayed.
-#                If None, all files are displayed
-#            ax: matplotlib :class:`Axes` or None if a new figure should be created.
-#
-#        Returns:
-#            `matplotlib` figure.
-#        """
-#        ax, fig, plt = get_ax_fig_plt(ax=ax)
-#        fixed, initial_pos = None, None
-#        fixed = True
-#        arrows = False
-#
-#        g = self.graph
-#        if filter_ends:
-#            filter_ends = list_strings(filter_ends)
-#            g = self.graph.subgraph([n for n in self.graph.nodes() if n.isdir # and not n.isempty)
-#                or (n.isfile and any(n.basename.endswith(e) for e in filter_ends))])
-#
-#        if arrows:
-#            g = nx.convert_to_directed(g)
-#
-#        top = self.top
-#        top_nodes = [DirNode(os.path.join(top, d)) for d in os.listdir(top) if os.path.isdir(os.path.join(top, d))]
-#        #print("top_nodes", top_nodes)
-#        import networkx as nx
-#        t = nx.Graph()
-#        t.add_nodes_from(top_nodes)
-#        initial_pos = nx.circular_layout(t)
-#
-#        # Get positions for all nodes using layout_type.
-#        # e.g. pos = nx.spring_layout(g)
-#        #layout_type = "spring"
-#        #pos = getattr(nx, layout_type + "_layout")(g)
-#
-#        pos = nx.spring_layout(g, iterations=50, fixed=top_nodes, pos=initial_pos)
-#
-#        nx.draw_networkx(g, pos,
-#                         labels={n: n.basename for n in g.nodes()},
-#                         node_color=[n.color for n in g.nodes()],
-#                         #node_size=[make_node_size(task) for task in g.nodes()],
-#                         #node_size=50,
-#                         width=1,
-#                         style="dotted",
-#                         with_labels=True,
-#                         font_size=10,
-#                         arrows=arrows,
-#                         alpha= 0.6,
-#                         ax=ax,
-#        )
-#
-#        ax.axis("off")
-#        return fig
-#
-#    #def __str__(self)
-#    #    from monty.pprint import _draw_tree
-#    #    return _draw_tree(node, prefix, child_iter, text_str)
+class MplExpose(object): # pragma: no cover
+    """
+    Example:
+
+        with MplExpose() as e:
+            e(obj.plot1(show=False))
+            e(obj.plot2(show=False))
+    """
+    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+        self.figures = []
+        self.slide_mode = bool(slide_mode)
+        self.timeout_ms = slide_timeout
+        self.verbose = verbose
+        if self.timeout_ms is not None:
+            self.timeout_ms = int(self.timeout_ms * 1000)
+            assert self.timeout_ms >= 0
+
+        if self.verbose:
+            if self.slide_mode:
+                print("\nSliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
+            else:
+                print("\nLoading all mpl figures before showing them. Could take some time...")
+
+        self.start_time = time.time()
+
+    def __call__(self, fig):
+        if fig is None: return
+
+        if not self.slide_mode:
+            self.figures.append(fig)
+        else:
+            #print("Printing and closing", fig)
+            import matplotlib.pyplot as plt
+            if self.timeout_ms is not None:
+                # Creating a timer object
+                # timer calls plt.close after interval milliseconds to close the window.
+                timer = fig.canvas.new_timer(interval=self.timeout_ms)
+                timer.add_callback(plt.close, fig)
+                timer.start()
+
+            plt.show()
+            fig.clear()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. """
+        self.expose()
+
+    def expose(self):
+        """Show all figures. Clear figures if needed."""
+        if not self.slide_mode:
+            print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
+            import matplotlib.pyplot as plt
+            plt.show()
+            for fig in self.figures:
+                fig.clear()
+
+
+def plot_unit_cell(lattice, ax=None, **kwargs):
+    """
+    Adds the unit cell of the lattice to a matplotlib Axes3D
+
+    Args:
+        lattice: Lattice object
+        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
+        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to black
+            and linewidth to 3.
+
+    Returns:
+        matplotlib figure and matplotlib ax
+    """
+    ax, fig, plt = get_ax3d_fig_plt(ax)
+
+    if "color" not in kwargs:
+        kwargs["color"] = "k"
+    if "linewidth" not in kwargs:
+        kwargs["linewidth"] = 3
+
+    v = 8 * [None]
+    v[0] = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
+    v[1] = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
+    v[2] = lattice.get_cartesian_coords([1.0, 1.0, 0.0])
+    v[3] = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
+    v[4] = lattice.get_cartesian_coords([0.0, 1.0, 1.0])
+    v[5] = lattice.get_cartesian_coords([1.0, 1.0, 1.0])
+    v[6] = lattice.get_cartesian_coords([1.0, 0.0, 1.0])
+    v[7] = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
+
+    for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
+                 (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
+        ax.plot(*zip(v[i], v[j]), **kwargs)
+
+    return fig, ax
+
+
+def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
+                   style="points+labels", color_scheme="VESTA", **kwargs):
+    """
+    Plot structure with matplotlib (minimalistic version)
+
+    Args:
+        structure: Structure object
+        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
+        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
+        to_unit_cell: True if sites should be wrapped into the first unit cell.
+        style: "points+labels" to show atoms sites with labels.
+        color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
+
+    Returns: |matplotlib-Figure|
+    """
+    fig, ax = plot_unit_cell(structure.lattice, ax=ax, linewidth=1)
+
+    from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+    from pymatgen.vis.structure_vtk import EL_COLORS
+    xyzs, colors = np.empty((len(structure), 4)), []
+
+    for i, site in enumerate(structure):
+        symbol = site.specie.symbol
+        color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
+        radius = CovalentRadius.radius[symbol]
+        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell
+        # Use cartesian coordinates.
+        x, y, z = site.coords
+        xyzs[i] = (x, y, z, radius)
+        colors.append(color)
+        if "labels" in style:
+            ax.text(x, y, z, symbol)
+
+    # The definition of sizes is not optimal because matplotlib uses points
+    # wherease we would like something that depends on the radius (5000 seems to give reasonable plots)
+    # For possibile approaches, see
+    # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
+    # https://gist.github.com/syrte/592a062c562cd2a98a83
+    if "points" in style:
+        x, y, z, s = xyzs.T.copy()
+        s = 5000 * s **2
+        ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
+
+    ax.set_title(structure.composition.formula)
+    ax.set_axis_off()
+
+    return fig

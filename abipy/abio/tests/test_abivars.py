@@ -77,6 +77,10 @@ class TestAbinitInputFile(AbipyTest):
         """
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 2
+        dt0 = inp.datasets[0]
+        repr(dt0); str(dt0)
+        assert dt0.to_string(verbose=2)
+        assert dt0._repr_html_()
         s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         assert s0 != s1
         assert s1.volume == 8 * s0.volume

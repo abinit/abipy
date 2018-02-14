@@ -125,10 +125,6 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.energy / len(self.structure)
 
     @lazy_property
-    def energy_terms(self):
-        return self.reader.read_energy_terms()
-
-    @lazy_property
     def cart_forces(self):
         """Cartesian forces in eV / Ang"""
         return self.reader.read_cart_forces()
@@ -183,6 +179,11 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Use libxc convention :cite:`Marques2012`.
         """
         return self.reader.read_abinit_xcfunc()
+
+    @lazy_property
+    def energy_terms(self):
+        """:class:`EnergyTerms` with the different contributions to the total energy in eV."""
+        return self.reader.read_energy_terms(unit="eV")
 
     @lazy_property
     def params(self):
@@ -273,7 +274,9 @@ if gsr.ebands.kpoints.is_ibz:
 
 
 class EnergyTerms(AttrDict):
-    """Contributions to the total GS energy. See energies_type in m_energies.F90"""
+    """
+    Contributions to the total GS energy. See energies_type in m_energies.F90.
+    """
 
     _NAME2DOC = OrderedDict([
         # (Name, help)
@@ -315,7 +318,17 @@ class EnergyTerms(AttrDict):
 
     def __str__(self):
         return self.to_string(with_doc=False)
+
     __repr__ = __str__
+
+    def to_string(self, verbose=0, with_doc=True):
+        """String representation, with documentation if with_doc."""
+        lines = [str(self.table)]
+        if with_doc:
+            for k, doc in self._NAME2DOC.items():
+                lines.append("%s: %s" % (k, doc))
+
+        return "\n".join(lines)
 
     @property
     def table(self):
@@ -326,14 +339,13 @@ class EnergyTerms(AttrDict):
             table.add_row([k, self[k]])
         return table
 
-    def to_string(self, verbose=0, with_doc=True):
-        """String representation, with documentation if with_doc."""
-        lines = [str(self.table)]
-        if with_doc:
-            for k, doc in self._NAME2DOC.items():
-                lines.append("%s: %s" % (k, doc))
-
-        return "\n".join(lines)
+    #def get_dataframe(self):
+    #    """
+    #    Return a |pandas-DataFrame|
+    #    """
+    #    d = {k: float(self[k]) for k in self}
+    #    return pd.DataFrame(d, index=[None], columns=list(d.keys()))
+    #    #return pd.DataFrame(d, columns=list(d.keys()))
 
 
 class GsrReader(ElectronsReader):
@@ -410,7 +422,7 @@ class GsrRobot(Robot, RobotWithEbands):
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
-        for label, gsr in self:
+        for label, gsr in self.items():
             row_names.append(label)
             d = OrderedDict()
 
@@ -449,7 +461,7 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         # Read volumes and energies from the GSR files.
         energies, volumes = [], []
-        for label, gsr in self:
+        for label, gsr in self.items():
             energies.append(float(gsr.energy))
             volumes.append(float(gsr.structure.volume))
 
@@ -486,6 +498,31 @@ class GsrRobot(Robot, RobotWithEbands):
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
+    def get_energyterms_dataframe(self, iref=None):
+        """
+        Build and return with the different contributions to the total energy in eV
+
+        Args:
+            iref: Index of the abifile used as reference: the energies of the
+            ``iref`` gsrfile will be subtracted from the other rows. Ignored if None.
+
+        Return: |pandas-Dataframe|
+        """
+        rows, row_names = [], []
+        for label, gsr in self.items():
+            row_names.append(label)
+            # Add total energy.
+            d = OrderedDict([("energy", gsr.energy)])
+            d.update(gsr.energy_terms)
+            rows.append(d)
+
+        df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+        if iref is not None:
+            # Subtract iref row from the rest of the rows.
+            iref_row = df.iloc[[iref]].values[0]
+            df = df.apply(lambda row: row - iref_row, axis=1)
+        return df
+
     @add_fig_kwargs
     def gridplot_eos(self, eos_names="all", fontsize=6, **kwargs):
         """
@@ -514,14 +551,13 @@ class GsrRobot(Robot, RobotWithEbands):
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].plot([0, 1], [0, 1], lw=0)
             ax_list[-1].axis('off')
 
         return fig
 
     @add_fig_kwargs
     def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=6,
-            items=("energy", "pressure", "max_force"), **kwargs):
+                             items=("energy", "pressure", "max_force"), **kwargs):
         """
         Plot the convergence of the most important quantities available in the GSR file
         wrt to the ``sortby`` parameter. Values can optionally be grouped by ``hue``.
@@ -550,7 +586,7 @@ class GsrRobot(Robot, RobotWithEbands):
     #def get_phasediagram_results(self):
     #    from abipy.core.restapi import PhaseDiagramResults
     #    entries = []
-    #    for label, gsr in self:
+    #    for label, gsr in self.items():
     #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
     #    return PhaseDiagramResults(entries)
 

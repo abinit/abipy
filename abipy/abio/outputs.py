@@ -11,7 +11,6 @@ from monty.string import is_string
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-#from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.kpoints import has_timrev_from_kptopt
@@ -47,7 +46,12 @@ class AbinitTextFile(TextFile):
 
 
 class AbinitLogFile(AbinitTextFile, NotebookWriter):
-    """Class representing the Abinit log file."""
+    """
+    Class representing the Abinit log file.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AbinitLogFile
+    """
 
     def to_string(self, verbose=0):
         return str(self.events)
@@ -74,6 +78,9 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
 class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     """
     Class representing the main Abinit output file.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AbinitOutputFile
     """
     # TODO: Extract number of errors and warnings.
 
@@ -90,13 +97,28 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         # Get code version and find magic line signaling that the output file is completed.
         self.version, self.run_completed = None, False
+        self.overall_cputime, self.overall_walltime = 0.0, 0.0
+        self.proc0_cputime, self.proc0_walltime = 0.0, 0.0
+
         with open(self.filepath) as fh:
             for line in fh:
                 if self.version is None and line.startswith(".Version"):
                     self.version = line.split()[1]
+
+                if line.startswith("- Proc."):
+                    #- Proc.   0 individual time (sec): cpu=         25.5  wall=         26.1
+                    tokens = line.split()
+                    self.proc0_walltime = float(tokens[-1])
+                    self.proc0_cputime = float(tokens[-3])
+
+                if line.startswith("+Overall time"):
+                    #+Overall time at end (sec) : cpu=         25.5  wall=         26.1
+                    tokens = line.split()
+                    self.overall_cputime = float(tokens[-3])
+                    self.overall_walltime = float(tokens[-1])
+
                 if " Calculation completed." in line:
                     self.run_completed = True
-                    break
 
         # Parse header to get important dimensions and variables
         self.header, self.footer, self.datasets = [], [], OrderedDict()
@@ -222,7 +244,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if not line: continue
             # Ignore first char
             line = line[1:].lstrip().rstrip()
-            #print(line)
+            if not line: continue
+            #print("line", line)
             if line[0].isalpha():
                 pop_stack()
                 stack_lines = []
@@ -788,14 +811,18 @@ class AboRobot(Robot):
     """
     This robot analyzes the results contained in multiple Abinit output files.
     Can compare dimensions, SCF cycles, analyze timers.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AboRobot
     """
     EXT = "abo"
 
-    def get_dims_dataframe(self, index=None):
+    def get_dims_dataframe(self, with_time=True, index=None):
         """
         Build and return |pandas-DataFrame| with the dimensions of the calculation.
 
         Args:
+            with_time: True if walltime and cputime should be added
             index: Index of the dataframe. Use relative paths of files if None.
         """
         rows, my_index = [], []
@@ -807,7 +834,12 @@ class AboRobot(Robot):
                 continue
 
             for dtindex, dims in dims_dataset.items():
+                dims = dims.copy()
                 dims.update({"dtset": dtindex})
+                # Add walltime and cputime in seconds
+                if with_time:
+                    dims.update(OrderedDict([(k, getattr(abo, k)) for k in
+                        ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")]))
                 rows.append(dims)
                 my_index.append(abo.relpath if index is None else index[i])
 
@@ -827,7 +859,7 @@ class AboRobot(Robot):
                 where key is a string with the name of column and value is the value to be inserted.
         """
         rows, row_names = [], []
-        for label, abo in self:
+        for label, abo in self.items():
             row_names.append(label)
             d = OrderedDict()
 
@@ -847,6 +879,21 @@ class AboRobot(Robot):
 
         import pandas as pd
         row_names = row_names if not abspath else self._to_relpaths(row_names)
+        return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    def get_time_dataframe(self):
+        """
+        Return a |pandas-DataFrame| with the wall-time, cpu time in seconds and the filenames as index.
+        """
+        rows, row_names = [], []
+
+        for label, abo in self.items():
+            row_names.append(label)
+            d = OrderedDict([(k, getattr(abo, k)) for k in
+                ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")])
+            rows.append(d)
+
+        import pandas as pd
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     # TODO

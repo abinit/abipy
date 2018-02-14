@@ -128,6 +128,7 @@ class TestStructure(AbipyTest):
             assert si.plot_bz(show=False)
             assert si.plot_bz(pmg_path=False, show=False)
             assert si.plot_xrd(show=False)
+            assert si.plot(show=False)
 
         if self.has_mayavi():
             #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
@@ -148,7 +149,7 @@ class TestStructure(AbipyTest):
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
         self.assert_equal(ksamp.shiftk, shiftk)
 
-        si = Structure.from_material_id("mp-149")
+        si = Structure.from_mpid("mp-149")
         assert si.formula == "Si2"
 
         mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
@@ -160,6 +161,14 @@ class TestStructure(AbipyTest):
             mgb2.abi_primitive()
 
         assert [site.species_string for site in mgb2.get_sorted_structure_z()] == ["B", "B", "Mg"]
+
+        s2inds = mgb2.get_symbol2indices()
+        self.assert_equal(s2inds["Mg"], [0])
+        self.assert_equal(s2inds["B"], [1, 2])
+
+        s2coords = mgb2.get_symbol2coords()
+        self.assert_equal(s2coords["Mg"], [[0, 0, 0]])
+        self.assert_equal(s2coords["B"],  [[1/3, 2/3, 0.5], [2/3, 1/3, 0.5]])
 
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()

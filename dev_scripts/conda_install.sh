@@ -14,6 +14,8 @@ conda install -y -c anaconda setuptools
 conda install -y --file ./requirements.txt
 conda install -y --file ./requirements-optional.txt
 
+conda install -c conda-forge graphviz python-graphviz
+
 echo "Installing bader executable (http://theory.cm.utexas.edu/henkelman/code/bader/) from matsci ..."
 conda install -y -c matsci bader
 

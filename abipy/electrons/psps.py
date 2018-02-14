@@ -6,7 +6,7 @@ import numpy as np
 
 from monty.bisect import find_gt
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.flowtk import Pseudo
 from abipy.iotools import ETSF_Reader
 from abipy.core.mixins import AbinitNcFile
@@ -97,8 +97,6 @@ class PspsFile(AbinitNcFile):
 
         Return: |matplotlib-Figure|
         """
-        import matplotlib.pyplot as plt
-
         methods = [
             "plot_tcore_rspace",
             "plot_tcore_qspace",
@@ -106,7 +104,8 @@ class PspsFile(AbinitNcFile):
             "plot_vlocq",
         ]
 
-        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2,
+                                                sharex=False, sharey=False, squeeze=True)
 
         ecut_ffnl = kwargs.pop("ecut_ffnl", None)
         for m, ax in zip(methods, ax_list.ravel()):
@@ -126,7 +125,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         linewidth = kwargs.pop("linewidth", 2.0)
         rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
@@ -160,7 +159,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
@@ -210,7 +209,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
@@ -256,7 +255,7 @@ class PspsFile(AbinitNcFile):
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", 2.0)
@@ -308,10 +307,9 @@ class PspsFile(AbinitNcFile):
         if not isinstance(others, (list, tuple)):
             others = [others]
 
-        import matplotlib.pyplot as plt
-        fig, ax_list = plt.subplots(nrows=2, ncols=2, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2,
+                                                sharex=False, sharey=False, squeeze=True)
         ax_list = ax_list.ravel()
-
         #fig.suptitle("%s vs %s" % (self.basename, ", ".join(o.basename for o in others)))
 
         def mkcolor(count):
