@@ -3,7 +3,6 @@ from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import scipy.optimize as optimize
-import scipy.constants as constants
 
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
@@ -21,7 +20,7 @@ class FrozenPhonon(object):
     """
 
     def __init__(self, original_structure, original_displ_cart, structures, normalized_displ_cart, etas,
-                 qpoint, scale_matrix, energies=None):
+                 qpt_frac_coords, scale_matrix, energies=None):
         """
 
         Args:
@@ -34,7 +33,7 @@ class FrozenPhonon(object):
                 The normalization defines the largest displacement of one atom at 1 Angstrom.
             etas: list of (signed) factors that will multiply the normalized displacement to obtain the list of
                 structure.
-            qpoint: fractional coordinates of the qpoint corresponding to the displacement.
+            qpt_frac_coords: fractional coordinates of the qpoint corresponding to the displacement.
             scale_matrix: the scaling matrix between the original cell and the supercell.
             energies: energies in eV corresponding to the structures.
         """
@@ -44,7 +43,7 @@ class FrozenPhonon(object):
         self.structures = structures
         self.normalized_displ_cart = normalized_displ_cart
         self.etas = np.array(etas)
-        self.qpoint = qpoint
+        self.qpt_frac_coords = qpt_frac_coords
         self.scale_matrix = scale_matrix
         self._energies = energies
 
@@ -65,11 +64,11 @@ class FrozenPhonon(object):
         self._energies = energies
 
     @property
-    def qpoint_cart(self):
+    def qpt_cart_coords(self):
         """
         The cartesian coordinates of the qpoint.
         """
-        self.original_structure.lattice.get_cartesian_coords(self.qpoint)
+        return self.original_structure.lattice.reciprocal_lattice.get_cartesian_coords(self.qpt_frac_coords)
 
     @property
     def n_displ(self):
@@ -89,14 +88,14 @@ class FrozenPhonon(object):
             raise ValueError("The structure with no displacement is not present in the list.")
 
     @classmethod
-    def from_phbands(cls, phbands, qpoint, nmode, etas, scale_matrix=None, max_supercell=None):
+    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas, scale_matrix=None, max_supercell=None):
         """
         Create an instace of FrozenPhonon using the eigendisplacements from a |PhononBands|
 
         Args:
             phbands: a |PhononBands| instance.
-            qpoint: q vector in reduced coordinate in reciprocal space or index of the qpoint.
-            nmode: index of the mode.
+            qpt_frac_coords: q vector in reduced coordinate in reciprocal space or index of the qpoint.
+            imode: index of the mode.
             etas: list of amplitudes of the displacement to be applied to the system. Will correspond to the
                 largest displacement of one atom in Angstrom.
             scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for
@@ -108,16 +107,16 @@ class FrozenPhonon(object):
             A FrozenPhonon.
         """
 
-        qind = phbands.qindex(qpoint)
-        original_displ_cart = phbands.phdispl_cart[qind, nmode].reshape((-1, 3))
+        qind = phbands.qindex(qpt_frac_coords)
+        original_displ_cart = phbands.phdispl_cart[qind, imode].reshape((-1, 3))
 
         # first extract data with the normalized displacement (eta=1)
-        normalized_fp = phbands.get_frozen_phonons(qind, nmode, 1, scale_matrix, max_supercell)
+        normalized_fp = phbands.get_frozen_phonons(qind, imode, 1, scale_matrix, max_supercell)
 
         structures = []
 
         for n in etas:
-            structures.append(phbands.get_frozen_phonons(qind, nmode, n, normalized_fp.scale_matrix).structure)
+            structures.append(phbands.get_frozen_phonons(qind, imode, n, normalized_fp.scale_matrix).structure)
 
         return cls(phbands.structure, original_displ_cart, structures, normalized_fp.displ, etas,
                    phbands.qpoints[qind].frac_coords, normalized_fp.scale_matrix)
