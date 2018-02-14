@@ -1,11 +1,8 @@
 """Tests for frozen_phonons"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
-import unittest
 import os
-import numpy as np
 import abipy.data as abidata
-import abipy.core.abinit_units as abu
 
 from abipy.dfpt.frozen_phonons import FrozenPhonon
 from abipy.dfpt.phonons import PhononBands

@@ -307,7 +307,7 @@ class FactoryTest(AbipyTest):
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
         multi = piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.abivalidate_multi(multi)
-        factory_obj = PiezoElasticFromGsFactory
+        factory_obj = PiezoElasticFromGsFactory(ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.assertMSONable(factory_obj)
         multi_obj = factory_obj.build_input(gs_inp)
 
@@ -325,7 +325,7 @@ class FactoryTest(AbipyTest):
                                           smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                                           ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.assertMSONable(factory_obj)
-        multi_obj = factory_obj.build_input(gs_inp)
+        multi_obj = factory_obj.build_input()
 
     def test_scf_input(self):
         """Testing scf_input"""

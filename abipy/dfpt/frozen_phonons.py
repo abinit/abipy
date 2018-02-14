@@ -1,4 +1,5 @@
 # coding: utf-8
+"""Objects to run and analyze the frozen phonons generated from displacements of atoms"""
 from __future__ import print_function, division, absolute_import
 
 import numpy as np
@@ -7,10 +8,19 @@ import scipy.optimize as optimize
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from abipy.core.abinit_units import phfactor_ev2units, amu_emass, Bohr_Ang, eV_Ha
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
 
 def quadratic_fit_function(xx, aa, bb):
+    """
+    Simple quadratic function used as a default for the fitting.
+
+    Args:
+        xx: the variable
+        aa: the coefficient of the quadratic term
+        bb: the constant term
+    """
+
     return aa * xx ** 2 + bb
 
 class FrozenPhonon(object):
