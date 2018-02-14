@@ -193,6 +193,8 @@ class GsrRobotTest(AbipyTest):
 
             assert robot.plot_gsr_convergence(show=False)
             assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+            y_vars = ["energy", "structure.lattice.a", "structure.volume"]
+            assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", show=False)
 
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")

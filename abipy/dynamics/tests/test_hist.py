@@ -100,7 +100,8 @@ class HistFileTest(AbipyTest):
                 for what in robot.what_list:
                     assert robot.gridplot(what=what, show=False)
                     assert robot.combiplot(show=False)
-                assert robot.plot_lattice_convergence(show=False)
+                assert robot.plot_lattice_convergence(fontsize=10, show=False)
+                assert robot.plot_lattice_convergence(what_list=("a", "alpha"), show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

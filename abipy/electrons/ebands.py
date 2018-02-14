@@ -1431,13 +1431,15 @@ class ElectronBands(Has_Structure):
             spin: Spin index.
             valence: Int or iterable with the valence indices.
             conduction: Int or iterable with the conduction indices.
-            method: String defining the method.
+            method (str): String defining the integraion method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
             mesh: Frequency mesh to use. If None, the mesh is computed automatically from the eigenvalues.
 
         Returns: |Function1D| object.
         """
+        # TODO: Generalize to k+q with
+        # k2kqg = self.kpoints.get_k2kqg_map(qpt, atol_kdiff=atol_kdiff)
         self.kpoints.check_weights()
         if not isinstance(valence, Iterable): valence = [valence]
         if not isinstance(conduction, Iterable): conduction = [conduction]
@@ -1481,7 +1483,7 @@ class ElectronBands(Has_Structure):
                         jdos += fact * gaussian(mesh, width, center=ec-ev)
 
         else:
-            raise NotImplementedError("Method %s is not supported" % method)
+            raise NotImplementedError("Method %s is not supported" % str(method))
 
         return Function1D(mesh, jdos)
 
@@ -1517,7 +1519,7 @@ class ElectronBands(Has_Structure):
         ax.grid(True)
         ax.set_xlabel('Energy [eV]')
         cmap = plt.get_cmap(colormap)
-        lw = 1.0
+        lw = kwargs.pop("lw", 1.0)
 
         for s in self.spins:
             spin_sign = +1 if s == 0 else -1
@@ -1538,7 +1540,7 @@ class ElectronBands(Has_Structure):
                 num_plots, i = len(jdos_vc), 0
                 for (v, c), jdos in jdos_vc.items():
                     label = r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s)
-                    color = cmap(float(i)/num_plots)
+                    color = cmap(float(i) / num_plots)
                     x, y = jdos.mesh, jdos.values
                     ax.plot(x, cumulative + y, lw=lw, label=label, color=color)
                     ax.fill_between(x, cumulative, cumulative + y, facecolor=color, alpha=alpha)
@@ -1548,12 +1550,14 @@ class ElectronBands(Has_Structure):
                 num_plots, i = len(jdos_vc), 0
                 for (v, c), jdos in jdos_vc.items():
                     color = cmap(float(i)/num_plots)
-                    jdos.plot_ax(ax, color=color, lw=lw, label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
+                    jdos.plot_ax(ax, color=color, lw=lw,
+                        label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
                     i += 1
 
             tot_jdos.plot_ax(ax, color="k", lw=lw, label=r"Total JDOS, $\sigma=%s$" % s)
 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
         return fig
 
     def apply_scissors(self, scissors):

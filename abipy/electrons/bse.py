@@ -707,7 +707,7 @@ class MultipleMdfPlotter(object):
                 self._mdfs[label][mdf_type] = obj.get_mdf(mdf_type=mdf_type)
 
     @add_fig_kwargs
-    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, **kwargs):
+    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, fontsize=8, **kwargs):
         """
         Plot all macroscopic dielectric functions (MDF) stored in the plotter
 
@@ -720,6 +720,7 @@ class MultipleMdfPlotter(object):
             xlims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                   or scalar e.g. `left`. If left (right) is None, default values are used
             ylims: Same meaning as `ylims` but for the y-axis
+            fontsize: fontsize for titles and legend.
 
         Return: |matplotlib-Figure|
         """
@@ -738,18 +739,18 @@ class MultipleMdfPlotter(object):
         if qview == "avg":
             # Plot averaged values
             self.plot_mdftype_cplx(mdf_type, "Re", ax=ax_mat[0, 0], xlims=xlims, ylims=ylims,
-                                   with_legend=True, show=False)
+                                   fontsize=fontsize, with_legend=True, show=False)
             self.plot_mdftype_cplx(mdf_type, "Im", ax=ax_mat[0, 1], xlims=xlims, ylims=ylims,
-                                   with_legend=False, show=False)
+                                   fontsize=fontsize, with_legend=False, show=False)
         elif qview == "all":
             # Plot MDF(q)
             nqpt = len(qpoints)
             for iq, qpt in enumerate(qpoints):
                 islast = (iq == nqpt - 1)
                 self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=ax_mat[iq, 0], xlims=xlims, ylims=ylims,
-                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
+                    fontsize=fontsize, with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
                 self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=ax_mat[iq, 1], xlims=xlims, ylims=ylims,
-                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
+                    fontsize=fontsize, with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
         else:
             raise ValueError("Invalid value of qview: %s" % str(qview))
@@ -762,12 +763,10 @@ class MultipleMdfPlotter(object):
     #@add_fig_kwargs
     #def plot_mdftypes(self, qview="avg", xlims=None, ylims=None, **kwargs):
     #    """
-
     #    Args:
     #        qview:
     #        xlims
     #        ylims
-
     #    Return: matplotlib figure
     #    """
     #    # Build plot grid.
@@ -778,10 +777,8 @@ class MultipleMdfPlotter(object):
     #        ncols, nrows = 2, len(qpoints)
     #    else:
     #        raise ValueError("Invalid value of qview: %s" % str(qview))
-
     #    import matplotlib.pyplot as plt
     #    fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
-
     #    if qview == "avg":
     #        # Plot averaged values
     #        for mdf_type in self.MDF_TYPES:
@@ -799,18 +796,15 @@ class MultipleMdfPlotter(object):
     #                                       with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
     #                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=ax_mat[iq, 1], xlims=xlims, ylims=ylims,
     #                                       with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
-
     #    else:
     #        raise ValueError("Invalid value of qview: %s" % str(qview))
-
     #    #ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
     #    #fig.tight_layout()
-
     #    return fig
 
     @add_fig_kwargs
     def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None, xlims=None, ylims=None,
-                          with_legend=True, with_xlabel=True, with_ylabel=True, fontsize=12, **kwargs):
+                          with_legend=True, with_xlabel=True, with_ylabel=True, fontsize=8, **kwargs):
         """
         Helper function to plot data corresponds to ``mdf_type``, ``cplx_mode``, ``qpoint``.
 
@@ -930,7 +924,6 @@ class MdfRobot(Robot, RobotWithEbands):
         Return an instance of :class:`MultipleMdfPlotter` to compare multiple dielectric functions.
         """
         plotter = MultipleMdfPlotter() if cls is None else cls()
-
         for label, mdf in self.items():
             plotter.add_mdf_file(label, mdf)
 

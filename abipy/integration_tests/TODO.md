@@ -172,3 +172,5 @@ TODO list:
 * Remove Prettytable
 
 * context manager to change variables (e.g. autoparal)
+
+* Cleanup and refactoring in OpticTask
