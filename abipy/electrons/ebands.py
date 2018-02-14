@@ -2472,11 +2472,12 @@ class ElectronBandsPlotter(NotebookWriter):
             if numeb % ncols != 0: ax_list[-1].axis("off")
 
             for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list)):
+                irow, icol = divmod(i, ncols)
                 ebands.plot(ax=ax, e0=e0, show=False)
                 set_axlims(ax, ylims, "y")
                 if titles is not None: ax.set_title(titles[i], fontsize=fontsize)
-                if i % ncols != 0:
-                    ax.set_ylabel("")
+                if (irow, icol) != (0, 0):
+                    set_visible(ax, False, "ylabel")
 
         else:
             # Plot grid with bands + DOS. see http://matplotlib.org/users/gridspec.html
@@ -3319,7 +3320,7 @@ class ElectronDosPlotter(NotebookWriter):
             ax.grid(True)
             ax.set_title(label, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
-            if icol == 0:
+            if (irow, icol) == (0, 0):
                 ax.set_ylabel('DOS [states/eV]' if what == "dos" else "IDOS")
             if irow == nrows - 1:
                 ax.set_xlabel("Energy [eV]")

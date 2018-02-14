@@ -609,6 +609,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return D2DEScfCycle.from_stream(self)
 
+    # TODO: Use header and vars to understand if we have SCF/DFFT/Relaxation
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
         Plot GS/DFPT SCF cycles and timer data found in the output file.
