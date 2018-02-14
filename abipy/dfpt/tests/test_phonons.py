@@ -127,6 +127,9 @@ class PhononBandsTest(AbipyTest):
         # convert to pymatgen object
         phbands.to_pymatgen()
 
+        # get frozen phonons
+        phbands.get_frozen_phonons((0.5, 0.5, 1.0), 1, eta=0.5, max_supercell=[5,5,5])
+
 
 class PlotterTest(AbipyTest):
 

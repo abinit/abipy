@@ -1674,6 +1674,31 @@ class PhononBands(object):
 
         return dict2namedtuple(breakings=asr_break, max_break=asr_break[imax], absmax_break=abs(asr_break[imax]))
 
+    def get_frozen_phonons(self, qpoint, nmode, eta=1, scale_matrix=None, max_supercell=None):
+        """
+        Creates a supercell with displaced atoms for the specified q-point and mode.
+
+        Args:
+            qpoint: q vector in reduced coordinate in reciprocal space or index of the qpoint.
+            nmode: number of the mode.
+            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the
+                largest displacement.
+            scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for
+                the qpoint will be determined.
+            max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest
+                supercell in the search for a scaling matrix suitable for the q point.
+
+        Returns:
+            A namedtuple with a Structure with the displaced atoms, a numpy array containing the
+            displacements applied to each atom and the scale matrix used to generate the supercell.
+        """
+
+        qind = self.qindex(qpoint)
+        displ = self.phdispl_cart[qind, nmode].reshape((-1,3))
+
+        return self.structure.frozen_phonon(qpoint=self.qpoints[qind].frac_coords, displ=displ, eta=eta,
+                                            frac_coords=False, scale_matrix=scale_matrix, max_supercell=max_supercell)
+
 
 class PHBST_Reader(ETSF_Reader):
     """

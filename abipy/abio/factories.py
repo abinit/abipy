@@ -18,6 +18,7 @@ from abipy.flowtk import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.abio.input_tags import *
+from monty.json import MSONable
 
 import logging
 logger = logging.getLogger(__file__)
@@ -124,7 +125,7 @@ def _stopping_criterion(runlevel, accuracy):
     return {tolname: getattr(_tolerances[tolname], accuracy)}
 
 
-def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy='normal'):
+def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
     """Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
     # Get ecut and pawecutdg from the pseudo hints.
     if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
@@ -272,7 +273,7 @@ def ebands_input(structure, pseudos,
     multi = MultiDataset(structure, pseudos, ndtset=2 if dos_kppa is None else 2 + len(dos_kppa))
 
     # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
+    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
 
     # SCF calculation.
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
@@ -339,7 +340,7 @@ def ion_ioncell_relax_input(structure, pseudos,
     multi = MultiDataset(structure, pseudos, ndtset=2)
 
     # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
+    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
 
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
 
@@ -456,7 +457,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     multi = MultiDataset(structure, pseudos, ndtset=4)
 
     # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos))
+    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
 
     scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
@@ -738,7 +739,7 @@ def bse_with_mdf_inputs(structure, pseudos,
     multi = MultiDataset(structure, pseudos, ndtset=3)
 
     # Set the cutoff energies.
-    d = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos)
+    d = _find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy)
     multi.set_vars(ecut=d.ecut, ecutwfn=d.ecut, pawecutdg=d.pawecutdg)
 
     # Ground-state
@@ -807,7 +808,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
     gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
 
     # Set the cutoff energies.
-    gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos))
+    gs_inp.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, gs_inp.pseudos, accuracy))
 
     ksampling = aobj.KSampling.automatic_density(gs_inp.structure, kppa, chksymbreak=0)
     gs_inp.set_vars(ksampling.to_abivars())
@@ -1127,7 +1128,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     abinit_input = AbinitInput(structure, pseudos)
 
     # Set the cutoff energies.
-    abinit_input.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, abinit_input.pseudos))
+    abinit_input.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, abinit_input.pseudos, accuracy))
 
     # SCF calculation.
     kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
@@ -1342,7 +1343,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
 #FIXME if the pseudos are passed as a PseudoTable the whole table will be serialized,
 # it would be better to filter on the structure elements
-class InputFactory(object):
+class InputFactory(MSONable):
     factory_function = None
     input_required = True
 
@@ -1375,7 +1376,7 @@ class InputFactory(object):
 
     @pmg_serialize
     def as_dict(self):
-        # sanitize to avoid numpy arrays and serialize PMGSonable objects
+        # sanitize to avoid numpy arrays and serialize MSONable objects
         return jsanitize(dict(args=self.args, kwargs=self.kwargs), strict=True)
 
     @classmethod
