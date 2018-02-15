@@ -8,7 +8,7 @@ hardware: &hardware
 job: &job
     mpi_runner: mpirun
     shell_env:
-        PATH: "/home/gmatteo/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH"
+        PATH: "$HOME/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH"
     modules:
         - impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26
         - imkl/11.3.3.210-iimpi-2016b

@@ -21,7 +21,7 @@ ObanIntel: &ObanIntel
 job: &job
     mpi_runner: mpirun
     shell_env:
-         PATH: /home/users/g/m/gmatteo/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH
+         PATH: "$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH"
     pre_run: 
         - "ulimit -s unlimited" 
         - "export OMP_NUM_THREADS=1"

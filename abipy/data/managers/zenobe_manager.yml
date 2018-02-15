@@ -15,7 +15,7 @@ ivybridge: &ivybridge
 job: &job
     mpi_runner: mpirun
     shell_env:
-         PATH: /home/acad/ucl/naps/mgiantom/bzr_repos/793/gmatteo-private/build_impi/src/98_main:$PATH
+         PATH: $HOME/git_repos/abinit_build_impi/src/98_main:$PATH
     modules:
         - compiler/intel/composerxe/2013_sp1.1.106
         - intelmpi

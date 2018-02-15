@@ -2092,7 +2092,7 @@ class SigresRobot(Robot, RobotWithEbands):
     get_dataframe = get_qpgaps_dataframe
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, plot_qpmks=False, sortby=None, hue=None, fontsize=8, **kwargs):
+    def plot_qpgaps_convergence(self, plot_qpmks=False, sortby=None, hue=None, sharey=False, fontsize=8, **kwargs):
         """
         Plot the convergence of the direct QP gaps for all the k-points available in the robot.
 
@@ -2107,6 +2107,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
+            sharey: True if y-axis should be shared.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
@@ -2119,7 +2120,7 @@ class SigresRobot(Robot, RobotWithEbands):
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(sigma_kpoints)
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+                                                sharex=True, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
 
         if hue is None:
