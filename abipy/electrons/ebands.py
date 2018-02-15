@@ -2333,16 +2333,16 @@ class ElectronBandsPlotter(NotebookWriter):
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
 
-                * `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
+                - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (ebands.fermie)
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
                    can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
                    the one used to compute the density. See `edos_fermie`.
-                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                - ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                    Available only if plotter contains dos objects.
-                *  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                *  None: Don't shift energies, equivalent to e0=0
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
 
             ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`
                    or scalar e.g. `left`. If left (right) is None, default values are used
@@ -2436,16 +2436,16 @@ class ElectronBandsPlotter(NotebookWriter):
                 each subplot in the grid contains a band structure with DOS else a simple bandstructure plot.
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
 
-                * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
                    This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
                    can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
                    the one used to compute the density. See `edos_fermie`.
-                * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                - ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                    Available only if edos_objects is not None
-                *  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
-                *  None: Don't shift energies, equivalent to e0=0
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
 
             with_dos: True if DOS should be printed.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ```(left, right)``
@@ -3263,17 +3263,19 @@ class ElectronDosPlotter(NotebookWriter):
             what: "dos" to plot DOS, "idos" for integrated DOS.
             spin_mode: "total" for total (I)DOS, "resolved" for plotting individual contributions.
                 Meaningful only if nsppol == 2.
-            e0: Option used to define the zero of energy in the band structure plot. Possible values:
-                    - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
-                       Note that, by default, the Fermi energy is taken from the band structure object
-                       i.e. the Fermi energy computed at the end of the SCF file that produced the density.
-                       This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
-                       can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
-                       the one used to compute the density. See ``edos_fermie``.
-                    - ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
-                       Available only if edos_objects is not None
-                    -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
-                    -  None: Don't shift energies, equivalent to ``e0 = 0``.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values::
+
+                - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
+                   Note that, by default, the Fermi energy is taken from the band structure object
+                   i.e. the Fermi energy computed at the end of the SCF file that produced the density.
+                   This should be ok in semiconductors. In metals, however, a better value of the Fermi energy
+                   can be obtained from the DOS provided that the k-sampling for the DOS is much denser than
+                   the one used to compute the density. See ``edos_fermie``.
+                - ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
+                   Available only if edos_objects is not None
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to ``e0 = 0``.
+
             sharex, sharey: True if x (y) axis should be shared.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
