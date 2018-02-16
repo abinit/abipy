@@ -1047,7 +1047,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         od = OrderedDict([
             ("formula", self.formula), ("natom", self.num_sites),
-            ("angle0", angles[0]), ("angle1", angles[1]), ("angle2", angles[2]),
+            ("alpha", angles[0]), ("beta", angles[1]), ("gamma", angles[2]),
             ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
             ("abispg_num", abispg_number),
         ])

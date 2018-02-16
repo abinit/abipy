@@ -12,7 +12,7 @@ from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
@@ -279,6 +279,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             fontsize: fontsize for legend
             kwargs are passed to matplotlib plot method
         """
+        label = None
         if what == "energy":
             # Total energy in eV.
             marker = kwargs.pop("marker", "o")
@@ -354,14 +355,17 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, fmax_steps, label="max |F|", marker=markers[1], **kwargs)
             ax.plot(self.steps, fmean_steps, label="mean |F|", marker=markers[2], **kwargs)
             ax.plot(self.steps, fstd_steps, label="std |F|", marker=markers[3], **kwargs)
+            label = "std |F"
             ax.set_ylabel('F stats [eV/A]')
 
         else:
             raise ValueError("Invalid value for what: `%s`" % str(what))
 
         ax.set_xlabel('Step')
-        ax.legend(loc='best', fontsize=fontsize, shadow=True)
         ax.grid(True)
+        if label is not None:
+            ax.legend(loc='best', fontsize=fontsize, shadow=True)
+
 
     @add_fig_kwargs
     def plot(self, ax_list=None, fontsize=8, **kwargs):
@@ -583,53 +587,55 @@ class HistRobot(Robot):
 
     @property
     def what_list(self):
-        """List with all quantities that can be plotted (what argument)."""
+        """List with all quantities that can be plotted (what_list)."""
         return ["energy", "abc", "angles", "volume", "pressure", "forces"]
 
     @add_fig_kwargs
-    def gridplot(self, what="abc", sharex=False, sharey=False, fontsize=8, **kwargs):
+    def gridplot(self, what_list=None, sharex="row", sharey="row", fontsize=8, **kwargs):
         """
         Plot the ``what`` value extracted from multiple HIST.nc_ files on a grid.
 
         Args:
-            what: Quantity to plot. Must be in ["energy", "abc", "angles", "volume", "pressure", "forces"]
+            what_list: List of quantities to plot.
+                Must be in ["energy", "abc", "angles", "volume", "pressure", "forces"]
             sharex: True if xaxis should be shared.
             sharey: True if yaxis should be shared.
             fontsize: fontsize for legend.
 
         Returns: |matplotlib-Figure|
         """
-        num_plots, ncols, nrows = len(self), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
+        what_list = list_strings(what_list) if what_list is not None else self.what_list
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=sharex, sharey=sharey, squeeze=False)
-        ax_list = ax_list.ravel()
+        # Build grid of plots.
+        nrows, ncols = len(what_list), len(self)
 
-        for i, (ax, hist) in enumerate(zip(ax_list, self.abifiles)):
-            hist.plot_ax(ax, what, fontsize=fontsize, marker="o")
-            ax.set_title(hist.relpath, fontsize=fontsize)
-            ax.grid(True)
-            if i == len(ax_list) - 1:
-                ax.set_xlabel('Step')
-            else:
-                ax.set_xlabel('')
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=sharex, sharey=sharey, squeeze=False)
+        ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
-        # Get around a bug in matplotlib.
-        if num_plots % ncols != 0: ax_list[-1].axis('off')
+        for irow, what in enumerate(what_list):
+            for icol, hist in enumerate(self.abifiles):
+                ax = ax_mat[irow, icol]
+                ax.grid(True)
+                hist.plot_ax(ax_mat[irow, icol], what, fontsize=fontsize, marker="o")
+
+                if irow == 0:
+                    ax.set_title(hist.relpath, fontsize=fontsize)
+                if irow != nrows - 1:
+                    set_visible(ax, False, "xlabel")
+                if icol != 0:
+                    set_visible(ax, False, "ylabel")
 
         return fig
 
     @add_fig_kwargs
-    def combiplot(self, what_list=None, cmap="jet", fontsize=6, **kwargs):
+    def combiplot(self, what_list=None, colormap="jet", fontsize=6, **kwargs):
         """
         Plot multiple HIST.nc_ files on a grid. One plot for each ``what`` value.
 
         Args:
             what_list: List of strings with the quantities to plot. If None, all quanties are plotted.
-            cmap: matplotlib color map.
+            colormap: matplotlib color map.
             fontsize: fontisize for legend.
 
         Returns: |matplotlib-Figure|.
@@ -645,7 +651,7 @@ class HistRobot(Robot):
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
-        cmap = plt.get_cmap(cmap)
+        cmap = plt.get_cmap(colormap)
 
         for i, (ax, what) in enumerate(zip(ax_list, what_list)):
             for ih, hist in enumerate(self.abifiles):

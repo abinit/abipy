@@ -514,6 +514,7 @@ class GsrRobot(Robot, RobotWithEbands):
             # Add total energy.
             d = OrderedDict([("energy", gsr.energy)])
             d.update(gsr.energy_terms)
+            d.update(gsr.params)
             rows.append(d)
 
         df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
@@ -521,6 +522,7 @@ class GsrRobot(Robot, RobotWithEbands):
             # Subtract iref row from the rest of the rows.
             iref_row = df.iloc[[iref]].values[0]
             df = df.apply(lambda row: row - iref_row, axis=1)
+
         return df
 
     @add_fig_kwargs

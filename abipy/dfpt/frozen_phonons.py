@@ -307,6 +307,3 @@ class FrozenPhonon(object):
             ax.set_ylabel("Energy difference [eV]")
 
         return fig
-
-
-
