@@ -15,7 +15,7 @@ from monty.functools import lazy_property
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, MplExpose
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
@@ -250,6 +250,27 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             #band_gap:
             #optical_gap:
             #efermi:
+
+    def expose(self, slide_mode=False, slide_timeout=None, verbose=0, **kwargs):  # pragma: no cover
+        """
+        This function builds and shows a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+
+        Args:
+            slide_mode: If true, iterate over figures. Default: Expose all figures at once.
+            slide_timeout: Close figure after slide-timeout seconds. Block if None.
+            verbose: verbosity level.
+        """
+        print(self.to_string(verbose=verbose))
+        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_timeout) as e:
+            if self.ebands.kpoints.is_path:
+                e(self.ebands.plot(show=False))
+                e(self.ebands.kpoints.plot(show=False))
+            else:
+                edos = self.ebands.get_edos()
+                e(self.ebands.plot_with_edos(edos, show=False))
+                e(edos.plot(show=False))
+
 
     def write_notebook(self, nbpath=None):
         """
@@ -591,6 +612,20 @@ class GsrRobot(Robot, RobotWithEbands):
     #    for label, gsr in self.items():
     #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
     #    return PhaseDiagramResults(entries)
+
+    def expose(self, slide_mode=False, slide_timeout=None, verbose=0, **kwargs):  # pragma: no cover
+        """
+        This function builds and shows a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+
+        Args:
+            slide_mode: If true, iterate over figures. Default: Expose all figures at once.
+            slide_timeout: Close figure after slide-timeout seconds. Block if None.
+            verbose: verbosity level.
+        """
+        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_timeout) as e:
+            e(self.plot_lattice_convergence(show=False))
+            e(self.plot_gsr_convergence(show=False))
 
     def write_notebook(self, nbpath=None):
         """

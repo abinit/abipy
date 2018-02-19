@@ -561,6 +561,18 @@ abilab.enable_notebook(with_seaborn=True)
             pickle.dump(self, fh)
             return filepath
 
+    #@abc.abstractmethod
+    #def expose(self, slide_mode=False, slide_timeout=None, verbose=0, **kwargs):
+    #    """
+    #    This function builds and shows a predefined list of matplotlib figures with minimal input from the user.
+    #    Used in abiview.py to get a quick look at the results.
+
+    #    Args:
+    #        slide_mode: If true, iterate over figures. Default: Expose all figures at once.
+    #        slide_timeout: Close figure after slide-timeout seconds. Block if None.
+    #        verbose: verbosity level
+    #    """
+
 
 class Has_Header(object):
     """Mixin class for netcdf_ files containing the Abinit header."""

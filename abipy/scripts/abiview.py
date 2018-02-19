@@ -107,7 +107,6 @@ def abiview_ebands(options):
             abifile.ebands.to_bxsf(handle_overwrite(outpath, options))
         else:
             print(abifile.to_string(verbose=options.verbose))
-
             with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
                 if abifile.ebands.kpoints.is_path:
                     e(abifile.ebands.plot(show=False))
@@ -433,7 +432,7 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
-              "Possible values: GTKAgg GTK3Agg GTK GTKCairo GTK3Cairo WXAgg WX TkAgg Qt4Agg Qt5Agg macosx. "
+              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
     # Parent parser for commands supporting MplExpose.
@@ -586,6 +585,7 @@ def main():
         print(options)
 
     if options.mpl_backend is not None:
+        # Set matplotlib backend
         import matplotlib
         matplotlib.use(options.mpl_backend)
 

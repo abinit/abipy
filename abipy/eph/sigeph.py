@@ -797,7 +797,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #def get_dirgaps_dataframe(self):
 
     def interpolate(self, itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0):
+                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0): # pragma: no cover
         """
         Interpolated the self-energy corrections in k-space on a k-path and, optionally, on a k-mesh.
 
@@ -1665,7 +1665,7 @@ for spin in range(nc0.nsppol):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class TdepElectronBands(object):
+class TdepElectronBands(object): # pragma: no cover
     """
     A list of |ElectronBands| (T) with a real part renormalized by
     the E-PH sel-energy. Imaginary part is stored in a specialized array.

@@ -389,6 +389,12 @@ class MplExpose(object): # pragma: no cover
             e(obj.plot2(show=False))
     """
     def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+        """
+        Args:
+            slide_mode: If true, iterate over figures. Default: Expose all figures at once.
+            slide_timeout: Close figure after slide-timeout seconds Block if None.
+            verbose: verbosity level
+        """
         self.figures = []
         self.slide_mode = bool(slide_mode)
         self.timeout_ms = slide_timeout
@@ -405,7 +411,15 @@ class MplExpose(object): # pragma: no cover
 
         self.start_time = time.time()
 
-    def __call__(self, fig):
+    def __call__(self, obj):
+        #import types
+        #if isinstance(obj, (types.GeneratorType, list, tuple)):
+        #    for fig in obj:
+        #        self.add_fig(fig)
+        return self.add_fig(obj)
+
+    def add_fig(self, fig):
+        """Add a matplotlib figure."""
         if fig is None: return
 
         if not self.slide_mode:

@@ -2201,7 +2201,9 @@ class SigresRobot(Robot, RobotWithEbands):
                     ax.set_ylabel("QP-KS direct gap [eV]", fontsize=fontsize)
                 else:
                     ax.set_ylabel("QP direct gap [eV]", fontsize=fontsize)
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+            if hue is not None:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -2277,7 +2279,7 @@ class SigresRobot(Robot, RobotWithEbands):
             if i == len(what_list) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            if i == 0:
+            if i == 0 and hue is not None:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         if "title" not in kwargs:
