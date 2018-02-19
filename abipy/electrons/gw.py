@@ -1297,7 +1297,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Read QP energies: Fortran egw(nbnds,nkibz,nsppol)
         qpes = self.reader.read_value("egw", cmode="c") # * units.Ha_to_eV
-        band_range = range(self.reader.max_gwbstart, self.reader.min_gwbstop)
+        band_range = (self.reader.max_gwbstart, self.reader.min_gwbstop)
 
         nb = self.reader.min_gwbstop - self.reader.min_gwbstart
         for spin, ax in zip(range(self.nsppol), ax_list):

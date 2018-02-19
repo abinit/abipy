@@ -318,8 +318,8 @@ def itest_bandstructure_schedflow(fwp, tvars):
                 # DOS case
                 assert gsr.ebands.has_bzmesh
                 assert not gsr.ebands.has_bzpath
-                with pytest.raises(ValueError):
-                    gsr.ebands.get_edos()
+                edos = gsr.ebands.get_edos()
+                assert abs(edos.tot_idos.values[-1] - edos.nelect) < 1e-3
 
             if i == 1:
                 # Bandstructure case

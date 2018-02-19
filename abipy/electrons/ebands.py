@@ -1656,10 +1656,10 @@ class ElectronBands(Has_Structure):
         if band_range is None:
             band_list = list(range(self.mband))
         else:
-            if not isinstance(band_range, range):
-                band_list = list(range(band_range[0], band_range[1], 1))
-            else:
-                band_list = list(band_range)
+            # This does not work in py2.7 because range is not a class
+            #if not isinstance(band_range, range):
+            #    band_list = list(band_range)
+            band_list = list(range(band_range[0], band_range[1], 1))
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
