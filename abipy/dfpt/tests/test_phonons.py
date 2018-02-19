@@ -130,6 +130,10 @@ class PhononBandsTest(AbipyTest):
         # get frozen phonons
         phbands.get_frozen_phonons((0.5, 0.5, 1.0), 1, eta=0.5, max_supercell=[5,5,5])
 
+        assert not phbands.has_linewidths
+        phbands.linewidths = np.ones(phbands.shape)
+        assert phbands.has_linewidths
+
 
 class PlotterTest(AbipyTest):
 

@@ -20,6 +20,8 @@ sigres.plot_qpgaps(title="QP direct gaps")
 
 sigres.plot_qpgaps(plot_qpmks=True, title="QP - KS direct gap")
 
+sigres.plot_qpbands_ibz()
+
 sigres.plot_ksbands_with_qpmarkers(fact=1000)
 
 sigres.close()

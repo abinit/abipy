@@ -7,6 +7,7 @@ import os
 import copy
 import itertools
 import json
+import warnings
 import pickle
 import numpy as np
 import pymatgen.core.units as units
@@ -342,7 +343,6 @@ class ElectronBands(Has_Structure):
         kd.pop("@module")
 
         kpoints_cls = KpointList.subclass_from_name(kd.pop("@class"))
-        #kpoints = kpoints_cls(**kd)
         kpoints = kpoints_cls.from_dict(kd)
 
         # Needed to support old dictionaries
@@ -351,11 +351,13 @@ class ElectronBands(Has_Structure):
         return cls(Structure.from_dict(d["structure"]), kpoints,
                    d["eigens"], d["fermie"], d["occfacts"], d["nelect"], d["nspinor"], d["nspden"],
                    nband_sk=d["nband_sk"], smearing=d["smearing"],
+                   linewidths=d.get("linewidths", None)
                    )
 
     @pmg_serialize
     def as_dict(self):
         """Return dictionary with JSON_ serialization."""
+        linewidths = None if not self.has_linewidths else self.linewidths.tolist()
         return dict(
             structure=self.structure.as_dict(),
             kpoints=self.kpoints.as_dict(),
@@ -367,6 +369,7 @@ class ElectronBands(Has_Structure):
             nspden=self.nspden,
             nband_sk=self.nband_sk.tolist(),
             smearing=self.smearing.as_dict(),
+            linewidths=linewidths,
         )
 
     @classmethod
@@ -400,7 +403,7 @@ class ElectronBands(Has_Structure):
 
     @classmethod
     def from_mpid(cls, material_id, api_key=None, endpoint=None,
-                         nelect=None, has_timerev=True, nspinor=1, nspden=None):
+                  nelect=None, has_timerev=True, nspinor=1, nspden=None):
         """
         Read bandstructure data corresponding to a materials project ``material_id``.
         and return Abipy ElectronBands object.
@@ -455,21 +458,22 @@ class ElectronBands(Has_Structure):
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def __init__(self, structure, kpoints, eigens, fermie, occfacts, nelect, nspinor, nspden,
-                 nband_sk=None, smearing=None):
+                 nband_sk=None, smearing=None, linewidths=None):
         """
         Args:
             structure: |Structure| object.
             kpoints: |KpointList| instance.
-            eigens: Array-like object with the eigenvalues (eV) stored as [s,k,b]
-                    where s: spin , k: kpoint, b: band index
+            eigens: Array-like object with the eigenvalues (eV) stored as [s, k, b]
+                where s: spin , k: kpoint, b: band index
             fermie: Fermi level in eV.
             occfacts: Occupation factors (same shape as eigens)
             nelect: Number of valence electrons in the unit cell.
             nspinor: Number of spinorial components
             nspden: Number of indipendent density components.
-            smearing: :class:`Smearing` object storing information on the smearing technique.
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
                       If not given, nband_sk is initialized from eigens.
+            smearing: :class:`Smearing` object storing information on the smearing technique.
+            linewidths: Array-like object with the linewidths (eV) stored as [s, k, b]
         """
         self._structure = structure
 
@@ -477,6 +481,10 @@ class ElectronBands(Has_Structure):
         self._eigens = np.atleast_3d(eigens)
         self._occfacts = np.atleast_3d(occfacts)
         assert self._eigens.shape == self._occfacts.shape
+        self._linewidths = None
+        if linewidths is not None:
+            self._linewidths = np.reshape(linewidths, self._eigens.shape)
+
         self.nsppol, self.nkpt, self.mband = self.eigens.shape
         self.nspinor, self.nspden = nspinor, nspden
 
@@ -485,7 +493,6 @@ class ElectronBands(Has_Structure):
         else:
             self.nband_sk = np.array(self.nsppol * self.nkpt * [self.mband])
             self.nband_sk.shape = (self.nsppol, self.nkpt)
-        #print(nband_sk)
 
         self.kpoints = kpoints
         assert self.nkpt == len(self.kpoints)
@@ -581,6 +588,23 @@ class ElectronBands(Has_Structure):
     def eigens(self):
         """Eigenvalues in eV. |numpy-array| with shape [nspin, nkpt, mband]."""
         return self._eigens
+
+    @property
+    def linewidths(self):
+        """linewidths in eV. |numpy-array| with shape [nspin, nkpt, mband]."""
+        return self._linewidths
+
+    @linewidths.setter
+    def linewidths(self, linewidths):
+        """Set the linewidths. Accept real array of shape [nspin, nkpt, mband] or None."""
+        if linewidths is not None:
+            linewidths = np.reshape(linewidths, self.shape)
+        self._linewidths = linewidths
+
+    @property
+    def has_linewidths(self):
+        """True if bands with linewidths."""
+        return getattr(self, "_linewidths", None) is not None
 
     @property
     def occfacts(self):
@@ -1374,7 +1398,6 @@ class ElectronBands(Has_Structure):
         Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-
         e0 = self.get_e0("fermie")
         self.plot(ax=ax, e0=e0, ylims=ylims, show=False)
 
@@ -1549,7 +1572,7 @@ class ElectronBands(Has_Structure):
             else:
                 num_plots, i = len(jdos_vc), 0
                 for (v, c), jdos in jdos_vc.items():
-                    color = cmap(float(i)/num_plots)
+                    color = cmap(float(i) / num_plots)
                     jdos.plot_ax(ax, color=color, lw=lw,
                         label=r"$v=%s \rightarrow c=%s, \sigma=%s$" % (v, c, s))
                     i += 1
@@ -1606,30 +1629,37 @@ class ElectronBands(Has_Structure):
             nband_sk=self.nband_sk, smearing=self.smearing)
 
     @add_fig_kwargs
-    def plot(self, ax=None, klabels=None, band_range=None, e0="fermie", ylims=None, **kwargs):
+    def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None, **kwargs):
         r"""
         Plot the electronic band structure.
 
         Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            spin: Spin index. None to plot both spins.
+            band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
             klabels: dictionary whose keys are tuple with the reduced
                 coordinates of the k-points. The values are the labels. e.g.
                 ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0):"L"}``.
-            band_range: Tuple specifying the minimum and maximum band to plot (default: all bands are plotted)
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
 
         Returns: |matplotlib-Figure|
         """
+        # Select spins
+        spin_list = self.spins if spin is None else [spin]
+
         # Select the band range.
         if band_range is None:
-            band_range = range(self.mband)
+            band_list = list(range(self.mband))
         else:
-            band_range = range(band_range[0], band_range[1], 1)
+            if not isinstance(band_range, range):
+                band_list = list(range(band_range[0], band_range[1], 1))
+            else:
+                band_list = list(band_range)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -1638,13 +1668,13 @@ class ElectronBands(Has_Structure):
         set_axlims(ax, ylims, "y")
 
         # Plot the band energies.
-        for spin in self.spins:
+        for spin in spin_list:
             if spin == 0:
                 opts = {"color": "black", "linewidth": 2.0}
             else:
                 opts = {"color": "red", "linewidth": 2.0}
 
-            for band in band_range:
+            for band in band_list:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         return fig
@@ -1694,13 +1724,15 @@ class ElectronBands(Has_Structure):
 
         Args:
             title:
+            fontsize
             klabels:
             klabel_size:
         """
         title = kwargs.pop("title", None)
-        if title is not None: ax.set_title(title)
-        ax.grid(True)
+        fontsize = kwargs.pop("fontsize", 12)
+        if title is not None: ax.set_title(title, fontsize=fontsize)
 
+        ax.grid(True)
         ax.set_ylabel('Energy [eV]')
 
         # Set ticks and labels.
@@ -1745,23 +1777,35 @@ class ElectronBands(Has_Structure):
             e0: Option used to define the zero of energy in the band structure plot.
             spin: Spin index. If None, all spins are plotted.
             band: Band index, If None, all bands are plotted.
+            kwargs: Passed to ax.plot
 
         Return: matplotlib lines
         """
         spin_range = range(self.nsppol) if spin is None else [spin]
         band_range = range(self.mband) if band is None else [band]
 
-        # Disable labels.
-        if "label" not in kwargs:
-            kwargs["label"] = "_no_legend_" # Actively suppress.
+        label = kwargs.pop("label", None)
+        # Handle linewidths
+        with_linewidths = kwargs.pop("with_linewidths", False) and self.has_linewidths
+        if with_linewidths:
+            lw_opts = kwargs.pop("lw_opts", dict(alpha=0.6))
+            lw_fact = lw_opts.pop("fact", 2.0)
 
         xx, lines = np.arange(self.nkpt), []
         e0 = self.get_e0(e0)
         for spin in spin_range:
             for band in band_range:
                 yy = self.eigens[spin, :, band] - e0
-                #print("xx", xx, "\nyy", yy)
-                lines.extend(ax.plot(xx, yy, **kwargs))
+
+                # Set label only at the first iteration
+                lines.extend(ax.plot(xx, yy, label=label, **kwargs))
+                label = None
+
+                if with_linewidths:
+                    w = self.linewidths[spin, :, band] * lw_fact / 2
+                    lw_color = lines[-1].get_color()
+                    ax.fill_between(xx, yy - w, yy + w, facecolor=lw_color, **lw_opts)
+                    #, alpha=self.alpha, facecolor=self.l2color[l])
 
         return lines
 
@@ -1857,6 +1901,58 @@ class ElectronBands(Has_Structure):
         ax1.yaxis.set_ticks_position("right")
         ax1.yaxis.set_label_position("right")
         set_axlims(ax1, ylims, "y")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_lws_vs_e0(self, ax=None, e0="fermie", exchange_xy=False,
+                       xlims=None, ylims=None, fontsize=12, **kwargs):
+        r"""
+        Plot the electronic linewidths vs KS energy.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            e0: Option used to define the zero of energy in the band structure plot. Possible values:
+                - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
+                -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
+                -  None: Don't shift energies, equivalent to e0=0
+            exchange_xy: True to exchange x-y axis.
+            xlims, ylims: Set the data limits for the x-axis or the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: fontsize for titles and legend.
+
+        Returns: |matplotlib-Figure|
+        """
+        if not self.has_linewidths: return None
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # DSU sort to get lw(e) with sorted energies.
+        e0mesh, lws = zip(*sorted(zip(self.eigens.flat, self.linewidths.flat), key=lambda t: t[0]))
+        e0 = self.get_e0(e0)
+        e0mesh = np.array(e0mesh) - e0
+
+        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        #if fermie is not None:
+        #    xlable = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
+
+        kw_linestyle = kwargs.pop("linestyle", "o")
+        #kw_lw = kwargs.pop("lw", 1)
+        #kw_lw = kwargs.pop("markersize", 5)
+        kw_color = kwargs.pop("color", "red")
+        kw_label = kwargs.pop("label", None)
+
+        xx, yy = e0mesh, lws
+        if exchange_xy: xx, yy = yy, xx
+        ax.plot(xx, yy, kw_linestyle, color=kw_color, label=kw_label, **kwargs)
+        #ax.scatter(xx, yy)
+
+        ax.grid(True)
+        ax.set_ylabel("Linewidth")
+        ax.set_xlabel(xlabel)
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
+        if kw_linestyle:
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -2000,7 +2096,6 @@ class ElectronBands(Has_Structure):
         if not self.kpoints.is_path:
             raise ValueError("effmass_line requires points along a path.")
 
-        import warnings
         warnings.warn("This code is still under development. API may change!")
 
         # Find index associate to the k-point
@@ -2285,23 +2380,28 @@ class ElectronBandsPlotter(NotebookWriter):
         ebands = ElectronBands.as_ebands(filepath)
         self.add_ebands(label, ebands)
 
-    def add_ebands(self, label, bands, dos=None, edos_kwargs=None):
+    def add_ebands(self, label, bands, edos=None, dos=None, edos_kwargs=None):
         """
-        Adds a band structure and optionally a dos to the plotter.
+        Adds a band structure and optionally a edos to the plotter.
 
         Args:
             label: label for the bands. Must be unique.
             bands: |ElectronBands| object.
-            dos: |ElectronDos| object.
+            edos: |ElectronDos| object.
             edos_kwargs: optional dictionary with the options passed to ``get_edos`` to compute the electron DOS.
-                Used only if ``dos`` is not None and it's not an |ElectronDos| instance.
+                Used only if ``edos`` is not None and it's not an |ElectronDos| instance.
         """
+        if dos is not None:
+            warnings.warn("dos has been replaced by edos! This argument will be removed in v0.4")
+            assert edos is None
+            edos = dos
+
         if label in self.ebands_dict:
             raise ValueError("label %s is already in %s" % (label, list(self.ebands_dict.keys())))
 
         self.ebands_dict[label] = ElectronBands.as_ebands(bands)
-        if dos is not None:
-            self.edoses_dict[label] = ElectronDos.as_edos(dos, edos_kwargs)
+        if edos is not None:
+            self.edoses_dict[label] = ElectronDos.as_edos(edos, edos_kwargs)
 
     def bands_statdiff(self, ref=0):
         """
@@ -2934,7 +3034,13 @@ class ElectronDos(object):
         for i, (ene, intg) in enumerate(idos):
             if intg > nelect: break
         else:
-            raise ValueError("Cannot find I(e) such that I(e) > nelect")
+            # If the mesh is not large enough, we never cross nelect
+            # If the last point in IDOS is sufficiently close to nelect
+            # use it as Fermi level.
+            if abs(idos.values[-1] - nelect) < 1e-3:
+                i = len(idos) -1
+            else:
+                raise ValueError("Cannot find I(e) such that I(e) > nelect")
 
         # Use linear interpolation to find mu (useful if mesh is coarse)
         e0, y0 = idos[i-1]
@@ -3180,7 +3286,7 @@ class ElectronDosPlotter(NotebookWriter):
 
         Args:
             label: label for the DOS. Must be unique.
-            dos: |ElectronDos| object.
+            edos: |ElectronDos| object.
             edos_kwargs: optional dictionary with the options passed to ``get_edos`` to compute the electron DOS.
                 Used only if ``edos`` is not an ElectronDos instance.
         """

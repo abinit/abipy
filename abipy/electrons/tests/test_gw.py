@@ -134,6 +134,7 @@ class TestSigresFile(AbipyTest):
             assert sigres.plot_qps_vs_e0(with_fields="qpeme0", show=False)
             assert sigres.plot_qps_vs_e0(exclude_fields=["vUme"], show=False)
             assert sigres.plot_ksbands_with_qpmarkers(qpattr="sigxme", e0=None, fact=1000, show=False)
+            assert sigres.plot_qpbands_ibz(show=False)
 
             assert sigres.plot_eigvec_qp(spin=0, kpoint=0, show=False)
             assert sigres.plot_eigvec_qp(spin=0, kpoint=None, show=False)

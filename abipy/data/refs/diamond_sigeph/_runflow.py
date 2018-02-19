@@ -112,10 +112,6 @@ def build_flow(options):
 
     flow.allocate()
 
-    # EPH does not support autoparal (yet)
-    #for eph_task in eph_work:
-    #    eph_task.with_fixed_mpi_omp(1, 1)
-
     return flow
 
 
@@ -130,6 +126,8 @@ if __name__ == "__main__":
 
     rename_table = [
         # src, dest
+        #("_runflow/w0/t1/outdata/out_GSR.nc", "diamond_kpath_GSR.nc"),
+        #("_runflow/w1/outdata/out_DDB", "diamond_444q_DDB"),
         ("_runflow/w2/t1/outdata/out_SIGEPH.nc", "diamond_444q_SIGEPH.nc"),
     ]
 

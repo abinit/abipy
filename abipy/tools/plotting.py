@@ -74,6 +74,8 @@ def set_visible(ax, boolean, *args):
     Hide/Show the artists of axis ax listed in args.
     """
     if "legend" in args and ax.legend():
+        #handles, labels = ax.get_legend_handles_labels()
+        #if handles:
         ax.legend().set_visible(boolean)
     if "title" in args and ax.title:
         ax.title.set_visible(boolean)

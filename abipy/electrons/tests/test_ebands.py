@@ -113,6 +113,9 @@ class ElectronBandsTest(AbipyTest):
             assert edos_plotter.gridplot(e0=0, what="dos", spin_mode="resolved", fontsize=12, show=False)
 
         ni_ebands_kpath = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
+        assert not ni_ebands_kpath.has_linewidths
+        ni_ebands_kpath.linewidths = np.ones(ni_ebands_kpath.shape)
+        assert ni_ebands_kpath.has_linewidths
 
         repr(ni_ebands_kpath); str(ni_ebands_kpath)
         assert ni_ebands_kpath.nsppol == 2 and ni_ebands_kpath.nspinor == 1 and ni_ebands_kpath.nspden == 2
@@ -176,6 +179,10 @@ class ElectronBandsTest(AbipyTest):
             assert ni_edos.plot(xlims=elims, show=False)
             assert ni_edos.plot_dos_idos(xlims=elims, show=False)
             assert ni_edos.plot_up_minus_down(xlims=elims, show=False)
+
+            # Test linewidths
+            assert ni_ebands_kmesh.plot_lws_vs_e0(show=False) is None
+            assert ni_ebands_kpath.plot_lws_vs_e0(show=False)
 
             # TODO Generaliza jdos to metals.
             #vrange, crange = range(0, 4), range(4, 5)
@@ -396,9 +403,6 @@ class ElectronBandsTest(AbipyTest):
 
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""
-        #if sys.version[0:3] >= '3.4':
-        #    raise unittest.SkipTest("SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)")
-
         si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
         # Test interpolation.

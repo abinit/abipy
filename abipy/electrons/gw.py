@@ -1124,13 +1124,13 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                 precision=precision, file=file)
 
     @add_fig_kwargs
-    def plot_qpgaps(self, ax=None, plot_qpmks=False, fontsize=8, **kwargs):
+    def plot_qpgaps(self, ax=None, plot_qpmks=True, fontsize=8, **kwargs):
         """
         Plot the KS and the QP direct gaps for all the k-points and spins available on file.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            plot_qpmks: If True, plot QP_gap - KS_gap
+            plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
             fontsize: legend and title fontsize.
             kwargs: Passed to ax.plot method except for marker.
 
@@ -1266,6 +1266,55 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             return plotter.plot(show=False, **kwargs)
 
     @add_fig_kwargs
+    def plot_qpbands_ibz(self, e0="fermie", colormap="jet", ylims=None, fontsize=8, **kwargs):
+        r"""
+        Plot the KS band structure in the IBZ with the QP energies.
+
+        Args:
+            e0: Option used to define the zero of energy in the band structure plot.
+            colormap: matplotlib color map.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            fontsize: Legend and title fontsize.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Map sigma_kpoints to ebands.kpoints
+        kcalc2ibz = np.empty(self.nkcalc, dtype=np.int)
+        for ikc, sigkpt in enumerate(self.sigma_kpoints):
+            kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
+
+        # TODO: It seems there's a minor issue with fermie if SCF band structure.
+        e0 = self.ebands.get_e0(e0)
+        #print("e0",e0, self.ebands.fermie)
+
+        # Build grid with (1, nsppol) plots.
+        nrows, ncols = 1, self.nsppol
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
+        cmap = plt.get_cmap(colormap)
+
+        # Read QP energies: Fortran egw(nbnds,nkibz,nsppol)
+        qpes = self.reader.read_value("egw", cmode="c") # * units.Ha_to_eV
+        band_range = range(self.reader.max_gwbstart, self.reader.min_gwbstop)
+
+        nb = self.reader.min_gwbstop - self.reader.min_gwbstart
+        for spin, ax in zip(range(self.nsppol), ax_list):
+            # Plot KS bands in the band range included in self-energy calculation.
+            self.ebands.plot(ax=ax, e0=e0, spin=spin, band_range=band_range, show=False)
+            # Extract QP in IBZ
+            yvals = qpes[spin, kcalc2ibz, :].real - e0
+            # Add (scattered) QP energies for the calculated k-points.
+            for band in range(self.reader.max_gwbstart, self.reader.min_gwbstop):
+                ax.scatter(kcalc2ibz, yvals[:, band],
+                    color=cmap(band / nb), alpha=0.6, marker="o", s=20,
+                )
+            set_axlims(ax, ylims, "y")
+
+        return fig
+
+    @add_fig_kwargs
     def plot_ksbands_with_qpmarkers(self, qpattr="qpeme0", e0="fermie", fact=1000, ax=None, **kwargs):
         """
         Plot the KS energies as function of k-points and add markers whose size
@@ -1353,7 +1402,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def interpolate(self, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
                     vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0):
         """
-        Interpolated the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
+        Interpolate the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
@@ -1364,7 +1413,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 QP energies and therefore easier to interpolate. If None, the QP energies are interpolated
                 along the path defined by ``vertices_names`` and ``line_density``.
             ks_ebands_kmesh: KS |ElectronBands| on a homogeneous k-mesh. If present, the routine
-                interpolates the corrections on the k-mesh (used to compute QP DOS)
+                interpolates the corrections on the k-mesh (used to compute QP the DOS)
             ks_degatol: Energy tolerance in eV. Used when either ``ks_ebands_kpath`` or ``ks_ebands_kmesh`` are given.
                 KS energies are assumed to be degenerate if they differ by less than this value.
                 The interpolator may break band degeneracies (the error is usually smaller if QP corrections
@@ -1407,7 +1456,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #    cprint("Highest bdgw band is not constant over k-points. QP Bands will be interpolated up to...")
         #if (np.any(self.gwbstart_sk[0, 0] != self.gwbstart_sk):
         #if (np.any(self.gwbstart_sk[0, 0] != 0):
-
         if errlines:
             raise ValueError("\n".join(errlines))
 
@@ -1497,7 +1545,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             if bstop > ks_ebands_kmesh.nband:
                 raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
                     ks_ebands_kmesh%nband, bstop))
-
             if ks_ebands_kpath.structure != self.structure:
                 raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
 
@@ -1511,7 +1558,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
 
             # Build new ebands object with k-mesh
-            #ksampling = KSamplingInfo.from_mpdivs(mpdivs=kmesh, shifts=[0, 0, 0], kptopt=1)
             kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
                                    names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
             occfacts_kmesh = np.zeros(eigens_kmesh.shape)
@@ -2092,12 +2138,12 @@ class SigresRobot(Robot, RobotWithEbands):
     get_dataframe = get_qpgaps_dataframe
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, plot_qpmks=False, sortby=None, hue=None, sharey=False, fontsize=8, **kwargs):
+    def plot_qpgaps_convergence(self, plot_qpmks=True, sortby=None, hue=None, sharey=False, fontsize=8, **kwargs):
         """
         Plot the convergence of the direct QP gaps for all the k-points available in the robot.
 
         Args:
-            plot_qpmks: If True, plot QP_gap - KS_gap
+            plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute

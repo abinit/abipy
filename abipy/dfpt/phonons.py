@@ -184,7 +184,7 @@ class PhononBands(object):
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None, linewidths=None):
         """
         Args:
             structure: |Structure| object.
@@ -196,6 +196,7 @@ class PhononBands(object):
                 None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation.
+            linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
         """
         self.structure = structure
 
@@ -224,6 +225,10 @@ class PhononBands(object):
             for z, m in amu.items():
                 el = Element.from_Z(int(z))
                 self.amu_symbol[el.symbol] = m
+
+        self._linewidths = None
+        if linewidths is not None:
+            self._linewidths = np.reshape(linewidths, self._eigens.shape)
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
         self.params = OrderedDict()
@@ -349,6 +354,23 @@ class PhononBands(object):
         """Shape of the array with the eigenvalues."""
         return self.num_qpoints, self.num_branches
 
+    @property
+    def linewidths(self):
+        """linewidths in eV. |numpy-array| with shape [nqpt, num_branches]."""
+        return self._linewidths
+
+    @linewidths.setter
+    def linewidths(self, linewidths):
+        """Set the linewidths. Accept real array of shape [nqpt, num_branches] or None."""
+        if linewidths is not None:
+            linewidths = np.reshape(linewidths, self.shape)
+        self._linewidths = linewidths
+
+    @property
+    def has_linewidths(self):
+        """True if bands with linewidths."""
+        return getattr(self, "_linewidths", None) is not None
+
     @lazy_property
     def dyn_mat_eigenvect(self):
         """
@@ -464,6 +486,7 @@ class PhononBands(object):
         if not is_stream:
             f.close()
 
+    # TODO
     #def to_bxsf(self, filepath):
     #    """
     #    Export the full band structure to `filepath` in BXSF format
@@ -606,7 +629,7 @@ class PhononBands(object):
                     values += weight * gaussian(mesh, width, center=w)
 
         else:
-            raise ValueError("Method %s is not supported" % method)
+            raise ValueError("Method %s is not supported" % str(method))
 
         return PhononDos(mesh, values)
 
@@ -846,11 +869,13 @@ class PhononBands(object):
 
         Args:
             title:
+            fontsize
             qlabels:
             qlabel_size:
         """
         title = kwargs.pop("title", None)
-        if title is not None: ax.set_title(title)
+        fontsize = kwargs.pop("fontsize", 12)
+        if title is not None: ax.set_title(title, fontsize=fontsize)
         ax.grid(True)
 
         # Handle conversion factor.
@@ -1907,7 +1932,7 @@ class PhononDos(Function1D):
 
             - instances of cls
             - files (string) that can be open with abiopen and that provide one of the following attributes: [`phdos`, `phbands`]
-            - instances of ``PhononBands`
+            - instances of |PhononBands|.
             - objects providing a ``phbands`` attribute.
 
         Args:
@@ -3943,13 +3968,13 @@ class RobotWithPhbands(object):
         """Wraps combiboxplot method of |ElectronDosPlotter|. kwargs passed to combiboxplot."""
         return self.get_phbands_plotter().combiboxplot(**kwargs)
 
-    #def combiplot_edos(self, **kwargs):
+    #def combiplot_phdos(self, **kwargs):
     #    """Wraps combiplot method of |ElectronDosPlotter|. kwargs passed to combiplot."""
-    #    return self.get_edos_plotter().combiplot(**kwargs)
+    #    return self.get_phdos_plotter().combiplot(**kwargs)
     #
-    #def gridplot_edos(self, **kwargs):
+    #def gridplot_phdos(self, **kwargs):
     #    """Wraps gridplot method of |ElectronDosPlotter|. kwargs passed to gridplot."""
-    #    return self.get_edos_plotter().gridplot(**kwargs)
+    #    return self.get_phdos_plotter().gridplot(**kwargs)
 
     def get_phbands_plotter(self, filter_abifile=None, cls=None):
         """

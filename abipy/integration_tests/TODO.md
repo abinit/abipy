@@ -31,6 +31,10 @@ TODO list:
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
+* Positive gw_qprange in EPH
+
+* DONE Fix problem with get_edos if we don't have enough bands 
+
 ## Medium priority
 
 * remove phononflow
@@ -58,7 +62,7 @@ TODO list:
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
-* Fix problem with get_edos if we don't have enough bands 
+
 
 * Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
@@ -174,3 +178,5 @@ TODO list:
 * context manager to change variables (e.g. autoparal)
 
 * Cleanup and refactoring in OpticTask
+
+* Replace SIGRES with new fileformat based on SIGEPH.

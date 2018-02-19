@@ -229,7 +229,7 @@ class FrozenPhonon(object):
 
         fit_data = self.fit_to_frequency(fit_function, min_fit_eta=min_fit_eta, max_fit_eta=max_fit_eta)
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         if "color" not in kwargs and "c" not in kwargs:
             kwargs["color"] = "blue"
@@ -296,7 +296,7 @@ class FrozenPhonon(object):
         if relative:
             diff = [d/(e-e0) * 100 if e != 0 else 0 for d, e in zip(diff, en_freq)]
 
-        ax, fig, plt = get_ax_fig_plt(ax)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         ax.plot(self.etas, diff, **kwargs)
 

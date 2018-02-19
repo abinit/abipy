@@ -273,6 +273,7 @@ def abiview_sigres(options):
         with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
             e(abifile.plot_qpgaps(show=False))
             e(abifile.plot_qps_vs_e0(show=False))
+            e(abifile.plot_qpbands_ibz(show=False))
             e(abifile.plot_ksbands_with_qpmarkers(show=False))
 
     return 0
@@ -342,7 +343,10 @@ def abiview_sigeph(options):
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
         with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout) as e:
-            e(abifile.plot_qpgaps_t(show=False))
+            e(abifile.plot_qpbands_ibzt(show=False))
+            #for qpk in abifile.sigma_kpoints:
+            #    e(abifile.plot_qpgaps_t(qp_kpoints=[qpk], show=False))
+            e(abifile.plot_qpgaps_t(qp_kpoints=0, show=False))
             e(abifile.plot_qps_vs_e0(show=False))
 
     return 0
