@@ -358,6 +358,20 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """Plot Linear Electro-optic. See plot_chi2 for args supported."""
         return self.plot_chi2(key="leo", show=False, **kwargs)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        if self.has_linopt:
+            yield self.plot_linear_epsilon(what="re", show=False)
+            yield self.plot_linear_epsilon(what="im", show=False)
+            yield self.plot_linopt(show=False)
+        if self.has_shg:
+            yield self.plot_shg(show=False)
+        if self.has_leo:
+            yield self.plot_leo(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current

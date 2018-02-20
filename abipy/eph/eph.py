@@ -770,6 +770,18 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot(show=False)
+        yield self.plot_eph_strength(show=False)
+        yield self.plot_with_a2f(show=False)
+        #yield self.plot_nuterms(show=False)
+        #yield self.plot_a2(show=False)
+        #yield self.plot_tc_vs_mustar(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current

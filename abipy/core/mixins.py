@@ -260,6 +260,10 @@ class Has_Structure(object):
         else:
             raise visu.Error("Don't know how to export data for appname %s" % appname)
 
+    def yield_structure_figs(self, **kwargs):
+        """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
+        yield self.structure.plot(show=False)
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_ElectronBands(object):
@@ -331,6 +335,24 @@ class Has_ElectronBands(object):
         """Plot the electron energy bands with DOS. See the :func:`ElectronBands.plot_with_edos` for the signature."""
         return self.ebands.plot_with_edos(edos, **kwargs)
 
+    def yield_ebands_figs(self, **kwargs):
+        """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
+        if self.ebands.kpoints.is_path:
+            yield self.ebands.plot(show=False)
+            yield self.ebands.kpoints.plot(show=False)
+        else:
+            edos = self.ebands.get_edos()
+            yield self.ebands.plot_with_edos(edos, show=False)
+            yield edos.plot(show=False)
+
+    def expose_ebands(self, slide_mode=False, slide_timeout=None, **kwargs):
+        """
+        Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
+        """
+        from abipy.tools.plotting import MplExpose
+        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            e(self.yield_ebands_figs(**kwargs))
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Has_PhononBands(object):
@@ -356,6 +378,25 @@ class Has_PhononBands(object):
 
     #def plot_phbands_with_phdos(self, phdos, **kwargs):
     #    return self.phbands.plot_with_phdos(phdos, **kwargs)
+
+
+    def yield_phbands_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        units = kwargs.get("units", "mev")
+        yield self.phbands.qpoints.plot(show=False)
+        yield self.phbands.plot(units=units, show=False)
+        yield self.phbands.plot_colored_matched(units=units, show=False)
+
+    def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
+        """
+        Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.
+        """
+        from abipy.tools.plotting import MplExpose
+        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            e(self.yield_phbands_figs(**kwargs))
 
 
 class NcDumper(object):
@@ -562,16 +603,19 @@ abilab.enable_notebook(with_seaborn=True)
             return filepath
 
     #@abc.abstractmethod
-    #def expose(self, slide_mode=False, slide_timeout=None, verbose=0, **kwargs):
+    #def yield_figs(self, **kwargs)
     #    """
-    #    This function builds and shows a predefined list of matplotlib figures with minimal input from the user.
+    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
     #    Used in abiview.py to get a quick look at the results.
-
-    #    Args:
-    #        slide_mode: If true, iterate over figures. Default: Expose all figures at once.
-    #        slide_timeout: Close figure after slide-timeout seconds. Block if None.
-    #        verbose: verbosity level
     #    """
+
+    def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
+        """
+        Shows a predefined list of matplotlib figures with minimal input from the user.
+        """
+        from abipy.tools.plotting import MplExpose
+        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            e(self.yield_figs(**kwargs))
 
 
 class Has_Header(object):

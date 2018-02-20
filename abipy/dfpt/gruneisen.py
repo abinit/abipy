@@ -332,6 +332,14 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot_phbands_with_gruns(show=False)
+        yield self.plot_doses(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current

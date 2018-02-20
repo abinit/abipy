@@ -1525,6 +1525,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     #    return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        #for fig in self.yield_ebands_figs(): yield fig
+        if self.ebands.kpoints.is_path:
+            yield self.ebands.kpoints.plot(show=False)
+            yield self.plot_fatbands_lview(show=False)
+            yield self.plot_fatbands_typeview(show=False)
+        else:
+            yield self.plot_pjdos_lview(show=False)
+            yield self.plot_pjdos_typeview(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current

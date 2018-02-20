@@ -573,7 +573,7 @@ def _invoke_robot(options):
         if not options.verbose:
             print("\nUse --verbose for more information")
 
-        if options.expose:
+        if options.expose and hasattr(robot, "expose"):
             robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
 
     #elif options.ipython:

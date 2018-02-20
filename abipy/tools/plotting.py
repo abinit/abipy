@@ -412,11 +412,16 @@ class MplExpose(object): # pragma: no cover
         self.start_time = time.time()
 
     def __call__(self, obj):
-        #import types
-        #if isinstance(obj, (types.GeneratorType, list, tuple)):
-        #    for fig in obj:
-        #        self.add_fig(fig)
-        return self.add_fig(obj)
+        """
+        Add an object to MplExpose. Support mpl figure, list of figures or
+        generator yelding figures.
+        """
+        import types
+        if isinstance(obj, (types.GeneratorType, list, tuple)):
+            for fig in obj:
+                self.add_fig(fig)
+        else:
+            self.add_fig(obj)
 
     def add_fig(self, fig):
         """Add a matplotlib figure."""
