@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.symmetries &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.core.symmetries &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -144,7 +145,6 @@
 <span class="kn">from</span> <span class="nn">tabulate</span> <span class="k">import</span> <span class="n">tabulate</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">monty.itertools</span> <span class="k">import</span> <span class="n">iuptri</span>
-
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
 <span class="k">try</span><span class="p">:</span>
@@ -190,7 +190,7 @@
 <span class="sd">        mat3: (3, 3) matrix-like object with integer elements</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        `ndarray` with the TRANSPOSE of the inverse of mat3 if trans==True.</span>
+<span class="sd">        |numpy-array| with the TRANSPOSE of the inverse of mat3 if trans==True.</span>
 <span class="sd">        If trans==False, the inverse of mat3 is returned.</span>
 
 <span class="sd">    .. note::</span>
@@ -198,13 +198,13 @@
 <span class="sd">       Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.</span>
 <span class="sd">       Since these form a group, inverses are also integer arrays.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">mat3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat3</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">mat3</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting integer matrix but received dtype </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mat3</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">mat3</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting (3, 3) matrix but received shape </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">mat3</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">mat3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="c1">#if mat3.dtype not in (np.int, np.int8, np.int16, np.int32, np.int64):</span>
+    <span class="c1">#    raise TypeError(&quot;Expecting integer matrix but received dtype %s&quot; % mat3.dtype)</span>
+    <span class="c1">#if mat3.shape != (3, 3):</span>
+    <span class="c1">#    raise TypeError(&quot;Expecting (3, 3) matrix but received shape %s&quot; % str(mat3.shape))</span>
 
-    <span class="n">mit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">mit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
     <span class="n">mit</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">mit</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">mit</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mat3</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
@@ -682,7 +682,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spgid</span><span class="p">,</span> <span class="n">symrel</span><span class="p">,</span> <span class="n">tnons</span><span class="p">,</span> <span class="n">symafm</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">,</span> <span class="n">inord</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            spgid: space group number (from 1 to 232, 0 if cannot be specified).</span>
+<span class="sd">            spgid (int): space group number (from 1 to 232, 0 if cannot be specified).</span>
 <span class="sd">            symrel: (nsym,3,3) array with the rotational part of the symmetries in real</span>
 <span class="sd">                space (reduced coordinates are assumed, see also `inord` for the order.</span>
 <span class="sd">            tnons: (nsym,3) array with fractional translation in reduced coordinates.</span>
@@ -755,10 +755,10 @@
 <div class="viewcode-block" id="AbinitSpaceGroup.from_structure"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.from_structure">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_structure</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">has_timerev</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Takes a :class:`Structure` object. Uses spglib to perform various symmetry finding operations.</span>
+<span class="sd">        Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            structure: :class:`Structure` object</span>
+<span class="sd">            structure: |Structure| object</span>
 <span class="sd">            has_timerev: True is time-reversal symmetry is included.</span>
 <span class="sd">            symprec: Tolerance for symmetry finding</span>
 <span class="sd">            angle_tolerance: Angle tolerance for symmetry finding.</span>
@@ -930,7 +930,6 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        True if the k-point is on the border of the BZ.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">wrap_to_ws</span>
         <span class="n">frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">)</span>
         <span class="n">kreds</span> <span class="o">=</span> <span class="n">wrap_to_ws</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span>
         <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">kreds</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span>
@@ -1080,11 +1079,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intexp</span><span class="p">,</span> <span class="n">modulo</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-       <span class="k">if</span> <span class="n">intexp</span> <span class="o">==</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_E3D</span><span class="p">)</span>
-       <span class="k">if</span> <span class="n">intexp</span>  <span class="o">&gt;</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">**</span> <span class="n">intexp</span><span class="p">)</span>
-       <span class="k">if</span> <span class="n">intexp</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
-       <span class="k">if</span> <span class="n">intexp</span>  <span class="o">&lt;</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__pow__</span><span class="p">(</span><span class="o">-</span><span class="n">intexp</span><span class="p">)</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
-       <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2"> is not supported in __pow__&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">intexp</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">intexp</span> <span class="o">==</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_E3D</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">intexp</span>  <span class="o">&gt;</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mat</span> <span class="o">**</span> <span class="n">intexp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">intexp</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">intexp</span>  <span class="o">&lt;</span>  <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__pow__</span><span class="p">(</span><span class="o">-</span><span class="n">intexp</span><span class="p">)</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2"> is not supported in __pow__&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">intexp</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1306,8 +1305,8 @@
 
     <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;simple&quot;</span><span class="p">,</span> <span class="n">numalign</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write a string with the character_table to the given `stream`.</span>
-<span class="sd">        `tablefmt` and `numalign` options are passed to `tabulate`.</span>
+<span class="sd">        Write a string with the character_table to the given ``stream``.</span>
+<span class="sd">        ``tablefmt`` and ``numalign`` options are passed to ``tabulate``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">tabulate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">character_table</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">character_table</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                      <span class="n">tablefmt</span><span class="o">=</span><span class="n">tablefmt</span><span class="p">,</span> <span class="n">numalign</span><span class="o">=</span><span class="n">numalign</span><span class="p">)</span>
@@ -1472,8 +1471,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

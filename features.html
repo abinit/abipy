@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Overview &#8212; abipy 0.2.0 documentation</title>
+    <title>Overview &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -156,12 +157,10 @@ benefit from the different tools and python objects available in the pymatgen ec
 <p>AbiPy can be used in conjunction with  <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <a class="reference external" href="http://pandas.pydata.org">pandas</a>, <a class="reference external" href="https://seaborn.pydata.org/">seaborn</a>,
 <a class="reference external" href="https://ipython.org/index.html">ipython</a> and <a class="reference external" href="http://jupyter.org/">jupyter</a> thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out the list of plotting scripts available in our <a class="reference internal" href="gallery/index.html#plot-gallery"><span class="std std-ref">AbiPy Gallery</span></a>.
-To learn more about the integration between jupyter and AbiPy, visit our collection of <a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb">notebooks</a>
-and the
-<a class="reference external" href="http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb">AbiPy lessons</a>.</p>
-<p>AbiPy supports both Python 2.7 as well as Python &gt;= 3.4.
-Note however that Python 2.7 is more intensively tested than py3k, especially at the level of workflows.
-We hence still recommend py2.7 if you plan to run automatic calculations with AbiPy.</p>
+To learn more about the integration between <a class="reference external" href="http://jupyter.org/">jupyter</a> and AbiPy, visit <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb">our collection of notebooks</a>
+or click the <strong>Launch Binder</strong> badge to start a Docker image with Abinit, AbiPy and all the other python dependencies
+required to run the code inside the jupyter notebooks.
+The notebook will be opened in your browser after building.</p>
 <p>Note also that the majority of the post-processing tools available in AbiPy require Abinit output files in
 <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> format so we strongly suggest to compile Abinit with netcdf support
 (use <code class="docutils literal"><span class="pre">--with_trio_flavor=&quot;netcdf-fallback&quot;</span></code> at configure time to activate the internal netcdf library,
@@ -183,8 +182,8 @@ Please report any bugs and issues at AbiPy’s <a class="reference external" hre
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 29, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

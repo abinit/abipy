@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Coding guide &#8212; abipy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documenting AbiPy" href="README.html" />
+    <link rel="prev" title="waves Package" href="api/waves_api.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Coding guide</a><ul>
+<li><a class="reference internal" href="#committing-changes">Committing changes</a></li>
+<li><a class="reference internal" href="#importing-and-name-spaces">Importing and name spaces</a></li>
+<li><a class="reference internal" href="#naming-spacing-and-formatting-conventions">Naming, spacing, and formatting conventions</a></li>
+<li><a class="reference internal" href="#writing-examples">Writing examples</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="api/waves_api.html" title="Previous Chapter: waves Package"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; waves Package</span>
+    </a>
+  </li>
+  <li>
+    <a href="README.html" title="Next Chapter: Documenting AbiPy"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Documenting AbiPy &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/coding_guide.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="coding-guide">
+<span id="id1"></span><h1><a class="toc-backref" href="#contents">Coding guide</a><a class="headerlink" href="#coding-guide" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#coding-guide" id="id2">Coding guide</a><ul>
+<li><a class="reference internal" href="#committing-changes" id="id3">Committing changes</a></li>
+<li><a class="reference internal" href="#importing-and-name-spaces" id="id4">Importing and name spaces</a></li>
+<li><a class="reference internal" href="#naming-spacing-and-formatting-conventions" id="id5">Naming, spacing, and formatting conventions</a></li>
+<li><a class="reference internal" href="#writing-examples" id="id6">Writing examples</a></li>
+<li><a class="reference internal" href="#testing" id="id7">Testing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="committing-changes">
+<h2><a class="toc-backref" href="#contents">Committing changes</a><a class="headerlink" href="#committing-changes" title="Permalink to this headline">¶</a></h2>
+<p>When committing changes to AbiPy, there are a few things to bear in mind.</p>
+<ul>
+<li><p class="first">if your changes are non-trivial, please make an entry in the <code class="file docutils literal"><span class="pre">CHANGELOG.rst</span></code>
+Note that the changelog is written following the format employed by the
+<a class="reference external" href="https://github.com/bitprophet/releases">releases</a> Sphinx extension.</p>
+</li>
+<li><p class="first">if you change the API, please document the modifications in the docstring with the <code class="docutils literal"><span class="pre">versionadded</span></code> role:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>.. versionadded:: 0.2
+   Add new argument ``foobar``
+</pre></div>
+</div>
+</li>
+<li><p class="first">Are your changes python2.7 compatible?</p>
+</li>
+<li><p class="first">Can you pass the automatic tests?</p>
+</li>
+<li><p class="first">Can you add a test to test your changes?</p>
+</li>
+<li><p class="first">If you have added new files or directories, or reorganized existing
+ones, are the new files included in the match patterns in <code class="file docutils literal"><span class="pre">MANIFEST.in</span></code>.
+This file determines what goes into the source distribution of the build.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="importing-and-name-spaces">
+<h2><a class="toc-backref" href="#contents">Importing and name spaces</a><a class="headerlink" href="#importing-and-name-spaces" title="Permalink to this headline">¶</a></h2>
+<p>For <a class="reference external" href="http://www.numpy.org/">numpy</a>, use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>For <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <strong>avoid</strong> using the high-level interface such as in:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and use the object-oriented API provided by <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">get_ax_fig_plt</span>
+<span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is recommended to pass the Axes <code class="docutils literal"><span class="pre">ax</span></code> to the plotting method and
+use the decorator <code class="docutils literal"><span class="pre">add_fig_kwargs</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@add_fig_kwargs</span>
+<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the object ...</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+
+<span class="sd">    Returns: |matplotlib-Figure|</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xvals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yvalsm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="naming-spacing-and-formatting-conventions">
+<h2><a class="toc-backref" href="#contents">Naming, spacing, and formatting conventions</a><a class="headerlink" href="#naming-spacing-and-formatting-conventions" title="Permalink to this headline">¶</a></h2>
+<p>In general, we want to stay as closely as possible to the standard
+coding guidelines for python written by Guido in <a class="reference external" href="http://www.python.org/dev/peps/pep-0008">PEP0008</a>.</p>
+<ul class="simple">
+<li>functions and class methods: <code class="docutils literal"><span class="pre">lower</span></code> or <code class="docutils literal"><span class="pre">lower_underscore_separated</span></code></li>
+<li>attributes and variables: <code class="docutils literal"><span class="pre">lower</span></code></li>
+<li>classes: <code class="docutils literal"><span class="pre">Upper</span></code> or <code class="docutils literal"><span class="pre">MixedCase</span></code></li>
+</ul>
+<p>Prefer the shortest names that are still readable.</p>
+<p>Configure your editor to use spaces, not hard tabs.
+The standard indentation unit is always four spaces;
+if there is a file with tabs or a different number of spaces it is a bug – please fix it.</p>
+<p>Keep docstrings uniformly indented as in the example below, with nothing to the left of the triple quotes.</p>
+<p>Limit line length to (around) 90 characters.
+If you wonder why we are violating pep8 that specifies a maximum line length of 79 characters,
+check out this video by Raymond Hettinger:</p>
+<iframe src="https://www.youtube.com/embed/wf-BqAjZb8M" style="border: 0; height: 345px; width: 560px">
+</iframe><p>If a logical line needs to be longer, use parentheses to break it; do not use an escaped newline.
+It may be preferable to use a temporary variable to replace a single
+long line with two shorter and more readable lines.</p>
+<p>Please do not commit lines with trailing white space, as it causes noise in diffs.</p>
+</div>
+<div class="section" id="writing-examples">
+<h2><a class="toc-backref" href="#contents">Writing examples</a><a class="headerlink" href="#writing-examples" title="Permalink to this headline">¶</a></h2>
+<p>We have examples in subdirectories of <code class="file docutils literal"><span class="pre">abipy/examples</span></code>, and these are automatically
+generated when the website is built to show up both in the <code class="file docutils literal"><span class="pre">examples</span></code>
+and <code class="file docutils literal"><span class="pre">gallery</span></code> sections of the website.
+Many people find these examples from the website, and do not have ready access to the
+<code class="file docutils literal"><span class="pre">examples</span></code> directory in which they reside.
+Thus any example data that is required for the example should be added to the <code class="file docutils literal"><span class="pre">abipy/data</span></code> directory</p>
+</div>
+<div class="section" id="testing">
+<h2><a class="toc-backref" href="#contents">Testing</a><a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>Abipy has a testing infrastructure based on <a class="reference external" href="https://docs.python.org/3/library/unittest.html#module-unittest" title="(in Python v3.6)"><code class="xref py py-mod docutils literal"><span class="pre">unittest</span></code></a> and <a class="reference external" href="https://docs.pytest.org/en/latest/contents.html">pytest</a>.</p>
+<p>Common test support is provided by <a class="reference internal" href="api/core_api.html#module-abipy.core.testing" title="abipy.core.testing"><code class="xref py py-mod docutils literal"><span class="pre">abipy.core.testing</span></code></a>,
+data files are storeed in <code class="file docutils literal"><span class="pre">abipy/tests/data</span></code>.</p>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

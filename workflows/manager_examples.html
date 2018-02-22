@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Manager Examples &#8212; abipy 0.2.0 documentation</title>
+    <title>Manager Examples &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -200,12 +201,10 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;/home/users/g/m/gmatteo/git/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mpich/3.0.4/intel-13.0.0</span>
-    <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit unlimited</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -265,13 +264,13 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;/home/gmatteo/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">imkl/11.3.3.210-iimpi-2016b</span>
-    <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
+    <span class="c1"># here pre_run is a string in verbatim mode (note |)</span>
     <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit unlimited</span>
+        <span class="no">ulimit -s unlimited</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -316,12 +315,10 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;/home/users/g/m/gmatteo/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">openmpi/1.5.3/intel-12.0.0.084</span>
-    <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit unlimited</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -451,9 +448,7 @@
         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel-para/2015.07</span>
-    <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit unlimited</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -483,12 +478,10 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>  <span class="c1"># Use your abinit exec</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;/home/users/g/m/gmatteo/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span> <span class="c1"># Abinit compiled with abiconfig settings</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">openmpi/1.6.5/intel-13.0.1.117</span>
-    <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit unlimited</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -533,13 +526,13 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/users/g/m/gmatteo/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit -s unlimited  # pre_run is a string in verbatim mode (note |)</span>
-        <span class="no">export OMP_NUM_THREADS=1</span>
-        <span class="no">unset SLURM_CPUS_PER_TASK</span>
-        <span class="no">module purge</span>
-        <span class="no">module load gompi/2016a FFTW/3.3.4-gompi-2016a</span>
+         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;export</span><span class="nv"> </span><span class="s">OMP_NUM_THREADS=1&quot;</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;unset</span><span class="nv"> </span><span class="s">SLURM_CPUS_PER_TASK&quot;</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;module</span><span class="nv"> </span><span class="s">purge&quot;</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;module</span><span class="nv"> </span><span class="s">load</span><span class="nv"> </span><span class="s">gompi/2016a</span><span class="nv"> </span><span class="s">FFTW/3.3.4-gompi-2016a&quot;</span>
 
 <span class="c1">#policy:</span>
 <span class="c1">#   frozen_timeout: 0-12:0:0</span>
@@ -580,9 +573,8 @@
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="s">&quot;mpirun&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner_options</span><span class="p p-Indicator">:</span> <span class="s">&quot;--bind-to</span><span class="nv"> </span><span class="s">none&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;/home/users/g/m/gmatteo/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH&quot;</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
-       <span class="p p-Indicator">-</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">shared</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">openmpi/1.7.5/intel2013_sp1.1.106</span>
@@ -719,12 +711,10 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;/gpfsuser/home/users/g/m/gmatteo/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH&quot;</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel/2015a</span>
-    <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="c1">#pre_run: |</span>
-    <span class="c1">#    &quot;ulimit -s unlimited&quot;</span>
+    <span class="c1">#pre_run: &quot;ulimit -s unlimited&quot;</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -755,9 +745,9 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">~/bin/mpirun.openmpi</span>
     <span class="c1"># pre_run is a string in verbatim mode (note |)</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit -s unlimited</span>
-        <span class="no">source ~/.bashrc</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;source</span><span class="nv"> </span><span class="s">~/.bashrc&quot;</span>
 
 <span class="c1"># queues</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -795,13 +785,12 @@
 <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
     <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
     <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>
-         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/acad/ucl/naps/mgiantom/bzr_repos/793/gmatteo-private/build_impi/src/98_main:$PATH</span>
+         <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$HOME/git_repos/abinit_build_impi/src/98_main:$PATH</span>
     <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">compiler/intel/composerxe/2013_sp1.1.106</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intelmpi</span>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">python/2.7</span>
-    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">|</span>
-        <span class="no">ulimit  # pre_run is a string in verbatim mode (note |)</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
 
 <span class="c1"># List of qdapters.</span>
 <span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
@@ -853,8 +842,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

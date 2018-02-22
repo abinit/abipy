@@ -128,7 +128,7 @@ This script shows how to perform a structural relaxation in two steps:
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.112 seconds)
+**Total running time of the script:** ( 0 minutes  0.145 seconds)
 
 
 

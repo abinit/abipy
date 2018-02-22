@@ -3,14 +3,14 @@ r"""
 Structural relaxation
 =====================
 
-This example shows how to analyze the results of a 
+This example shows how to analyze the results of a
 structure relaxation run using the HIST.nc file.
 """
 from abipy.abilab import abiopen
 import abipy.data as abidata
 
 # Open the HIST file.
-# (alternatively one can use the shell and `abiopen.py OUT_HIST.nc -nb` 
+# (alternatively one can use the shell and `abiopen.py OUT_HIST.nc -nb`
 # to open the file in jupyter notebook.
 hist = abiopen(abidata.ref_file("sic_relax_HIST.nc"))
 

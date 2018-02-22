@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.structure &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.core.structure &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -197,7 +198,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">mpids</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">find_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">mpids</span><span class="p">:</span>
-                <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_material_id</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">final</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
+                <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_mpid</span><span class="p">(</span><span class="n">mid</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="n">final</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">mid</span> <span class="ow">in</span> <span class="n">mpids</span><span class="p">]</span>
 
         <span class="k">except</span> <span class="n">rest</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -353,7 +354,6 @@
 
         <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.nc&quot;</span><span class="p">):</span>
             <span class="c1"># Generic netcdf file.</span>
-            <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">as_etsfreader</span>
             <span class="n">ncfile</span><span class="p">,</span> <span class="n">closeit</span> <span class="o">=</span> <span class="n">as_etsfreader</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
 
             <span class="n">new</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">read_structure</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">)</span>
@@ -405,8 +405,8 @@
 
         <span class="k">return</span> <span class="n">new</span></div>
 
-<div class="viewcode-block" id="Structure.from_material_id"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_material_id">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_material_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.from_mpid"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.from_mpid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_mpid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a Structure corresponding to a material_id.</span>
 
@@ -705,7 +705,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">abi_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a string with the ABINIT input associated to this structure.&quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">abipy.htc.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
+        <span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="n">abivars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span>
@@ -1091,8 +1091,22 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
+<div class="viewcode-block" id="Structure.get_symbol2indices"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_symbol2indices">[docs]</a>    <span class="k">def</span> <span class="nf">get_symbol2indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dictionary mapping chemical symbols to numpy array with the position of the atoms.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">            MgB2 --&gt; {Mg: [0], B: [1, 2]}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">symbol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices_from_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}</span></div>
+
 <div class="viewcode-block" id="Structure.get_symbol2coords"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_symbol2coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_symbol2coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a dictionary mapping chemical symbols to coordinates.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dictionary mapping chemical symbols to a [ntype_symbol, 3] numpy array</span>
+<span class="sd">        with the fractional coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO:</span>
         <span class="c1">#use structure.frac_coords but add reshape in pymatgen.</span>
         <span class="c1">#fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))</span>
@@ -1164,7 +1178,7 @@
 
         <span class="n">od</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
             <span class="p">(</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;natom&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sites</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">&quot;angle0&quot;</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;angle1&quot;</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;angle2&quot;</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;gamma&quot;</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
             <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">abc</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">abc</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">abc</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">&quot;abispg_num&quot;</span><span class="p">,</span> <span class="n">abispg_number</span><span class="p">),</span>
         <span class="p">])</span>
@@ -1173,6 +1187,15 @@
             <span class="n">od</span><span class="p">[</span><span class="s2">&quot;spglib_num&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spglib_number</span>
 
         <span class="k">return</span> <span class="n">od</span></div>
+
+<div class="viewcode-block" id="Structure.plot"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot structure with matplotlib. Return matplotlib Figure</span>
+<span class="sd">        See plot_structure for kwargs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">plot_structure</span>
+        <span class="k">return</span> <span class="n">plot_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.plot_bz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot_bz">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_bz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pmg_path</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1281,7 +1304,7 @@
 
 <div class="viewcode-block" id="Structure.chemview"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.chemview">[docs]</a>    <span class="k">def</span> <span class="nf">chemview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Visualize structure in jupyter notebook using chemview package.</span>
+<span class="sd">        Visualize structure in jupyter_ notebook using chemview package.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_chemview</span> <span class="k">import</span> <span class="n">quick_view</span>
         <span class="k">return</span> <span class="n">quick_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -1313,6 +1336,7 @@
 <span class="sd">        Visualize the crystalline structure with visualizer.</span>
 <span class="sd">        See |Visualizer| for the list of applications and formats supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">appname</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mpl&quot;</span><span class="p">,</span> <span class="s2">&quot;matplotlib&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">appname</span> <span class="o">==</span> <span class="s2">&quot;vtk&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vtkview</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">appname</span> <span class="o">==</span> <span class="s2">&quot;mayavi&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mayaview</span><span class="p">()</span>
 
@@ -1583,19 +1607,29 @@
                 <span class="n">xyz_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
                                <span class="n">new_displ</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_displ</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">new_displ</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span></div>
 
-<div class="viewcode-block" id="Structure.frozen_2phonon"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.frozen_2phonon">[docs]</a>    <span class="k">def</span> <span class="nf">frozen_2phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">do_real1</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_real2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.frozen_2phonon"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.frozen_2phonon">[docs]</a>    <span class="k">def</span> <span class="nf">frozen_2phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute the supercell needed for a given qpoint and add the displacement.</span>
+<span class="sd">        Creates the supercell needed for a given qpoint and adds the displacements.</span>
+<span class="sd">        The displacements are normalized so that the largest atomic displacement will correspond to the</span>
+<span class="sd">        value of eta in Angstrom.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            qpoint: q vector in reduced coordinate in reciprocal space.</span>
-<span class="sd">            displ: displacement in real space of the atoms, will be normalized to 1 Angstrom.</span>
-<span class="sd">            eta: pre-factor multiplying the displacement.</span>
-<span class="sd">            do_real: true if we want only the real part of the displacement.</span>
+<span class="sd">            displ1: first displacement in real space of the atoms.</span>
+<span class="sd">            displ2: second displacement in real space of the atoms.</span>
+<span class="sd">            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the</span>
+<span class="sd">                largest displacement.</span>
+<span class="sd">            frac_coords: whether the displacements are given in fractional or cartesian coordinates</span>
+<span class="sd">            scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for</span>
+<span class="sd">                the qpoint will be determined.</span>
+<span class="sd">            max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest</span>
+<span class="sd">                supercell in the search for a scaling matrix suitable for the q point.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A namedtuple with a Structure with the displaced atoms, a numpy array containing the</span>
+<span class="sd">            displacements applied to each atom and the scale matrix used to generate the supercell.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># I&#39;ve copied code from make_supercell since the loop over supercell images</span>
-        <span class="c1"># is inside make_supercell and I don&#39;t want to create a mapping</span>
+
         <span class="k">if</span> <span class="n">scale_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">max_supercell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If scale_matrix is not provided, please provide max_supercell !&quot;</span><span class="p">)</span>
@@ -1610,52 +1644,63 @@
         <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">,</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">))</span>
 
         <span class="n">tvects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trans_vect</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">frac_coords</span><span class="p">:</span>
+            <span class="n">displ1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">displ1</span><span class="p">))</span>
+            <span class="n">displ2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">displ2</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">displ1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displ1</span><span class="p">)</span>
+            <span class="n">displ2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displ2</span><span class="p">)</span>
+        <span class="c1"># from here displ are in cartesian coordinates</span>
+
+        <span class="n">norm_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">displ1</span><span class="o">+</span><span class="n">displ2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="n">displ1</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">displ1</span> <span class="o">/</span> <span class="n">norm_factor</span>
+        <span class="n">displ2</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">displ2</span> <span class="o">/</span> <span class="n">norm_factor</span>
 
         <span class="n">new_displ1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
         <span class="n">new_displ2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
         <span class="n">new_sites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">displ_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">at</span><span class="p">,</span><span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tvects</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">do_real1</span><span class="p">:</span>
-                    <span class="n">new_displ1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ1</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_displ1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ1</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">frac_coords</span><span class="p">:</span>
-                    <span class="c1"># Convert to fractional coordinates.</span>
-                    <span class="n">new_displ1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">new_displ1</span><span class="p">)</span>
+                <span class="n">new_displ1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ1</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
 
-                <span class="k">if</span> <span class="n">do_real2</span><span class="p">:</span>
-                    <span class="n">new_displ2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ2</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_displ2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ2</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">frac_coords</span><span class="p">:</span>
-                    <span class="c1"># Convert to fractional coordinates.</span>
-                    <span class="n">new_displ2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">new_displ2</span><span class="p">)</span>
+                <span class="n">new_displ2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ2</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
 
-                <span class="c1"># We don&#39;t normalize here !!!</span>
-                <span class="n">fcoords</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span> <span class="o">+</span> <span class="n">t</span> <span class="o">+</span> <span class="n">new_displ1</span> <span class="o">+</span> <span class="n">new_displ2</span>
-                <span class="n">coords</span> <span class="o">=</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">fcoords</span><span class="p">)</span>
+                <span class="n">displ_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_displ1</span><span class="o">+</span><span class="n">new_displ2</span><span class="p">)</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span> <span class="o">+</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_displ1</span> <span class="o">+</span> <span class="n">new_displ2</span>
                 <span class="n">new_site</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span>
                     <span class="n">site</span><span class="o">.</span><span class="n">species_and_occu</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">new_lattice</span><span class="p">,</span>
                     <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">site</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
                     <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">new_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_site</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sites</span> <span class="o">=</span> <span class="n">new_sites</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span> <span class="o">=</span> <span class="n">new_lattice</span></div>
+        <span class="n">new_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">new_sites</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Structure.frozen_phonon"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.frozen_phonon">[docs]</a>    <span class="k">def</span> <span class="nf">frozen_phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">do_real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">new_structure</span><span class="p">,</span> <span class="n">displ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displ_list</span><span class="p">),</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="n">scale_matrix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Structure.frozen_phonon"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.frozen_phonon">[docs]</a>    <span class="k">def</span> <span class="nf">frozen_phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute the supercell needed for a given qpoint and add the displacement.</span>
+<span class="sd">        Creates a supercell with displaced atoms for the specified q-point.</span>
+<span class="sd">        The displacements are normalized so that the largest atomic displacement will correspond to the</span>
+<span class="sd">        value of eta in Angstrom.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            qpoint: q vector in reduced coordinate in reciprocal space.</span>
-<span class="sd">            displ: displacement in real space of the atoms, will be normalized to 1 Angstrom.</span>
-<span class="sd">            eta: pre-factor multiplying the displacement.</span>
-<span class="sd">            do_real: true if we want only the real part of the displacement.</span>
+<span class="sd">            displ: displacement in real space of the atoms.</span>
+<span class="sd">            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the</span>
+<span class="sd">                largest displacement.</span>
+<span class="sd">            frac_coords: whether the displacements are given in fractional or cartesian coordinates</span>
+<span class="sd">            scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for</span>
+<span class="sd">                the qpoint will be determined.</span>
+<span class="sd">            max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest</span>
+<span class="sd">                supercell in the search for a scaling matrix suitable for the q point.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A namedtuple with a Structure with the displaced atoms, a numpy array containing the</span>
+<span class="sd">            displacements applied to each atom and the scale matrix used to generate the supercell.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># I&#39;ve copied code from make_supercell since the loop over supercell images</span>
-        <span class="c1"># is inside make_supercell and I don&#39;t want to create a mapping</span>
 
         <span class="k">if</span> <span class="n">scale_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">max_supercell</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1672,29 +1717,32 @@
 
         <span class="n">tvects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trans_vect</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">frac_coords</span><span class="p">:</span>
+            <span class="n">displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">displ</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displ</span><span class="p">)</span>
+        <span class="c1"># from here displ are in cartesian coordinates</span>
+
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">displ</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">displ</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
         <span class="n">new_displ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
         <span class="n">new_sites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">displ_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tvects</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">do_real</span><span class="p">:</span>
-                    <span class="n">new_displ</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_displ</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">frac_coords</span><span class="p">:</span>
-                    <span class="c1"># Convert to fractional coordinates.</span>
-                    <span class="n">new_displ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">new_displ</span><span class="p">)</span>
+                <span class="n">new_displ</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span><span class="n">t</span><span class="p">)))</span><span class="o">*</span><span class="n">displ</span><span class="p">[</span><span class="n">at</span><span class="p">,:])</span>
+                <span class="n">displ_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">new_displ</span><span class="p">))</span>
 
-                <span class="c1"># We don&#39;t normalize here !!!</span>
-                <span class="n">fcoords</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">frac_coords</span> <span class="o">+</span> <span class="n">t</span> <span class="o">+</span> <span class="n">new_displ</span>
-                <span class="n">coords</span> <span class="o">=</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">fcoords</span><span class="p">)</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span> <span class="o">+</span> <span class="n">old_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_displ</span>
                 <span class="n">new_site</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span>
                     <span class="n">site</span><span class="o">.</span><span class="n">species_and_occu</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">new_lattice</span><span class="p">,</span>
                     <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">site</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
                     <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">new_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_site</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sites</span> <span class="o">=</span> <span class="n">new_sites</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lattice</span> <span class="o">=</span> <span class="n">new_lattice</span></div>
+        <span class="n">new_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">new_sites</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">new_structure</span><span class="p">,</span> <span class="n">displ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">displ_list</span><span class="p">),</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="n">scale_matrix</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.calc_kptbounds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.calc_kptbounds">[docs]</a>    <span class="k">def</span> <span class="nf">calc_kptbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the suggested value for the ABINIT variable ``kptbounds``.&quot;&quot;&quot;</span>
@@ -2063,20 +2111,14 @@
 
         <span class="k">return</span> <span class="n">news</span>
 
-    <span class="k">def</span> <span class="nf">frozen_phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">do_real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">frozen_phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-        <span class="n">new_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy_structure</span><span class="p">()</span>
-        <span class="n">new_structure</span><span class="o">.</span><span class="n">frozen_phonon</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">do_real</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span> <span class="n">max_supercell</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_structure</span><span class="o">.</span><span class="n">frozen_phonon</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">displ</span><span class="p">,</span> <span class="n">eta</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span> <span class="n">max_supercell</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">new_structure</span>
+    <span class="k">def</span> <span class="nf">frozen_2phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">frozen_2phonon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">do_real1</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">do_real2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frac_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
-        <span class="n">new_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy_structure</span><span class="p">()</span>
-        <span class="n">new_structure</span><span class="o">.</span><span class="n">frozen_2phonon</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">do_real1</span><span class="p">,</span> <span class="n">do_real2</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span> <span class="n">max_supercell</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">new_structure</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_structure</span><span class="o">.</span><span class="n">frozen_2phonon</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="n">displ1</span><span class="p">,</span> <span class="n">displ2</span><span class="p">,</span> <span class="n">eta</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span>
+                                                       <span class="n">max_supercell</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">diff_structures</span><span class="p">(</span><span class="n">structures</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;cif&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">(),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
@@ -2125,8 +2167,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

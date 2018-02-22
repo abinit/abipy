@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Getting Started &#8212; abipy 0.2.0 documentation</title>
+    <title>Getting Started &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="#">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -71,17 +72,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -148,16 +149,30 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Release:</th><td class="field-body">0.2.0</td>
+<tr class="field-odd field"><th class="field-name">Release:</th><td class="field-body">0.3.0</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">Dec 29, 2017</td>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">Feb 22, 2018</td>
 </tr>
 </tbody>
 </table>
-<a class="reference external image-reference" href="https://badge.fury.io/py/abipy"><img alt="https://badge.fury.io/py/abipy.svg" src="https://badge.fury.io/py/abipy.svg" /></a>
-<a class="reference external image-reference" href="https://travis-ci.org/abinit/abipy"><img alt="https://travis-ci.org/abinit/abipy.svg?branch=develop" src="https://travis-ci.org/abinit/abipy.svg?branch=develop" /></a>
-<a class="reference external image-reference" href="https://coveralls.io/github/abinit/abipy?branch=develop"><img alt="https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=develop" src="https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=develop" /></a>
-<img alt="https://img.shields.io/badge/license-GPL-blue.svg" src="https://img.shields.io/badge/license-GPL-blue.svg" /><div class="section" id="getting-started">
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><th class="stub">Package</th>
+<td><a class="reference external" href="https://badge.fury.io/py/abipy"><img alt="PyPi version" src="https://badge.fury.io/py/abipy.svg" /></a> <a class="reference external" href="https://conda.anaconda.org/abinit"><img alt="Download with Anaconda" src="https://anaconda.org/abinit/abipy/badges/installer/conda.svg" /></a> <a class="reference external" href="https://pypi.python.org/pypi/abipy"><img alt="Supported versions" src="https://img.shields.io/pypi/pyversions/abipy.svg?style=flat" /></a></td>
+</tr>
+<tr class="row-even"><th class="stub">Continuous Integration</th>
+<td><a class="reference external" href="https://travis-ci.org/abinit/abipy"><img alt="Travis status" src="https://travis-ci.org/abinit/abipy.svg?branch=develop" /></a> <a class="reference external" href="https://coveralls.io/github/abinit/abipy?branch=develop"><img alt="Coverage status" src="https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=develop" /></a></td>
+</tr>
+<tr class="row-odd"><th class="stub">Documentation</th>
+<td><a class="reference external" href="http://pythonhosted.org/abipy/"><img alt="Documentation stable version" src="https://img.shields.io/badge/docs-stable_version-blue.svg" /></a> <a class="reference external" href="http://abinit.github.io/abipy"><img alt="Documentation development version" src="https://img.shields.io/badge/docs-devel_version-ff69b4.svg" /></a> <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb"><img alt="Launch nbviewer" src="https://img.shields.io/badge/render-nbviewer-orange.svg" /></a> <a class="reference external" href="https://mybinder.org/v2/gh/abinit/abipy/develop"><img alt="Launch binder" src="https://mybinder.org/badge.svg" /></a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
@@ -174,7 +189,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 </div>
 </div>
@@ -185,7 +200,6 @@
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 </div>
 </div>
@@ -194,7 +208,8 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
 </ul>
 </div>
 </div>
@@ -231,8 +246,8 @@ If not, see <a class="reference external" href="http://www.gnu.org/licenses/">ht
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>display Package &#8212; abipy 0.2.0 documentation</title>
+    <title>display Package &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -172,6 +173,7 @@
 <div class="section" id="module-abipy.display.mvtk">
 <span id="mvtk-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">mvtk</span></code> Module</a><a class="headerlink" href="#module-abipy.display.mvtk" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="http://docs.enthought.com/mayavi/mayavi/">mayavi</a> toolkit.</p>
+<p>WARNING: This code is still under development.</p>
 <dl class="function">
 <dt id="abipy.display.mvtk.get_fig_mlab">
 <code class="descclassname">abipy.display.mvtk.</code><code class="descname">get_fig_mlab</code><span class="sig-paren">(</span><em>figure=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#get_fig_mlab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.get_fig_mlab" title="Permalink to this definition">¶</a></dt>
@@ -186,7 +188,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
+<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
 <li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
 <li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
@@ -228,7 +230,7 @@ and line_width to 1.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
 <li><strong>figure</strong> – mayavi figure, None if a new figure should be created.</li>
 <li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
@@ -243,18 +245,18 @@ and line_width to 1.</li>
 <dl class="function">
 <dt id="abipy.display.mvtk.plot_structure">
 <code class="descclassname">abipy.display.mvtk.</code><code class="descname">plot_structure</code><span class="sig-paren">(</span><em>structure</em>, <em>frac_coords=False</em>, <em>to_unit_cell=False</em>, <em>style='points+labels'</em>, <em>unit_cell_color=(0</em>, <em>0</em>, <em>0)</em>, <em>color_scheme='VESTA'</em>, <em>figure=None</em>, <em>show=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#plot_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.plot_structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot structure</p>
+<dd><p>Plot structure with mayavi.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>structure</strong> – </li>
+<li><strong>structure</strong> – <a class="reference internal" href="core_api.html#abipy.core.structure.Structure" title="abipy.core.structure.Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.structure.Structure</span></code></a> object</li>
 <li><strong>frac_coords</strong> – </li>
-<li><strong>to_unit_cell</strong> – </li>
-<li><strong>style</strong> – </li>
+<li><strong>to_unit_cell</strong> – True if sites should be wrapped into the first unit cell.</li>
+<li><strong>style</strong> – “points+labels” to show atoms sites with labels.</li>
 <li><strong>unit_cell_color</strong> – </li>
-<li><strong>color_scheme</strong> – </li>
+<li><strong>color_scheme</strong> – color scheme for atom types. Allowed values in (“Jmol”, “VESTA”)</li>
 <li><strong>figure</strong> – </li>
 <li><strong>kwargs</strong> – </li>
 </ul>
@@ -275,7 +277,7 @@ and line_width to 1.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>labels</strong> – dict containing the label as a key and the coordinates as value.</li>
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
 <li><strong>coords_are_cartesian</strong> – Set to True if you are providing.
 coordinates in cartesian coordinates. Defaults to False.
 Requires lattice if False.</li>
@@ -292,7 +294,7 @@ Requires lattice if False.</li>
 <dl class="class">
 <dt id="abipy.display.mvtk.MayaviFieldAnimator">
 <em class="property">class </em><code class="descclassname">abipy.display.mvtk.</code><code class="descname">MayaviFieldAnimator</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="abipy.display.mvtk.MayaviFieldAnimator.volume_animate">
 <code class="descname">volume_animate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/mvtk.html#MayaviFieldAnimator.volume_animate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.mvtk.MayaviFieldAnimator.volume_animate" title="Permalink to this definition">¶</a></dt>
@@ -356,7 +358,7 @@ lightweight wrapper; if you need more flexibility, you should use
 <li><strong>y</strong> (<em>x</em><em>,</em>) – Data or names of variables in <code class="docutils literal"><span class="pre">data</span></code>.</li>
 <li><strong>data</strong> (<em>DataFrame</em><em>, </em><em>optional</em>) – DataFrame when <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are variable names.</li>
 <li><strong>kind</strong> (<em>{ &quot;scatter&quot; | &quot;reg&quot; | &quot;resid&quot; | &quot;kde&quot; | &quot;hex&quot; }</em><em>, </em><em>optional</em>) – Kind of plot to draw.</li>
-<li><strong>stat_func</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#callable" title="(in Python v2.7)"><em>callable</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Function used to calculate a statistic about the relationship and
+<li><strong>stat_func</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#callable" title="(in Python v3.6)"><em>callable</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Function used to calculate a statistic about the relationship and
 annotate the plot. Should map <cite>x</cite> and <cite>y</cite> either to a single value
 or to a (value, p) tuple. Set to <code class="docutils literal"><span class="pre">None</span></code> if you don’t want to
 annotate the plot.</li>
@@ -364,7 +366,7 @@ annotate the plot.</li>
 <li><strong>size</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Size of the figure (it will be square).</li>
 <li><strong>ratio</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Ratio of joint axes size to marginal axes height.</li>
 <li><strong>space</strong> (<em>numeric</em><em>, </em><em>optional</em>) – Space between the joint and marginal axes</li>
-<li><strong>dropna</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If True, remove observations that are missing from <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code>.</li>
+<li><strong>dropna</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If True, remove observations that are missing from <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code>.</li>
 <li><strong>y}lim</strong> (<em>{x</em><em>,</em>) – Axis limits to set before plotting.</li>
 <li><strong>marginal</strong><strong>, </strong><strong>annot}_kws</strong> (<em>{joint</em><em>,</em>) – Additional keyword arguments for the plot components.</li>
 <li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value pairings</em>) – Additional keyword arguments are passed to the function used to
@@ -458,9 +460,9 @@ directly if you need more flexibility.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>data</strong> (<em>DataFrame</em>) – Tidy (long-form) dataframe where each column is a variable and
 each row is an observation.</li>
-<li><strong>hue</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a><em> (</em><em>variable name</em><em>)</em><em>, </em><em>optional</em>) – Variable in <code class="docutils literal"><span class="pre">data</span></code> to map plot aspects to different colors.</li>
+<li><strong>hue</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a><em> (</em><em>variable name</em><em>)</em><em>, </em><em>optional</em>) – Variable in <code class="docutils literal"><span class="pre">data</span></code> to map plot aspects to different colors.</li>
 <li><strong>hue_order</strong> (<em>list of strings</em>) – Order for the levels of the hue variable in the palette</li>
-<li><strong>palette</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em> or </em><em>seaborn color palette</em>) – Set of colors for mapping the <code class="docutils literal"><span class="pre">hue</span></code> variable. If a dict, keys
+<li><strong>palette</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em> or </em><em>seaborn color palette</em>) – Set of colors for mapping the <code class="docutils literal"><span class="pre">hue</span></code> variable. If a dict, keys
 should be values  in the <code class="docutils literal"><span class="pre">hue</span></code> variable.</li>
 <li><strong>vars</strong> (<em>list of variable names</em><em>, </em><em>optional</em>) – Variables within <code class="docutils literal"><span class="pre">data</span></code> to use, otherwise use every column with
 a numeric datatype.</li>
@@ -468,7 +470,7 @@ a numeric datatype.</li>
 columns of the figure; i.e. to make a non-square plot.</li>
 <li><strong>kind</strong> (<em>{'scatter'</em><em>, </em><em>'reg'}</em><em>, </em><em>optional</em>) – Kind of plot for the non-identity relationships.</li>
 <li><strong>diag_kind</strong> (<em>{'hist'</em><em>, </em><em>'kde'}</em><em>, </em><em>optional</em>) – Kind of plot for the diagonal subplots.</li>
-<li><strong>markers</strong> (<em>single matplotlib marker code</em><em> or </em><em>list</em><em>, </em><em>optional</em>) – Either the marker to use for all datapoints or a list of markers with
+<li><strong>markers</strong> (<em>single matplotlib marker code</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, </em><em>optional</em>) – Either the marker to use for all datapoints or a list of markers with
 a length the same as the number of levels in the hue variable so that
 differently colored points will also have different scatterplot
 markers.</li>
@@ -579,48 +581,48 @@ row is an observation.</li>
 <li><strong>col</strong><strong>, </strong><strong>row</strong> (<em>hue</em><em>,</em>) – Variables that define subsets of the data, which will be drawn on
 separate facets in the grid. See the <code class="docutils literal"><span class="pre">*_order</span></code> parameters to control
 the order of levels of this variable.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
+<li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
 span multiple rows. Incompatible with a <code class="docutils literal"><span class="pre">row</span></code> facet.</li>
 <li><strong>size</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Height (in inches) of each facet. See also: <code class="docutils literal"><span class="pre">aspect</span></code>.</li>
 <li><strong>aspect</strong> (<em>scalar</em><em>, </em><em>optional</em>) – Aspect ratio of each facet, so that <code class="docutils literal"><span class="pre">aspect</span> <span class="pre">*</span> <span class="pre">size</span></code> gives the width
 of each facet in inches.</li>
 <li><strong>markers</strong> (<em>matplotlib marker code</em><em> or </em><em>list of marker codes</em><em>, </em><em>optional</em>) – Markers for the scatterplot. If a list, each marker in the list will be
 used for each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable.</li>
-<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, the facets will share y axes across columns and/or x axes
+<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, the facets will share y axes across columns and/or x axes
 across rows.</li>
 <li><strong>{hue</strong><strong>,</strong><strong>col</strong><strong>,</strong><strong>row}_order</strong> (<em>lists</em><em>, </em><em>optional</em>) – Order for the levels of the faceting variables. By default, this will
 be the order that the levels appear in <code class="docutils literal"><span class="pre">data</span></code> or, if the variables
 are pandas categoricals, the category order.</li>
-<li><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code> and there is a <code class="docutils literal"><span class="pre">hue</span></code> variable, add a legend.</li>
-<li><strong>legend_out</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the figure size will be extended, and the legend will be
+<li><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code> and there is a <code class="docutils literal"><span class="pre">hue</span></code> variable, add a legend.</li>
+<li><strong>legend_out</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the figure size will be extended, and the legend will be
 drawn outside the plot on the center right.</li>
 <li><strong>x_estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Apply this function to each unique value of <code class="docutils literal"><span class="pre">x</span></code> and plot the
 resulting estimate. This is useful when <code class="docutils literal"><span class="pre">x</span></code> is a discrete variable.
 If <code class="docutils literal"><span class="pre">x_ci</span></code> is not <code class="docutils literal"><span class="pre">None</span></code>, this estimate will be bootstrapped and a
 confidence interval will be drawn.</li>
-<li><strong>x_bins</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em> or </em><em>vector</em><em>, </em><em>optional</em>) – Bin the <code class="docutils literal"><span class="pre">x</span></code> variable into discrete bins and then estimate the central
+<li><strong>x_bins</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em> or </em><em>vector</em><em>, </em><em>optional</em>) – Bin the <code class="docutils literal"><span class="pre">x</span></code> variable into discrete bins and then estimate the central
 tendency and a confidence interval. This binning only influences how
 the scatterplot is drawn; the regression is still fit to the original
 data.  This parameter is interpreted either as the number of
 evenly-sized (not necessary spaced) bins or the positions of the bin
 centers. When this parameter is used, it implies that the default of
 <code class="docutils literal"><span class="pre">x_estimator</span></code> is <code class="docutils literal"><span class="pre">numpy.mean</span></code>.</li>
-<li><strong>x_ci</strong> (<em>&quot;ci&quot;</em><em>, </em><em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval used when plotting a central tendency
+<li><strong>x_ci</strong> (<em>&quot;ci&quot;</em><em>, </em><em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval used when plotting a central tendency
 for discrete values of <code class="docutils literal"><span class="pre">x</span></code>. If “ci”, defer to the value of the``ci``
 parameter.</li>
-<li><strong>scatter</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, draw a scatterplot with the underlying observations (or
+<li><strong>scatter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, draw a scatterplot with the underlying observations (or
 the <code class="docutils literal"><span class="pre">x_estimator</span></code> values).</li>
-<li><strong>fit_reg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, estimate and plot a regression model relating the <code class="docutils literal"><span class="pre">x</span></code>
+<li><strong>fit_reg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, estimate and plot a regression model relating the <code class="docutils literal"><span class="pre">x</span></code>
 and <code class="docutils literal"><span class="pre">y</span></code> variables.</li>
-<li><strong>ci</strong> (<em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval for the regression estimate. This will
+<li><strong>ci</strong> (<em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval for the regression estimate. This will
 be drawn using translucent bands around the regression line. The
 confidence interval is estimated using a bootstrap; for large
 datasets, it may be advisable to avoid that computation by setting
 this parameter to None.</li>
-<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap resamples used to estimate the <code class="docutils literal"><span class="pre">ci</span></code>. The default
+<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap resamples used to estimate the <code class="docutils literal"><span class="pre">ci</span></code>. The default
 value attempts to balance time and stability; you may want to increase
 this value for “final” versions of plots.</li>
 <li><strong>units</strong> (variable name in <code class="docutils literal"><span class="pre">data</span></code>, optional) – If the <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> observations are nested within sampling units,
@@ -628,27 +630,27 @@ those can be specified here. This will be taken into account when
 computing the confidence intervals by performing a multilevel bootstrap
 that resamples both units and observations (within unit). This does not
 otherwise influence how the regression is estimated or drawn.</li>
-<li><strong>order</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">order</span></code> is greater than 1, use <code class="docutils literal"><span class="pre">numpy.polyfit</span></code> to estimate a
+<li><strong>order</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">order</span></code> is greater than 1, use <code class="docutils literal"><span class="pre">numpy.polyfit</span></code> to estimate a
 polynomial regression.</li>
-<li><strong>logistic</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, assume that <code class="docutils literal"><span class="pre">y</span></code> is a binary variable and use
+<li><strong>logistic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, assume that <code class="docutils literal"><span class="pre">y</span></code> is a binary variable and use
 <code class="docutils literal"><span class="pre">statsmodels</span></code> to estimate a logistic regression model. Note that this
 is substantially more computationally intensive than linear regression,
 so you may wish to decrease the number of bootstrap resamples
 (<code class="docutils literal"><span class="pre">n_boot</span></code>) or set <code class="docutils literal"><span class="pre">ci</span></code> to None.</li>
-<li><strong>lowess</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, use <code class="docutils literal"><span class="pre">statsmodels</span></code> to estimate a nonparametric lowess
+<li><strong>lowess</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, use <code class="docutils literal"><span class="pre">statsmodels</span></code> to estimate a nonparametric lowess
 model (locally weighted linear regression). Note that confidence
 intervals cannot currently be drawn for this kind of model.</li>
-<li><strong>robust</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, use <code class="docutils literal"><span class="pre">statsmodels</span></code> to estimate a robust regression. This
+<li><strong>robust</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, use <code class="docutils literal"><span class="pre">statsmodels</span></code> to estimate a robust regression. This
 will de-weight outliers. Note that this is substantially more
 computationally intensive than standard linear regression, so you may
 wish to decrease the number of bootstrap resamples (<code class="docutils literal"><span class="pre">n_boot</span></code>) or set
 <code class="docutils literal"><span class="pre">ci</span></code> to None.</li>
-<li><strong>logx</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, estimate a linear regression of the form y ~ log(x), but
+<li><strong>logx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, estimate a linear regression of the form y ~ log(x), but
 plot the scatterplot and regression model in the input space. Note that
 <code class="docutils literal"><span class="pre">x</span></code> must be positive for this to work.</li>
 <li><strong>{x</strong><strong>,</strong><strong>y}_partial</strong> (strings in <code class="docutils literal"><span class="pre">data</span></code> or matrices) – Confounding variables to regress out of the <code class="docutils literal"><span class="pre">x</span></code> or <code class="docutils literal"><span class="pre">y</span></code> variables
 before plotting.</li>
-<li><strong>truncate</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – By default, the regression line is drawn to fill the x axis limits
+<li><strong>truncate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – By default, the regression line is drawn to fill the x axis limits
 after the scatterplot is drawn. If <code class="docutils literal"><span class="pre">truncate</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, it will
 instead by bounded by the data limits.</li>
 <li><strong>{x</strong><strong>,</strong><strong>y}_jitter</strong> (<em>floats</em><em>, </em><em>optional</em>) – Add uniform random noise of this size to either the <code class="docutils literal"><span class="pre">x</span></code> or <code class="docutils literal"><span class="pre">y</span></code>
@@ -781,13 +783,13 @@ from the objects. Otherwise you may have to use the function parameters
 <li><strong>data</strong> (<em>DataFrame</em>) – Long-form (tidy) dataset for plotting. Each column should correspond
 to a variable, and each row should correspond to an observation.</li>
 <li><strong>col</strong> (<em>row</em><em>,</em>) – Categorical variables that will determine the faceting of the grid.</li>
-<li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
+<li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
 span multiple rows. Incompatible with a <code class="docutils literal"><span class="pre">row</span></code> facet.</li>
 <li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
+<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
 <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and error bars will
 not be drawn.</li>
-<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
+<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
 intervals.</li>
 <li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
 multilevel bootstrap and account for repeated measures design.</li>
@@ -805,18 +807,18 @@ specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code> and there is a <code class="docutils literal"><span class="pre">hue</span></code> variable, draw a legend on the plot.</li>
-<li><strong>legend_out</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the figure size will be extended, and the legend will be
+<li><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code> and there is a <code class="docutils literal"><span class="pre">hue</span></code> variable, draw a legend on the plot.</li>
+<li><strong>legend_out</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the figure size will be extended, and the legend will be
 drawn outside the plot on the center right.</li>
-<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, the facets will share y axes across columns and/or x axes
+<li><strong>share{x</strong><strong>,</strong><strong>y}</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, the facets will share y axes across columns and/or x axes
 across rows.</li>
-<li><strong>margin_titles</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the titles for the row variable are drawn to the right of
+<li><strong>margin_titles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, the titles for the row variable are drawn to the right of
 the last column. This option is experimental and may not work in all
 cases.</li>
-<li><strong>facet_kws</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of other keyword arguments to pass to <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>.</li>
+<li><strong>facet_kws</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Dictionary of other keyword arguments to pass to <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>.</li>
 <li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value pairings</em>) – Other keyword arguments are passed through to the underlying plotting
 function.</li>
 </ul>
@@ -898,7 +900,7 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
@@ -908,18 +910,18 @@ specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
+<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
 often look better with slightly desaturated colors, but set this to
 <code class="docutils literal"><span class="pre">1</span></code> if you want the plot colors to perfectly match the input color
 spec.</li>
-<li><strong>width</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of a full element when not using hue nesting, or width of all the
+<li><strong>width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of a full element when not using hue nesting, or width of all the
 elements for one level of the major grouping variable.</li>
-<li><strong>fliersize</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the markers used to indicate outlier observations.</li>
-<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
-<li><strong>whis</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the IQR past the low and high quartiles to extend the
+<li><strong>fliersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the markers used to indicate outlier observations.</li>
+<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
+<li><strong>whis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the IQR past the low and high quartiles to extend the
 plot whiskers. Points outside this range will be identified as
 outliers.</li>
 <li><strong>notch</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Whether to “notch” the box to indicate a confidence interval for the
@@ -1028,7 +1030,7 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
@@ -1036,7 +1038,7 @@ inferred from the data objects.</li>
 computing the kernel bandwidth. The actual kernel size will be
 determined by multiplying the scale factor by the standard deviation of
 the data within each bin.</li>
-<li><strong>cut</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Distance, in units of bandwidth size, to extend the density past the
+<li><strong>cut</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Distance, in units of bandwidth size, to extend the density past the
 extreme datapoints. Set to 0 to limit the violin range within the range
 of the observed data (i.e., to have the same effect as <code class="docutils literal"><span class="pre">trim=True</span></code> in
 <code class="docutils literal"><span class="pre">ggplot</span></code>.</li>
@@ -1044,32 +1046,32 @@ of the observed data (i.e., to have the same effect as <code class="docutils lit
 violin will have the same area. If <code class="docutils literal"><span class="pre">count</span></code>, the width of the violins
 will be scaled by the number of observations in that bin. If <code class="docutils literal"><span class="pre">width</span></code>,
 each violin will have the same width.</li>
-<li><strong>scale_hue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When nesting violins using a <code class="docutils literal"><span class="pre">hue</span></code> variable, this parameter
+<li><strong>scale_hue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When nesting violins using a <code class="docutils literal"><span class="pre">hue</span></code> variable, this parameter
 determines whether the scaling is computed within each level of the
 major grouping variable (<code class="docutils literal"><span class="pre">scale_hue=True</span></code>) or across all the violins
 on the plot (<code class="docutils literal"><span class="pre">scale_hue=False</span></code>).</li>
-<li><strong>gridsize</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – Number of points in the discrete grid used to compute the kernel
+<li><strong>gridsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of points in the discrete grid used to compute the kernel
 density estimate.</li>
-<li><strong>width</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of a full element when not using hue nesting, or width of all the
+<li><strong>width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of a full element when not using hue nesting, or width of all the
 elements for one level of the major grouping variable.</li>
 <li><strong>inner</strong> (<em>{&quot;box&quot;</em><em>, </em><em>&quot;quartile&quot;</em><em>, </em><em>&quot;point&quot;</em><em>, </em><em>&quot;stick&quot;</em><em>, </em><em>None}</em><em>, </em><em>optional</em>) – Representation of the datapoints in the violin interior. If <code class="docutils literal"><span class="pre">box</span></code>,
 draw a miniature boxplot. If <code class="docutils literal"><span class="pre">quartiles</span></code>, draw the quartiles of the
 distribution.  If <code class="docutils literal"><span class="pre">point</span></code> or <code class="docutils literal"><span class="pre">stick</span></code>, show each underlying
 datapoint. Using <code class="docutils literal"><span class="pre">None</span></code> will draw unadorned violins.</li>
-<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using hue nesting with a variable that takes two levels, setting
+<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When using hue nesting with a variable that takes two levels, setting
 <code class="docutils literal"><span class="pre">split</span></code> to True will draw half of a violin for each level. This can
 make it easier to directly compare the distributions.</li>
 <li><strong>orient</strong> (<em>&quot;v&quot; | &quot;h&quot;</em><em>, </em><em>optional</em>) – Orientation of the plot (vertical or horizontal). This is usually
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
+<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
+<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
 often look better with slightly desaturated colors, but set this to
 <code class="docutils literal"><span class="pre">1</span></code> if you want the plot colors to perfectly match the input color
 spec.</li>
@@ -1186,7 +1188,7 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
@@ -1195,7 +1197,7 @@ can be useful when you have many points and they overlap, so that
 it is easier to see the distribution. You can specify the amount
 of jitter (half the width of the uniform random variable support),
 or just use <code class="docutils literal"><span class="pre">True</span></code> for a good default.</li>
-<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
+<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
 the strips for different hue levels along the categorical axis.
 Otherwise, the points for each level will be plotted on top of
 each other.</li>
@@ -1205,16 +1207,16 @@ specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Diameter of the markers, in points. (Although <code class="docutils literal"><span class="pre">plt.scatter</span></code> is used
+<li><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Diameter of the markers, in points. (Although <code class="docutils literal"><span class="pre">plt.scatter</span></code> is used
 to draw the points, the <code class="docutils literal"><span class="pre">size</span></code> argument here takes a “normal”
 markersize and not size^2 like <code class="docutils literal"><span class="pre">plt.scatter</span></code>.</li>
 <li><strong>edgecolor</strong> (<em>matplotlib color</em><em>, </em><em>&quot;gray&quot; is special-cased</em><em>, </em><em>optional</em>) – Color of the lines around each point. If you pass <code class="docutils literal"><span class="pre">&quot;gray&quot;</span></code>, the
 brightness is determined by the color palette used for the body
 of the points.</li>
-<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
+<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
 <li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
 </ul>
 </td>
@@ -1338,11 +1340,11 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
-<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
+<li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When using <code class="docutils literal"><span class="pre">hue</span></code> nesting, setting this to <code class="docutils literal"><span class="pre">True</span></code> will separate
 the strips for different hue levels along the categorical axis.
 Otherwise, the points for each level will be plotted in one swarm.</li>
 <li><strong>orient</strong> (<em>&quot;v&quot; | &quot;h&quot;</em><em>, </em><em>optional</em>) – Orientation of the plot (vertical or horizontal). This is usually
@@ -1351,16 +1353,16 @@ specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Diameter of the markers, in points. (Although <code class="docutils literal"><span class="pre">plt.scatter</span></code> is used
+<li><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Diameter of the markers, in points. (Although <code class="docutils literal"><span class="pre">plt.scatter</span></code> is used
 to draw the points, the <code class="docutils literal"><span class="pre">size</span></code> argument here takes a “normal”
 markersize and not size^2 like <code class="docutils literal"><span class="pre">plt.scatter</span></code>.</li>
 <li><strong>edgecolor</strong> (<em>matplotlib color</em><em>, </em><em>&quot;gray&quot; is special-cased</em><em>, </em><em>optional</em>) – Color of the lines around each point. If you pass <code class="docutils literal"><span class="pre">&quot;gray&quot;</span></code>, the
 brightness is determined by the color palette used for the body
 of the points.</li>
-<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
+<li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
 <li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
 </ul>
 </td>
@@ -1473,32 +1475,32 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
 <li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
+<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
 <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and error bars will
 not be drawn.</li>
-<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
+<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
 intervals.</li>
 <li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
 multilevel bootstrap and account for repeated measures design.</li>
-<li><strong>markers</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a><em> or </em><em>list of strings</em><em>, </em><em>optional</em>) – Markers to use for each of the <code class="docutils literal"><span class="pre">hue</span></code> levels.</li>
-<li><strong>linestyles</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a><em> or </em><em>list of strings</em><em>, </em><em>optional</em>) – Line styles to use for each of the <code class="docutils literal"><span class="pre">hue</span></code> levels.</li>
-<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Amount to separate the points for each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable
+<li><strong>markers</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a><em> or </em><em>list of strings</em><em>, </em><em>optional</em>) – Markers to use for each of the <code class="docutils literal"><span class="pre">hue</span></code> levels.</li>
+<li><strong>linestyles</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a><em> or </em><em>list of strings</em><em>, </em><em>optional</em>) – Line styles to use for each of the <code class="docutils literal"><span class="pre">hue</span></code> levels.</li>
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Amount to separate the points for each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable
 along the categorical axis.</li>
-<li><strong>join</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, lines will be drawn between point estimates at the same
+<li><strong>join</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, lines will be drawn between point estimates at the same
 <code class="docutils literal"><span class="pre">hue</span></code> level.</li>
-<li><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Scale factor for the plot elements.</li>
+<li><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Scale factor for the plot elements.</li>
 <li><strong>orient</strong> (<em>&quot;v&quot; | &quot;h&quot;</em><em>, </em><em>optional</em>) – Orientation of the plot (vertical or horizontal). This is usually
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
@@ -1622,15 +1624,15 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
 <li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
+<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
 <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and error bars will
 not be drawn.</li>
-<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
+<li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
 intervals.</li>
 <li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
 multilevel bootstrap and account for repeated measures design.</li>
@@ -1640,17 +1642,17 @@ specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
+<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
 often look better with slightly desaturated colors, but set this to
 <code class="docutils literal"><span class="pre">1</span></code> if you want the plot colors to perfectly match the input color
 spec.</li>
 <li><strong>errcolor</strong> (<em>matplotlib color</em>) – Color for the lines that represent the confidence interval.</li>
 <li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
-<li><strong>errwidth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Thickness of error bar lines (and caps).</li>
-<li><strong>capsize</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the “caps” on error bars.</li>
+<li><strong>errwidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Thickness of error bar lines (and caps).</li>
+<li><strong>capsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the “caps” on error bars.</li>
 <li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value mappings</em>) – Other keyword arguments are passed through to <code class="docutils literal"><span class="pre">plt.bar</span></code> at draw
 time.</li>
 </ul>
@@ -1754,7 +1756,7 @@ grouping variables to control the order of plot elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>y</strong><strong>, </strong><strong>hue</strong> (<em>x</em><em>,</em>) – Inputs for plotting long-form data. See examples for interpretation.</li>
-<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
+<li><strong>data</strong> (<em>DataFrame</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a><em>, or </em><em>list of arrays</em><em>, </em><em>optional</em>) – Dataset for plotting. If <code class="docutils literal"><span class="pre">x</span></code> and <code class="docutils literal"><span class="pre">y</span></code> are absent, this is
 interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
@@ -1764,10 +1766,10 @@ specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
 using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
-<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
+<li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
 often look better with slightly desaturated colors, but set this to
 <code class="docutils literal"><span class="pre">1</span></code> if you want the plot colors to perfectly match the input color
 spec.</li>
@@ -1826,17 +1828,6 @@ spec.</li>
 <span id="utils-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code> Module</a><a class="headerlink" href="#module-abipy.display.utils" title="Permalink to this headline">¶</a></h2>
 <p>Tools to build ipython widgets.</p>
 <dl class="function">
-<dt id="abipy.display.utils.add_docstrings">
-<code class="descclassname">abipy.display.utils.</code><code class="descname">add_docstrings</code><span class="sig-paren">(</span><em>*tuples</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#add_docstrings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.add_docstrings" title="Permalink to this definition">¶</a></dt>
-<dd><p>This decorator adds to the docstring the documentation for functions.
-When writing high-level API, it’s quite common to call thirdy-party functions
-with a restricted set of arguments while optional keyword arguments are
-collected in an optional dictionary.</p>
-<p>The first item of the tuple contains the function (python object) wrapped by the code.
-The second item is list of strings with the name of the actual arguments passed to function.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="abipy.display.utils.widget2py">
 <code class="descclassname">abipy.display.utils.</code><code class="descname">widget2py</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/display/utils.html#widget2py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.utils.widget2py" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1891,8 +1882,8 @@ The second item is list of strings with the name of the actual arguments passed 
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

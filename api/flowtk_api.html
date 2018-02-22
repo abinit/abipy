@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>flowtk Package &#8212; abipy 0.2.0 documentation</title>
+    <title>flowtk Package &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -226,6 +227,111 @@ The main function shall have the signature:</p>
 </div>
 <div class="section" id="module-abipy.flowtk.abiobjects">
 <span id="abiobjects-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">abiobjects</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.abiobjects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abipy.flowtk.abiobjects.LujForSpecie">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.abiobjects.</code><code class="descname">LujForSpecie</code><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LujForSpecie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LujForSpecie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">abipy.flowtk.abiobjects.LdauForSpecie</span></code></p>
+<p>This object stores the value of l, u, j used for a single atomic specie.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.flowtk.abiobjects.LdauParams">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.abiobjects.</code><code class="descname">LdauParams</code><span class="sig-paren">(</span><em>usepawu</em>, <em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LdauParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LdauParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This object stores the parameters for LDA+U calculations with the PAW method
+It facilitates the specification of the U-J parameters in the Abinit input file.
+(see <cite>to_abivars</cite>). The U-J operator will be applied only on the atomic species
+that have been selected by calling <cite>lui_for_symbol</cite>.</p>
+<p>To setup the Abinit variables for a LDA+U calculation in NiO with a
+U value of 5 eV applied on the nickel atoms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">luj_params</span> <span class="o">=</span> <span class="n">LdauParams</span><span class="p">(</span><span class="n">usepawu</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">structure</span><span class="o">=</span><span class="n">nio_structure</span><span class="p">)</span>
+<span class="c1"># Apply U-J on Ni only.</span>
+<span class="n">u</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">luj_params</span><span class="o">.</span><span class="n">luj_for_symbol</span><span class="p">(</span><span class="s2">&quot;Ni&quot;</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="mf">0.1</span><span class="o">*</span><span class="n">u</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">luj_params</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="abipy.flowtk.abiobjects.LdauParams.symbols_by_typat">
+<code class="descname">symbols_by_typat</code><a class="headerlink" href="#abipy.flowtk.abiobjects.LdauParams.symbols_by_typat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.flowtk.abiobjects.LdauParams.luj_for_symbol">
+<code class="descname">luj_for_symbol</code><span class="sig-paren">(</span><em>symbol</em>, <em>l</em>, <em>u</em>, <em>j</em>, <em>unit='eV'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LdauParams.luj_for_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LdauParams.luj_for_symbol" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>symbol</strong> – Chemical symbol of the atoms on which LDA+U should be applied.</li>
+<li><strong>l</strong> – Angular momentum.</li>
+<li><strong>u</strong> – Value of U.</li>
+<li><strong>j</strong> – Value of J.</li>
+<li><strong>unit</strong> – Energy unit of U and J.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.flowtk.abiobjects.LdauParams.to_abivars">
+<code class="descname">to_abivars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LdauParams.to_abivars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LdauParams.to_abivars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict with the Abinit variables.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.flowtk.abiobjects.LexxParams">
+<em class="property">class </em><code class="descclassname">abipy.flowtk.abiobjects.</code><code class="descname">LexxParams</code><span class="sig-paren">(</span><em>structure</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LexxParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LexxParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This object stores the parameters for local exact exchange calculations with the PAW method
+It facilitates the specification of the LEXX parameters in the Abinit input file.
+(see <cite>to_abivars</cite>). The LEXX operator will be applied only on the atomic species
+that have been selected by calling <cite>lexx_for_symbol</cite>.</p>
+<p>To perform a LEXX calculation for NiO in which the LEXX is computed only for the l=2
+channel of the nickel atoms:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">lexx_params</span> <span class="o">=</span> <span class="n">LexxParams</span><span class="p">(</span><span class="n">nio_structure</span><span class="p">)</span>
+<span class="n">lexx_params</span><span class="o">.</span><span class="n">lexx_for_symbol</span><span class="p">(</span><span class="s2">&quot;Ni&quot;</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">lexc_params</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">())</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="abipy.flowtk.abiobjects.LexxParams.symbols_by_typat">
+<code class="descname">symbols_by_typat</code><a class="headerlink" href="#abipy.flowtk.abiobjects.LexxParams.symbols_by_typat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.flowtk.abiobjects.LexxParams.lexx_for_symbol">
+<code class="descname">lexx_for_symbol</code><span class="sig-paren">(</span><em>symbol</em>, <em>l</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LexxParams.lexx_for_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LexxParams.lexx_for_symbol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable LEXX for the given chemical symbol and the angular momentum l</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>symbol</strong> – Chemical symbol of the atoms on which LEXX should be applied.</li>
+<li><strong>l</strong> – Angular momentum.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.flowtk.abiobjects.LexxParams.to_abivars">
+<code class="descname">to_abivars</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiobjects.html#LexxParams.to_abivars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiobjects.LexxParams.to_abivars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict with the Abinit variables.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-abipy.flowtk.abiphonopy">
 <span id="abiphonopy-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">abiphonopy</span></code> Module</a><a class="headerlink" href="#module-abipy.flowtk.abiphonopy" title="Permalink to this headline">¶</a></h2>
@@ -245,7 +351,7 @@ The main function shall have the signature:</p>
 <dl class="class">
 <dt id="abipy.flowtk.abiphonopy.PhonopyWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.abiphonopy.</code><code class="descname">PhonopyWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work computes the inter-atomic force constants with phonopy.</p>
 <dl class="attribute">
 <dt id="abipy.flowtk.abiphonopy.PhonopyWork.scdims">
@@ -313,7 +419,7 @@ we call phonopy to compute the inter-atomic force constants.</p>
 <dl class="class">
 <dt id="abipy.flowtk.abiphonopy.PhonopyGruneisenWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.abiphonopy.</code><code class="descname">PhonopyGruneisenWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/abiphonopy.html#PhonopyGruneisenWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.abiphonopy.PhonopyGruneisenWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work computes the Grüneisen parameters with phonopy. The workflow is as follows:</p>
 <p>It is necessary to run three phonon calculations.
 One is calculated at the equilibrium volume and the remaining two are calculated
@@ -376,7 +482,7 @@ constructed from the new structures, add them to the flow and build new director
 <dl class="class">
 <dt id="abipy.flowtk.dfpt_works.NscfDdksWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.dfpt_works.</code><code class="descname">NscfDdksWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/dfpt_works.html#NscfDdksWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.dfpt_works.NscfDdksWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>This work requires a DEN file and computes the KS energies with a non self-consistent task
 with a dense k-mesh and empty states.
 This task is then followed by the computation of the DDK matrix elements with nstep = 1
@@ -420,7 +526,7 @@ Mainly used to prepare optic calculations or other post-processing steps requiri
 <dl class="class">
 <dt id="abipy.flowtk.gruneisen.GruneseinenFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gruneisen.</code><code class="descname">GruneseinenFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <p>This work compute the Grüneisen parameters with the DFPT part of Abinit and
 finite differences in anaddb.</p>
 <p>It is necessary to run three phonon calculations with DFPT.
@@ -455,7 +561,7 @@ The unitcells at these volumes have to be fully relaxed under the constraint of 
 <dl class="class">
 <dt id="abipy.flowtk.gruneisen.GruneseinenWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gruneisen.</code><code class="descname">GruneseinenWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <dl class="method">
 <dt id="abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok">
 <code class="descname">on_all_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gruneisen.html#GruneseinenWork.on_all_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gruneisen.GruneseinenWork.on_all_ok" title="Permalink to this definition">¶</a></dt>
@@ -479,7 +585,7 @@ constructed from the new structures, add them to the flow and build new director
 <dl class="class">
 <dt id="abipy.flowtk.gs_works.EosWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.gs_works.</code><code class="descname">EosWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/gs_works.html#EosWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.gs_works.EosWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a></p>
 <p>Work for the computation of the Equation of State
 The EOS is obtained by computing E(V) for several volumes around the input V0,
 The initial volumes are obtained by rescaling the input lattice vectors so that
@@ -551,7 +657,7 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 <dl class="class">
 <dt id="abipy.flowtk.mocks.AbinitTaskMockedStart">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">AbinitTaskMockedStart</code><span class="sig-paren">(</span><em>input</em>, <em>workdir=None</em>, <em>manager=None</em>, <em>deps=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#AbinitTaskMockedStart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.AbinitTaskMockedStart" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.AbinitTask" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.AbinitTask</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.AbinitTask" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.AbinitTask</span></code></a></p>
 <p>A Task whose status is always self.mocked_status.</p>
 <dl class="method">
 <dt id="abipy.flowtk.mocks.AbinitTaskMockedStart.start">
@@ -569,7 +675,7 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 <dl class="class">
 <dt id="abipy.flowtk.mocks.InfiniteFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.mocks.</code><code class="descname">InfiniteFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/mocks.html#InfiniteFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.mocks.InfiniteFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <p>A Flow that will never reach <cite>all_ok</cite></p>
 <dl class="method">
 <dt id="abipy.flowtk.mocks.InfiniteFlow.check_status">
@@ -592,7 +698,7 @@ JSON file <cite>eos_data.json</cite> in outdata.</p>
 <dl class="class">
 <dt id="abipy.flowtk.qha.RelaxAndPhononWork">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">RelaxAndPhononWork</code><span class="sig-paren">(</span><em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#RelaxAndPhononWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.RelaxAndPhononWork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.works.html#pymatgen.io.abinit.works.Work" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.Work</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.works.MergeDdb</span></code></p>
 <p>This work perform a structural relaxation and use the relaxed structure to
 compute phonon frequencies with DFPT.</p>
 <dl class="classmethod">
@@ -622,7 +728,7 @@ the final DDB file in the outdir of the <cite>Work</cite>.</p>
 <dl class="class">
 <dt id="abipy.flowtk.qha.QhaFlow">
 <em class="property">class </em><code class="descclassname">abipy.flowtk.qha.</code><code class="descname">QhaFlow</code><span class="sig-paren">(</span><em>workdir</em>, <em>manager=None</em>, <em>pickle_protocol=-1</em>, <em>remove=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.flows.html#pymatgen.io.abinit.flows.Flow" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.flows.Flow</span></code></a></p>
 <dl class="classmethod">
 <dt id="abipy.flowtk.qha.QhaFlow.from_gsinp">
 <em class="property">classmethod </em><code class="descname">from_gsinp</code><span class="sig-paren">(</span><em>workdir</em>, <em>gsinp</em>, <em>volumes</em>, <em>ngqpt</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/flowtk/qha.html#QhaFlow.from_gsinp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.flowtk.qha.QhaFlow.from_gsinp" title="Permalink to this definition">¶</a></dt>
@@ -683,8 +789,8 @@ some basic post-processing of the results to facilitate further analysis.</p>
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

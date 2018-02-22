@@ -25,8 +25,26 @@ See tutorial/lesson_rf2.html
       .. image:: /gallery/images/sphx_glr_plot_phonon_pjdos_002.png
             :scale: 47
 
+    *
+
+      .. image:: /gallery/images/sphx_glr_plot_phonon_pjdos_003.png
+            :scale: 47
 
 
+.. rst-class:: sphx-glr-script-out
+
+ Out::
+
+    Calling spglib to find inequivalent sites.
+    Note that `symafm` magnetic symmetries (if any) are not taken into account.
+    Found 2 inequivalent position(s).
+    Irred_Site: [ 0.  0.  0.] Al
+    Irred_Site: [ 1.40364255  1.40364255  1.40364255] As
+
+
+
+
+|
 
 
 .. code-block:: python
@@ -35,21 +53,21 @@ See tutorial/lesson_rf2.html
     import abipy.data as abidata
 
     # Read the Phonon DOS from the netcdf file produced by anaddb with prtdos 2
-    # (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb` 
+    # (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb`
     # to open the file in a jupyter notebook.
     with abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc")) as phdos_file:
 
         # Plot PJDOS.
         phdos_file.plot_pjdos_type(units="cm-1", title="AlAs type-projected phonon DOS")
 
-        # To have the projection along the reduced directions.
-        phdos_file.plot_pjdos_redirs_type(units="Thz", stacked=True,
-                title="Type-projected ph-DOS decomposed along the three reduced directions.")
+        # To have the projection along the cartesian directions (summed over atomic types)
+        phdos_file.plot_pjdos_cartdirs_type(units="Thz", stacked=True,
+                title="Type-projected ph-DOS decomposed along the three Cartesian directions.")
 
-        # To plot the PJDOS for the inequivalent sites.
-        #phdos_file.plot_pjdos_redirs_site(view="inequivalent")
+        # To plot the PJDOS for all the inequivalent sites.
+        phdos_file.plot_pjdos_cartdirs_site(view="inequivalent", stacked=True)
 
-**Total running time of the script:** ( 0 minutes  0.292 seconds)
+**Total running time of the script:** ( 0 minutes  0.548 seconds)
 
 
 

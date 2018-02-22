@@ -25,39 +25,14 @@ structure relaxations with the HIST robot.
       .. image:: /gallery/images/sphx_glr_plot_multiple_hist_002.png
             :scale: 47
 
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_multiple_hist_003.png
-            :scale: 47
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_multiple_hist_004.png
-            :scale: 47
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_multiple_hist_005.png
-            :scale: 47
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_multiple_hist_006.png
-            :scale: 47
-
-    *
-
-      .. image:: /gallery/images/sphx_glr_plot_multiple_hist_007.png
-            :scale: 47
-
 
 .. rst-class:: sphx-glr-script-out
 
  Out::
 
-    formula  natom  angle0  angle1  angle2         a         b  \
-    sic_relaxation  Si1 C1      2    60.0    60.0    60.0  3.064763  3.064763   
-    same_hist       Si1 C1      2    60.0    60.0    60.0  3.064763  3.064763   
+    formula  natom  alpha  beta  gamma         a         b  \
+    sic_relaxation  Si1 C1      2   60.0  60.0   60.0  3.064763  3.064763   
+    same_hist       Si1 C1      2   60.0  60.0   60.0  3.064763  3.064763   
 
                            c     volume abispg_num      ...       final_fmin  \
     sic_relaxation  3.064763  20.355222       None      ...              0.0   
@@ -99,14 +74,13 @@ structure relaxations with the HIST robot.
     # Get dataframe with most important results.
     print(robot.get_dataframe())
 
-    for what in robot.what_list:
-        robot.gridplot(what=what, tight_layout=True)
+    robot.gridplot()
 
     # Use combiplot to compare the results
     # (meaningless in this case as we are using the same HIST file).
-    robot.combiplot(tight_layout=True)
+    robot.combiplot()
 
-**Total running time of the script:** ( 0 minutes  3.442 seconds)
+**Total running time of the script:** ( 0 minutes  1.321 seconds)
 
 
 

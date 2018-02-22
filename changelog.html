@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Changelog &#8212; abipy 0.2.0 documentation</title>
+    <title>Changelog &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -148,16 +149,22 @@
 <span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="0.3.0">
 <h2 style="margin-bottom: 0.3em;"><a class="reference external" href="https://github.com/abinit/abipy/tree/0.3.0">0.3.0</a> <span style="font-size: 75%;">2017-12-26</span></h2><ul class="simple">
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span>: Add Shankland-Koelling-Wood Fourier interpolation scheme.
+For the theoretical background see <a class="reference internal" href="zzbiblio.html#euwema1969" id="id2">[ESC+69]</a><a class="reference internal" href="zzbiblio.html#koelling1986" id="id3">[KW86]</a><a class="reference internal" href="zzbiblio.html#pickett1988" id="id4">[PKA88]</a><a class="reference internal" href="zzbiblio.html#madsen2006" id="id5">[MS06]</a>.</li>
 <li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add several new options to <a class="reference internal" href="scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a>, <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> and <a class="reference internal" href="scripts/abistruct.html#abistruct-py"><span class="std std-ref">abistruct.py</span></a> scripts.</li>
 <li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add robots for comparing/analyzing multiple files of the same type (<a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot" title="abipy.dfpt.ddb.DdbRobot"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbRobot</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrRobot</span></code> …)
 Some of the robot capabilities are exposed via the <a class="reference internal" href="scripts/abicomp.html#abicomp-py"><span class="std std-ref">abicomp.py</span></a> and the <a class="reference internal" href="scripts/abirun.html#abirun-py"><span class="std std-ref">abirun.py</span></a> scripts.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Finalize interface with the <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">phononwebsite</a>.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> DONE Change shifts default value in <a class="reference internal" href="api/abio_api.html#abipy.abio.factories.g0w0_with_ppmodel_inputs" title="abipy.abio.factories.g0w0_with_ppmodel_inputs"><code class="xref py py-func docutils literal"><span class="pre">abipy.abio.factories.g0w0_with_ppmodel_inputs()</span></code></a>.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add interface with <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">phononwebsite</a>: <cite>abiview.py phbands out_PHBST.nc -web</cite>.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Change default value of <code class="docutils literal"><span class="pre">shifts</span></code> in <a class="reference internal" href="api/abio_api.html#abipy.abio.factories.g0w0_with_ppmodel_inputs" title="abipy.abio.factories.g0w0_with_ppmodel_inputs"><code class="xref py py-func docutils literal"><span class="pre">abipy.abio.factories.g0w0_with_ppmodel_inputs()</span></code></a>.</li>
 <li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Solve problem with visualize in <a class="reference external" href="http://jupyter.org/">jupyter</a> notebooks (files should be produced in workdir)</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Autodetect presence in the <a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a> of data required for the LO-TO splitting.</li>
-<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add <code class="docutils literal"><span class="pre">mpirunner_options</span></code> and <code class="docutils literal"><span class="pre">shell_runner_options</span></code> to <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2017.12.16)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a>.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Autodetect presence in <a class="reference internal" href="api/dfpt_api.html#abipy.dfpt.ddb.DdbFile" title="abipy.dfpt.ddb.DdbFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.ddb.DdbFile</span></code></a> of data required for the LO-TO splitting.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add <code class="docutils literal"><span class="pre">mpirunner_options</span></code> and <code class="docutils literal"><span class="pre">shell_runner_options</span></code> to <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a>.</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Improve coverage</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add AbinitInput.set_spell_check to activate/deactivate spell-checker</li>
+<li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> <a class="reference internal" href="scripts/abicheck.html#abicheck-py"><span class="std std-ref">abicheck.py</span></a> accepts <code class="docutils literal"><span class="pre">-with-flow</span></code> options</li>
 <li>[<span style="color: #40A056;">Feature</span>]<span>:</span><span> </span> Add <a class="reference internal" href="scripts/abiview.html#abiview-py"><span class="std std-ref">abiview.py</span></a> script for a quick visualization of results.</li>
-<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix bug in in Sigres.get_dataframe if QP states do not start with the same band index.</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix bug in thermodinamical properties (zero-point energy was included twice)</li>
+<li>[<span style="color: #A04040;">Bug</span>]<span>:</span><span> </span> Fix bug in in <cite>SigresFile.get_dataframe</cite> if QP states do not start with the same band index.</li>
 <li>[<span style="color: #4070A0;">Support</span>]<span>:</span><span> </span> Significant improvements to the documentation and the website: add <a class="reference internal" href="gallery/index.html#plot-gallery"><span class="std std-ref">AbiPy Gallery</span></a> with matplotlib plots
 and <a class="reference internal" href="flow_gallery/index.html#flow-gallery"><span class="std std-ref">Flow Gallery</span></a> with AbiPy flows are now automatically generated.</li>
 </ul>
@@ -184,8 +191,8 @@ saved in the <a class="reference external" href="https://nbviewer.jupyter.org/gi
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 29, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

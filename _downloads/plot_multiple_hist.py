@@ -20,9 +20,8 @@ robot = abilab.HistRobot.from_files(files, labels=["sic_relaxation", "same_hist"
 # Get dataframe with most important results.
 print(robot.get_dataframe())
 
-for what in robot.what_list:
-    robot.gridplot(what=what, tight_layout=True)
+robot.gridplot()
 
 # Use combiplot to compare the results
 # (meaningless in this case as we are using the same HIST file).
-robot.combiplot(tight_layout=True)
+robot.combiplot()

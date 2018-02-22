@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.core.abinit_units &#8212; abipy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.core.abinit_units</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines constants and conversion factors matching those present in abinit that can be used when</span>
+<span class="sd">it is important to preserve consistency with the results produced by abinit.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="c1"># taken from abinit/10_defs/defs_basis.F90</span>
+<span class="c1"># 1 Bohr, in Angstrom</span>
+<span class="n">Bohr_Ang</span> <span class="o">=</span> <span class="mf">0.52917720859</span>
+<span class="c1"># 1 Hartree, in cm^-1</span>
+<span class="n">Ha_cmm1</span> <span class="o">=</span> <span class="mf">219474.6313705</span>
+<span class="c1"># 1 Hartree, in eV</span>
+<span class="n">Ha_eV</span> <span class="o">=</span> <span class="mf">27.21138386</span>
+<span class="c1"># 1 eV in Hartree</span>
+<span class="n">eV_Ha</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">Ha_eV</span>
+<span class="c1"># 1 Hartree, in meV</span>
+<span class="n">Ha_meV</span> <span class="o">=</span> <span class="n">Ha_eV</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="c1"># 1 Hartree, in Kelvin</span>
+<span class="n">Ha_K</span> <span class="o">=</span> <span class="mf">315774.65</span>
+<span class="c1"># 1 eV, in Kelvin</span>
+<span class="n">eV_to_K</span> <span class="o">=</span> <span class="n">eV_Ha</span> <span class="o">*</span> <span class="n">Ha_K</span>
+<span class="c1"># 1 Hartree, in THz</span>
+<span class="n">Ha_THz</span> <span class="o">=</span> <span class="mf">6579.683920722</span>
+<span class="c1"># 1 eV, in THz</span>
+<span class="n">eV_to_THz</span> <span class="o">=</span> <span class="n">eV_Ha</span> <span class="o">*</span> <span class="n">Ha_THz</span>
+<span class="c1"># 1 eV, in cm-1</span>
+<span class="n">eV_to_cm1</span> <span class="o">=</span> <span class="mf">8065.5440044136285</span>
+<span class="c1"># 1 Hartree, in J</span>
+<span class="n">Ha_J</span> <span class="o">=</span> <span class="mf">4.35974394e-18</span>
+<span class="c1"># minus the electron charge, in Coulomb</span>
+<span class="n">e_Cb</span> <span class="o">=</span> <span class="mf">1.602176487e-19</span>
+<span class="c1"># Boltzmann constant in eV/K and Ha/K</span>
+<span class="n">kb_eVK</span> <span class="o">=</span> <span class="mf">8.617343e-5</span>
+<span class="n">kb_HaK</span> <span class="o">=</span> <span class="n">kb_eVK</span> <span class="o">/</span> <span class="n">Ha_eV</span>
+<span class="c1"># 1 atomic mass unit, in electronic mass</span>
+<span class="n">amu_emass</span> <span class="o">=</span> <span class="mf">1.660538782e-27</span> <span class="o">/</span> <span class="mf">9.10938215e-31</span>
+<span class="c1"># 1 Ha/Bohr^3, in GPa</span>
+<span class="n">HaBohr3_GPa</span> <span class="o">=</span> <span class="n">Ha_eV</span> <span class="o">/</span> <span class="n">Bohr_Ang</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">e_Cb</span> <span class="o">*</span> <span class="mf">1.0e+21</span>
+<span class="c1"># per mole</span>
+<span class="n">Avogadro</span> <span class="o">=</span> <span class="mf">6.02214179e23</span>
+<span class="c1"># 1 Ohm.cm in atomic units</span>
+<span class="n">Ohmcm</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">Ha_THz</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">/</span> <span class="mi">9</span>
+<span class="n">eps0</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mf">0.0000001</span><span class="o">*</span><span class="mf">299792458.0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">AmuBohr2_Cm2</span> <span class="o">=</span> <span class="n">e_Cb</span> <span class="o">*</span> <span class="mf">1.0e20</span> <span class="o">/</span> <span class="p">(</span><span class="n">Bohr_Ang</span> <span class="o">*</span> <span class="n">Bohr_Ang</span><span class="p">)</span>
+<span class="c1"># Inverse of fine structure constant</span>
+<span class="n">InvFineStruct</span> <span class="o">=</span> <span class="mf">137.035999679</span>
+<span class="c1"># speed of light in SI</span>
+<span class="n">Sp_Lt_SI</span> <span class="o">=</span> <span class="mf">2.99792458e8</span>
+<span class="c1"># speed of light in atomic units</span>
+<span class="n">Sp_Lt</span> <span class="o">=</span> <span class="n">Sp_Lt_SI</span> <span class="o">/</span> <span class="mf">2.1876912633e6</span>
+<span class="c1"># Atomic unit of time, in seconds</span>
+<span class="n">Time_Sec</span> <span class="o">=</span> <span class="mf">2.418884326505e-17</span>
+<span class="c1"># Tesla in a.u.</span>
+<span class="n">BField_Tesla</span> <span class="o">=</span> <span class="mf">4.254383e-6</span>
+<span class="c1"># Debye unit in a.u.</span>
+<span class="n">dipole_moment_debye</span> <span class="o">=</span> <span class="mf">0.393430307</span>
+
+
+<div class="viewcode-block" id="phfactor_ev2units"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.abinit_units.phfactor_ev2units">[docs]</a><span class="k">def</span> <span class="nf">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return conversion factor eV --&gt; units for phonons (case-insensitive)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="n">eV_Ha</span><span class="p">,</span>
+         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="n">eV_to_cm1</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="n">eV_to_cm1</span><span class="p">,</span>
+         <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="n">eV_to_THz</span><span class="p">,</span>
+         <span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown</span><span class="se">\n</span><span class="s1">Possible values are:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="phunit_tag"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.abinit_units.phunit_tag">[docs]</a><span class="k">def</span> <span class="nf">phunit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return latex string from ``units`` (used for phonons)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;[eV]&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;[meV]&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;[Ha]&#39;</span><span class="p">,</span>
+         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;[cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;[cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;[Thz]&#39;</span><span class="p">,</span>
+         <span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown</span><span class="se">\n</span><span class="s1">Possible values are:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="wlabel_from_units"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.abinit_units.wlabel_from_units">[docs]</a><span class="k">def</span> <span class="nf">wlabel_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return latex string for phonon frequencies in ``units``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ev&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy [eV]&#39;</span><span class="p">,</span> <span class="s1">&#39;mev&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy [meV]&#39;</span><span class="p">,</span> <span class="s1">&#39;ha&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy [Ha]&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cm-1&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency [cm$^{-1}$]&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency [cm$^{-1}$]&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;thz&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency [Thz]&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown</span><span class="se">\n</span><span class="s1">Possible values are:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="phdos_label_from_units"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.abinit_units.phdos_label_from_units">[docs]</a><span class="k">def</span> <span class="nf">phdos_label_from_units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return latex string for phonon DOS values in ``units``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/eV]&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/meV]&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;[states/Ha]&#39;</span><span class="p">,</span>
+         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;[states/cm$^{-1}$]&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;[states/Thz]&#39;</span><span class="p">,</span>
+         <span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Value for units `</span><span class="si">{}</span><span class="s1">` unknown</span><span class="se">\n</span><span class="s1">Possible values are:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span></div>
+
+
+<div class="viewcode-block" id="s2itup"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.abinit_units.s2itup">[docs]</a><span class="k">def</span> <span class="nf">s2itup</span><span class="p">(</span><span class="n">comp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices</span>
+<span class="sd">    that can be used to slice susceptibility tensors (numpy array).</span>
+
+<span class="sd">    &gt;&gt;&gt; assert s2itup(&quot;yy&quot;) == (1, 1)</span>
+<span class="sd">    &gt;&gt;&gt; assert s2itup(&quot;xyz&quot;) == (0, 1, 2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">comp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">d</span><span class="p">[</span><span class="n">comp</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expecting component in the form `xy` or `xyz` but got `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">comp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="itup2s"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.abinit_units.itup2s">[docs]</a><span class="k">def</span> <span class="nf">itup2s</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).</span>
+<span class="sd">    Assume C-indexing e.g. 0 --&gt; x</span>
+
+<span class="sd">    &gt;&gt;&gt; assert itup2s((0, 1)) == &quot;xy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert itup2s((0, 1, 2)) == &quot;xyz&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting tuple of len 2 or 3, got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;z&quot;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">t</span><span class="p">)</span></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

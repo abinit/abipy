@@ -2,16 +2,17 @@
     :Release: |version|
     :Date: |today|
 
-.. image:: https://badge.fury.io/py/abipy.svg
-    :target: https://badge.fury.io/py/abipy
 
-.. image:: https://travis-ci.org/abinit/abipy.svg?branch=develop
-    :target: https://travis-ci.org/abinit/abipy
+.. list-table::
+    :stub-columns: 1
+    :widths: 10 90
 
-.. image:: https://coveralls.io/repos/github/abinit/abipy/badge.svg?branch=develop
-    :target: https://coveralls.io/github/abinit/abipy?branch=develop
-
-.. image:: https://img.shields.io/badge/license-GPL-blue.svg
+    * - Package
+      - |pypi-version| |download-with-anaconda| |supported-versions|
+    * - Continuous Integration
+      - |travis-status| |coverage-status| 
+    * - Documentation
+      - |docs-stable| |docs-devel| |launch-nbviewer| |launch-binder| 
 
 
 Getting Started
@@ -31,9 +32,9 @@ Post-processing
 .. toctree::
    :maxdepth: 1
 
-   scripts/index.rst
-   gallery/index.rst
-   scripts_howto
+   scripts/index
+   gallery/index
+   postprocessing_howto
 
 Workflows
 =========
@@ -41,10 +42,10 @@ Workflows
 .. toctree::
    :maxdepth: 1
 
-   workflows/taskmanager.rst
-   workflows/manager_examples.rst
-   flow_gallery/index.rst
-   flows_howto
+   workflows/taskmanager
+   workflows/manager_examples
+   flow_gallery/index
+.. flows_howto
 
 API
 ===
@@ -52,8 +53,9 @@ API
 .. toctree::
    :maxdepth: 1
 
-   api/index.rst
-   devel/index.rst
+   api/index
+   coding_guide
+   README
 
 Indices and tables
 ==================

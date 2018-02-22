@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Compare attributes of multiple files &#8212; abipy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Compare attributes of multiple files</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/_howto.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <p>Let’s take the case of Gd2SiO5 (GSO).
+I had to do some extra calculations and so I wanted to get the input structure somewhere.
+In our case, there was an abinit input file in your $HOME (leds/GSO/bulk/band/band.in).
+You can get the structure and the related abinit variables even from that file
+(any file containing structural infos can be used. For a list of (all) the supported files, issue “abiopen.py –help”)</p>
+<p>If we compare this structure with those we used in the case of LSO and YSO, we can see that
+it’s not the same structure: we take advantage of pymatgen StructureMatcher and the “anonymous”
+matching i.e. even structures which have different elements can be matched:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="n">GSO</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">band</span><span class="o">.</span><span class="ow">in</span> <span class="n">YSO</span><span class="o">/</span><span class="n">ysoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">--</span><span class="n">group</span> <span class="o">--</span><span class="n">anonymous</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Grouping <span class="m">2</span> structures by element
+Group <span class="m">0</span>:
+        - GSO/bulk/band.in <span class="o">(</span>Gd8 Si4 O20<span class="o">)</span>, vol: <span class="m">419</span>.61 A^3, P2_1/c <span class="o">(</span><span class="m">14</span><span class="o">)</span>
+
+Group <span class="m">1</span>:
+        - YSO/ysoo_GSR.nc <span class="o">(</span>Y8 Si4 O20<span class="o">)</span>, vol: <span class="m">439</span>.11 A^3, C2/c <span class="o">(</span><span class="m">15</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>while:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="n">GSO</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">band</span><span class="o">.</span><span class="ow">in</span> <span class="n">YSO</span><span class="o">/</span><span class="n">ysoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">LSO</span><span class="o">/</span><span class="n">lsoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">--</span><span class="n">group</span> <span class="o">--</span><span class="n">anonymous</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Grouping <span class="m">3</span> structures by element
+Group <span class="m">0</span>:
+        - GSO/bulk/band.in <span class="o">(</span>Gd8 Si4 O20<span class="o">)</span>, vol: <span class="m">419</span>.61 A^3, P2_1/c <span class="o">(</span><span class="m">14</span><span class="o">)</span>
+
+Group <span class="m">1</span>:
+        - YSO/ysoo_GSR.nc <span class="o">(</span>Y8 Si4 O20<span class="o">)</span>, vol: <span class="m">439</span>.11 A^3, C2/c <span class="o">(</span><span class="m">15</span><span class="o">)</span>
+        - LSO/lsoo_GSR.nc <span class="o">(</span>Lu8 Si4 O20<span class="o">)</span>, vol: <span class="m">415</span>.71 A^3, C2/c <span class="o">(</span><span class="m">15</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Indeed, if you look for YSO on the Materials Project database, you find two phases: mp-3520  and mp-554420,
+both with 32 atoms per cell but different space group:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_search</span> <span class="n">Y2SiO5</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Found 2 structures in materials project database (use `verbose` to get full info)</span>
+          pretty_formula  e_above_hull  energy_per_atom  <span class="se">\</span>
+mp-3520           Y2SiO5      <span class="m">0</span>.000000        -8.749458
+mp-554420         Y2SiO5      <span class="m">0</span>.025002        -8.724456
+
+           formation_energy_per_atom  nsites      volume spacegroup.symbol  <span class="se">\</span>
+mp-3520                    -3.808455      <span class="m">32</span>  <span class="m">444</span>.282737              C2/c
+mp-554420                  -3.783453      <span class="m">32</span>  <span class="m">411</span>.813392            P2_1/c
+
+           spacegroup.number  band_gap  total_magnetization material_id
+mp-3520                   <span class="m">15</span>    <span class="m">4</span>.8947                  <span class="m">0</span>.0     mp-3520
+mp-554420                 <span class="m">14</span>    <span class="m">4</span>.7342                  <span class="m">0</span>.0   mp-554420
+</pre></div>
+</div>
+<p>The former is the stable one, the latter has an energy above the hull of 0.025 eV/atom.
+(In the case of GSO, “abistruct.py mp_search Gd2SiO5” will give only one structure (mp-542831) with P2_1/c symmetry)</p>
+<p>You could, for example, download them as cif:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">pmgdata</span> <span class="n">mp</span><span class="o">-</span><span class="mi">554420</span> <span class="o">-</span><span class="n">f</span> <span class="n">cif</span> <span class="o">&gt;</span> <span class="n">mp</span><span class="o">-</span><span class="mf">554420.</span><span class="n">cif</span>
+</pre></div>
+</div>
+<p>and then see if the structure are similar to the one than we obtained a while ago:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="n">GSO</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">band</span><span class="o">.</span><span class="ow">in</span> <span class="n">LSO</span><span class="o">/</span><span class="n">lsoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">YSO</span><span class="o">/*</span> <span class="o">--</span><span class="n">group</span> <span class="o">--</span><span class="n">anonymous</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Grouping <span class="m">5</span> structures by element
+Group <span class="m">0</span>:
+        - GSO/bulk/band.in <span class="o">(</span>Gd8 Si4 O20<span class="o">)</span>, vol: <span class="m">419</span>.61 A^3, P2_1/c <span class="o">(</span><span class="m">14</span><span class="o">)</span>
+        - YSO/mp-554420.cif <span class="o">(</span>Y8 Si4 O20<span class="o">)</span>, vol: <span class="m">411</span>.81 A^3, P2_1/c <span class="o">(</span><span class="m">14</span><span class="o">)</span>
+
+Group <span class="m">1</span>:
+        - LSO/lsoo_GSR.nc <span class="o">(</span>Lu8 Si4 O20<span class="o">)</span>, vol: <span class="m">415</span>.71 A^3, C2/c <span class="o">(</span><span class="m">15</span><span class="o">)</span>
+        - YSO/mp-3520.cif <span class="o">(</span>Y8 Si4 O20<span class="o">)</span>, vol: <span class="m">444</span>.28 A^3, C2/c <span class="o">(</span><span class="m">15</span><span class="o">)</span>
+        - YSO/ysoo_GSR.nc <span class="o">(</span>Y8 Si4 O20<span class="o">)</span>, vol: <span class="m">439</span>.11 A^3, C2/c <span class="o">(</span><span class="m">15</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You might also want to compare the structures you obtained with those of the Materials Project:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="n">YSO</span><span class="o">/*</span><span class="n">cif</span> <span class="n">YSO</span><span class="o">/</span><span class="n">ysoo_GSR</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>Lattice parameters:
+                      formula  natom     angle0      angle1      angle2  <span class="se">\</span>
+YSO/mp-3520.cif    Y8 Si4 O20     <span class="m">32</span>  <span class="m">72</span>.253470   <span class="m">69</span>.403142   <span class="m">64</span>.857542
+YSO/mp-554420.cif  Y8 Si4 O20     <span class="m">32</span>  <span class="m">90</span>.000000  <span class="m">106</span>.377942   <span class="m">90</span>.000000
+YSO/ysoo_GSR.nc    Y8 Si4 O20     <span class="m">32</span>  <span class="m">61</span>.231899  <span class="m">118</span>.768101  <span class="m">129</span>.711417
+
+                          a         b          c      volume abispg_num  <span class="se">\</span>
+YSO/mp-3520.cif    <span class="m">6</span>.831769  <span class="m">8</span>.039827   <span class="m">9</span>.710002  <span class="m">444</span>.282737       None
+YSO/mp-554420.cif  <span class="m">6</span>.749247  <span class="m">6</span>.955070   <span class="m">9</span>.143946  <span class="m">411</span>.813392       None
+YSO/ysoo_GSR.nc    <span class="m">8</span>.008236  <span class="m">8</span>.008236  <span class="m">10</span>.508789  <span class="m">439</span>.110049         <span class="m">15</span>
+
+                  spglib_symb  spglib_num
+YSO/mp-3520.cif          C2/c          <span class="m">15</span>
+YSO/mp-554420.cif      P2_1/c          <span class="m">14</span>
+YSO/ysoo_GSR.nc          C2/c          <span class="m">15</span>
+</pre></div>
+</div>
+<div class="section" id="compare-attributes-of-multiple-files">
+<h1>Compare attributes of multiple files<a class="headerlink" href="#compare-attributes-of-multiple-files" title="Permalink to this headline">¶</a></h1>
+<p>Finally, if you want to compare total energies of the two GSO phases:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="nb">getattr</span> <span class="n">energy</span> <span class="n">GSO</span><span class="o">/</span><span class="n">C2c</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">gsoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">GSO</span><span class="o">/</span><span class="n">P2_1c</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">gsoo_GSR</span><span class="o">.</span><span class="n">nc</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>-17432.3600217 eV    <span class="c1"># File:  GSO/C2c/bulk/gsoo_GSR.nc</span>
+-17431.8874098 eV    <span class="c1"># File:  GSO/P2_1c/bulk/gsoo_GSR.nc</span>
+</pre></div>
+</div>
+<p>and optionally use <code class="docutils literal"><span class="pre">--plot</span></code> to plot the data.</p>
+<p>So the C2c phase is the most stable for GSO too.
+(In case one does not know which are the “attributes” you can extract from the files with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="nb">getattr</span> <span class="n">GSO</span><span class="o">/</span><span class="n">C2c</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">gsoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">GSO</span><span class="o">/</span><span class="n">P2_1c</span><span class="o">/</span><span class="n">bulk</span><span class="o">/</span><span class="n">gsoo_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">--</span><span class="nb">list</span>
+</pre></div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>SIGRES file (GW) &#8212; abipy 0.2.0 documentation</title>
+    <title>SIGRES file (GW) &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="self-consistent GW" href="plot_qpscfgw.html" />
-    <link rel="prev" title="Seaborn boxplot" href="plot_ebands_boxplot.html" />
+    <link rel="next" title="Phonon Bands with/without ASR" href="plot_ddb_asr.html" />
+    <link rel="prev" title="self-consistent GW" href="plot_scqpgw.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -106,11 +107,11 @@
               
                 
   <li>
-    <a href="plot_ebands_boxplot.html" title="Previous Chapter: Seaborn boxplot"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Seaborn boxplot</span>
+    <a href="plot_scqpgw.html" title="Previous Chapter: self-consistent GW"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; self-consistent GW</span>
     </a>
   </li>
   <li>
-    <a href="plot_qpscfgw.html" title="Next Chapter: self-consistent GW"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">self-consistent GW &raquo;</span>
+    <a href="plot_ddb_asr.html" title="Next Chapter: Phonon Bands with/without ASR"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Phonon Bands ... &raquo;</span>
     </a>
   </li>
               
@@ -148,34 +149,40 @@
 <span id="sphx-glr-gallery-plot-qps-py"></span><h1>SIGRES file (GW)<a class="headerlink" href="#sigres-file-gw" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to visualize the QP results
 stored in the SIGRES produced by the GW code (sigma run)</p>
-<img alt="../_images/sphx_glr_plot_qps_001.png" class="align-center" src="../_images/sphx_glr_plot_qps_001.png" />
-<p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">QPState</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">e0</span><span class="o">=-</span><span class="mf">6.1452119325595076</span><span class="p">,</span> <span class="n">qpe</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">5.7191597612179432</span><span class="o">-</span><span class="mf">0.02093047048366245</span><span class="n">j</span><span class="p">),</span> <span class="n">qpe_diago</span><span class="o">=-</span><span class="mf">5.4122956762538843</span><span class="p">,</span> <span class="n">vxcme</span><span class="o">=-</span><span class="mf">10.38758415376074</span><span class="p">,</span> <span class="n">sigxme</span><span class="o">=-</span><span class="mf">16.893304060427486</span><span class="p">,</span> <span class="n">sigcmee0</span><span class="o">=</span><span class="p">(</span><span class="mf">7.2386356750315226</span><span class="o">-</span><span class="mf">0.036005659534835317</span><span class="n">j</span><span class="p">),</span> <span class="n">vUme</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ze0</span><span class="o">=</span><span class="p">(</span><span class="mf">0.58131057045107903</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qps_001.png"><img alt="../_images/sphx_glr_plot_qps_001.png" src="../_images/sphx_glr_plot_qps_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qps_002.png"><img alt="../_images/sphx_glr_plot_qps_002.png" src="../_images/sphx_glr_plot_qps_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qps_003.png"><img alt="../_images/sphx_glr_plot_qps_003.png" src="../_images/sphx_glr_plot_qps_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qps_004.png"><img alt="../_images/sphx_glr_plot_qps_004.png" src="../_images/sphx_glr_plot_qps_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qps_005.png"><img alt="../_images/sphx_glr_plot_qps_005.png" src="../_images/sphx_glr_plot_qps_005.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
 <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">abiopen</span>
 
 <span class="n">sigres</span> <span class="o">=</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;tgw1_9o_DS4_SIGRES.nc&quot;</span><span class="p">))</span>
 
 <span class="c1"># Printout of the QPState results</span>
-<span class="n">sigres</span><span class="o">.</span><span class="n">print_qps</span><span class="p">()</span>
+<span class="c1">#sigres.print_qps()</span>
 
-<span class="n">sigres</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">sigres</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP data vs KS energy&quot;</span><span class="p">)</span>
 
-<span class="n">qp</span> <span class="o">=</span> <span class="n">sigres</span><span class="o">.</span><span class="n">get_qpcorr</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">band</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">qp</span><span class="p">)</span>
+<span class="n">sigres</span><span class="o">.</span><span class="n">plot_qpgaps</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP direct gaps&quot;</span><span class="p">)</span>
 
-<span class="c1">#qplist_spin = sigres.qplist_spin</span>
-<span class="c1">#qplist_spin[0].plot_qps_vs_e0(title=&quot;QPState corrections of Si&quot;, exclude_fields=&quot;vUme&quot;)</span>
+<span class="n">sigres</span><span class="o">.</span><span class="n">plot_qpgaps</span><span class="p">(</span><span class="n">plot_qpmks</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP - KS direct gap&quot;</span><span class="p">)</span>
+
+<span class="n">sigres</span><span class="o">.</span><span class="n">plot_qpbands_ibz</span><span class="p">()</span>
+
+<span class="n">sigres</span><span class="o">.</span><span class="n">plot_ksbands_with_qpmarkers</span><span class="p">(</span><span class="n">fact</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
 
 <span class="n">sigres</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.218 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  3.846 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_qps.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qps.py</span></code></a></div>
@@ -197,8 +204,8 @@ stored in the SIGRES produced by the GW code (sigma run)</p>
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

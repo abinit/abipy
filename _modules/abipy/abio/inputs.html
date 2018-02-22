@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.inputs &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.abio.inputs &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -139,6 +140,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -156,7 +158,7 @@
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">Has_Structure</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">has_timrev_from_kptopt</span>
-<span class="kn">from</span> <span class="nn">abipy.htc.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.variable</span> <span class="k">import</span> <span class="n">InputVariable</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">is_abivar</span><span class="p">,</span> <span class="n">is_anaddb_var</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.input_tags</span> <span class="k">import</span> <span class="o">*</span>
@@ -386,7 +388,33 @@
 <span class="sd">                log_file:  log file of the Abinit run, use log_file.read() to access its content.</span>
 <span class="sd">                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.</span>
 <span class="sd">                task: Task object</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="AbstractInput.generate"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbstractInput.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function generates new inputs by replacing the variables specified in kwargs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kwargs: keyword arguments with the values used for each variable.</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            gs_inp = call_function_to_generate_initial_template()</span>
+
+<span class="sd">            # To generate two input files with different values of ecut:</span>
+<span class="sd">            for inp_ecut in gs_inp.generate(ecut=[10, 20]):</span>
+<span class="sd">                print(&quot;do something with inp_ecut %s&quot; % inp_ecut)</span>
+
+<span class="sd">            # To generate four input files with all the possible combinations of ecut and nsppol:</span>
+<span class="sd">            for inp_ecut in gs_inpt.generate(ecut=[10, 20], nsppol=[1, 2]):</span>
+<span class="sd">                print(&quot;do something with inp_ecut %s&quot; % inp_ecut)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">new_vars</span> <span class="ow">in</span> <span class="n">product_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">new_inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+            <span class="c1"># Remove the variable names to avoid annoying warnings if the variable is overwritten.</span>
+            <span class="n">new_inp</span><span class="o">.</span><span class="n">remove_vars</span><span class="p">(</span><span class="n">new_vars</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">new_inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="o">**</span><span class="n">new_vars</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">new_inp</span></div></div>
 
 
 <div class="viewcode-block" id="AbinitInputError"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInputError">[docs]</a><span class="k">class</span> <span class="nc">AbinitInputError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -1006,10 +1034,8 @@
 <span class="sd">                In that case, the sequence consists of all but the last of ``ndtset + 1``</span>
 <span class="sd">                evenly spaced samples, so that `stop` is excluded.  Note that the step</span>
 <span class="sd">                size changes when `endpoint` is False.</span>
-<span class="sd">            num : int, optional</span>
-<span class="sd">                Number of samples to generate. Default is 50.</span>
-<span class="sd">            endpoint : bool, optional</span>
-<span class="sd">                If True, `stop` is the last sample. Otherwise, it is not included.</span>
+<span class="sd">            num (int): Number of samples to generate. Default is 50.</span>
+<span class="sd">            endpoint (bool): optional. If True, `stop` is the last sample. Otherwise, it is not included.</span>
 <span class="sd">                Default is True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inps</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1123,7 +1149,7 @@
             <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">site1</span><span class="p">,</span> <span class="n">site2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">new_structure</span><span class="p">)):</span>
                 <span class="k">if</span> <span class="n">site1</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="o">!=</span> <span class="n">site2</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">:</span>
-                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">site1</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span> <span class="o">!=</span> <span class="n">site2</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
+                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">site1</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">site2</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Structures must have same order of atomic types:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
 
@@ -1259,7 +1285,7 @@
 <span class="sd">            qpt: q-point in reduced coordinates.</span>
 <span class="sd">            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.</span>
 <span class="sd">                Defaults to {&quot;tolvrs&quot;: 1.0e-10}.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
@@ -1361,7 +1387,7 @@
 <span class="sd">                Defaults to {&quot;tolwfr&quot;: 1.0e-22}.</span>
 <span class="sd">            use_symmetries: boolean that computes the irreducible components of the perturbation.</span>
 <span class="sd">                Default to True. Should be set to False for nonlinear coefficients calculation.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            List of |AbinitInput| objects for DFPT runs.</span>
@@ -1424,7 +1450,7 @@
 <span class="sd">            skip_permutations: Since the current version of abinit always performs all the permutations</span>
 <span class="sd">                of the perturbations, even if only one is asked, if True avoids the creation of inputs that</span>
 <span class="sd">                will produce duplicated outputs.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Call Abinit to get the list of irred perts.</span>
         <span class="n">perts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abiget_irred_dteperts</span><span class="p">(</span><span class="n">phonon_pert</span><span class="o">=</span><span class="n">phonon_pert</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -1485,7 +1511,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return inputs for the calculation of the Born effective charges.</span>
 
-<span class="sd">        This functions should be called with an input the represents a GS run.</span>
+<span class="sd">        This functions should be called with an input that represents a GS run.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tolerance</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;tolvrs&quot;</span><span class="p">:</span> <span class="mf">1.0e-10</span><span class="p">}</span>
@@ -1611,8 +1637,11 @@
         <span class="c1"># Avoid modifications in self.</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">tolsym</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;tolsym&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tolsym</span><span class="p">)</span>
+
         <span class="c1"># Bypass Abinit check as we always want to return results.</span>
         <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Disable memory check.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;mem_test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Build a Task to run Abinit in --dry-run mode.</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -1640,8 +1669,8 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            `namedtuple` with attributes:</span>
-<span class="sd">                points: `ndarray` with points in the IBZ in reduced coordinates.</span>
-<span class="sd">                weights: `ndarray` with weights of the points.</span>
+<span class="sd">                points: |numpy-array| with points in the IBZ in reduced coordinates.</span>
+<span class="sd">                weights: |numpy-array| with weights of the points.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Avoid modifications in self.</span>
         <span class="n">inp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
@@ -1650,6 +1679,8 @@
         <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;prtkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
         <span class="c1"># Bypass Abinit check as we always want to return results.</span>
         <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Disable memory check.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;mem_test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="n">ngkpt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ngkpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngkpt</span>
         <span class="k">if</span> <span class="n">shiftk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1657,6 +1688,7 @@
             <span class="n">inp</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">shiftk</span><span class="o">=</span><span class="n">shiftk</span><span class="p">,</span> <span class="n">nshiftk</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shiftk</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">kptopt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;kptopt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kptopt</span>
+        <span class="c1">#print(&quot;Computing ibz with input:\n&quot;, str(inp))</span>
 
         <span class="c1"># Build a Task to run Abinit in a shell subprocess</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -1761,6 +1793,7 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">kptopt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;kptopt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kptopt</span>
+        <span class="c1">#print(&quot;Computing irred_perts with input:\n&quot;, str(inp))</span>
 
         <span class="c1"># Build a Task to run Abinit in a shell subprocess</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">AbinitTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">)</span>
@@ -1770,7 +1803,13 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">yaml_read_irred_perts</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+            <span class="c1"># Sometimes the previous call raises: Cannot find next YAML document in /tmp/tmpskvdr_bo/run.log</span>
+            <span class="c1"># perhaps because the log file is still being written (?) so let&#39;s wait a bit.</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">yaml_read_irred_perts</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">log_file</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_task_exception</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AbinitInput.abiget_irred_phperts"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AbinitInput.abiget_irred_phperts">[docs]</a>    <span class="k">def</span> <span class="nf">abiget_irred_phperts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ngkpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shiftk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kptopt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1885,7 +1924,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            List of dictionaries with the Abinit variables defining the irreducible perturbation</span>
-<span class="sd">            </span>
+
 <span class="sd">        Example:</span>
 
 <span class="sd">            [{&#39;idir&#39;: 1, &#39;ipert&#39;: 4, &#39;qpt&#39;: [0.0, 0.0, 0.0]},</span>
@@ -1929,6 +1968,8 @@
 
         <span class="c1"># Bypass Abinit check as we always want to return results.</span>
         <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;chksymbreak&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Disable memory check.</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;mem_test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Run the job in a shell subprocess with mpi_procs = 1</span>
         <span class="c1"># Return code is always != 0</span>
@@ -2011,7 +2052,7 @@
 
 <div class="viewcode-block" id="MultiDataset.from_inputs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.from_inputs">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inputs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build object from a list of :class:`AbinitInput` objects.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Build object from a list of |AbinitInput| objects.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">p1</span> <span class="o">!=</span> <span class="n">p2</span> <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pseudos</span><span class="p">,</span> <span class="n">inp</span><span class="o">.</span><span class="n">pseudos</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pseudos must be consistent when from_inputs is invoked.&quot;</span><span class="p">)</span>
@@ -2445,9 +2486,9 @@
 
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
             <span class="n">ifcflag</span><span class="o">=</span><span class="n">ifcflag</span><span class="p">,</span>        <span class="c1"># Interatomic force constant flag</span>
-            <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span>          <span class="c1"># Acoustic Sum Rule</span>
-            <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span>    <span class="c1"># Charge neutrality requirement for effective charges.</span>
-            <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>    <span class="c1"># Dipole-dipole interaction treatment</span>
+            <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span>                <span class="c1"># Acoustic Sum Rule</span>
+            <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span>          <span class="c1"># Charge neutrality requirement for effective charges.</span>
+            <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span>          <span class="c1"># Dipole-dipole interaction treatment</span>
             <span class="c1"># This part is fixed</span>
             <span class="n">nph1l</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">qph1l</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qpoint</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -2533,6 +2574,10 @@
         <span class="n">new</span><span class="o">.</span><span class="n">set_autoqmesh</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">prtdos</span><span class="o">=</span><span class="n">prtdos</span><span class="p">,</span> <span class="n">dosdeltae</span><span class="o">=</span><span class="n">dosdeltae</span><span class="p">,</span> <span class="n">dossmear</span><span class="o">=</span><span class="n">dossmear</span><span class="p">)</span>
 
+        <span class="c1"># Disable DOS computation.</span>
+        <span class="k">if</span> <span class="n">nqsmall</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new</span><span class="p">[</span><span class="s2">&quot;prtdos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="n">new</span><span class="o">.</span><span class="n">set_qpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">)</span>
         <span class="n">qptbounds</span> <span class="o">=</span> <span class="n">new</span><span class="p">[</span><span class="s1">&#39;qpath&#39;</span><span class="p">]</span>
         <span class="n">q1shft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q1shft</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -2580,7 +2625,7 @@
 <span class="sd">        properties from PhDos</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            structure: :class:`Structure` object</span>
+<span class="sd">            structure: |Structure| object</span>
 <span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
 <span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
 <span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
@@ -3055,7 +3100,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.</span>
-<span class="sd">            manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.</span>
+<span class="sd">            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            `namedtuple` with the following attributes:</span>
@@ -3279,6 +3324,48 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">infile_path</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;infile_path&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">output_filepath</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output_filepath&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
                    <span class="n">options</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="product_dict"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.product_dict">[docs]</a><span class="k">def</span> <span class="nf">product_dict</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function receives a dictionary d where each key defines a list of items or a simple scalar.</span>
+<span class="sd">    It constructs the Cartesian product of the values (equivalent to nested for-loops),</span>
+<span class="sd">    and returns a list of dictionaries with the values that would be used inside the loop.</span>
+
+<span class="sd">    &gt;&gt;&gt; d = OrderedDict([(&quot;foo&quot;, [2, 4]), (&quot;bar&quot;, 1)])</span>
+<span class="sd">    &gt;&gt;&gt; product_dict(d) == [OrderedDict([(&#39;foo&#39;, 2), (&#39;bar&#39;, 1)]), OrderedDict([(&#39;foo&#39;, 4), (&#39;bar&#39;, 1)])]</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; d = OrderedDict([(&quot;bar&quot;, [1,2]), (&#39;foo&#39;, [3,4])])</span>
+<span class="sd">    &gt;&gt;&gt; product_dict(d) == [{&#39;bar&#39;: 1, &#39;foo&#39;: 3},</span>
+<span class="sd">    ... {&#39;bar&#39;: 1, &#39;foo&#39;: 4},</span>
+<span class="sd">    ... {&#39;bar&#39;: 2, &#39;foo&#39;: 3},</span>
+<span class="sd">    ... {&#39;bar&#39;: 2, &#39;foo&#39;: 4}]</span>
+<span class="sd">    True</span>
+
+<span class="sd">    .. warning:</span>
+
+<span class="sd">        Dictionaries are not ordered, therefore one cannot assume that</span>
+<span class="sd">        the order of the keys in the output equals the one used to loop.</span>
+<span class="sd">        If the order is important, one should pass a :class:`OrderedDict` in input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keys</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+    <span class="c1"># Each item in vals must be iterable.</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span> <span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+    <span class="c1"># Build list of dictionaries. Use ordered dicts so that</span>
+    <span class="c1"># we preserve the order when d is an OrderedDict.</span>
+    <span class="n">vars_prod</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">prod_values</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
+        <span class="n">dprod</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">prod_values</span><span class="p">))</span>
+        <span class="n">vars_prod</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dprod</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">vars_prod</span></div>
 </pre></div>
 
     </div>
@@ -3292,8 +3379,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

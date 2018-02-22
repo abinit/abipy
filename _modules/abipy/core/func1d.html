@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.func1d &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.core.func1d &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -447,6 +448,11 @@
         <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">b</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spline</span><span class="o">.</span><span class="n">integral</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Function1D.integral_value"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.integral_value">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">integral_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute :math:`\int f(x) dx`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">integral</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span></div>
+
 <div class="viewcode-block" id="Function1D.l1_norm"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.func1d.Function1D.l1_norm">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">l1_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute :math:`\int |f(x)| dx`.&quot;&quot;&quot;</span>
@@ -486,27 +492,27 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">fft_vals</span><span class="p">)</span></div>
 
-    <span class="c1">#def convolve(self, other):</span>
-    <span class="c1">#    &quot;&quot;Convolution with FFT.&quot;&quot;&quot;</span>
+    <span class="c1">#def convolve_with_func1d(self, other):</span>
+    <span class="c1">#    &quot;&quot;&quot;Convolve self with other.&quot;&quot;&quot;</span>
     <span class="c1">#    assert self.has_same_mesh(other)</span>
     <span class="c1">#    from scipy.signal import convolve</span>
     <span class="c1">#    conv = convolve(self.values, other.values, mode=&quot;same&quot;) * self.h</span>
     <span class="c1">#    return self.__class__(self.mesh, conv)</span>
 
-    <span class="c1">#def gauss_convolve(self, width):</span>
-    <span class="c1">#   &quot;&quot;&quot;Convolve self with a gaussian of standard deviation width.&quot;&quot;&quot;</span>
-    <span class="c1">#    from abipy.tools import gauss_ufunc</span>
-    <span class="c1">#    gauss = gauss_ufunc(width, center=0.0, height=None)</span>
-    <span class="c1">#    gdata = Function1D(self.mesh, gauss(self.mesh))</span>
-    <span class="c1">#    return self.convolve(gdata)</span>
+    <span class="c1">#def gaussian_convolution(self, width, height=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;Convolve data with a Gaussian of standard deviation ``width``.&quot;&quot;&quot;</span>
+    <span class="c1">#    from abipy.tools.numtools import gaussian</span>
+    <span class="c1">#    gvals = gaussian(self.mesh, width, center=self.mesh[len(self)//2], height=height)</span>
+    <span class="c1">#    return self.convolve_with_func1d(Function1D(self.mesh, gvals))</span>
 
-    <span class="c1">#def lorentz_convolve(self, gamma):</span>
-    <span class="c1">#   &quot;&quot;&quot;Convolve self with a Lorentzian.&quot;&quot;&quot;</span>
-    <span class="c1">#    lorentz = lorentz_ufunc(gamma, center=0.0, height=None)</span>
-    <span class="c1">#    return self.convolve(Function1D.from_func(self.mesh, lorentz))</span>
+    <span class="c1">#def lorentzian_convolution(self, gamma, height=None):</span>
+    <span class="c1">#    &quot;&quot;&quot;Convolve data with a Lorentzian of half-width at half-maximum ``gamma``&quot;&quot;&quot;</span>
+    <span class="c1">#    from abipy.tools.numtools import lorentzian</span>
+    <span class="c1">#    lvals = lorentzian(self.mesh, gamma, center=self.mesh[len(self)//2], height=height)</span>
+    <span class="c1">#    return self.convolve_with_func1d(Function1D(self.mesh, lvals))</span>
 
-    <span class="c1">#def smooth(self, window_len=21, window=&quot;hanning&quot;):</span>
-    <span class="c1">#    from abipy.tools import smooth</span>
+    <span class="c1">#def smooth(self, window_len=11, window=&quot;hanning&quot;):</span>
+    <span class="c1">#    from abipy.tools.numtools import smooth</span>
     <span class="c1">#    smooth_vals = smooth(self.values, window_len=window_len, window=window)</span>
     <span class="c1">#    return self.__class__(self.mesh, smooth_vals)</span>
 
@@ -648,8 +654,7 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
-
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">exchange_xy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;exchange_xy&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="n">exchange_xy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -668,8 +673,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

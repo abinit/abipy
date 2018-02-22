@@ -9,7 +9,7 @@ There are a variety of ways to use the AbiPy post-processing tools,
 and most of them are illustrated in the examples in this directory.
 
 Remember that one can also generate a jupyter notebook directly from the command line with 
-the :ref:`abiopen.py` script and the command:
+the :ref:`abiopen.py` script and the command::
 
     abiopen.py FILE -nb
 
@@ -39,27 +39,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the GW self-energy and the spectral function of Al at the gamma...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_sigmaw_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_sigmaw.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_sigmaw
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a particular &quot;band&quot; in 3D  with matplotlib scatter3D. The color ...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a particular &quot;band&quot; in 3D with matplotlib scatter3D. The color o...">
 
 .. only:: html
 
@@ -119,13 +99,13 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point, for the fi...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the unit cell with matplotlib. ">
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_spectral_functions_thumb.png
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_structure_thumb.png
 
-        :ref:`sphx_glr_gallery_plot_spectral_functions.py`
+        :ref:`sphx_glr_gallery_plot_structure.py`
 
 .. raw:: html
 
@@ -135,11 +115,11 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 .. toctree::
    :hidden:
 
-   /gallery/plot_spectral_functions
+   /gallery/plot_structure
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use seaborn to draw a box plot  showing the distributions of eigenval...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use seaborn to draw a box plot showing the distributions of eigenvalu...">
 
 .. only:: html
 
@@ -159,7 +139,47 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results  stored in the SIGRES produced by the GW cod...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point. See also l...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_gw_spectral_functions_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_gw_spectral_functions.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_gw_spectral_functions
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set. ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_scqpgw_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_scqpgw.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_scqpgw
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the QP results stored in the SIGRES produced by the GW code...">
 
 .. only:: html
 
@@ -179,13 +199,13 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the SCGW QP amplitudes in the KS basis set. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a phonon band structure with and without imposing the acoustic s...">
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpscfgw_thumb.png
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ddb_asr_thumb.png
 
-        :ref:`sphx_glr_gallery_plot_qpscfgw.py`
+        :ref:`sphx_glr_gallery_plot_ddb_asr.py`
 
 .. raw:: html
 
@@ -195,7 +215,27 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 .. toctree::
    :hidden:
 
-   /gallery/plot_qpscfgw
+   /gallery/plot_ddb_asr
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple structure relaxations with the HIST r...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_multiple_hist.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_multiple_hist
 
 .. raw:: html
 
@@ -239,7 +279,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of a  structure relaxation run using the HIST.nc ...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of a structure relaxation run using the HIST.nc f...">
 
 .. only:: html
 
@@ -296,46 +336,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_gscycle
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html ">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_fatbands_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_phonon_fatbands.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_phonon_fatbands
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the results of multiple structure relaxations with the HIST r...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_multiple_hist_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_multiple_hist.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_multiple_hist
 
 .. raw:: html
 
@@ -399,7 +399,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file  p...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr...">
 
 .. only:: html
 
@@ -416,26 +416,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_ebands
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot multiple electron DOSes obtained with different valu...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_vs_broad_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_edos_vs_broad.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_edos_vs_broad
 
 .. raw:: html
 
@@ -499,13 +479,13 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to visualize the convergence of the QP results stored in the SIGRES prod...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS and plot a band structure with DOS using two GSR file...">
 
 .. only:: html
 
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconverge_thumb.png
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_edos_thumb.png
 
-        :ref:`sphx_glr_gallery_plot_qpconverge.py`
+        :ref:`sphx_glr_gallery_plot_ebands_edos.py`
 
 .. raw:: html
 
@@ -515,7 +495,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 .. toctree::
    :hidden:
 
-   /gallery/plot_qpconverge
+   /gallery/plot_ebands_edos
 
 .. raw:: html
 
@@ -536,26 +516,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_phonon_pjdos
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute the DOS and plot a band structure with DOS using two GSR file...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_ebands_edos_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_ebands_edos.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_ebands_edos
 
 .. raw:: html
 
@@ -599,6 +559,46 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the SigresRobot to visualize the convergence of the QP results st...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpconverge_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpconverge.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpconverge
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot several phonon band structures on a grid.">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phbands_nkpt_tsmear_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phbands_nkpt_tsmear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phbands_nkpt_tsmear
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the electronic density stored in the DEN.nc file. ">
 
 .. only:: html
@@ -619,26 +619,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the LM-projected fatbands. The FATBANDS file must have benn prod...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_lm_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_efatbands_lm.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_efatbands_lm
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to use the Function1D object to analyze and plot results. ">
 
 .. only:: html
@@ -656,6 +636,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_funcs
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the LM-projected fatbands. The FATBANDS file must have benn prod...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_efatbands_lm_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_efatbands_lm.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_efatbands_lm
 
 .. raw:: html
 
@@ -719,7 +719,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs  including the LO-TO splitting...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon band structure of AlAs including the LO-TO splitting....">
 
 .. only:: html
 
@@ -756,6 +756,46 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_ebands_grid
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to compute and plot multiple electron DOSes obtained with different valu...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_edos_vs_broad_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_edos_vs_broad.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_edos_vs_broad
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the phonon fatbands of AlAs. See tutorial/lesson_rf2.html ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_phonon_fatbands_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_phonon_fatbands.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_phonon_fatbands
 
 .. raw:: html
 

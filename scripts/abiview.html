@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abiview.py &#8212; abipy 0.2.0 documentation</title>
+    <title>abiview.py &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -120,39 +121,69 @@
 <li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ebands">ebands</a><ul>
+<li><a class="reference internal" href="#dirviz">dirviz</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#fatbands">fatbands</a><ul>
+<li><a class="reference internal" href="#ebands">ebands</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ddb">ddb</a><ul>
+<li><a class="reference internal" href="#fatbands">fatbands</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#phbands">phbands</a><ul>
+<li><a class="reference internal" href="#ddb">ddb</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat7">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#phdos">phdos</a><ul>
+<li><a class="reference internal" href="#phbands">phbands</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat8">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#gruns">gruns</a><ul>
+<li><a class="reference internal" href="#phdos">phdos</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat9">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mdf">mdf</a><ul>
+<li><a class="reference internal" href="#gruns">gruns</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat10">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat11">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scr">scr</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat11">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat12">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sigres">sigres</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat12">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat13">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mdf">mdf</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat13">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat14">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optic">optic</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat14">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat15">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#eph">eph</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat15">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat16">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sigeph">sigeph</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat16">Positional Arguments</a></li>
+<li><a class="reference internal" href="#Named Arguments_repeat17">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -212,7 +243,7 @@
 It can also visualize data (structures, densities)  with external graphical applications.</p>
 <p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">abo</span><span class="p">,</span><span class="n">log</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">fatbands</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">gruns</span><span class="p">,</span><span class="n">mdf</span><span class="p">}</span>
+                  <span class="p">{</span><span class="n">structure</span><span class="p">,</span><span class="n">hist</span><span class="p">,</span><span class="n">abo</span><span class="p">,</span><span class="n">log</span><span class="p">,</span><span class="n">dirviz</span><span class="p">,</span><span class="n">ebands</span><span class="p">,</span><span class="n">fatbands</span><span class="p">,</span><span class="n">ddb</span><span class="p">,</span><span class="n">phbands</span><span class="p">,</span><span class="n">phdos</span><span class="p">,</span><span class="n">gruns</span><span class="p">,</span><span class="n">scr</span><span class="p">,</span><span class="n">sigres</span><span class="p">,</span><span class="n">mdf</span><span class="p">,</span><span class="n">optic</span><span class="p">,</span><span class="n">eph</span><span class="p">,</span><span class="n">sigeph</span><span class="p">}</span>
                   <span class="o">...</span>
 </pre></div>
 </div>
@@ -237,7 +268,7 @@ It can also visualize data (structures, densities)  with external graphical appl
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: structure, hist, abo, log, ebands, fatbands, ddb, phbands, phdos, gruns, mdf</p>
+<td><p class="first">Possible choices: structure, hist, abo, log, dirviz, ebands, fatbands, ddb, phbands, phdos, gruns, scr, sigres, mdf, optic, eph, sigeph</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -251,7 +282,7 @@ It can also visualize data (structures, densities)  with external graphical appl
 <div>Visualize the structure with the specified visualizer. Requires external app
 or optional python modules (mayavi, vtk)</div></blockquote>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
-                     <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span>
                      <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -288,6 +319,10 @@ or optional python modules (mayavi, vtk)</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
 <tr><td class="option-group">
 <kbd>-a, --appname</kbd></td>
 <td><p class="first">Application name. Default: vesta. Possible options: avogadro, ovito, v_sim, vesta, xcrysden, mayavi, vtk</p>
@@ -302,8 +337,8 @@ or optional python modules (mayavi, vtk)</div></blockquote>
 <blockquote>
 <div>Visualize structural relaxation/molecular-dynamics run
 from data stored in the HIST.nc file. Requires mayavi.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">xdatcar</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">hist</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPNAME</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">xdatcar</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                 <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -340,12 +375,21 @@ from data stored in the HIST.nc file. Requires mayavi.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
 <tr><td class="option-group">
 <kbd>-a, --appname</kbd></td>
-<td>Application name. Default: ovito. Possible options: <cite>avogadro, ovito, v_sim, vesta, xcrysden</cite>, <cite>mayavi</cite>, <cite>vtk</cite></td></tr>
+<td>Application name. Default: ovito. Possible options: <cite>avogadro, ovito, v_sim, vesta, xcrysden</cite>, <cite>mpl</cite> (matplotlib) <cite>mayavi</cite>, <cite>vtk</cite></td></tr>
 <tr><td class="option-group">
 <kbd>--xdatcar</kbd></td>
 <td><p class="first">Convert HIST file into XDATCAR format.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --force</kbd></td>
+<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
 <p class="last">Default: False</p>
 </td></tr>
 </tbody>
@@ -357,7 +401,8 @@ from data stored in the HIST.nc file. Requires mayavi.</div></blockquote>
 <blockquote>
 <div>Plot self-consistent iterations extracted from Abinit output file
 as well as timer data (if present)</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">abo</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">abo</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+               <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat2">
@@ -393,6 +438,10 @@ as well as timer data (if present)</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
 </tbody>
 </table>
 </div>
@@ -401,7 +450,8 @@ as well as timer data (if present)</div></blockquote>
 <h3>log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>Print WARNINGS/COMMENTS/ERRORS found in Abinit log file.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">log</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">log</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+               <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat3">
@@ -437,17 +487,20 @@ as well as timer data (if present)</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="ebands">
-<h3>ebands<a class="headerlink" href="#ebands" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="dirviz">
+<h3>dirviz<a class="headerlink" href="#dirviz" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Plot electronic bands if file contains high-symmetry k-path or DOS if k-sampling.
-Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">--</span><span class="n">bxsf</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div>Visualize directory tree with graphviz.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">dirviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span>
                   <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -484,34 +537,28 @@ Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
 <tr><td class="option-group">
-<kbd>--xmgrace</kbd></td>
-<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>--bxsf</kbd></td>
-<td><dl class="first docutils">
-<dt>Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden(xcrysden –bxsf FILE).</dt>
-<dd>Requires k-points in IBZ. Print to stdout and exit.</dd>
-</dl>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>-f, --force</kbd></td>
-<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
-<p class="last">Default: False</p>
+<kbd>-e, --engine</kbd></td>
+<td><p class="first">graphviz engine: [‘dot’, ‘neato’, ‘twopi’, ‘circo’, ‘fdp’, ‘sfdp’, ‘patchwork’, ‘osage’]. See <a class="reference external" href="http://www.graphviz.org/pdf/dot.1.pdf">http://www.graphviz.org/pdf/dot.1.pdf</a> Use <cite>conda install python-graphviz</cite> or <cite>pip install graphviz</cite> to install the python package</p>
+<p class="last">Default: “fdp”</p>
 </td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="fatbands">
-<h3>fatbands<a class="headerlink" href="#fatbands" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ebands">
+<h3>ebands<a class="headerlink" href="#ebands" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Plot electronic fatbands bands if file contains high-symmetry k-path
-or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">fatbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+<div>Plot electronic bands if file contains high-symmetry k-path or DOS if k-sampling.
+Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, …</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">bxsf</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+                  <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat5">
@@ -547,17 +594,50 @@ or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--xmgrace</kbd></td>
+<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--bxsf</kbd></td>
+<td><dl class="first docutils">
+<dt>Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden(xcrysden –bxsf FILE).</dt>
+<dd>Requires k-points in IBZ. Print to stdout and exit.</dd>
+</dl>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-f, --force</kbd></td>
+<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="ddb">
-<h3>ddb<a class="headerlink" href="#ddb" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="fatbands">
+<h3>fatbands<a class="headerlink" href="#fatbands" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
-               <span class="n">filepath</span>
+<div>Plot electronic fatbands bands if file contains high-symmetry k-path
+or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">fatbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                    <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat6">
@@ -593,35 +673,31 @@ or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
-<tr><td class="option-group">
-<kbd>--xmgrace</kbd></td>
-<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
 <p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group" colspan="2">
-<kbd>-web, --phononwebsite</kbd></td>
+<kbd>-t, --slide-timeout</kbd></td>
 </tr>
-<tr><td>&#160;</td><td><p class="first">Visualize phonon band structure on the phononwebsite. <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">http://henriquemiranda.github.io/phononwebsite/</a></p>
-<p class="last">Default: False</p>
-</td></tr>
-<tr><td class="option-group">
-<kbd>-b, --browser</kbd></td>
-<td>Define browser used by python webbrowser. See <a class="reference external" href="https://docs.python.org/2/library/webbrowser.html#webbrowser.register">https://docs.python.org/2/library/webbrowser.html#webbrowser.register</a></td></tr>
-<tr><td class="option-group">
-<kbd>-f, --force</kbd></td>
-<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
-<p class="last">Default: False</p>
-</td></tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="phbands">
-<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
-<p>Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, …</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
-                   <span class="n">filepath</span>
+<div class="section" id="ddb">
+<h3>ddb<a class="headerlink" href="#ddb" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">ddb</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+               <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat7">
@@ -657,6 +733,20 @@ or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
 <tr><td class="option-group">
 <kbd>--xmgrace</kbd></td>
 <td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
@@ -680,10 +770,13 @@ or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
 </table>
 </div>
 </div>
-<div class="section" id="phdos">
-<h3>phdos<a class="headerlink" href="#phdos" title="Permalink to this headline">¶</a></h3>
-<p>Plot phonon DOS. Require PHDOS.nc file.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+<div class="section" id="phbands">
+<h3>phbands<a class="headerlink" href="#phbands" title="Permalink to this headline">¶</a></h3>
+<p>Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, …</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phbands</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">xmgrace</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">-</span><span class="n">web</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">BROWSER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+                   <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat8">
@@ -719,14 +812,49 @@ or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+<tr><td class="option-group">
+<kbd>--xmgrace</kbd></td>
+<td><p class="first">Print bands in xmgrace format to stdout and exit.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-web, --phononwebsite</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Visualize phonon band structure on the phononwebsite. <a class="reference external" href="http://henriquemiranda.github.io/phononwebsite/">http://henriquemiranda.github.io/phononwebsite/</a></p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td>Define browser used by python webbrowser. See <a class="reference external" href="https://docs.python.org/2/library/webbrowser.html#webbrowser.register">https://docs.python.org/2/library/webbrowser.html#webbrowser.register</a></td></tr>
+<tr><td class="option-group">
+<kbd>-f, --force</kbd></td>
+<td><p class="first">Overwrite pre-existent files without prompting for confirmation.</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="gruns">
-<h3>gruns<a class="headerlink" href="#gruns" title="Permalink to this headline">¶</a></h3>
-<p>Plot Grunesein parameters. Requires GRUNS.nc file.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">gruns</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+<div class="section" id="phdos">
+<h3>phdos<a class="headerlink" href="#phdos" title="Permalink to this headline">¶</a></h3>
+<p>Plot phonon DOS. Require PHDOS.nc file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">phdos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                 <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat9">
@@ -762,16 +890,30 @@ or PJDOS if k-sampling. Requires FATBANDS.nc file.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="mdf">
-<h3>mdf<a class="headerlink" href="#mdf" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>Plot the macroscopic dielectric functions computed by the Bethe-Salpeter code.
-Requires MDF.nc file.</div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="n">filepath</span>
+<div class="section" id="gruns">
+<h3>gruns<a class="headerlink" href="#gruns" title="Permalink to this headline">¶</a></h3>
+<p>Plot Grunesein parameters. Requires GRUNS.nc file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">gruns</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                 <span class="n">filepath</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat10">
@@ -807,6 +949,379 @@ Requires MDF.nc file.</div></blockquote>
 <td><p class="first">Use seaborn settings.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="scr">
+<h3>scr<a class="headerlink" href="#scr" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot screening results computed by GW code. Requires SCR.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">scr</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+               <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat11">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat11" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat12">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="sigres">
+<h3>sigres<a class="headerlink" href="#sigres" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot the QP results. Requires SIGRES.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">sigres</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                  <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat12">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat12" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat13">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="mdf">
+<h3>mdf<a class="headerlink" href="#mdf" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot the macroscopic dielectric functions computed by the Bethe-Salpeter code.
+Requires MDF.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">mdf</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+               <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat13">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat13" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat14">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="optic">
+<h3>optic<a class="headerlink" href="#optic" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Plot optical spectra produced by optic code. Requires OPTIC.nc file.</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">optic</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                 <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat14">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat14" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat15">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="eph">
+<h3>eph<a class="headerlink" href="#eph" title="Permalink to this headline">¶</a></h3>
+<p>Plot Eliashberg function. Requires EPH.nc file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">eph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+               <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat15">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat15" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat16">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="sigeph">
+<h3>sigeph<a class="headerlink" href="#sigeph" title="Permalink to this headline">¶</a></h3>
+<p>Plot e-ph self-energy. Requires SIGEPH.nc file.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiview</span><span class="o">.</span><span class="n">py</span> <span class="n">sigeph</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">seaborn</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                  <span class="n">filepath</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat16">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat16" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>filepath</kbd></td>
+<td>File to visualize.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Named Arguments_repeat17">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat17" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity.</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--seaborn</kbd></td>
+<td><p class="first">Use seaborn settings.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
 </tbody>
 </table>
 </div>
@@ -826,8 +1341,8 @@ Requires MDF.nc file.</div></blockquote>
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 29, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

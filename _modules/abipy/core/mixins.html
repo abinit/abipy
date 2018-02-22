@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.mixins &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.core.mixins &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -145,7 +146,6 @@
 <span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">deprecated</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
-<span class="kn">from</span> <span class="nn">abipy.iotools.cube</span> <span class="k">import</span> <span class="n">cube_read_structure_mesh_data</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk.netcdf</span> <span class="k">import</span> <span class="n">NetcdfReader</span><span class="p">,</span> <span class="n">NO_DEFAULT</span>
 
 
@@ -241,6 +241,10 @@
 
 <span class="k">class</span> <span class="nc">TextFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
 
+    <span class="c1">#@classmethood</span>
+    <span class="c1">#def from_string(cls, s):</span>
+    <span class="c1">#    return cls.from_file(filepath)</span>
+
     <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Open the file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span>
@@ -258,7 +262,7 @@
         <span class="sd">&quot;&quot;&quot;Close the file.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">whence</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -295,7 +299,14 @@
 <div class="viewcode-block" id="AbinitNcFile.abinit_version"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile.abinit_version">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">abinit_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String with abinit version: three digits separated by comma.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="s2">&quot;abinit_version&quot;</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">rootgrp</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="s2">&quot;abinit_version&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :class:`OrderedDict` with the convergence parameters</span>
+<span class="sd">        Used to construct |pandas-DataFrames|.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
 
 
 <span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -358,8 +369,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Export the structure on file.</span>
 
-<span class="sd">        returns:</span>
-<span class="sd">            Instance of :class:`Visualizer`</span>
+<span class="sd">        returns: |Visualizer| instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
@@ -367,7 +377,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize the crystalline structure with the specified visualizer.</span>
 
-<span class="sd">        See :class:`Visualizer` for the list of applications and formats supported.</span>
+<span class="sd">        See |Visualizer| for the list of applications and formats supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.iotools.visualizer</span> <span class="k">import</span> <span class="n">Visualizer</span>
         <span class="n">visu</span> <span class="o">=</span> <span class="n">Visualizer</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">appname</span><span class="p">)</span>
@@ -379,7 +389,11 @@
             <span class="k">except</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
                 <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for appname </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">appname</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="n">visu</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to export data for appname </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">appname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Has_Structure.yield_structure_figs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Structure.yield_structure_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_structure_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;*Generates* a predefined list of matplotlib figures with minimal input from the user.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Has_ElectronBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
@@ -430,30 +444,90 @@
         <span class="sd">&quot;&quot;&quot;Iterable with the Kpoints.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span>
 
+<div class="viewcode-block" id="Has_ElectronBands.tsmear"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands.tsmear">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">tsmear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">smearing</span><span class="o">.</span><span class="n">tsmear_ev</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Has_ElectronBands.get_ebands_params"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands.get_ebands_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_ebands_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`OrderedDict` with the convergence parameters.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">([</span>
+            <span class="p">(</span><span class="s2">&quot;nsppol&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;nspinor&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;nspden&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;nband&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nband</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;nkpt&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">),</span>
+        <span class="p">])</span></div>
+
 <div class="viewcode-block" id="Has_ElectronBands.plot_ebands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands.plot_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Has_ElectronBands.plot_ebands_with_edos"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands.plot_ebands_with_edos">[docs]</a>    <span class="k">def</span> <span class="nf">plot_ebands_with_edos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edos</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot_with_edos</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+        <span class="sd">&quot;&quot;&quot;Plot the electron energy bands with DOS. See the :func:`ElectronBands.plot_with_edos` for the signature.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot_with_edos</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Has_ElectronBands.yield_ebands_figs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands.yield_ebands_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_ebands_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;*Generates* a predefined list of matplotlib figures with minimal input from the user.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">()</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">plot_with_edos</span><span class="p">(</span><span class="n">edos</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">edos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Has_ElectronBands.expose_ebands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_ElectronBands.expose_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">expose_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slide_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_ebands_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="Has_PhononBands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Has_PhononBands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mixin class for :class:`AbinitNcFile` containing phonon data.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin class for :class:`AbinitNcFile` containing phonon data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
     <span class="k">def</span> <span class="nf">phbands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the |PhononBands| object.&quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="Has_PhononBands.get_phbands_params"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands.get_phbands_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_phbands_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`OrderedDict` with the convergence parameters.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">([</span>
+            <span class="p">(</span><span class="s2">&quot;nqpt&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">qpoints</span><span class="p">)),</span>
+        <span class="p">])</span></div>
+
 <div class="viewcode-block" id="Has_PhononBands.plot_phbands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands.plot_phbands">[docs]</a>    <span class="k">def</span> <span class="nf">plot_phbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature.&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="c1">#def plot_phbands_with_phdos(self, phdos, **kwargs):</span>
     <span class="c1">#    return self.phbands.plot_with_phdos(phdos, **kwargs)</span>
+
+
+<div class="viewcode-block" id="Has_PhononBands.yield_phbands_figs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands.yield_phbands_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_phbands_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        Used in abiview.py to get a quick look at the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">qpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands</span><span class="o">.</span><span class="n">plot_colored_matched</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Has_PhononBands.expose_phbands"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_PhononBands.expose_phbands">[docs]</a>    <span class="k">def</span> <span class="nf">expose_phbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slide_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_phbands_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">NcDumper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -514,7 +588,7 @@
 <span class="sd">    Mixin class for objects that are able to generate jupyter_ notebooks.</span>
 <span class="sd">    Subclasses must provide a concrete implementation of `write_notebook`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="NotebookWriter.make_and_open_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.make_and_open_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">make_and_open_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="NotebookWriter.make_and_open_notebook"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.make_and_open_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">make_and_open_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate an jupyter_ notebook and open it in the browser.</span>
 
@@ -532,7 +606,7 @@
         <span class="n">nbpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_notebook</span><span class="p">(</span><span class="n">nbpath</span><span class="o">=</span><span class="n">nbpath</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;jupyter&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find jupyter in PATH. Install it with `conda install jupyter or `pip install jupyter`&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Cannot find jupyter in $PATH. Install it with `conda install jupyter or `pip install jupyter`&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">foreground</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;jupyter notebook </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nbpath</span><span class="p">)</span>
@@ -599,21 +673,24 @@
     <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file is created.</span>
-<span class="sd">        Return path to the notebook. A typical template is given below.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Preable.</span>
-        <span class="n">nbformat</span><span class="p">,</span> <span class="n">nbv</span><span class="p">,</span> <span class="n">nb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nbformat_nbv_nb</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="sd">        Return path to the notebook. A typical template:</span>
 
-        <span class="c1">#####################</span>
-        <span class="c1"># Put your code here</span>
-        <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_markdown_cell</span><span class="p">(</span><span class="s2">&quot;# This is a markdown cell&quot;</span><span class="p">),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;a = 1&quot;</span><span class="p">),</span>
-        <span class="p">])</span>
-        <span class="c1">#####################</span>
+<span class="sd">        .. code-block:: python</span>
 
-        <span class="c1"># Call _write_nb_nbpath</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div>
+<span class="sd">            # Preable.</span>
+<span class="sd">            nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)</span>
+
+<span class="sd">            #####################</span>
+<span class="sd">            # Put your code here</span>
+<span class="sd">            nb.cells.extend([</span>
+<span class="sd">                nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
+<span class="sd">                nbv.new_code_cell(&quot;a = 1&quot;),</span>
+<span class="sd">            ])</span>
+<span class="sd">            #####################</span>
+
+<span class="sd">            # Call _write_nb_nbpath</span>
+<span class="sd">            return self._write_nb_nbpath(nb, nbpath)</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">):</span>
@@ -654,7 +731,22 @@
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">filepath</span></div></div>
+            <span class="k">return</span> <span class="n">filepath</span></div>
+
+    <span class="c1">#@abc.abstractmethod</span>
+    <span class="c1">#def yield_figs(self, **kwargs)</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+    <span class="c1">#    Used in abiview.py to get a quick look at the results.</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="NotebookWriter.expose"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.NotebookWriter.expose">[docs]</a>    <span class="k">def</span> <span class="nf">expose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slide_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="n">slide_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_figs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="Has_Header"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.Has_Header">[docs]</a><span class="k">class</span> <span class="nc">Has_Header</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -665,7 +757,11 @@
         <span class="sd">&quot;&quot;&quot;|AttrDict| with the Abinit header e.g. hdr.ecut.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_abinit_hdr</span><span class="p">()</span></div></div>
 
-    <span class="c1">#def compare_hdr(self, other):</span>
+    <span class="c1">#def get_hdr_params(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;:class:`OrderedDict` with the convergence parameters.&quot;&quot;&quot;</span>
+    <span class="c1">#    return collections.OrderedDict([</span>
+
+    <span class="c1">#def compare_hdr(self, other_hdr):</span>
 </pre></div>
 
     </div>
@@ -679,8 +775,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

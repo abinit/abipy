@@ -8,8 +8,8 @@ Flow Gallery
 This gallery contains python scripts to generate AbiPy flows from the command line.
 
 Run the scripts to generate the directory with the flow and then use :ref:`abirun.py` to execute the flow.
-Alternatively, one can use the `-s` option to generate the flow and run it immediately with the scheduler. 
-Use `--help` to further information on the available options.
+Alternatively, one can use the ``-s`` option to generate the flow and run it immediately with the scheduler. 
+Use ``--help`` to further information on the available options.
 
 .. warning::
 
@@ -262,6 +262,26 @@ Use `--help` to further information on the available options.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to build a flow for Nscf calculations in which the dependency is given b...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_from_files_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_from_files.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_from_files
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0) ">
 
 .. only:: html
@@ -299,6 +319,26 @@ Use `--help` to further information on the available options.
    :hidden:
 
    /flow_gallery/run_gaas_ebands_soc
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This examples shows how to build a Flow to compute the phonon band structure in a metallic syst...">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_mgb2_phonons_nkpt_tsmear_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_mgb2_phonons_nkpt_tsmear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_mgb2_phonons_nkpt_tsmear
 
 .. raw:: html
 

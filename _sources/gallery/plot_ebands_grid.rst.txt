@@ -38,9 +38,9 @@ We use two GSR files:
     BZ sampling       1        1       1    29      8     8.0  5.598453     Si2   
     k-path            1        1       1    14      8     8.0  5.598453     Si2   
 
-                 natom  angle0     ...          volume  abispg_num  spglib_symb  \
-    BZ sampling      2    60.0     ...       40.888292         227        Fd-3m   
-    k-path           2    60.0     ...       40.888292         227        Fd-3m   
+                 natom  alpha     ...          volume  abispg_num  spglib_symb  \
+    BZ sampling      2   60.0     ...       40.888292         227        Fd-3m   
+    k-path           2   60.0     ...       40.888292         227        Fd-3m   
 
                  spglib_num  scheme  occopt tsmear_ev bandwidth_spin0  \
     BZ sampling         227    none       1  0.272114       11.855874   
@@ -87,7 +87,7 @@ We use two GSR files:
     plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))
     plotter.gridplot()
 
-**Total running time of the script:** ( 0 minutes  4.800 seconds)
+**Total running time of the script:** ( 0 minutes  5.002 seconds)
 
 
 

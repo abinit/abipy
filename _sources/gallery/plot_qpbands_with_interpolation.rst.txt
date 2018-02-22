@@ -42,7 +42,7 @@ the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with
  Out::
 
     Will use: 30 star-functions. nstars/nk: 5.0
-    FIT vs input data: Mean Absolute Error= 1.01481323345e-13  [meV]
+    FIT vs input data: Mean Absolute Error= 1.19479079408e-13  [meV]
 
 
 
@@ -108,7 +108,7 @@ the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  3.979 seconds)
+**Total running time of the script:** ( 0 minutes  5.465 seconds)
 
 
 

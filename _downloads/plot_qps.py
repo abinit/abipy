@@ -3,7 +3,7 @@ r"""
 SIGRES file (GW)
 ================
 
-This example shows how to visualize the QP results 
+This example shows how to visualize the QP results
 stored in the SIGRES produced by the GW code (sigma run)
 """
 import abipy.data as abidata
@@ -12,14 +12,16 @@ from abipy.abilab import abiopen
 sigres = abiopen(abidata.ref_file("tgw1_9o_DS4_SIGRES.nc"))
 
 # Printout of the QPState results
-sigres.print_qps()
+#sigres.print_qps()
 
-sigres.plot_qps_vs_e0(tight_layout=True)
+sigres.plot_qps_vs_e0(tight_layout=True, title="QP data vs KS energy")
 
-qp = sigres.get_qpcorr(spin=0, kpoint=(0, 0, 0), band=0)
-print(qp)
+sigres.plot_qpgaps(title="QP direct gaps")
 
-#qplist_spin = sigres.qplist_spin
-#qplist_spin[0].plot_qps_vs_e0(title="QPState corrections of Si", exclude_fields="vUme")
+sigres.plot_qpgaps(plot_qpmks=True, title="QP - KS direct gap")
+
+sigres.plot_qpbands_ibz()
+
+sigres.plot_ksbands_with_qpmarkers(fact=1000)
 
 sigres.close()

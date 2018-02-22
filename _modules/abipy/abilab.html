@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abilab &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.abilab &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -153,18 +154,15 @@
 <span class="c1">####################</span>
 <span class="c1">### Abipy import ###</span>
 <span class="c1">####################</span>
-<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Mrgscr</span><span class="p">,</span> <span class="n">Mrgddb</span><span class="p">,</span> <span class="n">Mrggkk</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span><span class="p">,</span> <span class="n">flow_main</span>
-<span class="c1">#from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,</span>
-<span class="c1">#    g0w0_flow, phonon_flow, phonon_conv_flow, nonlinear_coeff_flow)</span>
-
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Mrgscr</span><span class="p">,</span> <span class="n">Mrgddb</span><span class="p">,</span> <span class="n">Mrggkk</span><span class="p">,</span> <span class="n">Flow</span><span class="p">,</span> <span class="n">Work</span><span class="p">,</span> <span class="n">TaskManager</span><span class="p">,</span> <span class="n">AbinitBuild</span><span class="p">,</span> <span class="n">flow_main</span>
 <span class="kn">from</span> <span class="nn">abipy.core.release</span> <span class="k">import</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">min_abinit_version</span>
 <span class="kn">from</span> <span class="nn">abipy.core.globals</span> <span class="k">import</span> <span class="n">enable_notebook</span><span class="p">,</span> <span class="n">in_notebook</span><span class="p">,</span> <span class="n">disable_notebook</span>
 <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
 <span class="kn">from</span> <span class="nn">abipy.core.structure</span> <span class="k">import</span> <span class="p">(</span><span class="n">Lattice</span><span class="p">,</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">StructureModifier</span><span class="p">,</span> <span class="n">dataframes_from_structures</span><span class="p">,</span>
   <span class="n">mp_match_structure</span><span class="p">,</span> <span class="n">mp_search</span><span class="p">,</span> <span class="n">cod_search</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">CubeFile</span>
+<span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">set_atol_kdiff</span>
-<span class="kn">from</span> <span class="nn">abipy.htc.input</span> <span class="k">import</span> <span class="n">AbiInput</span><span class="p">,</span> <span class="n">LdauParams</span><span class="p">,</span> <span class="n">LexxParams</span><span class="p">,</span> <span class="n">input_gen</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AbinitInput</span><span class="p">,</span> <span class="n">MultiDataset</span><span class="p">,</span> <span class="n">AnaddbInput</span><span class="p">,</span> <span class="n">OpticInput</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars</span> <span class="k">import</span> <span class="n">AbinitInputFile</span>
@@ -187,7 +185,7 @@
 <span class="kn">from</span> <span class="nn">abipy.electrons.fatbands</span> <span class="k">import</span> <span class="n">FatBandsFile</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.optic</span> <span class="k">import</span> <span class="n">OpticNcFile</span><span class="p">,</span> <span class="n">OpticRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.fold2bloch</span> <span class="k">import</span> <span class="n">Fold2BlochNcfile</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="p">(</span><span class="n">PhbstFile</span><span class="p">,</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhdosFile</span><span class="p">,</span> <span class="n">PhononDosPlotter</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="p">(</span><span class="n">PhbstFile</span><span class="p">,</span> <span class="n">PhbstRobot</span><span class="p">,</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhdosFile</span><span class="p">,</span> <span class="n">PhononDosPlotter</span><span class="p">,</span>
     <span class="n">PhdosReader</span><span class="p">,</span> <span class="n">phbands_gridplot</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="k">import</span> <span class="n">DdbFile</span><span class="p">,</span> <span class="n">DdbRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.anaddbnc</span> <span class="k">import</span> <span class="n">AnaddbNcFile</span>
@@ -295,8 +293,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Analyze the filesystem starting from directory `top` and</span>
 <span class="sd">    return an ordered dictionary mapping the directory name to the list</span>
-<span class="sd">    of files supported by `abiopen` contained within that directory.</span>
-<span class="sd">    If not `recurse`, children directories are not analyzed.</span>
+<span class="sd">    of files supported by ``abiopen`` contained within that directory.</span>
+<span class="sd">    If not ``recurse``, children directories are not analyzed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dl</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
 
@@ -317,7 +315,7 @@
 
 <div class="viewcode-block" id="isabifile"><a class="viewcode-back" href="../../api/abilab_api.html#abipy.abilab.isabifile">[docs]</a><span class="k">def</span> <span class="nf">isabifile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return True if `filepath` can be opened with `abiopen`.</span>
+<span class="sd">    Return True if `filepath` can be opened with ``abiopen``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">abifile_subclass_from_filename</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -513,8 +511,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

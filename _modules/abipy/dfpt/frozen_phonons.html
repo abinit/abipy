@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abipy.dfpt.frozen_phonons &#8212; abipy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          abipy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../features.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Getting AbiPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzbiblio.html">Bibliography</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for abipy.dfpt.frozen_phonons</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;Objects to run and analyze the frozen phonons generated from displacements of atoms&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span> <span class="k">as</span> <span class="nn">optimize</span>
+
+<span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
+<span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">dict2namedtuple</span>
+<span class="kn">from</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">import</span> <span class="n">phfactor_ev2units</span><span class="p">,</span> <span class="n">amu_emass</span><span class="p">,</span> <span class="n">Bohr_Ang</span><span class="p">,</span> <span class="n">eV_Ha</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
+
+
+<div class="viewcode-block" id="quadratic_fit_function"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.quadratic_fit_function">[docs]</a><span class="k">def</span> <span class="nf">quadratic_fit_function</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple quadratic function used as a default for the fitting.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        xx: the variable</span>
+<span class="sd">        aa: the coefficient of the quadratic term</span>
+<span class="sd">        bb: the constant term</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">aa</span> <span class="o">*</span> <span class="n">xx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">bb</span></div>
+
+<div class="viewcode-block" id="FrozenPhonon"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon">[docs]</a><span class="k">class</span> <span class="nc">FrozenPhonon</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class defining a set of structures with displaced atoms.</span>
+<span class="sd">    Provides methods to generate, interpolate and plot the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">original_structure</span><span class="p">,</span> <span class="n">original_displ_cart</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">normalized_displ_cart</span><span class="p">,</span> <span class="n">etas</span><span class="p">,</span>
+                 <span class="n">qpt_frac_coords</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span> <span class="n">energies</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            original_structure: the original |Structure| object without any displacement.</span>
+<span class="sd">            original_displ_cart: the original displacement used for generating the structures in cartesian</span>
+<span class="sd">                coordinates. Should be linked to original_structure and should contain the phdispl_cart obtained</span>
+<span class="sd">                from the phonon calculation.</span>
+<span class="sd">            structures: list of structures with the displaced atoms</span>
+<span class="sd">            normalized_displ_cart: displacement applied to the supercell to generate the list of structures.</span>
+<span class="sd">                The normalization defines the largest displacement of one atom at 1 Angstrom.</span>
+<span class="sd">            etas: list of (signed) factors that will multiply the normalized displacement to obtain the list of</span>
+<span class="sd">                structure.</span>
+<span class="sd">            qpt_frac_coords: fractional coordinates of the qpoint corresponding to the displacement.</span>
+<span class="sd">            scale_matrix: the scaling matrix between the original cell and the supercell.</span>
+<span class="sd">            energies: energies in eV corresponding to the structures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">original_structure</span> <span class="o">=</span> <span class="n">original_structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">original_displ_cart</span> <span class="o">=</span> <span class="n">original_displ_cart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="o">=</span> <span class="n">structures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalized_displ_cart</span> <span class="o">=</span> <span class="n">normalized_displ_cart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">etas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">etas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qpt_frac_coords</span> <span class="o">=</span> <span class="n">qpt_frac_coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">scale_matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_energies</span> <span class="o">=</span> <span class="n">energies</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">energies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Energies in eV corresponding to the the structures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_energies</span>
+
+    <span class="nd">@energies</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energies</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the number of energies corresponding to the structures, should have the same length as structures</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_displ</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The size of the enegies list does not match the number of internal structures.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_energies</span> <span class="o">=</span> <span class="n">energies</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">qpt_cart_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The cartesian coordinates of the qpoint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qpt_frac_coords</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_displ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of displacements.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FrozenPhonon.ieta0"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.ieta0">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">ieta0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The index corresponding to the structure with no displacements.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The structure with no displacement is not present in the list.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FrozenPhonon.from_phbands"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.from_phbands">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_phbands</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phbands</span><span class="p">,</span> <span class="n">qpt_frac_coords</span><span class="p">,</span> <span class="n">imode</span><span class="p">,</span> <span class="n">etas</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_supercell</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an instace of FrozenPhonon using the eigendisplacements from a |PhononBands|</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            phbands: a |PhononBands| instance.</span>
+<span class="sd">            qpt_frac_coords: q vector in reduced coordinate in reciprocal space or index of the qpoint.</span>
+<span class="sd">            imode: index of the mode.</span>
+<span class="sd">            etas: list of amplitudes of the displacement to be applied to the system. Will correspond to the</span>
+<span class="sd">                largest displacement of one atom in Angstrom.</span>
+<span class="sd">            scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for</span>
+<span class="sd">                the qpoint will be determined.</span>
+<span class="sd">            max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest</span>
+<span class="sd">                supercell in the search for a scaling matrix suitable for the q point.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A FrozenPhonon.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">qind</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">qindex</span><span class="p">(</span><span class="n">qpt_frac_coords</span><span class="p">)</span>
+        <span class="n">original_displ_cart</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phdispl_cart</span><span class="p">[</span><span class="n">qind</span><span class="p">,</span> <span class="n">imode</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># first extract data with the normalized displacement (eta=1)</span>
+        <span class="n">normalized_fp</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">get_frozen_phonons</span><span class="p">(</span><span class="n">qind</span><span class="p">,</span> <span class="n">imode</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">scale_matrix</span><span class="p">,</span> <span class="n">max_supercell</span><span class="p">)</span>
+
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">etas</span><span class="p">:</span>
+            <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">get_frozen_phonons</span><span class="p">(</span><span class="n">qind</span><span class="p">,</span> <span class="n">imode</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">normalized_fp</span><span class="o">.</span><span class="n">scale_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">original_displ_cart</span><span class="p">,</span> <span class="n">structures</span><span class="p">,</span> <span class="n">normalized_fp</span><span class="o">.</span><span class="n">displ</span><span class="p">,</span> <span class="n">etas</span><span class="p">,</span>
+                   <span class="n">phbands</span><span class="o">.</span><span class="n">qpoints</span><span class="p">[</span><span class="n">qind</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="n">normalized_fp</span><span class="o">.</span><span class="n">scale_matrix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FrozenPhonon.mass_factor"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.mass_factor">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">mass_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The factor accounting for the different masses and displacement of each atom</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># the norms of each atomic displacement of the normalized displacement</span>
+        <span class="n">displ_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normalized_displ_cart</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">mass_factor</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">atomic_mass</span> <span class="o">*</span> <span class="p">(</span><span class="n">df</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">displ_norms</span> <span class="o">/</span> <span class="n">displ_norms</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">mass_factor</span> <span class="o">*=</span> <span class="n">amu_emass</span>
+        <span class="k">return</span> <span class="n">mass_factor</span></div>
+
+    <span class="k">def</span> <span class="nf">_freq_to_quad_coeff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to convert from a frequency in eV to the quadratic coefficient corresponding to the</span>
+<span class="sd">        energies in eV and the etas in Angstrom. Uses the conversions to a.u. to get the correct value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">freq</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_factor</span> <span class="o">*</span> <span class="n">eV_Ha</span> <span class="o">/</span> <span class="n">Bohr_Ang</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">_quad_coeff_to_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coeff</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to convert from the quadratic coefficient corresponding to the fit of energies in eV and</span>
+<span class="sd">        the etas in Angstrom to a frequency in eV. Uses the conversions to a.u. to get the correct value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coeff</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_factor</span> <span class="o">/</span> <span class="n">eV_Ha</span><span class="p">)</span> <span class="o">*</span> <span class="n">Bohr_Ang</span>
+
+<div class="viewcode-block" id="FrozenPhonon.fit_to_frequency"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.fit_to_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">fit_to_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fit_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="n">min_fit_eta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_fit_eta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses the energies and the displacements to calculate the phonon frequency corresponding to the quadratic</span>
+<span class="sd">        term of the fit.</span>
+<span class="sd">        The fit is performed with scipy.optimize.curve_fit based on the function given in input and can also be</span>
+<span class="sd">        limited number to a subset of the values of the displacements.</span>
+
+
+<span class="sd">        Args:</span>
+<span class="sd">            fit_function: a function that will be used to fit the data. The first parameter should be the coefficient</span>
+<span class="sd">                of the quadratic term. If None a simple quadratic fit will be used.</span>
+<span class="sd">            units: units of the output frequency. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;).</span>
+<span class="sd">                Case-insensitive.</span>
+<span class="sd">            min_fit_eta: if not None represents minimum value allowed for the (signed) eta to be used in the fit.</span>
+<span class="sd">            max_fit_eta: if not None represents maximum value allowed for the (signed) eta to be used in the fit.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A namedtuple with &#39;freq&#39;: the values of the frequency extracted from the fit,</span>
+<span class="sd">            &#39;fit_params&#39;: the parameters obtained from the fit, &#39;cov&#39;: the estimated covariance of fit_params</span>
+<span class="sd">            (see scipy.optimize.curve_fit documentation for more details).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The energies are required to calculate the fit&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">min_fit_eta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">min_fit_eta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">max_fit_eta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_fit_eta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">min_fit_eta</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etas</span> <span class="o">&lt;=</span> <span class="n">max_fit_eta</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">fit_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fit_function</span> <span class="o">=</span> <span class="n">quadratic_fit_function</span>
+
+        <span class="n">etas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">)[</span><span class="n">indices</span><span class="p">]</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">cov</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="n">fit_function</span><span class="p">,</span> <span class="n">etas</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span>
+
+        <span class="c1"># frequency in eV.</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quad_coeff_to_freq</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="o">*</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">),</span> <span class="n">fit_params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FrozenPhonon.plot_fit_energies"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.plot_fit_energies">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_fit_energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fit_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_fit_eta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_fit_eta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fits the displacements etas to the energies. See fit_to_frequency() for more details.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fit_function: a function that will be used to fit the data. The first parameter should be the coefficient</span>
+<span class="sd">                of the quadratic term. If None a simple quadratic fit will be used.</span>
+<span class="sd">            min_fit_eta: if not None represents minimum value allowed for the (signed) eta to be used in the fit.</span>
+<span class="sd">            max_fit_eta: if not None represents maximum value allowed for the (signed) eta to be used in the fit.</span>
+<span class="sd">            freq: if not None the quadratic function with this frequency as a coefficient will be added to the plot.</span>
+<span class="sd">                freq in eV. Requires the 0 displacement to be present in the list of etas.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">fit_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fit_function</span> <span class="o">=</span> <span class="n">quadratic_fit_function</span>
+
+        <span class="n">fit_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_to_frequency</span><span class="p">(</span><span class="n">fit_function</span><span class="p">,</span> <span class="n">min_fit_eta</span><span class="o">=</span><span class="n">min_fit_eta</span><span class="p">,</span> <span class="n">max_fit_eta</span><span class="o">=</span><span class="n">max_fit_eta</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;c&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;blue&quot;</span>
+
+        <span class="n">kwargs_points</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">kwargs_points</span><span class="p">[</span><span class="s2">&quot;linestyle&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;markersize&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs_points</span> <span class="ow">and</span> <span class="s2">&quot;ms&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs_points</span><span class="p">:</span>
+            <span class="n">kwargs_points</span><span class="p">[</span><span class="s2">&quot;markersize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">if</span> <span class="s2">&quot;marker&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs_points</span> <span class="ow">and</span> <span class="s2">&quot;m&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs_points</span><span class="p">:</span>
+            <span class="n">kwargs_points</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;o&quot;</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_points</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;linewidth&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;lw&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linestyle&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+
+        <span class="n">etas_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">etas_plot</span><span class="p">,</span> <span class="n">fit_function</span><span class="p">(</span><span class="n">etas_plot</span><span class="p">,</span> <span class="o">*</span><span class="n">fit_data</span><span class="o">.</span><span class="n">fit_params</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linestyle&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span>
+            <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ieta0</span><span class="p">]</span>
+            <span class="n">en_freq</span> <span class="o">=</span> <span class="n">quadratic_fit_function</span><span class="p">(</span><span class="n">etas_plot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq_to_quad_coeff</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">e0</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">etas_plot</span><span class="p">,</span> <span class="n">en_freq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Displacements [Ang]&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Energy [eV]&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="FrozenPhonon.plot_anharmonic_contribution"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.frozen_phonons.FrozenPhonon.plot_anharmonic_contribution">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_anharmonic_contribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the the absolute relative difference between the energies extracted from the frequency as</span>
+<span class="sd">        quadratic coefficient and the calculated energies, giving an estimate of the anharmonic contribution</span>
+<span class="sd">        Requires the 0 displacement to be present in the list of etas.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            freq: phonon frequncy in eV</span>
+<span class="sd">            relative: if True the plot will represent the relative difference with respect to the expected value</span>
+<span class="sd">                obtained from the frequency, rather than the absolute difference.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The energies are required to calculate the fit&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_freq_to_quad_coeff</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;c&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;blue&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;linewidth&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;lw&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ieta0</span><span class="p">]</span>
+        <span class="n">en_freq</span> <span class="o">=</span> <span class="n">quadratic_fit_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq_to_quad_coeff</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">e0</span><span class="p">)</span>
+
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">en_freq</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">/</span><span class="p">(</span><span class="n">e</span><span class="o">-</span><span class="n">e0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">if</span> <span class="n">e</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="n">en_freq</span><span class="p">)]</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etas</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Displacements [Ang]&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative energy difference [%]&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Energy difference [eV]&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

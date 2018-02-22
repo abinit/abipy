@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>GW Convergence &#8212; abipy 0.2.0 documentation</title>
+    <title>GW Convergence &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Projected phonon DOS" href="plot_phonon_pjdos.html" />
-    <link rel="prev" title="Joint Density of States" href="plot_ejdos.html" />
+    <link rel="next" title="Multiple phonon bands" href="plot_phbands_nkpt_tsmear.html" />
+    <link rel="prev" title="SCR matrix" href="plot_scr_matrix.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -106,11 +107,11 @@
               
                 
   <li>
-    <a href="plot_ejdos.html" title="Previous Chapter: Joint Density of States"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Joint Density...</span>
+    <a href="plot_scr_matrix.html" title="Previous Chapter: SCR matrix"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; SCR matrix</span>
     </a>
   </li>
   <li>
-    <a href="plot_phonon_pjdos.html" title="Next Chapter: Projected phonon DOS"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Projected phonon DOS &raquo;</span>
+    <a href="plot_phbands_nkpt_tsmear.html" title="Next Chapter: Multiple phonon bands"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Multiple phonon bands &raquo;</span>
     </a>
   </li>
               
@@ -146,8 +147,8 @@
       
   <div class="section" id="gw-convergence">
 <span id="sphx-glr-gallery-plot-qpconverge-py"></span><h1>GW Convergence<a class="headerlink" href="#gw-convergence" title="Permalink to this headline">¶</a></h1>
-<p>This example shows how to visualize the convergence of the
-QP results stored in the SIGRES produced by the GW code (sigma run).</p>
+<p>This example shows how to use the SigresRobot to visualize the convergence of the
+QP results stored in the SIGRES.nc files produced by the GW code (sigma run).</p>
 <ul class="sphx-glr-horizontal">
 <li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qpconverge_001.png"><img alt="../_images/sphx_glr_plot_qpconverge_001.png" src="../_images/sphx_glr_plot_qpconverge_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
 </li>
@@ -156,7 +157,7 @@ QP results stored in the SIGRES produced by the GW code (sigma run).</p>
 <li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_qpconverge_003.png"><img alt="../_images/sphx_glr_plot_qpconverge_003.png" src="../_images/sphx_glr_plot_qpconverge_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
 </li>
 </ul>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">SigresPlotter</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="kn">import</span> <span class="n">SigresRobot</span>
 <span class="kn">import</span> <span class="nn">abipy.data</span> <span class="kn">as</span> <span class="nn">abidata</span>
 
 <span class="c1"># List of SIGRES files computed with different values of nband.</span>
@@ -168,21 +169,21 @@ QP results stored in the SIGRES produced by the GW code (sigma run).</p>
 
 <span class="n">filepaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 
-<span class="c1"># Create the plotter and add `filepaths` to the plotter.</span>
-<span class="n">plotter</span> <span class="o">=</span> <span class="n">SigresPlotter</span><span class="p">()</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">add_files</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
+<span class="c1"># Build robot from list of file paths</span>
+<span class="n">robot</span> <span class="o">=</span> <span class="n">SigresRobot</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
+<span class="c1">#robot.remap_labels(lambda sigres: sigres.params[&quot;sigma_nband&quot;])</span>
 
 <span class="c1"># Plot the convergence of the QP gaps.</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">plot_qpgaps</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP gaps vs sigma_nband&quot;</span><span class="p">,</span> <span class="n">hspan</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="n">robot</span><span class="o">.</span><span class="n">plot_qpgaps_convergence</span><span class="p">(</span><span class="n">sortby</span><span class="o">=</span><span class="s2">&quot;sigma_nband&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP gaps vs sigma_nband&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the convergence of the QP energies.</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">plot_qpenes</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP energies vs sigma_nband&quot;</span><span class="p">,</span> <span class="n">hspan</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="n">robot</span><span class="o">.</span><span class="n">plot_qpdata_conv_skb</span><span class="p">(</span><span class="n">spin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kpoint</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">band</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sortby</span><span class="o">=</span><span class="s2">&quot;sigma_nband&quot;</span><span class="p">)</span>
 
 <span class="c1"># sphinx_gallery_thumbnail_number = 3</span>
-<span class="n">plotter</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">robot</span><span class="o">.</span><span class="n">plot_qpfield_vs_e0</span><span class="p">(</span><span class="s2">&quot;qpeme0&quot;</span><span class="p">,</span> <span class="n">sortby</span><span class="o">=</span><span class="s2">&quot;sigma_nband&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP energies vs sigma_nband&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.573 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  3.402 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_qpconverge.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_qpconverge.py</span></code></a></div>
@@ -204,8 +205,8 @@ QP results stored in the SIGRES produced by the GW code (sigma run).</p>
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Getting AbiPy &#8212; abipy 0.2.0 documentation</title>
+    <title>Getting AbiPy &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -183,7 +184,7 @@
 <div class="section" id="stable-version">
 <h2><a class="toc-backref" href="#contents">Stable version</a><a class="headerlink" href="#stable-version" title="Permalink to this headline">¶</a></h2>
 <p>The version at the <a class="reference external" href="https://pypi.python.org/pypi/abipy">Python Package Index</a> (PyPI) is always
-the latest stable release that can be installed with:</p>
+the latest <strong>stable</strong> release that can be installed with:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">abipy</span>
 </pre></div>
 </div>
@@ -192,11 +193,11 @@ In this case, please consult the detailed installation instructions provided by 
 <a class="reference external" href="http://pymatgen.org/index.html#standard-install">pymatgen howto</a> to install pymatgen
 and then follow the instructions in the <a class="reference internal" href="#netcdf4-installation"><span class="std std-ref">How to install HDF5/Netcdf4 and the python bindings</span></a> section.</p>
 <p>The installation process is greatly simplified if you install the required
-python packages through the <a class="reference external" href="https://continuum.io/downloads">Anaconda</a> distribution.
-We routinely use <a class="reference external" href="https://conda.io/docs/">conda</a> to test new developments with multiple versions of Python and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (<a class="reference external" href="http://www.numpy.org/">numpy</a>, <a class="reference external" href="https://www.scipy.org/">scipy</a>, <a class="reference external" href="http://matplotlib.org">matplotlib</a>, …)
-in the form of pre-compiled packages and <a class="reference external" href="http://unidata.github.io/netcdf4-python/">netcdf4-python</a> can be easily installed with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">netcdf4</span>
+packages through the <a class="reference external" href="https://continuum.io/downloads">Anaconda</a> distribution.
+We routinely use <a class="reference external" href="https://conda.io/docs/">conda</a> to test new developments with multiple Python versions and multiple virtual environments.
+The anaconda distribution already provides the most critical dependencies (<a class="reference external" href="http://www.numpy.org/">numpy</a>, <a class="reference external" href="https://www.scipy.org/">scipy</a>, <a class="reference external" href="http://matplotlib.org">matplotlib</a>, <a class="reference external" href="http://unidata.github.io/netcdf4-python/">netcdf4-python</a>)
+in the form of pre-compiled packages that can be easily installed with e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">numpy</span> <span class="n">scipy</span> <span class="n">netcdf4</span>
 </pre></div>
 </div>
 <p>Additional information on the steps required to install AbiPy with anaconda
@@ -218,14 +219,14 @@ manually can consult the <a class="reference internal" href="#howto-compile-pyth
 <p><a class="reference external" href="http://jupyter.org/">jupyter</a> and <a class="reference external" href="https://github.com/jupyter/nbformat">nbformat</a></p>
 <blockquote>
 <div>Required to generate jupyter notebooks.
-Install these two packages with <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyter</span> <span class="pre">nbformat</span></code> or use <code class="docutils literal"><span class="pre">pip_</span></code>.
+Install these two packages with <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyter</span> <span class="pre">nbformat</span></code> or use <a class="reference external" href="https://pypi.python.org/pypi/pip">pip</a>.
 To use <code class="docutils literal"><span class="pre">jupyter</span></code> you will also need a web browser to open the notebook.
 (recommended)</div></blockquote>
 </div>
 <div class="section" id="anaconda-howto">
 <span id="id1"></span><h2><a class="toc-backref" href="#contents">Anaconda Howto</a><a class="headerlink" href="#anaconda-howto" title="Permalink to this headline">¶</a></h2>
 <p>Download the anaconda installer from the <a class="reference external" href="https://www.continuum.io/downloads">official web-site</a>.
-Choose the version that matches your OS and select python2.7.
+Choose the version that matches your OS and select python3.6.
 You may want to use the <code class="docutils literal"><span class="pre">wget</span></code> utility to download the anaconda script directly from the terminal
 (useful if you are installing anaconda on a cluster).</p>
 <p>Run the bash script in the terminal and follow the instructions.
@@ -237,7 +238,7 @@ Once the installation is completed, execute:</p>
 </div>
 <p>to activate the <code class="docutils literal"><span class="pre">root</span></code> environment.
 The output of <code class="docutils literal"><span class="pre">which</span> <span class="pre">python</span></code> should show that you are using the python interpreter provided by anaconda.</p>
-<p>Use the <code class="docutils literal"><span class="pre">conda</span></code> command-line interface to install the packages not included in the official distribution.
+<p>Use the <a class="reference external" href="https://conda.io/docs/">conda</a> command-line interface to install the packages not included in the official distribution.
 For example, you can install <code class="docutils literal"><span class="pre">pyyaml</span></code> and <code class="docutils literal"><span class="pre">netcdf4</span></code> with:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pyyaml</span> <span class="n">netcdf4</span>
 </pre></div>
@@ -305,6 +306,8 @@ For further information on the syntax of the configuration file, please consult 
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">abinit</span> <span class="o">-</span><span class="n">c</span> <span class="n">abinit</span>
 </pre></div>
 </div>
+<p>Examples of configuration files to configure and compile Abinit on clusters can be found
+in the <a class="reference external" href="https://github.com/abinit/abiconfig">abiconfig</a> package.</p>
 <p>Contributing to AbiPy is relatively easy.
 Just send us a <a class="reference external" href="https://help.github.com/articles/using-pull-requests/">pull request</a>.
 When you send your request, make <code class="docutils literal"><span class="pre">develop</span></code> the destination branch on the repository
@@ -498,8 +501,8 @@ when trying to open files with abiopen. Add</p>
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 29, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

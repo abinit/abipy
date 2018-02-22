@@ -87,7 +87,7 @@ stored in the DEN.nc file.
     # and all the neighbors within a sphere of radius 3 Angstrom:
     density.plot_line_neighbors(site_index=0, radius=3)
 
-**Total running time of the script:** ( 0 minutes  0.725 seconds)
+**Total running time of the script:** ( 0 minutes  0.582 seconds)
 
 
 

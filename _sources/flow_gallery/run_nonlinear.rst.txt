@@ -100,7 +100,7 @@ Flow to compute non-linear optical properties with DFPT (static limit).
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.986 seconds)
+**Total running time of the script:** ( 0 minutes  1.869 seconds)
 
 
 

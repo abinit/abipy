@@ -103,7 +103,7 @@ then use:
 
    abirun.py flow_eos structures
 
-to get info about the intial and final structures.
+to get info about the initial and final structures.
 
 .. code-block:: bash
 
@@ -175,7 +175,7 @@ to produce
 
 
 
-**Total running time of the script:** ( 0 minutes  0.212 seconds)
+**Total running time of the script:** ( 0 minutes  0.251 seconds)
 
 
 

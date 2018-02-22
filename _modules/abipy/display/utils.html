@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.display.utils &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.display.utils &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -138,45 +139,45 @@
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">get_ax_fig_plt</span>
 
 
-<div class="viewcode-block" id="add_docstrings"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.add_docstrings">[docs]</a><span class="k">def</span> <span class="nf">add_docstrings</span><span class="p">(</span><span class="o">*</span><span class="n">tuples</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This decorator adds to the docstring the documentation for functions.</span>
-<span class="sd">    When writing high-level API, it&#39;s quite common to call thirdy-party functions</span>
-<span class="sd">    with a restricted set of arguments while optional keyword arguments are</span>
-<span class="sd">    collected in an optional dictionary.</span>
-
-<span class="sd">    The first item of the tuple contains the function (python object) wrapped by the code.</span>
-<span class="sd">    The second item is list of strings with the name of the actual arguments passed to function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="k">def</span> <span class="nf">wrapped_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-        <span class="c1"># Add docstrings for the functions that will be called by func.</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tuples</span><span class="p">:</span>
-            <span class="n">fname</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="c1"># List of strings or string.</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-                <span class="n">fargs</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;`</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fargs</span> <span class="o">=</span> <span class="s2">&quot;`</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">%s</span><span class="s2"> are passed to function :func:`</span><span class="si">%s</span><span class="s2">` in module :mod:`</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fargs</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__module__</span><span class="p">))</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Docstring of `</span><span class="si">%s</span><span class="s2">`:&quot;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">wrapped_func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Add s at the end of the docstring.</span>
-            <span class="n">wrapped_func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">s</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Use s</span>
-            <span class="n">wrapped_func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">s</span>
-        <span class="k">return</span> <span class="n">wrapped_func</span>
-    <span class="k">return</span> <span class="n">wrapper</span></div>
+<span class="c1">#def add_docstrings(*tuples):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    This decorator adds to the docstring the documentation for functions.</span>
+<span class="c1">#    When writing high-level API, it&#39;s quite common to call thirdy-party functions</span>
+<span class="c1">#    with a restricted set of arguments while optional keyword arguments are</span>
+<span class="c1">#    collected in an optional dictionary.</span>
+<span class="c1">#</span>
+<span class="c1">#    The first item of the tuple contains the function (python object) wrapped by the code.</span>
+<span class="c1">#    The second item is list of strings with the name of the actual arguments passed to function.</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    from functools import wraps</span>
+<span class="c1">#    def wrapper(func):</span>
+<span class="c1">#        @wraps(func)</span>
+<span class="c1">#        def wrapped_func(*args, **kwargs):</span>
+<span class="c1">#            return func(*args, **kwargs)</span>
+<span class="c1">#</span>
+<span class="c1">#        # Add docstrings for the functions that will be called by func.</span>
+<span class="c1">#        lines = []</span>
+<span class="c1">#        app = lines.append</span>
+<span class="c1">#        for t in tuples:</span>
+<span class="c1">#            fname = t[0].__name__</span>
+<span class="c1">#            # List of strings or string.</span>
+<span class="c1">#            if isinstance(t[1], (list, tuple)):</span>
+<span class="c1">#                fargs = &quot;,&quot;.join(&quot;`%s`&quot; % a for a in t[1])</span>
+<span class="c1">#            else:</span>
+<span class="c1">#                fargs = &quot;`%s`&quot; % t[1]</span>
+<span class="c1">#            app(&quot;\n%s are passed to function :func:`%s` in module :mod:`%s`&quot; % (fargs, fname, t[0].__module__))</span>
+<span class="c1">#            app(&quot;Docstring of `%s`:&quot; % fname)</span>
+<span class="c1">#            app(t[0].__doc__)</span>
+<span class="c1">#        s = &quot;\n&quot;.join(lines)</span>
+<span class="c1">#</span>
+<span class="c1">#        if wrapped_func.__doc__ is not None:</span>
+<span class="c1">#            # Add s at the end of the docstring.</span>
+<span class="c1">#            wrapped_func.__doc__ += &quot;\n&quot; + s</span>
+<span class="c1">#        else:</span>
+<span class="c1">#            # Use s</span>
+<span class="c1">#            wrapped_func.__doc__ = s</span>
+<span class="c1">#        return wrapped_func</span>
+<span class="c1">#    return wrapper</span>
 
 
 <div class="viewcode-block" id="widget2py"><a class="viewcode-back" href="../../../api/display_api.html#abipy.display.utils.widget2py">[docs]</a><span class="k">def</span> <span class="nf">widget2py</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
@@ -357,8 +358,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

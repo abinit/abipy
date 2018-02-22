@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Phonon fatbands &#8212; abipy 0.2.0 documentation</title>
+    <title>Phonon fatbands &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Multiple Structural relaxations" href="plot_multiple_hist.html" />
-    <link rel="prev" title="Ground-state SCF cycle" href="plot_gscycle.html" />
+    <link rel="next" title="Optic results" href="plot_optic.html" />
+    <link rel="prev" title="Multiple e-DOSes" href="plot_edos_vs_broad.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -106,11 +107,11 @@
               
                 
   <li>
-    <a href="plot_gscycle.html" title="Previous Chapter: Ground-state SCF cycle"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Ground-state ...</span>
+    <a href="plot_edos_vs_broad.html" title="Previous Chapter: Multiple e-DOSes"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Multiple e-DOSes</span>
     </a>
   </li>
   <li>
-    <a href="plot_multiple_hist.html" title="Next Chapter: Multiple Structural relaxations"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Multiple Stru... &raquo;</span>
+    <a href="plot_optic.html" title="Next Chapter: Optic results"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Optic results &raquo;</span>
     </a>
   </li>
               
@@ -153,6 +154,12 @@ See tutorial/lesson_rf2.html</p>
 </li>
 <li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phonon_fatbands_002.png"><img alt="../_images/sphx_glr_plot_phonon_fatbands_002.png" src="../_images/sphx_glr_plot_phonon_fatbands_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
 </li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phonon_fatbands_003.png"><img alt="../_images/sphx_glr_plot_phonon_fatbands_003.png" src="../_images/sphx_glr_plot_phonon_fatbands_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phonon_fatbands_004.png"><img alt="../_images/sphx_glr_plot_phonon_fatbands_004.png" src="../_images/sphx_glr_plot_phonon_fatbands_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phonon_fatbands_005.png"><img alt="../_images/sphx_glr_plot_phonon_fatbands_005.png" src="../_images/sphx_glr_plot_phonon_fatbands_005.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
 <div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span>[31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
@@ -170,15 +177,24 @@ Particular methods need them![0m
     <span class="n">phbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">phbands</span>
 
 <span class="c1"># Plot the phonon band structure.</span>
-<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands without LO-TO splitting&quot;</span><span class="p">)</span> <span class="c1">#, qlabels=qlabels)</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands without LO-TO splitting&quot;</span><span class="p">)</span>
 
 <span class="c1"># Plot the phonon band structure + PJDOS</span>
 <span class="c1"># sphinx_gallery_thumbnail_number = 2</span>
 <span class="n">phdos_path</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;trf2_5.out_PHDOS.nc&quot;</span><span class="p">)</span>
 <span class="n">phbands</span><span class="o">.</span><span class="n">plot_fatbands</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;Thz&quot;</span><span class="p">,</span> <span class="n">phdos_file</span><span class="o">=</span><span class="n">phdos_path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;AlAs phonon fatbands with PJDOS&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot contributions to the phonon displacement at the Gamma point grouped by atom type.</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;phonon displacements at $\Gamma$&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot (orthonormal) eigenvectors instead of displacements.</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">use_eigvec</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;meV&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;phonon eigenvectors at $\Gamma$&quot;</span><span class="p">)</span>
+
+<span class="c1"># Decompose contributions along the three Cartesian directions.</span>
+<span class="n">phbands</span><span class="o">.</span><span class="n">plot_phdispl_cartdirs</span><span class="p">(</span><span class="n">qpoint</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.919 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  2.649 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_phonon_fatbands.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_phonon_fatbands.py</span></code></a></div>
@@ -200,8 +216,8 @@ Particular methods need them![0m
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

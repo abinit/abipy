@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.kpoints &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.core.kpoints &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -157,7 +158,6 @@
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.derivatives</span> <span class="k">import</span> <span class="n">finite_diff</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.numtools</span> <span class="k">import</span> <span class="n">add_periodic_replicas</span>
-<span class="c1">#from numba import jit</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -168,6 +168,8 @@
     <span class="s2">&quot;wrap_to_bz&quot;</span><span class="p">,</span>
     <span class="s2">&quot;as_kpoints&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Kpoint&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;KpointList&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;KpointStar&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Kpath&quot;</span><span class="p">,</span>
     <span class="s2">&quot;IrredZone&quot;</span><span class="p">,</span>
     <span class="s2">&quot;rc_list&quot;</span><span class="p">,</span>
@@ -718,7 +720,10 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">diff</span> <span class="o">&lt;</span> <span class="n">_ATOL_KDIFF</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;[</span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">return</span> <span class="n">s</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
@@ -726,7 +731,8 @@
 <div class="viewcode-block" id="Kpoint.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpoint.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">s</span> <span class="o">=</span>  <span class="s2">&quot;[</span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">, </span><span class="si">%+.3f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, weight: </span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
@@ -827,7 +833,7 @@
         <span class="k">return</span> <span class="n">KpointStar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">frac_coords</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">])</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">KpointList</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList">[docs]</a><span class="k">class</span> <span class="nc">KpointList</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class defining a sequence of |Kpoint| objects. Essentially consists</span>
 <span class="sd">    of base methods implementing the sequence protocol and helper functions.</span>
@@ -850,25 +856,25 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Error</span> <span class="o">=</span> <span class="n">KpointsError</span>
 
-    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="KpointList.subclass_from_name"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.subclass_from_name">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">subclass_from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the class with the given name.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span> <span class="k">return</span> <span class="n">c</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span> <span class="k">return</span> <span class="n">c</span>
 
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find subclass associated to name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find subclass associated to name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span></div>
 
-    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="KpointList.from_dict"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes Kpoints obey the general json interface used in pymatgen for easier serialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">reciprocal_lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;reciprocal_lattice&quot;</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;frac_coords&quot;</span><span class="p">],</span>
-                   <span class="n">weights</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">],</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ksampling&quot;</span><span class="p">])</span>
+                   <span class="n">weights</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">],</span> <span class="n">ksampling</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ksampling&quot;</span><span class="p">])</span></div>
 
-    <span class="nd">@pmg_serialize</span>
+<div class="viewcode-block" id="KpointList.as_dict"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.as_dict">[docs]</a>    <span class="nd">@pmg_serialize</span>
     <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes Kpoints obey the general json interface used in pymatgen for easier serialization.</span>
@@ -880,7 +886,7 @@
             <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span>
             <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">],</span>
             <span class="n">ksampling</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">frac_coords</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ksampling</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -923,13 +929,13 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.to_string"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">) </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="n">kpoint</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">)])</span>
 
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
     <span class="c1"># Sequence protocol.</span>
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -966,7 +972,7 @@
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.index"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns: the first index of kpoint in self.</span>
 
@@ -975,22 +981,22 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find point: </span><span class="si">%s</span><span class="s2"> in KpointList:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">kpoint</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find point: </span><span class="si">%s</span><span class="s2"> in KpointList:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">kpoint</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
 
-    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.find"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns: first index of kpoint. -1 if not found</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
 
-    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.count"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return number of occurrences of kpoint&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">find_closest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.find_closest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.find_closest">[docs]</a>    <span class="k">def</span> <span class="nf">find_closest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find the closest k-point in the list (not necessarily equal).</span>
 
@@ -1016,7 +1022,7 @@
             <span class="n">dist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpt</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">kpt</span><span class="o">.</span><span class="n">frac_coords</span> <span class="o">-</span> <span class="n">frac_coords</span><span class="p">)</span>
 
         <span class="n">ind</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">ind</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dist</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ind</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dist</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1028,7 +1034,7 @@
         <span class="sd">&quot;&quot;&quot;True if self represents a list of points in the IBZ.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IrredZone</span><span class="p">)</span>
 
-    <span class="nd">@lazy_property</span>
+<div class="viewcode-block" id="KpointList.mpdivs_shifts"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.mpdivs_shifts">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">mpdivs_shifts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The Monkhorst-Pack (MP) divisions and shifts.</span>
@@ -1038,7 +1044,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_ibz</span><span class="p">:</span> <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="c1"># Test if kptrlatt is diagonal.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptrlatt</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">shifts</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">kptrlatt</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">shifts</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_mpmesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1054,9 +1060,9 @@
         <span class="sd">&quot;&quot;&quot;Fractional coordinates of the k-point as |numpy-array| of shape (len(self), 3)&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frac_coords</span>
 
-    <span class="k">def</span> <span class="nf">get_cart_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.get_cart_coords"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.get_cart_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_cart_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Cartesian coordinates of the k-point as |numpy-array| of shape (len(self), 3)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">cart_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">cart_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1068,11 +1074,11 @@
         <span class="sd">&quot;&quot;&quot;|numpy-array| with the weights of the k-points.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">kpoint</span><span class="o">.</span><span class="n">weight</span> <span class="k">for</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">sum_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.sum_weights"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.sum_weights">[docs]</a>    <span class="k">def</span> <span class="nf">sum_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the sum of the weights.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">check_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.check_weights"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.check_weights">[docs]</a>    <span class="k">def</span> <span class="nf">check_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if weights are normalized to one.</span>
 <span class="sd">        Raises: `ValueError` if Weights are not normalized.</span>
@@ -1083,9 +1089,9 @@
             <span class="n">err_msg</span> <span class="o">=</span> <span class="s2">&quot;Kpoint weights should sum up to one while sum_weights is </span><span class="si">%.3f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">wsum</span>
             <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;The list of kpoints does not represent a homogeneous sampling of the BZ</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">err_msg</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">remove_duplicated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.remove_duplicated"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.remove_duplicated">[docs]</a>    <span class="k">def</span> <span class="nf">remove_duplicated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove duplicated k-points from self. Returns new :class:`KpointList` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1107,19 +1113,19 @@
                 <span class="n">frac_coords</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">good_kpoints</span><span class="p">],</span>
                 <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">good_kpoints</span><span class="p">],</span>
-                <span class="n">ksampling</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="p">)</span>
+                <span class="n">ksampling</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ksampling</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">to_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.to_array"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.to_array">[docs]</a>    <span class="k">def</span> <span class="nf">to_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a |numpy-array| [nkpy, 3] with the fractional coordinates.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.to_json"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a JSON_ string representation of the MSONable object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.plot"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot k-points with matplotlib.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.plotter</span> <span class="k">import</span> <span class="n">plot_brillouin_zone</span>
         <span class="n">fold</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1133,9 +1139,9 @@
             <span class="c1"># Don&#39;t know if it&#39;s a bug in matplotlib or plot_brillouin_zone.</span>
             <span class="c1">#print(self.frac_coords)</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">kpoints</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span>
-                                       <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="n">fold</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                                       <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">fold</span><span class="o">=</span><span class="n">fold</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_k2kqg_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">atol_kdiff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointList.get_k2kqg_map"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointList.get_k2kqg_map">[docs]</a>    <span class="k">def</span> <span class="nf">get_k2kqg_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpt</span><span class="p">,</span> <span class="n">atol_kdiff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute mapping k_index --&gt; (k + q)_index, g0</span>
 
@@ -1168,10 +1174,10 @@
                         <span class="n">k2kqg</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ikq</span><span class="p">,</span> <span class="n">g0</span><span class="p">)</span>
                         <span class="k">break</span>
 
-        <span class="k">return</span> <span class="n">k2kqg</span>
+        <span class="k">return</span> <span class="n">k2kqg</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">KpointStar</span><span class="p">(</span><span class="n">KpointList</span><span class="p">):</span>
+<div class="viewcode-block" id="KpointStar"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.KpointStar">[docs]</a><span class="k">class</span> <span class="nc">KpointStar</span><span class="p">(</span><span class="n">KpointList</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Star of the kpoint. Note that the first k-point is assumed to be the base</span>
 <span class="sd">    of the star namely the point that is used to generate the Star.</span>
@@ -1186,7 +1192,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The name of the star (inherited from the name of the base point).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_point</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_point</span><span class="o">.</span><span class="n">name</span></div>
 
 
 <div class="viewcode-block" id="Kpath"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath">[docs]</a><span class="k">class</span> <span class="nc">Kpath</span><span class="p">(</span><span class="n">KpointList</span><span class="p">):</span>
@@ -1568,7 +1574,7 @@
                     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">monkhorst_pack_folding variables has not been written to netcdf file.</span>
 <span class="s2">Received </span><span class="si">{mpdivs}</span><span class="s2"></span>
-<span class="s2">Setting mpdivs to None, this could create problems in post-processing tools.</span>
+<span class="s2">Setting mpdivs to None, this may create problems in post-processing tools.</span>
 <span class="s2">If needed, use python netcdf to change the value of `monkhorst_pack_folding`&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]))</span>
                     <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1849,8 +1855,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

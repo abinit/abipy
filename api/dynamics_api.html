@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>dynamics Package &#8212; abipy 0.2.0 documentation</title>
+    <title>dynamics Package &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -72,17 +73,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -196,6 +197,12 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="abipy.dynamics.hist.HistFile.params">
+<code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.params" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with parameters that might be subject to convergence studies.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="abipy.dynamics.hist.HistFile.final_energy">
 <code class="descname">final_energy</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.final_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.final_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total energy in eV of the last iteration.</p>
@@ -252,7 +259,7 @@
 <dl class="attribute">
 <dt id="abipy.dynamics.hist.HistFile.etotals">
 <code class="descname">etotals</code><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.etotals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.etotals" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with total energies in eV at the different steps.</p>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with total energies in eV at the different steps.</p>
 </dd></dl>
 
 <dl class="method">
@@ -327,18 +334,22 @@ See <code class="xref py py-class docutils literal"><span class="pre">Visualizer
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistFile.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>axlist=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>ax_list=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistFile.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistFile.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the evolution of structural parameters (lattice lengths, angles and volume)
 as well as pressure, info on forces and total energy.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>axlist</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, a new figure is created.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a>. If None, a new figure is created.</li>
+<li><strong>fontsize</strong> – fontsize for legend</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -380,14 +391,14 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -466,7 +477,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>index=None</em>, <em>abspath=False</em>, <em>with_spglib=True</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important final results and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+356.gabc4ef9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important final results and the filenames as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -485,7 +496,7 @@ working directory is created. Return path to the notebook.</p>
 <dt>kwargs:</dt>
 <dd><dl class="first last docutils">
 <dt>attrs:</dt>
-<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.22.0.dev0+427.gee9c7e9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</dd>
+<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+356.gabc4ef9.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</dd>
 <dt>funcs: Function or list of functions to execute to add more data to the DataFrame.</dt>
 <dd>Each function receives a <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> object and returns a tuple (key, value)
 where key is a string with the name of column and value is the value to be inserted.</dd>
@@ -497,19 +508,20 @@ where key is a string with the name of column and value is the value to be inser
 <dl class="attribute">
 <dt id="abipy.dynamics.hist.HistRobot.what_list">
 <code class="descname">what_list</code><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.what_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>List with all quantities that can be plotted (what argument).</p>
+<dd><p>List with all quantities that can be plotted (what_list).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistRobot.gridplot">
-<code class="descname">gridplot</code><span class="sig-paren">(</span><em>what='abc'</em>, <em>sharex=False</em>, <em>sharey=False</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.gridplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gridplot</code><span class="sig-paren">(</span><em>what_list=None</em>, <em>sharex='row'</em>, <em>sharey='row'</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.gridplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the <code class="docutils literal"><span class="pre">what</span></code> value extracted from multiple <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/hist.ipynb">HIST.nc</a> files on a grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>what</strong> – Quantity to plot. Must be in [“energy”, “abc”, “angles”, “volume”, “pressure”, “forces”]</li>
+<li><strong>what_list</strong> – List of quantities to plot.
+Must be in [“energy”, “abc”, “angles”, “volume”, “pressure”, “forces”]</li>
 <li><strong>sharex</strong> – True if xaxis should be shared.</li>
 <li><strong>sharey</strong> – True if yaxis should be shared.</li>
 <li><strong>fontsize</strong> – fontsize for legend.</li>
@@ -518,7 +530,7 @@ where key is a string with the name of column and value is the value to be inser
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -553,7 +565,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistRobot.combiplot">
-<code class="descname">combiplot</code><span class="sig-paren">(</span><em>what_list=None</em>, <em>cmap='jet'</em>, <em>fontsize=6</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.combiplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">combiplot</code><span class="sig-paren">(</span><em>what_list=None</em>, <em>colormap='jet'</em>, <em>fontsize=6</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.combiplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot multiple <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/hist.ipynb">HIST.nc</a> files on a grid. One plot for each <code class="docutils literal"><span class="pre">what</span></code> value.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -561,14 +573,14 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>what_list</strong> – List of strings with the quantities to plot. If None, all quanties are plotted.</li>
-<li><strong>cmap</strong> – matplotlib color map.</li>
+<li><strong>colormap</strong> – matplotlib color map.</li>
 <li><strong>fontsize</strong> – fontisize for legend.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.1)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.1.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -650,14 +662,14 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistReader.read_cart_forces">
 <code class="descname">read_cart_forces</code><span class="sig-paren">(</span><em>unit='eV ang^-1'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_cart_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_cart_forces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the cartesian forces in unit <code class="docutils literal"><span class="pre">unit</span></code>.
+<dd><p>Read and return a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the cartesian forces in unit <code class="docutils literal"><span class="pre">unit</span></code>.
 Shape (num_steps, natom, 3)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistReader.read_reduced_forces">
 <code class="descname">read_reduced_forces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistReader.read_reduced_forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistReader.read_reduced_forces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read and return a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the forces in reduced coordinates
+<dd><p>Read and return a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.14)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> with the forces in reduced coordinates
 Shape (num_steps, natom, 3)</p>
 </dd></dl>
 
@@ -685,8 +697,8 @@ and the list of pressures in GPa unit.</p>
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 29, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

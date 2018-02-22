@@ -20,10 +20,10 @@ This example shows how to plot the Fermi surface with matplotlib
 
 .. code-block:: python
 
-    from abipy.abilab import abiopen
+    from abipy import abilab
     import abipy.data as abidata
 
-    with abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
+    with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
         ebands = fbnc_kmesh.ebands
 
     # Build ebands in full BZ.
@@ -40,7 +40,7 @@ This example shows how to plot the Fermi surface with matplotlib
     # If you have mayavi installed, try:
     #eb3d.mvplot_isosurfaces()
 
-**Total running time of the script:** ( 0 minutes  1.988 seconds)
+**Total running time of the script:** ( 0 minutes  1.458 seconds)
 
 
 

@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.fatbands &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.electrons.fatbands &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -141,11 +142,10 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">gaussian</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span>
 
 
 <div class="viewcode-block" id="gaussians_dos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.gaussians_dos">[docs]</a><span class="k">def</span> <span class="nf">gaussians_dos</span><span class="p">(</span><span class="n">dos</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
@@ -412,6 +412,12 @@
         <span class="sd">&quot;&quot;&quot;|Structure| object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">structure</span>
 
+<div class="viewcode-block" id="FatBandsFile.params"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.params">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`OrderedDict` with parameters that might be subject to convergence studies.&quot;&quot;&quot;</span>
+        <span class="n">od</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ebands_params</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">od</span></div>
+
 <div class="viewcode-block" id="FatBandsFile.close"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called at the end of the ``with`` context manager.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
@@ -548,7 +554,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.plot_fatbands_siteview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_siteview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_fatbands_siteview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_siteview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;inequivalent&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
                                <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot fatbands for each atom in the unit cell. By default, only the **inequivalent** atoms are shown.</span>
@@ -560,6 +566,7 @@
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to ``e0 = 0``</span>
 <span class="sd">            view: &quot;inequivalent&quot;, &quot;all&quot;</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
+<span class="sd">            fontsize: fontsize for titles and legend</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
@@ -594,18 +601,18 @@
             <span class="n">ncols</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="n">nrows</span> <span class="o">=</span> <span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span> <span class="o">+</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span>
 
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                               <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="c1"># don&#39;t show the last ax if num_plots is odd.</span>
-        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">axmat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ax_mat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
 
         <span class="n">ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span>
         <span class="n">e0</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">)</span>
         <span class="n">mybands</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">ebands</span><span class="o">.</span><span class="n">mband</span><span class="p">)</span> <span class="k">if</span> <span class="n">blist</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">blist</span>
 
-        <span class="k">for</span> <span class="n">iax</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axmat</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
-            <span class="n">iatom</span> <span class="o">=</span> <span class="n">ax2iatom</span><span class="p">[</span><span class="n">iax</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">iax</span><span class="p">,</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ax2iatom</span><span class="p">):</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">iax</span><span class="p">]</span>
             <span class="c1"># Plot the energies.</span>
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
                 <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">eb_plotax_kwargs</span><span class="p">(</span><span class="n">spin</span><span class="p">))</span>
@@ -630,13 +637,13 @@
 
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
-        <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax_mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.plot_fatbands_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_lview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_fatbands_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by L.</span>
 
@@ -646,22 +653,21 @@
 <span class="sd">                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to ``e0 = 0``</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
-<span class="sd">            axmat: Matrix of axes, if None a new figure is produced.</span>
+<span class="sd">            ax_mat: Matrix of axes, if None a new figure is produced.</span>
 <span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
+<span class="sd">            fontsize: legend and title fontsize.</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># Build or get grid with (nsppol, mylsize) axis.</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="k">if</span> <span class="n">axmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">mylsize</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axmat</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">))</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">mylsize</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                               <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span>
 
         <span class="n">ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span>
         <span class="n">e0</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
@@ -670,7 +676,7 @@
 
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mylsize</span><span class="p">):</span>
-                <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
                 <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">eb_plotax_kwargs</span><span class="p">(</span><span class="n">spin</span><span class="p">))</span>
                 <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l2tex</span><span class="p">[</span><span class="n">l</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin2tex</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2tex</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
                 <span class="n">ebands</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">)</span>
@@ -698,7 +704,7 @@
 
                 <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
-        <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax_mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.plot_fatbands_mview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_mview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
@@ -786,7 +792,8 @@
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.plot_fatbands_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_typeview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_fatbands_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_fatbands_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands grouped by atomic type.</span>
 
@@ -797,22 +804,21 @@
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to ``e0 = 0``</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
 <span class="sd">            lmax: Maximum L included in plot. None means full set available on file.</span>
-<span class="sd">            axmat: Matrix of axis. None if a new figure should be created.</span>
+<span class="sd">            ax_mat: Matrix of axis. None if a new figure should be created.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
+<span class="sd">            fontsize: legend and title fontsize.</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
 
-        <span class="c1"># Get axmat and fig.</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="k">if</span> <span class="n">axmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axmat</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span><span class="p">))</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="c1"># Get ax_mat and fig.</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                               <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span>
 
         <span class="n">ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span>
         <span class="n">e0</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
@@ -822,7 +828,7 @@
         <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
             <span class="n">wl_sbk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_wl_symbol</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">fact</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
-                <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">itype</span><span class="p">]</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">itype</span><span class="p">]</span>
                 <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">eb_plotax_kwargs</span><span class="p">(</span><span class="n">spin</span><span class="p">))</span>
 
                 <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;type=</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin2tex</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span>
@@ -847,11 +853,11 @@
 
                 <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylims</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
-        <span class="n">axmat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+        <span class="n">ax_mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.plot_spilling"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_spilling">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_spilling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">axlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_spilling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the electronic fatbands</span>
 
@@ -861,20 +867,17 @@
 <span class="sd">                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV</span>
 <span class="sd">                -  None: Don&#39;t shift energies, equivalent to ``e0 = 0``</span>
 <span class="sd">            fact:  float used to scale the stripe size.</span>
-<span class="sd">            axlist: List of matplotlib axes for plot. If None, new figure is produced</span>
+<span class="sd">            ax_list: List of matplotlib axes for plot. If None, new figure is produced</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            blist: List of band indices for the fatband plot. If None, all bands are included</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="k">if</span> <span class="n">axlist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axlist</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">axlist</span> <span class="o">=</span> <span class="n">axlist</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">axlist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axlist</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span>
+        <span class="n">ax_list</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_list</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                                <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_list</span> <span class="o">=</span> <span class="n">ax_list</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
         <span class="n">ebands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span>
         <span class="n">e0</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
@@ -883,7 +886,7 @@
         <span class="n">spill_sbk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_spilling</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">fact</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
-            <span class="n">ax</span> <span class="o">=</span> <span class="n">axlist</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_list</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
             <span class="n">ebands</span><span class="o">.</span><span class="n">plot_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">e0</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">eb_plotax_kwargs</span><span class="p">(</span><span class="n">spin</span><span class="p">))</span>
             <span class="n">ebands</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
 
@@ -917,7 +920,7 @@
     <span class="c1"># TODO: THIS CODE IS STILL UNDER DEVELOPMENT</span>
     <span class="c1">#@add_fig_kwargs</span>
     <span class="c1">#def plot_fatbands_spinor(self, terms=(&quot;sigma_z&quot;,), e0=&quot;fermie&quot;, fact=1,</span>
-    <span class="c1">#                         ylims=None, blist=None, axlist=None, **kwargs):</span>
+    <span class="c1">#                         ylims=None, blist=None, ax_list=None, **kwargs):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
     <span class="c1">#    Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.</span>
 
@@ -931,7 +934,7 @@
     <span class="c1">#            -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV</span>
     <span class="c1">#            -  None: Don&#39;t shift energies, equivalent to e0=0</span>
     <span class="c1">#        fact:  float used to scale the marker size.</span>
-    <span class="c1">#        axlist: List of matplotlib axes for plot. If None, new figure is produced</span>
+    <span class="c1">#        ax_list: List of matplotlib axes for plot. If None, new figure is produced</span>
     <span class="c1">#        ylims: Set the data limits for the y-axis. Accept tuple e.g. `(left, right)`</span>
     <span class="c1">#               or scalar e.g. `left`. If left (right) is None, default values are used</span>
     <span class="c1">#        blist: List of band indices for the fatband plot. If None, all bands are included</span>
@@ -943,13 +946,13 @@
     <span class="c1">#            % (self.prtdos, self.nspinor))</span>
     <span class="c1">#        return None</span>
 
-    <span class="c1">#    # Build axlist</span>
+    <span class="c1">#    # Build ax_list</span>
     <span class="c1">#    import matplotlib.pyplot as plt</span>
-    <span class="c1">#    if axlist is None:</span>
-    <span class="c1">#        fig, axlist = plt.subplots(nrows=len(terms), ncols=1, sharex=True, sharey=True, squeeze=False)</span>
-    <span class="c1">#        axlist = axlist.ravel()</span>
+    <span class="c1">#    if ax_list is None:</span>
+    <span class="c1">#        fig, ax_list = plt.subplots(nrows=len(terms), ncols=1, sharex=True, sharey=True, squeeze=False)</span>
+    <span class="c1">#        ax_list = ax_list.ravel()</span>
     <span class="c1">#    else:</span>
-    <span class="c1">#        axlist = np.reshape(axlist, (1, len(terms))).ravel()</span>
+    <span class="c1">#        ax_list = np.reshape(ax_list, (1, len(terms))).ravel()</span>
     <span class="c1">#        fig = plt.gcf()</span>
 
     <span class="c1">#    ebands = self.ebands</span>
@@ -965,7 +968,7 @@
 
     <span class="c1">#    # TODO: To be tested.</span>
     <span class="c1">#    terms = list_strings(terms)</span>
-    <span class="c1">#    for i, (term, ax) in enumerate(zip(terms, axlist)):</span>
+    <span class="c1">#    for i, (term, ax) in enumerate(zip(terms, ax_list)):</span>
     <span class="c1">#        ebands.plot_ax(ax, e0, spin=spin0, color=self.linecolor, linewidth=self.linewidth)</span>
     <span class="c1">#        ebands.decorate_ax(ax, title=term)</span>
     <span class="c1">#        if i != 0:</span>
@@ -1000,7 +1003,7 @@
 
     <span class="c1">#        set_axlims(ax, ylims, &quot;y&quot;)</span>
 
-    <span class="c1">#    axlist[0].legend(loc=&quot;best&quot;)</span>
+    <span class="c1">#    ax_list[0].legend(loc=&quot;best&quot;, fontsize=fontsize, shadow=True)</span>
     <span class="c1">#    return fig</span>
 
     <span class="c1"># TODO: THIS CODE IS STILL UNDER DEVELOPMENT</span>
@@ -1061,8 +1064,8 @@
 
 <div class="viewcode-block" id="FatBandsFile.plot_pjdos_lview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_lview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_pjdos_lview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-                         <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                         <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                         <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the PJ-DOS on a linear mesh.</span>
 
@@ -1080,7 +1083,7 @@
 <span class="sd">                If True, up/down DOSes are plotted on the same figure (positive values for up,</span>
 <span class="sd">                negative values for down component)</span>
 <span class="sd">                If False, up/down components are plotted on different axes.</span>
-<span class="sd">            axmat:</span>
+<span class="sd">            ax_mat:</span>
 <span class="sd">            exchange_xy: True if the dos should be plotted on the x axis instead of y.</span>
 <span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
@@ -1108,21 +1111,19 @@
 
         <span class="c1"># Get grid of axes.</span>
         <span class="n">mylsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span> <span class="k">if</span> <span class="n">lmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lmax</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="n">nrows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">combined_spins</span> <span class="k">else</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">axmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">mylsize</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axmat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">))</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="n">mylsize</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                               <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span>
 
         <span class="c1"># The code below expectes a matrix of axes of shape[nsppol, self.lsize]</span>
         <span class="c1"># If spins are plotted on the same graph (combined_spins), I build a new matrix so that</span>
-        <span class="c1"># axmat[spin=0] is axmat[spin=1] and aliased_axis is set to True</span>
+        <span class="c1"># ax_mat[spin=0] is ax_mat[spin=1] and aliased_axis is set to True</span>
         <span class="n">aliased_axis</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">combined_spins</span><span class="p">:</span>
             <span class="n">aliased_axis</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">axmat</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">axmat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+            <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ax_mat</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">ax_mat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
 
         <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">stacked</span><span class="p">:</span>
@@ -1132,7 +1133,7 @@
                     <span class="k">if</span> <span class="n">with_spin_sign</span><span class="p">:</span> <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
                     <span class="c1"># Loop over the columns of the grid.</span>
                     <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lmax_symbol</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
-                        <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+                        <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
 
                         <span class="c1"># Plot total DOS.</span>
                         <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">spin_sign</span> <span class="o">*</span> <span class="n">edos</span><span class="o">.</span><span class="n">spin_dos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -1158,7 +1159,7 @@
             <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mylsize</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">spins</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">with_spin_sign</span><span class="p">:</span> <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-                    <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+                    <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
 
                     <span class="c1"># Plot total DOS.</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">spin_sign</span> <span class="o">*</span> <span class="n">edos</span><span class="o">.</span><span class="n">spin_dos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -1184,7 +1185,7 @@
             <span class="k">if</span> <span class="n">aliased_axis</span> <span class="ow">and</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="k">break</span> <span class="c1"># Don&#39;t repeat yourself!</span>
 
             <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mylsize</span><span class="p">):</span>
-                <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">with_info</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">combined_spins</span><span class="p">:</span>
                         <span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2tex</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
@@ -1219,8 +1220,8 @@
 
 <div class="viewcode-block" id="FatBandsFile.plot_pjdos_typeview"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_pjdos_typeview">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_pjdos_typeview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-                            <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                            <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                            <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">with_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xlims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the PJ-DOS on a linear mesh.</span>
 
@@ -1238,7 +1239,7 @@
 <span class="sd">                If True, up/down DOSes are plotted on the same figure (positive values for up,</span>
 <span class="sd">                negative values for down component)</span>
 <span class="sd">                If False, up/down components are plotted on different axes.</span>
-<span class="sd">            axmat:</span>
+<span class="sd">            ax_mat:</span>
 <span class="sd">            exchange_xy: True if the dos should be plotted on the x axis instead of y.</span>
 <span class="sd">            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
@@ -1267,21 +1268,19 @@
         <span class="n">edos</span><span class="p">,</span> <span class="n">symbols_lso</span> <span class="o">=</span> <span class="n">intg</span><span class="o">.</span><span class="n">edos</span><span class="p">,</span> <span class="n">intg</span><span class="o">.</span><span class="n">symbols_lso</span>
 
         <span class="c1"># Get grid of axes.</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="n">nrows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">combined_spins</span> <span class="k">else</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">axmat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">axmat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span><span class="p">))</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                               <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span>
 
         <span class="c1"># The code below expectes a matrix of axes of shape[nsppol, self.ntypat]</span>
         <span class="c1"># If spins are plotted on the same graph (combined_spins), I build a new matrix so that</span>
-        <span class="c1"># axmat[spin=0] is axmat[spin=1] and aliased_axis is set to True</span>
+        <span class="c1"># ax_mat[spin=0] is ax_mat[spin=1] and aliased_axis is set to True</span>
         <span class="n">aliased_axis</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">combined_spins</span><span class="p">:</span>
             <span class="n">aliased_axis</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">axmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">axmat</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">axmat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+            <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ax_mat</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">ax_mat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
 
         <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">stacked</span><span class="p">:</span>
@@ -1289,7 +1288,7 @@
                 <span class="k">if</span> <span class="n">with_spin_sign</span><span class="p">:</span> <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
                 <span class="c1"># Loop over the columns of the grid.</span>
                 <span class="k">for</span> <span class="n">isymb</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
-                    <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">isymb</span><span class="p">]</span>
+                    <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">isymb</span><span class="p">]</span>
 
                     <span class="c1"># Plot total DOS.</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">spin_sign</span> <span class="o">*</span> <span class="n">edos</span><span class="o">.</span><span class="n">spin_dos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -1316,7 +1315,7 @@
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">with_spin_sign</span><span class="p">:</span> <span class="n">spin_sign</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span> <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
                 <span class="k">for</span> <span class="n">isymb</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
-                    <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">isymb</span><span class="p">]</span>
+                    <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">isymb</span><span class="p">]</span>
 
                     <span class="c1"># Plot total DOS.</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">spin_sign</span> <span class="o">*</span> <span class="n">edos</span><span class="o">.</span><span class="n">spin_dos</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -1342,7 +1341,7 @@
             <span class="k">if</span> <span class="n">aliased_axis</span> <span class="ow">and</span> <span class="n">spin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="k">break</span> <span class="c1"># Don&#39;t repeat yourself!</span>
 
             <span class="k">for</span> <span class="n">itype</span><span class="p">,</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">):</span>
-                <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">itype</span><span class="p">]</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">itype</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">with_info</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">combined_spins</span><span class="p">:</span>
                         <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">symbol</span>
@@ -1377,7 +1376,7 @@
 <div class="viewcode-block" id="FatBandsFile.plot_fatbands_with_pjdos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.plot_fatbands_with_pjdos">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_fatbands_with_pjdos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">,</span>
                                  <span class="n">pjdosfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stacked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-                                 <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                                 <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the fatbands and the PJDOS on the same figure, a.k.a the Sistine Chapel.</span>
 
@@ -1393,6 +1392,7 @@
 <span class="sd">            edos_kwargs:</span>
 <span class="sd">            stacked: True if DOS partial contributions should be stacked on top of each other.</span>
 <span class="sd">            width_ratios: Defines the ratio between the band structure plot and the dos plot.</span>
+<span class="sd">            fontsize: Legend and label fontsize.</span>
 <span class="sd">            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                   or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 
@@ -1441,16 +1441,16 @@
 
         <span class="c1"># Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.</span>
         <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;lview&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                       <span class="n">stacked</span><span class="o">=</span><span class="n">stacked</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                       <span class="n">stacked</span><span class="o">=</span><span class="n">stacked</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span>
                                        <span class="n">with_info</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span>
                                        <span class="o">**</span><span class="n">edos_kwargs</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">axmat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                          <span class="n">stacked</span><span class="o">=</span><span class="n">stacked</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">fact</span><span class="o">=</span><span class="n">fact</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">blist</span><span class="o">=</span><span class="n">blist</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="n">fatbands_axmat</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">pjdosfile</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">lmax</span><span class="o">=</span><span class="n">lmax</span><span class="p">,</span> <span class="n">ax_mat</span><span class="o">=</span><span class="n">pjdos_axmat</span><span class="p">,</span> <span class="n">exchange_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                          <span class="n">stacked</span><span class="o">=</span><span class="n">stacked</span><span class="p">,</span> <span class="n">combined_spins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span>
                                           <span class="n">with_info</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_spin_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="n">ylims</span><span class="p">,</span>
                                           <span class="o">**</span><span class="n">edos_kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1536,9 +1536,10 @@
         <span class="n">pwdos_al</span> <span class="o">=</span> <span class="n">totdos_al</span> <span class="o">-</span> <span class="n">paw1dos_al</span> <span class="o">+</span> <span class="n">pawt1dos_al</span>
 
         <span class="c1"># Build plot grid.</span>
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span><span class="p">),</span> <span class="n">ncols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">,</span>
-                                  <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_atom</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">lsize</span>
+        <span class="n">ax_mat</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_axarray_fig_plt</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+                                               <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ax_mat</span><span class="p">,</span> <span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span>
 
         <span class="n">irow</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">iatom</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">natom</span><span class="p">):</span>
@@ -1546,7 +1547,7 @@
             <span class="n">irow</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="c1">#for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):</span>
             <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsize</span><span class="p">,</span> <span class="n">mylsize</span><span class="p">)):</span>
-                <span class="n">ax</span> <span class="o">=</span> <span class="n">axmat</span><span class="p">[</span><span class="n">irow</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">ax_mat</span><span class="p">[</span><span class="n">irow</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">l</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lmax_atom</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
                     <span class="c1"># don&#39;t show this plots and cycle</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
@@ -1569,7 +1570,7 @@
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">pawt1dos_al</span><span class="p">[</span><span class="n">iatom</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">]</span> <span class="o">*</span> <span class="n">spin_sign</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">,</span>
                             <span class="n">label</span><span class="o">=</span><span class="s2">&quot;PS-onsite&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">irow</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axmat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]:</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_mat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span></div>
 
@@ -1654,6 +1655,20 @@
     <span class="c1">#    ax.legend(loc=&quot;best&quot;, fontsize=fontsize, shadow=True)</span>
 
     <span class="c1">#    return fig</span>
+
+<div class="viewcode-block" id="FatBandsFile.yield_figs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        Used in abiview.py to get a quick look at the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#for fig in self.yield_ebands_figs(): yield fig</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_lview</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_fatbands_typeview</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_pjdos_lview</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_pjdos_typeview</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FatBandsFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.fatbands.FatBandsFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1808,8 +1823,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

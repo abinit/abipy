@@ -56,7 +56,7 @@ the harmonic approximation using the phonon DOS produced by anaddb.
     print("Zero point energy:", zpe, zpe.to("J"), zpe.to("Ha"))
 
     # Compute free energy from 2 to 300 K (20 points)
-    # By default, energies are is eV and thermodynamic quantities are given 
+    # By default, energies are is eV and thermodynamic quantities are given
     # on a per-unit-cell basis.
     f = phdos.get_free_energy(tstart=2, tstop=300, num=20)
     #f.plot()
@@ -67,7 +67,7 @@ the harmonic approximation using the phonon DOS produced by anaddb.
 
     ncfile.close()
 
-**Total running time of the script:** ( 0 minutes  0.383 seconds)
+**Total running time of the script:** ( 0 minutes  0.466 seconds)
 
 
 

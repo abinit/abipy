@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.scissors &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.electrons.scissors &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -143,7 +144,7 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;Scissors&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ScissorsBuilder&quot;</span>
+    <span class="s2">&quot;ScissorsBuilder&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -153,9 +154,10 @@
 
 <div class="viewcode-block" id="Scissors"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.Scissors">[docs]</a><span class="k">class</span> <span class="nc">Scissors</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This object represents an energy-dependent scissors operator. The operator is defined by a list of domains</span>
-<span class="sd">    (energy intervals) and a list of functions defined in these domains. The domains should fulfill the constraints</span>
-<span class="sd">    documented in the main constructor.</span>
+<span class="sd">    This object represents an energy-dependent scissors operator.</span>
+<span class="sd">    The operator is defined by a list of domains (energy intervals)</span>
+<span class="sd">    and a list of functions defined in these domains.</span>
+<span class="sd">    The domains should fulfill the constraints documented in the main constructor.</span>
 
 <span class="sd">    .. note::</span>
 
@@ -170,13 +172,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            func_list: List of callable objects. Each function takes an eigenvalue and returns</span>
-<span class="sd">                       the corrected value.</span>
+<span class="sd">                the corrected value.</span>
 <span class="sd">            domains: Domains of each function. List of tuples [(emin1, emax1), (emin2, emax2), ...]</span>
 <span class="sd">            bounds: Specify how to handle energies that do not fall inside one of the domains.</span>
-<span class="sd">                    At present, only constant boundaries are implemented.</span>
+<span class="sd">                At present, only constant boundaries are implemented.</span>
 <span class="sd">            residues: A list of the residues of the fitting per domain</span>
 
 <span class="sd">        .. note::</span>
+
 <span class="sd">            #. Domains should not overlap, cover e0mesh, and given in increasing order.</span>
 
 <span class="sd">            #. Holes are permitted but the interpolation will raise an exception if the</span>
@@ -255,23 +258,26 @@
 
 <span class="sd">    Usage:</span>
 
-<span class="sd">        builder = ScissorsBuilder.from_file(&quot;sigres_file&quot;)</span>
+<span class="sd">        builder = ScissorsBuilder.from_file(&quot;out_SIGRES.nc&quot;)</span>
 
 <span class="sd">        # To plot the QP results as function of the KS energy:</span>
 <span class="sd">        builder.plot_qpe_vs_e0()</span>
 
-<span class="sd">        # To select the domains esplicitly (optional)</span>
+<span class="sd">        # To select the domains esplicitly (optional but highly recommended)</span>
 <span class="sd">        builder.build(domains_spin=[[-10, 6.02], [6.1, 20]])</span>
 
 <span class="sd">        # To compare the fitted results with the ab-initio data:</span>
 <span class="sd">        builder.plot_fit()</span>
 
 <span class="sd">        # To plot the corrected bands:</span>
-<span class="sd">        builder.plot_qpbands(abidata.ref_file(&quot;si_nscf_WFK-etsf.nc&quot;))</span>
+<span class="sd">        builder.plot_qpbands(abidata.ref_file(&quot;si_nscf_WFK.nc&quot;))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="ScissorsBuilder.from_file"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate an instance of `ScissorsBuilder` from file. Main entry point for client code.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate object from (SIGRES.nc) file. Main entry point for client code.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span>
         <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">qps_spin</span><span class="o">=</span><span class="n">ncfile</span><span class="o">.</span><span class="n">qplist_spin</span><span class="p">,</span> <span class="n">sigres_ebands</span><span class="o">=</span><span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span><span class="p">)</span></div>
@@ -308,7 +314,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            qps_spin: List of :class:`QPlist`, for each spin.</span>
-<span class="sd">            sigres_ebands: :class:`ElectronBands` read from the SIGRES file</span>
+<span class="sd">            sigres_ebands: |ElectronBands| obtained from the SIGRES file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Sort quasiparticle data by e0.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_qps_spin</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">qps</span><span class="o">.</span><span class="n">sort_by_e0</span><span class="p">()</span> <span class="k">for</span> <span class="n">qps</span> <span class="ow">in</span> <span class="n">qps_spin</span><span class="p">])</span>
@@ -401,21 +407,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_scissors_spin</span> <span class="o">=</span> <span class="n">scissors_spin</span>
         <span class="k">return</span> <span class="n">domains_spin</span></div>
 
-<div class="viewcode-block" id="ScissorsBuilder.plot_qpe_vs_e0"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.plot_qpe_vs_e0">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qpe_vs_e0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_fields</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ScissorsBuilder.plot_qpe_vs_e0"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.plot_qpe_vs_e0">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_qpe_vs_e0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_fields</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot the quasiparticle corrections as function of the KS energy.&quot;&quot;&quot;</span>
+        <span class="n">ax_list</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">spin</span><span class="p">,</span> <span class="n">qps</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qps_spin</span><span class="p">):</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;spin </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">spin</span>
-            <span class="n">qps</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">with_fields</span><span class="o">=</span><span class="n">with_fields</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">qps</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">with_fields</span><span class="o">=</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="n">ax_list</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax_list</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
 
 <div class="viewcode-block" id="ScissorsBuilder.plot_fit"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.plot_fit">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compare fit functions with input quasi-particle corrections.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            fontsize: fontsize for titles and legend.</span>
+
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
             <span class="n">qps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qps_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span>
@@ -429,11 +443,11 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;KS energy [eV]&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;QP-KS [eV]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="ScissorsBuilder.plot_qpbands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.plot_qpbands">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qpbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bands_filepath</span><span class="p">,</span> <span class="n">bands_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qp_marker</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="ScissorsBuilder.plot_qpbands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.scissors.ScissorsBuilder.plot_qpbands">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qpbands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bands_filepath</span><span class="p">,</span> <span class="n">bands_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Correct the energies found in the netcdf file bands_filepath and plot the band energies (both the initial</span>
 <span class="sd">        and the corrected ones) with matplotlib. The plot contains the KS and the QP DOS if dos_filepath is not None.</span>
@@ -445,11 +459,10 @@
 <span class="sd">                (used to compute the KS and the QP dos)</span>
 <span class="sd">            dos_args: Dictionary with the arguments passed to get_dos to compute the DOS</span>
 <span class="sd">                Used if dos_filepath is not None.</span>
-<span class="sd">            qp_marker: if int &gt; 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50</span>
+
 <span class="sd">            kwargs: Options passed to the plotter.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            matplotlib figure</span>
+<span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">abipy.abilab</span> <span class="k">import</span> <span class="n">abiopen</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span>
 
@@ -463,7 +476,8 @@
         <span class="c1"># Read the band energies computed on the Monkhorst-Pack (MP) mesh and compute the DOS.</span>
         <span class="n">ks_dos</span><span class="p">,</span> <span class="n">qp_dos</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">dos_filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">dos_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span> <span class="n">ks_mpbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span>
+            <span class="k">with</span> <span class="n">abiopen</span><span class="p">(</span><span class="n">dos_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+                <span class="n">ks_mpbands</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">ebands</span>
 
             <span class="n">dos_args</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">dos_args</span> <span class="k">else</span> <span class="n">dos_args</span>
             <span class="n">ks_dos</span> <span class="o">=</span> <span class="n">ks_mpbands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="o">**</span><span class="n">dos_args</span><span class="p">)</span>
@@ -478,23 +492,24 @@
         <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">bands_label</span><span class="p">,</span> <span class="n">ks_bands</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="n">ks_dos</span><span class="p">)</span>
         <span class="n">plotter</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">bands_label</span> <span class="o">+</span> <span class="s2">&quot; + scissors&quot;</span><span class="p">,</span> <span class="n">qp_bands</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="n">qp_dos</span><span class="p">)</span>
 
+        <span class="c1">#qp_marker: if int &gt; 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50</span>
         <span class="c1">#qp_marker = 50</span>
-        <span class="k">if</span> <span class="n">qp_marker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Compute correspondence between the k-points in qp_list and the k-path in qp_bands.</span>
-            <span class="c1"># TODO</span>
-            <span class="c1"># WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.</span>
-            <span class="c1"># but compute_star is too slow if written in pure python.</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">ik_path</span><span class="p">,</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qp_bands</span><span class="o">.</span><span class="n">kpoints</span><span class="p">):</span>
-                <span class="c1">#kstar = kpoint.compute_star(structure.fm_symmops)</span>
-                <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
-                    <span class="k">for</span> <span class="n">ik_qp</span><span class="p">,</span> <span class="n">qp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qps_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]):</span>
-                        <span class="k">if</span> <span class="n">qp</span><span class="o">.</span><span class="n">kpoint</span> <span class="o">==</span> <span class="n">kpoint</span><span class="p">:</span>
-                        <span class="c1">#if qp.kpoint in kstar:</span>
-                            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ik_path</span><span class="p">)</span>
-                            <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">qp</span><span class="o">.</span><span class="n">qpe</span><span class="p">))</span>
-                            <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qp_marker</span><span class="p">)</span>
-            <span class="n">plotter</span><span class="o">.</span><span class="n">set_marker</span><span class="p">(</span><span class="s2">&quot;ab-initio QP&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">])</span>
+        <span class="c1">#if qp_marker is not None:</span>
+        <span class="c1">#    # Compute correspondence between the k-points in qp_list and the k-path in qp_bands.</span>
+        <span class="c1">#    # TODO</span>
+        <span class="c1">#    # WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.</span>
+        <span class="c1">#    # but compute_star is too slow if written in pure python.</span>
+        <span class="c1">#    x, y, s = [], [], []</span>
+        <span class="c1">#    for ik_path, kpoint in enumerate(qp_bands.kpoints):</span>
+        <span class="c1">#        #kstar = kpoint.compute_star(structure.fm_symmops)</span>
+        <span class="c1">#        for spin in range(self.nsppol):</span>
+        <span class="c1">#            for ik_qp, qp in enumerate(self._qps_spin[spin]):</span>
+        <span class="c1">#                #if qp.kpoint in kstar:</span>
+        <span class="c1">#                if qp.kpoint == kpoint:</span>
+        <span class="c1">#                    x.append(ik_path)</span>
+        <span class="c1">#                    y.append(np.real(qp.qpe))</span>
+        <span class="c1">#                    s.append(qp_marker)</span>
+        <span class="c1">#    plotter.set_marker(&quot;ab-initio QP&quot;, [x, y, s])</span>
 
         <span class="k">return</span> <span class="n">plotter</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
@@ -510,8 +525,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.testing &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.core.testing &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -159,7 +160,6 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;AbipyTest&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;AbipyFileTest&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -405,7 +405,11 @@
 
 
 <div class="viewcode-block" id="AbipyTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyTest</span><span class="p">(</span><span class="n">PymatgenTest</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Extends PymatgenTest with Abinit-specific methods &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extends PymatgenTest with Abinit-specific methods.</span>
+<span class="sd">    Several helper functions are implemented as static methods so that we</span>
+<span class="sd">    can easily reuse the code in the pytest integration tests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">SkipTest</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">SkipTest</span>
 
@@ -438,7 +442,29 @@
         <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">cmp_version</span><span class="p">(</span><span class="n">ase</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AbipyTest.has_mayavi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_mayavi">[docs]</a>    <span class="k">def</span> <span class="nf">has_mayavi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbipyTest.has_skimage"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_skimage">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">has_skimage</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;True if skimage package is available.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">measure</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AbipyTest.has_python_graphviz"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_python_graphviz">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">has_python_graphviz</span><span class="p">(</span><span class="n">need_dotexec</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if python-graphviz package is installed and dot executable in path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">which</span><span class="p">(</span><span class="s2">&quot;dot&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">need_dotexec</span> <span class="k">else</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="AbipyTest.has_mayavi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_mayavi">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">has_mayavi</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        True if mayavi_ is available. Set also offscreen to True</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -455,10 +481,6 @@
         <span class="n">mlab</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">offscreen</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">mlab</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
         <span class="k">return</span> <span class="kc">True</span></div>
-
-    <span class="c1">#def assertFwSerializable(self, obj):</span>
-    <span class="c1">#    assert &#39;_fw_name&#39; in obj.to_dict()</span>
-    <span class="c1">#    self.assertDictEqual(obj.to_dict(), obj.__class__.from_dict(obj.to_dict()).to_dict())</span>
 
 <div class="viewcode-block" id="AbipyTest.get_abistructure_from_abiref"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.get_abistructure_from_abiref">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_abistructure_from_abiref</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
@@ -577,7 +599,8 @@
         <span class="sd">&quot;&quot;&quot;Return mock module for testing. Raises ImportError if not found.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">get_mock_module</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="AbipyTest.abivalidate_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_input">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abinput</span><span class="p">,</span> <span class="n">must_fail</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="AbipyTest.abivalidate_input"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_input">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">abivalidate_input</span><span class="p">(</span><span class="n">abinput</span><span class="p">,</span> <span class="n">must_fail</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Invoke Abinit to test validity of an |AbinitInput| object</span>
 <span class="sd">        Print info to stdout if failure before raising AssertionError.</span>
@@ -596,7 +619,8 @@
 
             <span class="k">assert</span> <span class="n">v</span><span class="o">.</span><span class="n">retcode</span> <span class="o">==</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="AbipyTest.abivalidate_multi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_multi">[docs]</a>    <span class="k">def</span> <span class="nf">abivalidate_multi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">multi</span><span class="p">):</span>
+<div class="viewcode-block" id="AbipyTest.abivalidate_multi"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_multi">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">abivalidate_multi</span><span class="p">(</span><span class="n">multi</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Invoke Abinit to test validity of a |MultiDataset| or a list of |AbinitInput| objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -608,9 +632,9 @@
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">abivalidate_input</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+                <span class="n">AbipyTest</span><span class="o">.</span><span class="n">abivalidate_input</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">straceback</span><span class="p">())</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AbipyTest</span><span class="o">.</span><span class="n">straceback</span><span class="p">())</span>
                 <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
@@ -620,7 +644,7 @@
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">errors</span></div>
 
 <div class="viewcode-block" id="AbipyTest.abivalidate_flow"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.abivalidate_flow">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">abivalidate_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">abivalidate_flow</span><span class="p">(</span><span class="n">flow</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Invoke Abinit to test validity of the inputs of a |Flow|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -640,67 +664,6 @@
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">get_gsinput_si</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_gsinput_si</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="AbipyFileTest"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest">[docs]</a><span class="k">class</span> <span class="nc">AbipyFileTest</span><span class="p">(</span><span class="n">AbipyTest</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Test class for files with a __str__ attribute.</span>
-<span class="sd">    At setup, must set the &#39;file&#39; attribute of the AbipyFileTest.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">file</span> <span class="o">=</span> <span class="kc">None</span>
-
-<div class="viewcode-block" id="AbipyFileTest.normalize"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest.normalize">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;  &#39;</span><span class="p">)</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">,</span> <span class="s2">&quot; CASH &quot;</span><span class="p">)</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">,</span> <span class="s2">&quot; LP &quot;</span><span class="p">)</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot; RP &quot;</span><span class="p">)</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot; STAR &quot;</span><span class="p">)</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()])</span>
-
-        <span class="k">return</span> <span class="n">string</span></div>
-
-<div class="viewcode-block" id="AbipyFileTest.assertContains"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest.assertContains">[docs]</a>    <span class="k">def</span> <span class="nf">assertContains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Assert that the string representation of the file contains &#39;expression&#39;</span>
-<span class="sd">        &#39;expression&#39; is trimmed of leading new line.</span>
-<span class="sd">        Each line of &#39;expression&#39; is trimmed of blank spaces.</span>
-<span class="sd">        Empty lines are ignored.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
-        <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRegexpMatches</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="AbipyFileTest.assertContainsNot"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest.assertContainsNot">[docs]</a>    <span class="k">def</span> <span class="nf">assertContainsNot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Assert that the string representation of the file does not contain</span>
-<span class="sd">        &#39;expression&#39;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
-        <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertNotRegexpMatches</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="AbipyFileTest.assertEmpty"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest.assertEmpty">[docs]</a>    <span class="k">def</span> <span class="nf">assertEmpty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Assert the string representation is empty.&quot;&quot;&quot;</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
-
-<div class="viewcode-block" id="AbipyFileTest.assertOrder"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyFileTest.assertOrder">[docs]</a>    <span class="k">def</span> <span class="nf">assertOrder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression1</span><span class="p">,</span> <span class="n">expression2</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Assert that the string representation of the file</span>
-<span class="sd">        contains &#39;expression1&#39; before &#39;expression2&#39;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expression1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">expression1</span><span class="p">)</span>
-        <span class="n">expression2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">expression2</span><span class="p">)</span>
-        <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertRegexpMatches</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">expression1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertRegexpMatches</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">expression2</span><span class="p">)</span>
-        <span class="n">last</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">expression1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRegexpMatches</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="n">expression2</span><span class="p">)</span></div></div>
 </pre></div>
 
     </div>
@@ -714,8 +677,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,14 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.tools.plotting &#8212; abipy 0.2.0 documentation</title>
+    <title>abipy.tools.plotting &#8212; abipy 0.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/my_style.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -46,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -70,17 +71,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../scripts/index.html">Scripts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gallery/index.html">AbiPy Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../scripts_howto.html">Post-processing How-To</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessing_howto.html">Post-processing How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/taskmanager.html">TaskManager</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/manager_examples.html">Manager Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../flow_gallery/index.html">Flow Gallery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../flows_howto.html">Flows How-To</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../devel/index.html">Developers’ Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coding_guide.html">Coding guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Documenting AbiPy</a></li>
 </ul>
 </ul>
 </li>
@@ -140,6 +141,7 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">list_strings</span>
@@ -155,7 +157,23 @@
     <span class="s2">&quot;ArrayPlotter&quot;</span><span class="p">,</span>
     <span class="s2">&quot;data_from_cplx_mode&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Marker&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;plot_unit_cell&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">ax_append_title</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add title to previous ax.title. Return new title.&quot;&quot;&quot;</span>
+    <span class="n">prev_title</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_title</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">new_title</span> <span class="o">=</span> <span class="n">prev_title</span> <span class="o">+</span> <span class="n">title</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">new_title</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_title</span>
+
+
+<span class="c1">#def set_grid(fig, boolean):</span>
+<span class="c1">#    if hasattr(fig, &quot;axes&quot;):</span>
+<span class="c1">#        for ax in fig.axes:</span>
+<span class="c1">#            if ax.grid: ax.grid.set_visible(boolean)</span>
+<span class="c1">#    else:</span>
+<span class="c1">#            if ax.grid: ax.grid.set_visible(boolean)</span>
 
 
 <div class="viewcode-block" id="set_axlims"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.set_axlims">[docs]</a><span class="k">def</span> <span class="nf">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lims</span><span class="p">,</span> <span class="n">axname</span><span class="p">):</span>
@@ -190,9 +208,35 @@
     <span class="k">return</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span></div>
 
 
+<span class="k">def</span> <span class="nf">set_visible</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">boolean</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hide/Show the artists of axis ax listed in args.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;legend&quot;</span> <span class="ow">in</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">():</span>
+        <span class="c1">#handles, labels = ax.get_legend_handles_labels()</span>
+        <span class="c1">#if handles:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="n">boolean</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;title&quot;</span> <span class="ow">in</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">ax</span><span class="o">.</span><span class="n">title</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="n">boolean</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;xlabel&quot;</span> <span class="ow">in</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">label</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="n">boolean</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;ylabel&quot;</span> <span class="ow">in</span> <span class="n">args</span> <span class="ow">and</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="n">boolean</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">rotate_ticklabels</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">axname</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rotate the ticklables of axis ``ax``&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;x&quot;</span> <span class="ow">in</span> <span class="n">axname</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xticklabels</span><span class="p">():</span>
+            <span class="n">tick</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;y&quot;</span> <span class="ow">in</span> <span class="n">axname</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_yticklabels</span><span class="p">():</span>
+            <span class="n">tick</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="data_from_cplx_mode"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.data_from_cplx_mode">[docs]</a><span class="k">def</span> <span class="nf">data_from_cplx_mode</span><span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extract the data from the numpy array `arr` depending on the values of `cplx_mode`.</span>
+<span class="sd">    Extract the data from the numpy array ``arr`` depending on the values of ``cplx_mode``.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cplx_mode: Possible values in (&quot;re&quot;, &quot;im&quot;, &quot;abs&quot;, &quot;angle&quot;)</span>
@@ -216,21 +260,20 @@
 <span class="sd">    Useful for convergence tests done wrt to two parameters.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        data: DataFrame containing columns `x`, `y`, and `hue`.</span>
+<span class="sd">        data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.</span>
 <span class="sd">        x: Name of the column used as x-value</span>
 <span class="sd">        y: Name of the column used as y-value</span>
 <span class="sd">        hue: Variable that define subsets of the data, which will be drawn on separate lines</span>
 <span class="sd">        decimals: Number of decimal places to round `hue` columns. Ignore if None</span>
-<span class="sd">        ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
+<span class="sd">        ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 <span class="sd">        xlims ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`</span>
-<span class="sd">                     or scalar e.g. `left`. If left (right) is None, default values are used</span>
+<span class="sd">            or scalar e.g. `left`. If left (right) is None, default values are used</span>
 <span class="sd">        fontsize: Legend fontsize.</span>
 <span class="sd">        kwargs: Keywork arguments are passed to ax.plot method.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        `matplotlib` figure.</span>
+<span class="sd">    Returns: |matplotlib-Figure|</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Check here because pandas messages are a bit criptic.</span>
+    <span class="c1"># Check here because pandas error messages are a bit criptic.</span>
     <span class="n">miss</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">miss</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find `</span><span class="si">%s</span><span class="s2">` in dataframe.</span><span class="se">\n</span><span class="s2">Available keys are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">miss</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
@@ -241,7 +284,11 @@
 
     <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">hue</span><span class="p">):</span>
-        <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span> <span class="o">=</span> <span class="n">grp</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">grp</span><span class="p">[</span><span class="n">y</span><span class="p">]</span>
+        <span class="c1">#xvals, yvals = grp[x], grp[y]</span>
+        <span class="c1"># Sort xs and rearrange ys</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">grp</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">grp</span><span class="p">[</span><span class="n">y</span><span class="p">]),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
         <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hue</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
@@ -278,8 +325,7 @@
 <span class="sd">            &quot;abs&quot; means that the absolute value of the complex number is shown.</span>
 <span class="sd">            &quot;angle&quot; will display the phase of the complex number in radians.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        `matplotlib` figure.</span>
+<span class="sd">    Returns: |matplotlib-Figure|</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Handle vectors</span>
     <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
@@ -312,7 +358,6 @@
 <span class="sd">            labels_and_arrays: List [(&quot;label1&quot;, arr1), (&quot;label2&quot;, arr2&quot;)]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_arr_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
-
         <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">labels_and_arrays</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">array</span><span class="p">)</span>
 
@@ -348,11 +393,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_array</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ArrayPlotter.plot"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.ArrayPlotter.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="n">color_map</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            cplx_mode: &quot;abs&quot; for absolute value, &quot;re&quot;, &quot;im&quot;, &quot;angle&quot;</span>
-<span class="sd">            color_map: matplotlib colormap</span>
+<span class="sd">            colormap: matplotlib colormap.</span>
+<span class="sd">            fontsize: legend and label fontsize.</span>
+
+<span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Build grid of plots.</span>
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
@@ -361,21 +409,18 @@
             <span class="n">nrows</span> <span class="o">=</span> <span class="n">num_plots</span> <span class="o">//</span> <span class="n">ncols</span> <span class="o">+</span> <span class="p">(</span><span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="n">fig</span><span class="p">,</span> <span class="n">axmat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1"># don&#39;t show the last ax if num_plots is odd.</span>
-        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">axmat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax_mat</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Don&#39;t show the last ax if num_plots is odd.</span>
+        <span class="k">if</span> <span class="n">num_plots</span> <span class="o">%</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ax_mat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
 
         <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1</span> <span class="k">import</span> <span class="n">make_axes_locatable</span>
         <span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="k">import</span> <span class="n">MultipleLocator</span>
 
-        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axmat</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax_mat</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data_from_cplx_mode</span><span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
-            <span class="c1"># use origin to place the [0,0] index of the array in the lower left corner of the axes.</span>
-            <span class="c1">#img = ax.imshow(data, interpolation=&#39;nearest&#39;, cmap=color_map, origin=&#39;lower&#39;, aspect=&quot;auto&quot;)</span>
-            <span class="n">img</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">matshow</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">color_map</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
-            <span class="c1">#img = ax.matshow(data, cmap=color_map)</span>
-
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">label</span> <span class="o">+</span> <span class="s2">&quot; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">cplx_mode</span><span class="p">)</span>
+            <span class="c1"># Use origin to place the [0, 0] index of the array in the lower left corner of the axes.</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">matshow</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">) </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cplx_mode</span><span class="p">,</span> <span class="n">label</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
             <span class="c1"># Make a color bar for this ax</span>
             <span class="c1"># Create divider for existing axes instance</span>
@@ -474,126 +519,169 @@
         <span class="k">return</span> <span class="n">Marker</span><span class="p">(</span><span class="n">pos_x</span><span class="p">,</span> <span class="n">pos_y</span><span class="p">,</span> <span class="n">pos_s</span><span class="p">),</span> <span class="n">Marker</span><span class="p">(</span><span class="n">neg_x</span><span class="p">,</span> <span class="n">neg_y</span><span class="p">,</span> <span class="n">neg_s</span><span class="p">)</span></div></div>
 
 
-<span class="c1">#class Node(object):</span>
-<span class="c1">#    def __init__(self, path):</span>
-<span class="c1">#        self.path = path</span>
-<span class="c1">#        self.basename = os.path.basename(path)</span>
-<span class="c1">#        self.isdir = os.path.isdir(self.path)</span>
-<span class="c1">#        self.isfile = os.path.isfile(self.path)</span>
-<span class="c1">#</span>
-<span class="c1">#    def __eq__(self, other):</span>
-<span class="c1">#        if not isinstance(other, self.__class__): return False</span>
-<span class="c1">#        return self.path == other.path</span>
-<span class="c1">#</span>
-<span class="c1">#    def __ne__(self, other):</span>
-<span class="c1">#        return not self.__eq__(other)</span>
-<span class="c1">#</span>
-<span class="c1">#    def __hash__(self):</span>
-<span class="c1">#        return hash(self.path)</span>
-<span class="c1">#</span>
-<span class="c1">#</span>
-<span class="c1">#class FileNode(Node):</span>
-<span class="c1">#    color = np.array((255, 0, 0)) / 255</span>
-<span class="c1">#</span>
-<span class="c1">#</span>
-<span class="c1">#class DirNode(Node):</span>
-<span class="c1">#    color = np.array((0, 0, 255)) / 255</span>
-<span class="c1">#</span>
-<span class="c1">#    @lazy_property</span>
-<span class="c1">#    def isempty(self):</span>
-<span class="c1">#        &quot;&quot;&quot;True if empty directory.&quot;&quot;&quot;</span>
-<span class="c1">#        return bool(os.listdir(self.path))</span>
-<span class="c1">#</span>
-<span class="c1">#</span>
-<span class="c1">#class DirTreePlotter(object):</span>
-<span class="c1">#</span>
-<span class="c1">#    def __init__(self, top):</span>
-<span class="c1">#        self.top = os.path.abspath(top)</span>
-<span class="c1">#        self.build_graph()</span>
-<span class="c1">#</span>
-<span class="c1">#    def build_graph(self):</span>
-<span class="c1">#        import networkx as nx</span>
-<span class="c1">#        g = nx.Graph()</span>
-<span class="c1">#        g.add_node(DirNode(self.top))</span>
-<span class="c1">#</span>
-<span class="c1">#        for root, dirs, files in os.walk(self.top):</span>
-<span class="c1">#            for dirpath in dirs:</span>
-<span class="c1">#                dirpath = os.path.join(root, dirpath)</span>
-<span class="c1">#                head, basename = os.path.split(dirpath)</span>
-<span class="c1">#                node = DirNode(dirpath)</span>
-<span class="c1">#                g.add_node(node)</span>
-<span class="c1">#                g.add_edge(DirNode(head), node)</span>
-<span class="c1">#</span>
-<span class="c1">#            for f in files:</span>
-<span class="c1">#                filepath = os.path.join(root, f)</span>
-<span class="c1">#                node = FileNode(filepath)</span>
-<span class="c1">#                g.add_node(node)</span>
-<span class="c1">#                g.add_edge(DirNode(os.path.dirname(filepath)), node)</span>
-<span class="c1">#</span>
-<span class="c1">#        self.graph = g</span>
-<span class="c1">#</span>
-<span class="c1">#    @add_fig_kwargs</span>
-<span class="c1">#    def plot(self, filter_ends=None, ax=None, **kwargs):</span>
-<span class="c1">#        &quot;&quot;&quot;</span>
-<span class="c1">#        Plot directory tree with files</span>
-<span class="c1">#</span>
-<span class="c1">#        Args:</span>
-<span class="c1">#            filter_ends: List of file extensions (actually file ends) that should be displayed.</span>
-<span class="c1">#                If None, all files are displayed</span>
-<span class="c1">#            ax: matplotlib :class:`Axes` or None if a new figure should be created.</span>
-<span class="c1">#</span>
-<span class="c1">#        Returns:</span>
-<span class="c1">#            `matplotlib` figure.</span>
-<span class="c1">#        &quot;&quot;&quot;</span>
-<span class="c1">#        ax, fig, plt = get_ax_fig_plt(ax=ax)</span>
-<span class="c1">#        fixed, initial_pos = None, None</span>
-<span class="c1">#        fixed = True</span>
-<span class="c1">#        arrows = False</span>
-<span class="c1">#</span>
-<span class="c1">#        g = self.graph</span>
-<span class="c1">#        if filter_ends:</span>
-<span class="c1">#            filter_ends = list_strings(filter_ends)</span>
-<span class="c1">#            g = self.graph.subgraph([n for n in self.graph.nodes() if n.isdir # and not n.isempty)</span>
-<span class="c1">#                or (n.isfile and any(n.basename.endswith(e) for e in filter_ends))])</span>
-<span class="c1">#</span>
-<span class="c1">#        if arrows:</span>
-<span class="c1">#            g = nx.convert_to_directed(g)</span>
-<span class="c1">#</span>
-<span class="c1">#        top = self.top</span>
-<span class="c1">#        top_nodes = [DirNode(os.path.join(top, d)) for d in os.listdir(top) if os.path.isdir(os.path.join(top, d))]</span>
-<span class="c1">#        #print(&quot;top_nodes&quot;, top_nodes)</span>
-<span class="c1">#        import networkx as nx</span>
-<span class="c1">#        t = nx.Graph()</span>
-<span class="c1">#        t.add_nodes_from(top_nodes)</span>
-<span class="c1">#        initial_pos = nx.circular_layout(t)</span>
-<span class="c1">#</span>
-<span class="c1">#        # Get positions for all nodes using layout_type.</span>
-<span class="c1">#        # e.g. pos = nx.spring_layout(g)</span>
-<span class="c1">#        #layout_type = &quot;spring&quot;</span>
-<span class="c1">#        #pos = getattr(nx, layout_type + &quot;_layout&quot;)(g)</span>
-<span class="c1">#</span>
-<span class="c1">#        pos = nx.spring_layout(g, iterations=50, fixed=top_nodes, pos=initial_pos)</span>
-<span class="c1">#</span>
-<span class="c1">#        nx.draw_networkx(g, pos,</span>
-<span class="c1">#                         labels={n: n.basename for n in g.nodes()},</span>
-<span class="c1">#                         node_color=[n.color for n in g.nodes()],</span>
-<span class="c1">#                         #node_size=[make_node_size(task) for task in g.nodes()],</span>
-<span class="c1">#                         #node_size=50,</span>
-<span class="c1">#                         width=1,</span>
-<span class="c1">#                         style=&quot;dotted&quot;,</span>
-<span class="c1">#                         with_labels=True,</span>
-<span class="c1">#                         font_size=10,</span>
-<span class="c1">#                         arrows=arrows,</span>
-<span class="c1">#                         alpha= 0.6,</span>
-<span class="c1">#                         ax=ax,</span>
-<span class="c1">#        )</span>
-<span class="c1">#</span>
-<span class="c1">#        ax.axis(&quot;off&quot;)</span>
-<span class="c1">#        return fig</span>
-<span class="c1">#</span>
-<span class="c1">#    #def __str__(self)</span>
-<span class="c1">#    #    from monty.pprint import _draw_tree</span>
-<span class="c1">#    #    return _draw_tree(node, prefix, child_iter, text_str)</span>
+<span class="k">class</span> <span class="nc">MplExpose</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+
+<span class="sd">        with MplExpose() as e:</span>
+<span class="sd">            e(obj.plot1(show=False))</span>
+<span class="sd">            e(obj.plot2(show=False))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slide_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            slide_mode: If true, iterate over figures. Default: Expose all figures at once.</span>
+<span class="sd">            slide_timeout: Close figure after slide-timeout seconds Block if None.</span>
+<span class="sd">            verbose: verbosity level</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slide_mode</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">slide_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="o">=</span> <span class="n">slide_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">slide_mode</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Sliding matplotlib figures with slide timeout: </span><span class="si">%s</span><span class="s2"> [s]&quot;</span> <span class="o">%</span> <span class="n">slide_timeout</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Loading all mpl figures before showing them. Could take some time...&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an object to MplExpose. Support mpl figure, list of figures or</span>
+<span class="sd">        generator yelding figures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">types</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_fig</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_fig</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a matplotlib figure.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">slide_mode</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#print(&quot;Printing and closing&quot;, fig)</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Creating a timer object</span>
+                <span class="c1"># timer calls plt.close after interval milliseconds to close the window.</span>
+                <span class="n">timer</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">new_timer</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_ms</span><span class="p">)</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">,</span> <span class="n">fig</span><span class="p">)</span>
+                <span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Activated at the end of the with statement. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expose</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">expose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show all figures. Clear figures if needed.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">slide_mode</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All figures in memory, elapsed time: </span><span class="si">%.3f</span><span class="s2"> s&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">))</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">figures</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="plot_unit_cell"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.abio.robots.plot_unit_cell">[docs]</a><span class="k">def</span> <span class="nf">plot_unit_cell</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the unit cell of the lattice to a matplotlib Axes3D</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lattice: Lattice object</span>
+<span class="sd">        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
+<span class="sd">        kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Color defaults to black</span>
+<span class="sd">            and linewidth to 3.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        matplotlib figure and matplotlib ax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax3d_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;k&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;linewidth&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">v</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+                 <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<span class="k">def</span> <span class="nf">plot_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+                   <span class="n">style</span><span class="o">=</span><span class="s2">&quot;points+labels&quot;</span><span class="p">,</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s2">&quot;VESTA&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot structure with matplotlib (minimalistic version)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        structure: Structure object</span>
+<span class="sd">        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.</span>
+<span class="sd">        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)</span>
+<span class="sd">        to_unit_cell: True if sites should be wrapped into the first unit cell.</span>
+<span class="sd">        style: &quot;points+labels&quot; to show atoms sites with labels.</span>
+<span class="sd">        color_scheme: color scheme for atom types. Allowed values in (&quot;Jmol&quot;, &quot;VESTA&quot;)</span>
+
+<span class="sd">    Returns: |matplotlib-Figure|</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plot_unit_cell</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">pymatgen.analysis.molecule_structure_comparator</span> <span class="k">import</span> <span class="n">CovalentRadius</span>
+    <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="k">import</span> <span class="n">EL_COLORS</span>
+    <span class="n">xyzs</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">),</span> <span class="mi">4</span><span class="p">)),</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+        <span class="n">symbol</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">symbol</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">EL_COLORS</span><span class="p">[</span><span class="n">color_scheme</span><span class="p">][</span><span class="n">symbol</span><span class="p">])</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">CovalentRadius</span><span class="o">.</span><span class="n">radius</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">to_unit_cell</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="s2">&quot;to_unit_cell&quot;</span><span class="p">):</span> <span class="n">site</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">to_unit_cell</span>
+        <span class="c1"># Use cartesian coordinates.</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span>
+        <span class="n">xyzs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+        <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;labels&quot;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">symbol</span><span class="p">)</span>
+
+    <span class="c1"># The definition of sizes is not optimal because matplotlib uses points</span>
+    <span class="c1"># wherease we would like something that depends on the radius (5000 seems to give reasonable plots)</span>
+    <span class="c1"># For possibile approaches, see</span>
+    <span class="c1"># https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352</span>
+    <span class="c1"># https://gist.github.com/syrte/592a062c562cd2a98a83</span>
+    <span class="k">if</span> <span class="s2">&quot;points&quot;</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">xyzs</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="mi">5000</span> <span class="o">*</span> <span class="n">s</span> <span class="o">**</span><span class="mi">2</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">zs</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>  <span class="c1">#facecolors=&quot;white&quot;, #edgecolors=&quot;blue&quot;</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">fig</span>
 </pre></div>
 
     </div>
@@ -607,8 +695,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2017, The AbiPy group.<br/>
-      Last updated on Dec 30, 2017.<br/>
+        &copy; Copyright 2018, The AbiPy group.<br/>
+      Last updated on Feb 22, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>
