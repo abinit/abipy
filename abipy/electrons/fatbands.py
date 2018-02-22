@@ -480,8 +480,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         x = np.arange(self.nkpt)
         mybands = range(ebands.mband) if blist is None else blist
 
-        for iax, ax in enumerate(ax_mat.flat):
-            iatom = ax2iatom[iax]
+        for iax, iatom in enumerate(ax2iatom):
+            ax = ax_mat.flat[iax]
             # Plot the energies.
             for spin in range(self.nsppol):
                 ebands.plot_ax(ax, e0, spin=spin, **self.eb_plotax_kwargs(spin))
