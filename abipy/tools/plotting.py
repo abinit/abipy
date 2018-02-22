@@ -37,6 +37,14 @@ def ax_append_title(ax, title, loc="center", fontsize=None):
     return new_title
 
 
+#def set_grid(fig, boolean):
+#    if hasattr(fig, "axes"):
+#        for ax in fig.axes:
+#            if ax.grid: ax.grid.set_visible(boolean)
+#    else:
+#            if ax.grid: ax.grid.set_visible(boolean)
+
+
 def set_axlims(ax, lims, axname):
     """
     Set the data limits for the axis ax.

@@ -180,3 +180,5 @@ TODO list:
 * Cleanup and refactoring in OpticTask
 
 * Replace SIGRES with new fileformat based on SIGEPH.
+
+* [eV] --> (ev) in title

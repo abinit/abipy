@@ -168,7 +168,7 @@ class FactoryTest(AbipyTest):
         # sigma_nband=None, gw_qprange=1):
 
         # one scf, one nscf and one screening / sigma multi
-        self.assertEqual(len(inputs), 4)
+        assert len(inputs) == 4
         self.assertIsInstance(inputs[0][0], AbinitInput)
         self.assertIsInstance(inputs[1][0], AbinitInput)
         self.assertIsInstance(inputs[2][0], AbinitInput)

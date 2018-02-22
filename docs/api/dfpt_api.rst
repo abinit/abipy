@@ -28,6 +28,15 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`frozen_phonons` Module
+----------------------------
+
+.. automodule:: abipy.dfpt.frozen_phonons
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`gruneisen` Module
 -----------------------
 
