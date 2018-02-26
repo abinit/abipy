@@ -1231,6 +1231,9 @@ class Structure(pymatgen.Structure, NotebookWriter):
         """
         if fmt == "abivars":
             return self.abi_string
+        elif fmt == "qe":
+            from pymatgen.io.pwscf import PWInput
+            return str(PWInput(self, pseudo={s: s + ".pseudo" for s in self.symbol_set}))
         else:
             return super(Structure, self).to(fmt=fmt, **kwargs)
 
