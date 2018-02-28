@@ -25,11 +25,15 @@ TODO list:
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* Rename EPH.nc
+* Rename EPH.nc (A2F.nc, ELI.nc)
 
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
+
+* Positive gw_qprange in EPH
+
+* DONE Fix problem with get_edos if we don't have enough bands 
 
 ## Medium priority
 
@@ -58,7 +62,7 @@ TODO list:
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
 
-* Fix problem with get_edos if we don't have enough bands 
+
 
 * Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
@@ -168,3 +172,13 @@ TODO list:
 * lobster interface from Guido
 
 * interface abistruct with marylin
+
+* Remove Prettytable
+
+* context manager to change variables (e.g. autoparal)
+
+* Cleanup and refactoring in OpticTask
+
+* Replace SIGRES with new fileformat based on SIGEPH.
+
+* [eV] --> (ev) in title

@@ -97,8 +97,25 @@ class ElectronBandsTest(AbipyTest):
 
         ni_edos = ni_ebands_kmesh.get_edos()
         repr(ni_edos); str(ni_edos)
+        assert ni_edos.to_string(verbose=2)
+
+        # Get ElectronDosPlotter with nsppol == 2 and test matplotlib methods.
+        edos_plotter = ni_ebands_kmesh.compare_gauss_edos(widths=[0.2, 0.4], step=0.2)
+        assert len(edos_plotter) == 2
+        if self.has_matplotlib():
+            # Combiplot.
+            assert edos_plotter.combiplot(title="default values", show=False)
+            assert edos_plotter.combiplot(what_list=("dos", "idos"), spin_mode="resolved", show=False)
+            assert edos_plotter.combiplot(e0=0, what_list="dos", spin_mode="resolved", fontsize=12, show=False)
+            # Gridplot
+            assert edos_plotter.gridplot(title="default values", show=False)
+            assert edos_plotter.gridplot(what="idos", spin_mode="resolved", xlims=(-10, 10), show=False)
+            assert edos_plotter.gridplot(e0=0, what="dos", spin_mode="resolved", fontsize=12, show=False)
 
         ni_ebands_kpath = ElectronBands.from_file(abidata.ref_file("ni_kpath_GSR.nc"))
+        assert not ni_ebands_kpath.has_linewidths
+        ni_ebands_kpath.linewidths = np.ones(ni_ebands_kpath.shape)
+        assert ni_ebands_kpath.has_linewidths
 
         repr(ni_ebands_kpath); str(ni_ebands_kpath)
         assert ni_ebands_kpath.nsppol == 2 and ni_ebands_kpath.nspinor == 1 and ni_ebands_kpath.nspden == 2
@@ -162,6 +179,10 @@ class ElectronBandsTest(AbipyTest):
             assert ni_edos.plot(xlims=elims, show=False)
             assert ni_edos.plot_dos_idos(xlims=elims, show=False)
             assert ni_edos.plot_up_minus_down(xlims=elims, show=False)
+
+            # Test linewidths
+            assert ni_ebands_kmesh.plot_lws_vs_e0(show=False) is None
+            assert ni_ebands_kpath.plot_lws_vs_e0(show=False)
 
             # TODO Generaliza jdos to metals.
             #vrange, crange = range(0, 4), range(4, 5)
@@ -253,6 +274,8 @@ class ElectronBandsTest(AbipyTest):
         tot_d, tot_i = si_edos.dos_idos()
         self.assert_almost_equal(2 * d.values, tot_d.values)
         self.assert_almost_equal(2 * i.values, tot_i.values)
+        self.assert_equal(si_edos.up_minus_down.mesh, si_edos.tot_dos.mesh)
+        self.assert_equal(si_edos.up_minus_down.values, 0)
 
         # Test ElectronDos get_e0
         assert si_edos.get_e0("fermie") == si_edos.fermie
@@ -380,9 +403,6 @@ class ElectronBandsTest(AbipyTest):
 
     def test_ebands_skw_interpolation(self):
         """Testing SKW interpolation."""
-        #if sys.version[0:3] >= '3.4':
-        #    raise unittest.SkipTest("SKW interpolation is not tested if Python version >= 3.4 (linalg.solve portability issue)")
-
         si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
 
         # Test interpolation.

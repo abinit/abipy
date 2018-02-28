@@ -129,7 +129,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'abipy'
-copyright = '2017, ' + relmod.author
+copyright = '2018, ' + relmod.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

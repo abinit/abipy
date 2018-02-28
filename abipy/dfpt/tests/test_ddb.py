@@ -347,7 +347,7 @@ class DdbRobotTest(AbipyTest):
 
         data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
                 dipdip=0, with_geo=True, abspath=True)
-        assert "mode1" in data and "angle1" in data
+        assert "mode1" in data and "alpha" in data
 
         r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)
         if self.has_matplotlib():

@@ -1674,7 +1674,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         except Exception as exc:
             # Sometimes the previous call raises: Cannot find next YAML document in /tmp/tmpskvdr_bo/run.log
             # perhaps because the log file is still being written (?) so let's wait a bit.
-            time.sleep(2.0)
+            time.sleep(5.0)
             try:
                 return yaml_read_irred_perts(task.log_file.path)
             except Exception as exc:

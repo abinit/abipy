@@ -94,13 +94,14 @@ class HistFileTest(AbipyTest):
             assert len(robot.get_structure_dataframes()) == 3
 
             df = robot.get_dataframe()
-            assert "angle1" in df
+            assert "alpha" in df
 
             if self.has_matplotlib():
-                for what in robot.what_list:
-                    assert robot.gridplot(what=what, show=False)
-                    assert robot.combiplot(show=False)
-                assert robot.plot_lattice_convergence(show=False)
+                what_list = ["energy", "abc", "pressure", "forces"]
+                assert robot.gridplot(what=what_list, fontsize=4, show=False)
+                assert robot.combiplot(colormap="viridis", show=False)
+                assert robot.plot_lattice_convergence(fontsize=10, show=False)
+                assert robot.plot_lattice_convergence(what_list=("a", "alpha"), show=False)
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

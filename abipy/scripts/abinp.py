@@ -158,6 +158,7 @@ def abinp_phperts(options):
     qpt = None if "qpt" in inp else [0, 0, 0]
     perts = inp.abiget_irred_phperts(qpt=qpt)
     print(perts)
+
     return 0
 
 
@@ -169,7 +170,7 @@ def abinp_gs(options):
                                kppa=None, ecut=None, pawecutdg=None, scf_nband=None,
                                accuracy="normal", spin_mode="unpolarized",
                                smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
-    #print(gsinp._repr_html_())
+
     return finalize(gsinp, options)
 
 
@@ -239,6 +240,7 @@ def abinp_anaph(options):
         anaddb_args=None, anaddb_kwargs=None)
 
     return finalize(inp, options)
+
 
 def get_epilog():
     return r"""

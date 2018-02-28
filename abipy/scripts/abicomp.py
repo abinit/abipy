@@ -551,7 +551,7 @@ def _invoke_robot(options):
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground)
 
-    elif options.print:
+    elif options.print or options.expose:
         robot.trim_paths()
         #df = robot.get_params_dataframe()
         #abilab.print_dataframe(df, title="Output of robot.get_params_dataframe():")
@@ -572,6 +572,9 @@ def _invoke_robot(options):
 
         if not options.verbose:
             print("\nUse --verbose for more information")
+
+        if options.expose and hasattr(robot, "expose"):
+            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
 
     #elif options.ipython:
     else:
@@ -790,6 +793,10 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='Verbose, can be supplied multiple times to increase verbosity.')
     copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings for plots.")
+    copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
+        help=("Set matplotlib interactive backend. "
+              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
+              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
@@ -892,6 +899,12 @@ def get_parser(with_epilog=False):
         help="Run jupyter notebook in the foreground.")
     #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
     robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
+    robot_ipy_parser.add_argument("-e", '--expose', default=False, action="store_true",
+            help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
+    robot_ipy_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+            help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
+    robot_ipy_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
 
     #robot_parents = [copts_parser, ipy_parser, robot_parser]
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser]
@@ -952,6 +965,11 @@ def main():
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
+
+    if options.mpl_backend is not None:
+        # Set matplotlib backend
+        import matplotlib
+        matplotlib.use(options.mpl_backend)
 
     if options.seaborn:
         # Use seaborn settings.

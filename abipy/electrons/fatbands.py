@@ -480,8 +480,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         x = np.arange(self.nkpt)
         mybands = range(ebands.mband) if blist is None else blist
 
-        for iax, ax in enumerate(ax_mat.flat):
-            iatom = ax2iatom[iax]
+        for iax, iatom in enumerate(ax2iatom):
+            ax = ax_mat.flat[iax]
             # Plot the energies.
             for spin in range(self.nsppol):
                 ebands.plot_ax(ax, e0, spin=spin, **self.eb_plotax_kwargs(spin))
@@ -662,7 +662,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @add_fig_kwargs
     def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, ax_mat=None, ylims=None,
-                              blist=None, fontsize=12, **kwargs):
+                              blist=None, fontsize=8, **kwargs):
         """
         Plot the electronic fatbands grouped by atomic type.
 
@@ -934,7 +934,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                          stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
-                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=12, **kwargs):
+                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
@@ -1090,7 +1090,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
                             stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
-                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=12, **kwargs):
+                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs):
         """
         Plot the PJ-DOS on a linear mesh.
 
@@ -1245,7 +1245,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
                                  pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                 ylims=None, **kwargs):
+                                 fontsize=8, ylims=None, **kwargs):
         """
         Compute the fatbands and the PJDOS on the same figure, a.k.a the Sistine Chapel.
 
@@ -1261,6 +1261,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             edos_kwargs:
             stacked: True if DOS partial contributions should be stacked on top of each other.
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
+            fontsize: Legend and label fontsize.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
 
@@ -1311,14 +1312,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         if view == "lview":
             self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_lview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
-                                       stacked=stacked, combined_spins=False,
+                                       stacked=stacked, combined_spins=False, fontsize=fontsize,
                                        with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                        **edos_kwargs)
 
         elif view == "type":
             self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat, ylims=ylims, show=False)
             pjdosfile.plot_pjdos_typeview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
-                                          stacked=stacked, combined_spins=False,
+                                          stacked=stacked, combined_spins=False, fontsize=fontsize,
                                           with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                           **edos_kwargs)
         else:
@@ -1523,6 +1524,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     #    return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        #for fig in self.yield_ebands_figs(): yield fig
+        if self.ebands.kpoints.is_path:
+            yield self.ebands.kpoints.plot(show=False)
+            yield self.plot_fatbands_lview(show=False)
+            yield self.plot_fatbands_typeview(show=False)
+        else:
+            yield self.plot_pjdos_lview(show=False)
+            yield self.plot_pjdos_typeview(show=False)
 
     def write_notebook(self, nbpath=None):
         """

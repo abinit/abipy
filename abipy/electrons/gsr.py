@@ -251,6 +251,13 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             #optical_gap:
             #efermi:
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        for fig in self.yield_structure_figs(**kwargs): yield fig
+        for fig in self.yield_ebands_figs(**kwargs): yield fig
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
@@ -514,6 +521,7 @@ class GsrRobot(Robot, RobotWithEbands):
             # Add total energy.
             d = OrderedDict([("energy", gsr.energy)])
             d.update(gsr.energy_terms)
+            d.update(gsr.params)
             rows.append(d)
 
         df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
@@ -521,6 +529,7 @@ class GsrRobot(Robot, RobotWithEbands):
             # Subtract iref row from the rest of the rows.
             iref_row = df.iloc[[iref]].values[0]
             df = df.apply(lambda row: row - iref_row, axis=1)
+
         return df
 
     @add_fig_kwargs
@@ -589,6 +598,15 @@ class GsrRobot(Robot, RobotWithEbands):
     #    for label, gsr in self.items():
     #        entries.append(gsr.get_computed_entry(inc_structure=True, parameters=None, data=None))
     #    return PhaseDiagramResults(entries)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot_lattice_convergence(show=False)
+        yield self.plot_gsr_convergence(show=False)
+        #for fig in self.get_ebands_plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

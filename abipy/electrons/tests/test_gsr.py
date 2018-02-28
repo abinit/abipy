@@ -193,6 +193,8 @@ class GsrRobotTest(AbipyTest):
 
             assert robot.plot_gsr_convergence(show=False)
             assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+            y_vars = ["energy", "structure.lattice.a", "structure.volume"]
+            assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", show=False)
 
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")
@@ -207,11 +209,13 @@ class GsrRobotTest(AbipyTest):
         df_params = robot.get_params_dataframe()
         assert "nband" in df_params
 
-        assert "angle1" in robot.get_lattice_dataframe()
+        assert "alpha" in robot.get_lattice_dataframe()
         assert hasattr(robot.get_coords_dataframe(), "keys")
 
         eterms_df = robot.get_energyterms_dataframe(iref=0)
         assert "energy" in eterms_df
+        assert "ecut" in eterms_df
+        assert "nkpt" in eterms_df
 
         if self.has_matplotlib():
             assert robot.plot_xy_with_hue(df, x="nkpt", y="pressure", hue="a", show=False)

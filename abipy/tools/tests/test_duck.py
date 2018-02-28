@@ -55,3 +55,9 @@ class DuckTest(AbipyTest):
         d = {"hello": 1, "world": 2}
         #assert not duck.is_listlike(d)
         #assert duck.is_listlike(range(1, 3))
+
+    def test_list_ints(self):
+        """Testing list_ints."""
+        assert duck.list_ints(1) == [1]
+        assert duck.list_ints([1]) == [1]
+        assert duck.list_ints([1, 2, 3]) == [1, 2, 3]

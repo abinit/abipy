@@ -858,7 +858,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         ax.set_xlabel("%s" % self._get_label(sortby))
         if sortby is None: rotate_ticklabels(ax, 15)
         ax.set_ylabel("%s" % self._get_label(item))
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        if hue is not None:
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -907,7 +909,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 if callable(item):
                     yvals = [float(item(gsr)) for gsr in self.abifiles]
                 else:
-                    yvals = [getattr(gsr, item) for gsr in self.abifiles]
+                    yvals = [getattrd(gsr, item) for gsr in self.abifiles]
                 ax.plot(params, yvals, marker=marker, **kwargs)
             else:
                 for g in groups:
@@ -915,7 +917,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     if callable(item):
                         yvals = [float(item(gsr)) for gsr in g.abifiles]
                     else:
-                        yvals = [getattr(gsr, item) for gsr in g.abifiles]
+                        yvals = [getattrd(gsr, item) for gsr in g.abifiles]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
                     ax.plot(g.xvalues, yvals, label=label, marker=marker, **kwargs)
 
@@ -924,18 +926,20 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             if i == len(items) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            if i == 0:
+            if i == 0 and hue is not None:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
-    def plot_lattice_convergence(self, sortby=None, hue=None, fontsize=8, **kwargs):
+    def plot_lattice_convergence(self, what_list=None, sortby=None, hue=None, fontsize=8, **kwargs):
         """
         Plot the convergence of the lattice parameters (a, b, c, alpha, beta, gamma).
         wrt the``sortby`` parameter. Values can optionally be grouped by ``hue``.
 
         Args:
+            what_list: List of strings with the quantities to plot e.g. ["a", "alpha", "beta"].
+                None means all.
             item: Define the quantity to plot. Accepts callable or string
                 If string, it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
@@ -985,6 +989,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         def c(afile):
             "c [Ang]"
             return getattr(afile, key).lattice.c
+        def volume(afile):
+            r"$V$"
+            return getattr(afile, key).lattice.volume
         def alpha(afile):
             r"$\alpha$"
             return getattr(afile, key).lattice.alpha
@@ -995,7 +1002,10 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             r"$\gamma$"
             return getattr(afile, key).lattice.gamma
 
-        items = [a, b, c, alpha, beta, gamma]
+        items = [a, b, c, volume, alpha, beta, gamma]
+        if what_list is not None:
+            locs = locals()
+            items = [locs[what] for what in list_strings(what_list)]
 
         # Build plot grid.
         nrows, ncols = len(items), 1

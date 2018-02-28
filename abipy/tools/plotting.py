@@ -37,6 +37,14 @@ def ax_append_title(ax, title, loc="center", fontsize=None):
     return new_title
 
 
+#def set_grid(fig, boolean):
+#    if hasattr(fig, "axes"):
+#        for ax in fig.axes:
+#            if ax.grid: ax.grid.set_visible(boolean)
+#    else:
+#            if ax.grid: ax.grid.set_visible(boolean)
+
+
 def set_axlims(ax, lims, axname):
     """
     Set the data limits for the axis ax.
@@ -74,6 +82,8 @@ def set_visible(ax, boolean, *args):
     Hide/Show the artists of axis ax listed in args.
     """
     if "legend" in args and ax.legend():
+        #handles, labels = ax.get_legend_handles_labels()
+        #if handles:
         ax.legend().set_visible(boolean)
     if "title" in args and ax.title:
         ax.title.set_visible(boolean)
@@ -387,6 +397,12 @@ class MplExpose(object): # pragma: no cover
             e(obj.plot2(show=False))
     """
     def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+        """
+        Args:
+            slide_mode: If true, iterate over figures. Default: Expose all figures at once.
+            slide_timeout: Close figure after slide-timeout seconds Block if None.
+            verbose: verbosity level
+        """
         self.figures = []
         self.slide_mode = bool(slide_mode)
         self.timeout_ms = slide_timeout
@@ -403,7 +419,20 @@ class MplExpose(object): # pragma: no cover
 
         self.start_time = time.time()
 
-    def __call__(self, fig):
+    def __call__(self, obj):
+        """
+        Add an object to MplExpose. Support mpl figure, list of figures or
+        generator yelding figures.
+        """
+        import types
+        if isinstance(obj, (types.GeneratorType, list, tuple)):
+            for fig in obj:
+                self.add_fig(fig)
+        else:
+            self.add_fig(obj)
+
+    def add_fig(self, fig):
+        """Add a matplotlib figure."""
         if fig is None: return
 
         if not self.slide_mode:
@@ -484,7 +513,7 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
         structure: Structure object
         ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
         alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-        to_unit_cell: True if sites should be wrapped to the first unit cell.
+        to_unit_cell: True if sites should be wrapped into the first unit cell.
         style: "points+labels" to show atoms sites with labels.
         color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
 

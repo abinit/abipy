@@ -24,12 +24,10 @@ Dragon1
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:
-	        PATH: "/home/users/g/m/gmatteo/git/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
+	        PATH: "$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
 	    modules:
 	        - mpich/3.0.4/intel-13.0.0
-	    # pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit unlimited
+	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -95,13 +93,13 @@ Hercules
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:
-	        PATH: "/home/gmatteo/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH"
+	        PATH: "$HOME/git_repos/abinit/_build_hercules.ac/src/98_main/:$PATH"
 	    modules:
 	        - impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26
 	        - imkl/11.3.3.210-iimpi-2016b
-	    # pre_run is a string in verbatim mode (note |)
+	    # here pre_run is a string in verbatim mode (note |)
 	    pre_run: |
-	        ulimit unlimited
+	        ulimit -s unlimited
 	
 	# queues
 	qadapters:
@@ -149,12 +147,10 @@ Hmem
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:
-	        PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
+	        PATH: "$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
 	    modules:
 	        - openmpi/1.5.3/intel-12.0.0.084
-	    # pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit unlimited
+	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -290,9 +286,7 @@ Jureca
 	        PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
 	    modules:
 	        - intel-para/2015.07
-	    # pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit unlimited
+	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -325,12 +319,10 @@ Lemaitre2
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:  # Use your abinit exec
-	        PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH"
+	        PATH: "$HOME/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH"
 	    modules: # Abinit compiled with abiconfig settings
 	        - openmpi/1.6.5/intel-13.0.1.117
-	    # pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit unlimited
+	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -378,13 +370,13 @@ Manneback
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:
-	         PATH: /home/users/g/m/gmatteo/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH
-	    pre_run: |
-	        ulimit -s unlimited  # pre_run is a string in verbatim mode (note |)
-	        export OMP_NUM_THREADS=1
-	        unset SLURM_CPUS_PER_TASK
-	        module purge
-	        module load gompi/2016a FFTW/3.3.4-gompi-2016a
+	         PATH: "$HOME/git_repos/abinit/_build_manneback-gcc-openmpi.ac/src/98_main/:$PATH"
+	    pre_run:
+	        - "ulimit -s unlimited"
+	        - "export OMP_NUM_THREADS=1"
+	        - "unset SLURM_CPUS_PER_TASK"
+	        - "module purge"
+	        - "module load gompi/2016a FFTW/3.3.4-gompi-2016a"
 	
 	#policy:
 	#   frozen_timeout: 0-12:0:0
@@ -428,9 +420,8 @@ Nic4
 	    mpi_runner: "mpirun"
 	    mpi_runner_options: "--bind-to none"
 	    shell_env:
-	        PATH: "/home/users/g/m/gmatteo/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
-	    pre_run:
-	       - "ulimit -s unlimited"
+	        PATH: "$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
+	    pre_run: "ulimit -s unlimited"
 	    modules:
 	        - shared
 	        - openmpi/1.7.5/intel2013_sp1.1.106
@@ -582,12 +573,10 @@ Vega
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:
-	        PATH: "/gpfsuser/home/users/g/m/gmatteo/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
+	        PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
 	    modules:
 	        - intel/2015a
-	    # pre_run is a string in verbatim mode (note |)
-	    #pre_run: |
-	    #    "ulimit -s unlimited"
+	    #pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -621,9 +610,9 @@ Viper
 	job: &job
 	    mpi_runner: ~/bin/mpirun.openmpi
 	    # pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit -s unlimited
-	        source ~/.bashrc
+	    pre_run:
+	        - "ulimit -s unlimited"
+	        - "source ~/.bashrc"
 	
 	# queues
 	qadapters:
@@ -664,13 +653,12 @@ Zenobe
 	job: &job
 	    mpi_runner: mpirun
 	    shell_env:
-	         PATH: /home/acad/ucl/naps/mgiantom/bzr_repos/793/gmatteo-private/build_impi/src/98_main:$PATH
+	         PATH: $HOME/git_repos/abinit_build_impi/src/98_main:$PATH
 	    modules:
 	        - compiler/intel/composerxe/2013_sp1.1.106
 	        - intelmpi
 	        - python/2.7
-	    pre_run: |
-	        ulimit  # pre_run is a string in verbatim mode (note |)
+	    pre_run: "ulimit -s unlimited"
 	
 	# List of qdapters.
 	qadapters:

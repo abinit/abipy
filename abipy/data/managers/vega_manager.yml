@@ -8,12 +8,10 @@ hardware: &hardware
 job: &job
     mpi_runner: mpirun
     shell_env:
-        PATH: "/gpfsuser/home/users/g/m/gmatteo/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
+        PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
     modules:
         - intel/2015a
-    # pre_run is a string in verbatim mode (note |)
-    #pre_run: |
-    #    "ulimit -s unlimited"
+    #pre_run: "ulimit -s unlimited"
 
 # queues 
 qadapters:

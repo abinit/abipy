@@ -183,7 +183,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         group.add_argument('--primitive-standard', default=False, action='store_true',
             help="Enforce primitive standard cell.")
 
-    supported_formats = "(abivars, cif, xsf, poscar, cssr, json, None)"
+    supported_formats = "(abivars, cif, xsf, poscar, qe, cssr, json, None)"
     def add_format_arg(parser, default, option=True):
         """Add --format option to a parser with default value `default`."""
         if option:

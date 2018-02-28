@@ -27,7 +27,6 @@ except ImportError:
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas
-#from numba import jit
 
 import logging
 logger = logging.getLogger(__name__)
@@ -999,7 +998,6 @@ class KpointList(collections.Sequence):
         """Plot k-points with matplotlib."""
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
-        #print("is_path:", self.is_path)
         if self.is_path:
             labels = {k.name: k.frac_coords for k in self if k.name}
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]
@@ -1445,7 +1443,7 @@ class KSamplingInfo(AttrDict):
                     warnings.warn("""
 monkhorst_pack_folding variables has not been written to netcdf file.
 Received {mpdivs}
-Setting mpdivs to None, this could create problems in post-processing tools.
+Setting mpdivs to None, this may create problems in post-processing tools.
 If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
                     self["mpdivs"] = None
 

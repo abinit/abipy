@@ -12,7 +12,7 @@ def is_string(s):
     try:
         s + " "
         return True
-    except TypeError:
+    except Exception:
         return False
 
 
@@ -52,6 +52,19 @@ def is_listlike(obj):
         return True
     except TypeError:
         return False
+
+
+def list_ints(arg):
+    """
+    Always return a list of int, given a int or list of integers as input.
+
+    :Examples:
+
+    >>> list_ints(1)
+    [1]
+    """
+    l = np.array(arg, dtype=np.int)
+    return [int(l)] if l.size == 1 else l.tolist()
 
 
 def torange(obj):
