@@ -793,13 +793,15 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def anacompare_ngqpt(self, ngqpts, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
                          verbose=0, num_cpus=1, stream=sys.stdout, workdir=None):
         """
-        Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
-        reported in the DDB_ file will be Fourier-interpolated on the list of q-meshes specified
+        Invoke Anaddb to compute Phonon DOS with different q-meshes. A different number of q-points
+        reported in the DDB_ file comparible with the grid specified by ngqpts will be used in the 
+        Fourier-interpolation. The point are interpolated to the list of q-meshes specified
         by ``nqsmalls``. Useful to perform covergence studies.
 
         Args:
             ngqpts: List of integers defining the q-mesh for the DOS. Each value is a list
-                with the sampling of the reciprocal brillouin zone.
+                with the sampling of the reciprocal brillouin zone. The new q-mesh should be comensurate
+                with the q-points found in the DDB file.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
