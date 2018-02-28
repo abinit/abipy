@@ -667,7 +667,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             anaddb_kwargs=anaddb_kwargs)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
-
         if verbose:
             print("ANADDB INPUT:\n", inp)
             print("workdir:", task.workdir)
@@ -790,6 +789,98 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 phbst_file.close()
 
         return phbands_plotter
+
+    def anacompare_ngqpt(self, ngqpts, nqsmall=10, asr=2, chneut=1, dipdip=1, dos_method="tetra",
+                         verbose=0, num_cpus=1, stream=sys.stdout, workdir=None):
+        """
+        Invoke Anaddb to compute Phonon DOS with different q-meshes. The ab-initio dynamical matrix
+        reported in the DDB_ file will be Fourier-interpolated on the list of q-meshes specified
+        by ``nqsmalls``. Useful to perform covergence studies.
+
+        Args:
+            ngqpts: List of integers defining the q-mesh for the DOS. Each value is a list
+                with the sampling of the reciprocal brillouin zone.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening
+            ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
+            verbose: Verbosity level.
+            num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.
+            stream: File-like object used for printing.
+
+        Return:
+            ``namedtuple`` with the following attributes::
+
+                    phdoses: List of |PhononDos| objects
+                    plotter: |PhononDosPlotter| object.
+                        Client code can use ``plotter.gridplot()`` to visualize the results.
+        """
+        num_cpus = get_ncpus() // 2 if num_cpus is None else num_cpus
+        if num_cpus <= 0: num_cpus = 1
+        num_cpus = min(num_cpus, len(ngqpts))
+
+        def do_work(ngqpt):
+            workdir_task = workdir+"_"+"".join(map(str,ngqpt))
+            phbst_file, phdos_file = self.anaget_phbst_and_phdos_files(
+                nqsmall=nqsmall, ndivsm=1, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, 
+                ngqpt=ngqpt, workdir=workdir_task, verbose=verbose)
+            phdos = phdos_file.phdos
+            phbst_file.close()
+            phdos_file.close()
+            return phdos
+
+        if num_cpus == 1:
+            # Sequential version
+            phdoses = [do_work(nqs) for nqs in ngqpts]
+
+        else:
+            # Threads
+            ngqpts = [tuple(nqs) for nqs in ngqpts]
+            if verbose:
+                print("Computing %d phonon DOS with %d threads" % (len(ngqpts), num_cpus) )
+            phdoses = [None] * len(ngqpts)
+
+            def worker():
+                while True:
+                    nqsm, phdos_index = q.get()
+                    phdos = do_work(nqsm)
+                    phdoses[phdos_index] = phdos
+                    q.task_done()
+
+            from threading import Thread
+            try:
+                from Queue import Queue # py2k
+            except ImportError:
+                from queue import Queue # py3k
+
+            q = Queue()
+            for i in range(num_cpus):
+                t = Thread(target=worker)
+                t.daemon = True
+                t.start()
+
+            for i, ngqpt in enumerate(ngqpts):
+                q.put((ngqpt, i))
+
+            # block until all tasks are done
+            q.join()
+
+        # Compute relative difference wrt last phonon DOS. Be careful because the DOSes may be defined
+        # on different frequency meshes ==> spline on the mesh of the last DOS.
+        last_mesh, converged = phdoses[-1].mesh, False
+        for i, phdos in enumerate(phdoses[:-1]):
+            splined_dos = phdos.spline_on_mesh(last_mesh)
+            abs_diff = (splined_dos - phdoses[-1]).abs()
+            if verbose:
+                print(" Delta(Phdos[%d] - Phdos[%d]) / Phdos[%d]: %f" %
+                    (i, len(phdoses)-1, len(phdoses)-1, abs_diff.integral().values[-1]), file=stream)
+
+        # Fill the plotter.
+        plotter = PhononDosPlotter()
+        for ngqpt, phdos in zip(ngqpts, phdoses):
+            plotter.add_phdos(label="ngqpt {} {} {}".format(*ngqpt), phdos=phdos)
+
+        return dict2namedtuple(phdoses=phdoses, plotter=plotter)
 
     def anacompare_phdos(self, nqsmalls, asr=2, chneut=1, dipdip=1, dos_method="tetra", ngqpt=None,
                          verbose=0, num_cpus=1, stream=sys.stdout):
