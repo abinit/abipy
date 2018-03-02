@@ -29,6 +29,8 @@ from abipy.dfpt.tensors import DielectricTensor
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
+from pymatgen.symmetry.bandstructure import HighSymmKpath
+from pymatgen.io.abinit.abiobjects import KSampling
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -622,8 +624,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                     lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+                                     anaddb_kwargs=None, verbose=0,
                                      mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
@@ -632,7 +635,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
             ndivsm: Number of division used for the smallest segment of the q-path.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening.
@@ -667,6 +674,28 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             anaddb_kwargs=anaddb_kwargs)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+
+        # Parameters for the DOS
+        if qppa:
+            ng2qpt = KSampling.automatic_density(self.structure, kppa=qppa).kpts[0]
+            #unset old variables
+            inp.pop_vars('nqsmall')
+            #set new variables
+            inp.set_vars(ng2qpt=ng2qpt)
+
+        # Parameters for the BS
+        if line_density:
+            hs = HighSymmKpath(self.structure, symprec=1e-2)
+            qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
+            n_qpoints = len(qpts)
+            qph1l = np.zeros((n_qpoints, 4))
+            qph1l[:, :-1] = qpts
+            qph1l[:, -1] = 1
+            #unset old variables
+            inp.pop_vars(['ndivsm','nqpath','qpath'])
+            #set new variables
+            inp['qph1l'] = qph1l.tolist()
+            inp['nph1l'] = n_qpoints
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
