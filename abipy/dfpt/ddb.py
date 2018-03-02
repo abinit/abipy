@@ -29,8 +29,6 @@ from abipy.dfpt.tensors import DielectricTensor
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
-from pymatgen.symmetry.bandstructure import HighSymmKpath
-from pymatgen.io.abinit.abiobjects import KSampling
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_ax_fig_plt, set_axlims
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -669,33 +667,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density, 
+            nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)
 
+        #work as usual
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
-
-        # Parameters for the DOS
-        if qppa:
-            ng2qpt = KSampling.automatic_density(self.structure, kppa=qppa).kpts[0]
-            #unset old variables
-            inp.pop_vars('nqsmall')
-            #set new variables
-            inp.set_vars(ng2qpt=ng2qpt)
-
-        # Parameters for the BS
-        if line_density:
-            hs = HighSymmKpath(self.structure, symprec=1e-2)
-            qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
-            n_qpoints = len(qpts)
-            qph1l = np.zeros((n_qpoints, 4))
-            qph1l[:, :-1] = qpts
-            qph1l[:, -1] = 1
-            #unset old variables
-            inp.pop_vars(['ndivsm','nqpath','qpath'])
-            #set new variables
-            inp['qph1l'] = qph1l.tolist()
-            inp['nph1l'] = n_qpoints
 
         if verbose:
             print("ANADDB INPUT:\n", inp)

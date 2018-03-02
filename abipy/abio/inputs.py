@@ -34,6 +34,8 @@ from abipy.abio.input_tags import *
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
+from pymatgen.symmetry.bandstructure import HighSymmKpath
+from pymatgen.io.abinit.abiobjects import KSampling
 
 import logging
 logger = logging.getLogger(__file__)
@@ -2400,7 +2402,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         return new
 
     @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, nqsmall, ndivsm=20, q1shft=(0, 0, 0),
+    def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
                         anaddb_args=None, anaddb_kwargs=None):
         """
@@ -2411,6 +2413,10 @@ class AnaddbInput(AbstractInput, Has_Structure):
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
             q1shft: Shifts used for the coarse Q-mesh
@@ -2439,18 +2445,36 @@ class AnaddbInput(AbstractInput, Has_Structure):
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
 
-        # Parameters for the dos.
-        new.set_autoqmesh(nqsmall)
-        new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
+        # Parameters for the DOS
+        if qppa:
+            ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
+            #set new variables
+            new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos)
+        else:
+            new.set_autoqmesh(nqsmall)
+            new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
+            if nqsmall == 0:
+                new["prtdos"] = 0
 
-        # Disable DOS computation.
-        if nqsmall == 0:
-            new["prtdos"] = 0
+        # Parameters for the BS
+        if line_density:
+            hs = HighSymmKpath(structure, symprec=1e-2)
+            qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)
+            # remove repeated q-points since those do
+            # interfere with _set_split_vals in the phonon plotter
+            qph1l = [qpts[0]]
+            for qpt in qpts[1:]:
+                if not np.array_equal(qpt,qph1l[-1]):
+                    qph1l.append(qpt)
+            #set new variables
+            new['qph1l'] = [q.tolist()+[1] for q in qph1l]
+            new['nph1l'] = len(qph1l)
+            qptbounds = structure.calc_kptbounds()
+        else:
+            new.set_qpath(ndivsm, qptbounds=qptbounds)
+            qptbounds = new['qpath']
 
-        new.set_qpath(ndivsm, qptbounds=qptbounds)
-        qptbounds = new['qpath']
         q1shft = np.reshape(q1shft, (-1, 3))
-
         new.set_vars(
             ifcflag=1,
             ngqpt=np.array(ngqpt),
