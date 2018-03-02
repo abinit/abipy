@@ -554,7 +554,7 @@ class PhononBands(object):
         for iq, qpoint in enumerate(self.qpoints):
             for nu in self.branches:
                 freq = self.phfreqs[iq, nu]
-                if freq < below_mev * 1000:
+                if freq < below_mev / 1000:
                     displ_cart = self.phdispl_cart[iq, nu, :]
                     umodes.append(PhononMode(qpoint, freq, displ_cart, self.structure))
 
