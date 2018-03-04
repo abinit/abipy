@@ -38,13 +38,15 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     except KeyError:
         return stream.write("Variable %s not in database" % varname)
 
-    html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
-        str(var.defaultval), str(var.text))
-    text = html2text.html2text(html)
+    #html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
+    #    str(var.defaultval), str(var.text))
+    #text = html2text.html2text(html)
+    text = "## Default value: %s\n## Description:\n\n%s\n" % (str(var.defaultval), var.text)
+
     if info: text += str(var.info)
-    # FIXME: There are unicode chars in abinit doc (Greek symbols)
     text = text.replace("[[", "\033[1m").replace("]]", "\033[0m")
 
+    # FIXME: There are unicode chars in abinit doc (Greek symbols)
     try:
         stream.write(text)
     except UnicodeEncodeError:

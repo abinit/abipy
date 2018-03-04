@@ -58,11 +58,11 @@ def get_parser(with_epilog=False):
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
                               help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    copts_parser.add_argument("-c", '--codename', type=str, default="abinit",
+                              help="Code name e.g. anaddb, optic... Default: abinit")
 
     var_parser = argparse.ArgumentParser(add_help=False)
     var_parser.add_argument('varname', help="ABINIT variable")
-    var_parser.add_argument("-c", '--codename', type=str, default="abinit",
-                            help="Code name e.g. anaddb, optic... Default: abinit")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
@@ -152,10 +152,10 @@ def main():
         return vdb[options.varname].browse()
 
     elif options.command == "graphviz":
-        #if options.varname in vdb.varsets:
-        #graph = vdb.get_graphviz(varset=option.varname, vartype=None, engine=options.engine)
-        #else
-        graph = vdb.get_graphviz_varname(varname=options.varname, engine=options.engine)
+        if options.varname in vdb.all_varset:
+            graph = vdb.get_graphviz(varset=options.varname, vartype=None, engine=options.engine)
+        else:
+            graph = vdb.get_graphviz_varname(varname=options.varname, engine=options.engine)
 
         import tempfile
         directory = tempfile.mkdtemp()
