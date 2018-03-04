@@ -609,7 +609,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             for name, value in items:
                 if mnemonics and value is not None:
-                    app("# <" + var_database[name].definition + ">")
+                    app("# <" + var_database[name].mnemonics + ">")
 
                 # Build variable, convert to string and append it
                 vname = name + post
@@ -630,7 +630,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 for name in names:
                     value = self[name]
                     if mnemonics and value is not None:
-                        app(escape("# <" + var_database[name].definition + ">"))
+                        app(escape("# <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
                     vname = name + post
@@ -644,7 +644,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 app(w * "#")
                 for name, value in self.structure.to_abivars().items():
                     if mnemonics and value is not None:
-                        app(escape("# <" + var_database[name].definition + ">"))
+                        app(escape("# <" + var_database[name].mnemonics + ">"))
                     vname = name + post
                     if mode == "html": vname = var_database[name].html_link(label=vname)
                     app(str(InputVariable(vname, value)))

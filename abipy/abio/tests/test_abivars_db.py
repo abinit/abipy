@@ -26,7 +26,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
 
         # Database methods.
         database.apropos("ecut")
-        assert len(database.json_dumps_varnames())
+        #assert len(database.json_dumps_varnames())
 
         print("vargeo section:\n", database.vars_with_section("vargeo"))
         for section in database.sections:
@@ -37,9 +37,9 @@ class AbinitVariableDatabaseTest(AbipyTest):
             assert len(database.vars_with_char(charact))
 
         name2section = database.name2section
-        assert name2section["ecut"] == "varbas" and name2section["ionmov"] == "varrlx"
+        assert name2section["ecut"] == "basic" and name2section["ionmov"] == "rlx"
 
-        assert database.group_by_section("ecut") == {'varbas': ['ecut']}
+        assert database.group_by_section("ecut") == {'basic': ['ecut']}
 
         natom_var = database["natom"]
         ecut_var = database["ecut"]
@@ -47,7 +47,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
         assert not ecut_var.isarray
         assert not ecut_var.depends_on_dimension("natom")
         assert not ecut_var.depends_on_dimension(natom_var)
-        assert ecut_var.url
+        assert ecut_var.website_url
         assert ecut_var.html_link() and ecut_var.html_link(label="foo")
 
         spinat_var = database["spinat"]

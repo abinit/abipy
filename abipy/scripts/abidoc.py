@@ -32,6 +32,7 @@ def get_epilog():
 Usage example:
 
     abidoc.py man ecut        --> Show documentation for ecut input variable.
+    abidoc.py graphviz acell  --> Draw parents and children of variable with graphviz package.
     abidoc.py browse acell    --> Open url in external browser.
     abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
     abidoc.py find paw        --> To search in the database for the variables whose name contains paw.
@@ -61,12 +62,23 @@ def get_parser(with_epilog=False):
 
     var_parser = argparse.ArgumentParser(add_help=False)
     var_parser.add_argument('varname', help="ABINIT variable")
+    var_parser.add_argument("-c", '--codename', type=str, default="abinit",
+                            help="Code name e.g. anaddb, optic... Default: abinit")
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     # Subparser for man.
     p_man = subparsers.add_parser('man', parents=[copts_parser, var_parser], help="Show documentation for varname.")
+
+    # Subparser for graphviz.
+    p_graphviz = subparsers.add_parser('graphviz', parents=[copts_parser, var_parser],
+        help=("Draw variable dependencies with graphviz package.)"
+             "See https://graphviz.readthedocs.io/."))
+    p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
+        help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
+            "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
 
     # Subparser for browse.
     p_browse = subparsers.add_parser('browse', parents=[copts_parser, var_parser], help="Open documentation in browser.")
@@ -130,7 +142,9 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    database = get_abinit_variables()
+    # Get the dabase of variables for codename.
+    from abipy.abio.abivar_database.variables import get_variables_code
+    database = get_variables_code()[options.codename]
 
     if options.command == "man":
         abilab.abinit_help(options.varname)
@@ -138,12 +152,20 @@ def main():
     elif options.command == "browse":
         return database[options.varname].browse()
 
+    elif options.command == "graphviz":
+        #graph = database.get_graphviz_varname(varname=options.varname, engine=options.engine)
+        graph = database.get_graphviz(varset="eph", vartype=None, engine=options.engine)
+        import tempfile
+        directory = tempfile.mkdtemp()
+        print("Producing source files in:", directory)
+        graph.view(directory=directory, cleanup=False)
+
     elif options.command == "apropos":
         vlist = database.apropos(options.varname)
         print_vlist(vlist, options)
 
     elif options.command == "find":
-        vlist = [v for v in database.values() if options.varname in v.varname]
+        vlist = [v for v in database.values() if options.varname in v.name]
         print("Find results:\n")
         print_vlist(vlist, options)
 
