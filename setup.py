@@ -16,7 +16,6 @@ if sys.version[0:3] < '2.7':
     sys.stderr.write("abipy requires Python version 2.7 or above. Exiting.")
     sys.exit(1)
 
-#cmdclass = {}
 ext_modules = []
 
 #-------------------------------------------------------------------------------
@@ -83,7 +82,6 @@ def find_package_data():
             "refs/*.nc",
             "refs/*.log",
             "refs/*.abo",
-            "variables/*",
         ],
         'abipy.data.refs' : [
             "al_eph/*",
@@ -101,7 +99,6 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        'abipy.htc': ["*.json"],
         'abipy.gui.awx' : ['images/*'],
     }
 

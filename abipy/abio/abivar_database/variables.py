@@ -7,14 +7,8 @@ import json
 
 from collections import OrderedDict, defaultdict
 from itertools import groupby
-from html2text import html2text
-try:
-    import yaml
-except ImportError:
-    raise ImportError("pyyaml package is not installed. Install it with `pip install pyyaml`")
 
 # Helper functions (coming from AbiPy)
-
 class lazy_property(object):
     """
     lazy_property descriptor
@@ -680,10 +674,6 @@ class VarDatabase(OrderedDict):
             for var in vd.values():
                 yield var
 
-    #def json_dumps_varnames(self):
-    #    """JSON string with the list of variable names extracted from the database."""
-    #    return json.dumps(list(self.keys()))
-
     def get_version_endpoints(self):
         """
         docs.abinit.org/vardocs/abinit/asr?version=8.6.2
@@ -757,7 +747,6 @@ class VarDatabase(OrderedDict):
 
             raise TypeError("%s, %s" % (type(obj), str(obj)))
 
-        #for code in ["abinit", ]:
         for code in self:
             varsd = self[code]
 
@@ -1044,10 +1033,11 @@ class InputVariables(OrderedDict):
 
     def get_graphviz(self, varset=None, vartype=None, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
         """
-        Generate task graph in the DOT language (only parents and children of this task).
+        Generate graph in the DOT language (only parents and children of this task).
 
         Args:
-            varname: Name of the variable.
+            varset: Select variables with this `varset`. Include all if None
+	    vartype: Select variables with this `vartype`. Include all
             engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']
             graph_attr: Mapping of (attribute, value) pairs for the graph.
             node_attr: Mapping of (attribute, value) pairs set for all nodes.
@@ -1055,9 +1045,6 @@ class InputVariables(OrderedDict):
 
         Returns: graphviz.Digraph <https://graphviz.readthedocs.io/en/stable/api.html#digraph>
         """
-        #if varset
-        #var = self[varname]
-
         # https://www.graphviz.org/doc/info/
         from graphviz import Digraph
         graph = Digraph("task", engine="dot" if engine == "automatic" else engine)
@@ -1127,53 +1114,3 @@ class InputVariables(OrderedDict):
                     graph.edge(var.name, ovar.name, **edge_kwargs) #, label=edge_label, color=self.color_hex
 
         return graph
-
-# abipy
-#def docvar(varname):
-#    """Return the `Variable` object associated to this name."""
-#    return get_abinit_variables()[varname]
-#
-#
-#def abinit_help(varname, info=True, stream=sys.stdout):
-#    """
-#    Print the abinit documentation on the ABINIT input variable `varname`
-#    """
-#    database = get_abinit_variables()
-#    if isinstance(varname, Variable): varname = varname.varname
-#    try:
-#        var = database[varname]
-#    except KeyError:
-#        return stream.write("Variable %s not in database" % varname)
-#
-#    html = "<h2>Default value:</h2> %s <br/><h2>Description</h2> %s" % (
-#        str(var.defaultval), str(var.text))
-#    text = html2text.html2text(html)
-#    if info: text += str(var.info)
-#    # FIXME: There are unicode chars in abinit doc (Greek symbols)
-#    text = text.replace("[[", "\033[1m").replace("]]", "\033[0m")
-#
-#    try:
-#        stream.write(text)
-#    except UnicodeEncodeError:
-#        stream.write(text.encode('ascii', 'ignore'))
-#    stream.write("\n")
-#
-#
-#def repr_html_from_abinit_string(text):
-#    """
-#    Given a string `text` with an Abinit input file, replace all variables
-#    with HTML links pointing to the official documentation. Return new string.
-#    """
-#    var_database = get_abinit_variables()
-#
-#    # https://stackoverflow.com/questions/6116978/python-replace-multiple-strings
-#    # define desired replacements here e.g. rep = {"condition1": "", "condition2": "text"}
-#    # ordered dict and sort by length is needed because variable names can overlap e.g. kpt, kptopt pair
-#    import re
-#    rep = {vname: var.html_link(label=vname) for vname, var in var_database.items()}
-#    rep = OrderedDict([(re.escape(k), rep[k]) for k in sorted(rep.keys(), key=lambda n: len(n), reverse=True)])
-#
-#    # Use these three lines to do the replacement
-#    pattern = re.compile("|".join(rep.keys()))
-#    text = pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-#    return text.replace("\n", "<br>")
