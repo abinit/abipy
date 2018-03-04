@@ -14,7 +14,6 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__
 from abipy import abilab
-from abipy.abio.abivars_db import get_abinit_variables
 
 
 def print_vlist(vlist, options):
@@ -143,55 +142,58 @@ def main():
     logging.basicConfig(level=numeric_level)
 
     # Get the dabase of variables for codename.
-    from abipy.abio.abivar_database.variables import get_variables_code
-    database = get_variables_code()[options.codename]
+    from abipy.abio.abivar_database.variables import get_codevars
+    vdb = get_codevars()[options.codename]
 
     if options.command == "man":
         abilab.abinit_help(options.varname)
 
     elif options.command == "browse":
-        return database[options.varname].browse()
+        return vdb[options.varname].browse()
 
     elif options.command == "graphviz":
-        #graph = database.get_graphviz_varname(varname=options.varname, engine=options.engine)
-        graph = database.get_graphviz(varset="eph", vartype=None, engine=options.engine)
+        #if options.varname in vdb.varsets:
+        #graph = vdb.get_graphviz(varset=option.varname, vartype=None, engine=options.engine)
+        #else
+        graph = vdb.get_graphviz_varname(varname=options.varname, engine=options.engine)
+
         import tempfile
         directory = tempfile.mkdtemp()
         print("Producing source files in:", directory)
         graph.view(directory=directory, cleanup=False)
 
     elif options.command == "apropos":
-        vlist = database.apropos(options.varname)
+        vlist = vdb.apropos(options.varname)
         print_vlist(vlist, options)
 
     elif options.command == "find":
-        vlist = [v for v in database.values() if options.varname in v.name]
+        vlist = [v for v in vdb.values() if options.varname in v.name]
         print("Find results:\n")
         print_vlist(vlist, options)
 
     elif options.command == "list":
         if options.mode == "a":
             # Alphabetical
-            for i, var in enumerate(database.values()):
+            for i, var in enumerate(vdb.values()):
                 print(i, repr(var))
 
         elif options.mode == "s":
             # Grouped by sections.
-            for section in database.sections:
+            for section in vdb.sections:
                 print(30*"#" +  " Section: " + section + " " + 30*"#")
-                print_vlist(database.vars_with_section(section), options)
+                print_vlist(vdb.vars_with_section(section), options)
 
         elif options.mode == "c":
             # Grouped by characteristics.
-            for char in database.characteristics:
+            for char in vdb.characteristics:
                 print(30*"#" +  " Characteristic: " + char + 30*"#")
-                print_vlist(database.vars_with_char(char), options)
+                print_vlist(vdb.vars_with_char(char), options)
 
         else:
             raise ValueError("Wrong mode %s" % options.mode)
 
     elif options.command == "withdim":
-        for var in database.values():
+        for var in vdb.values():
             if var.depends_on_dimension(options.dimname):
                 cprint(repr(var), "yellow")
                 print("dimensions:", str(var.dimensions), "\n")
