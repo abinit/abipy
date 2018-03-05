@@ -620,7 +620,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             # Group variables by section.
             # Get dict mapping section_name --> list of variable names belonging to the section.
             keys = [k for (k, v) in self.items() if k not in exclude and v is not None]
-            sec2names = var_database.group_by_section(keys)
+            sec2names = var_database.group_by_varset(keys)
             w = 92
 
             for sec, names in sec2names.items():

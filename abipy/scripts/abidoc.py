@@ -99,7 +99,7 @@ def get_parser(with_epilog=False):
     # Subparser for list.
     p_list = subparsers.add_parser('list', parents=[copts_parser], help="List all variables.")
     p_list.add_argument('--mode', default="a",
-                        help="Sort mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
+                        help="Sort mode, `a` for alphabethical, `s` for varset, `c` for characteristics.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -152,7 +152,7 @@ def main():
         return vdb[options.varname].browse()
 
     elif options.command == "graphviz":
-        if options.varname in vdb.all_varset:
+        if options.varname in vdb.my_varset_list:
             graph = vdb.get_graphviz(varset=options.varname, vartype=None, engine=options.engine)
         else:
             graph = vdb.get_graphviz_varname(varname=options.varname, engine=options.engine)
@@ -178,14 +178,14 @@ def main():
                 print(i, repr(var))
 
         elif options.mode == "s":
-            # Grouped by sections.
-            for section in vdb.sections:
+            # Grouped by varset
+            for section in vdb.my_varset_list:
                 print(30*"#" +  " Section: " + section + " " + 30*"#")
                 print_vlist(vdb.vars_with_section(section), options)
 
         elif options.mode == "c":
             # Grouped by characteristics.
-            for char in vdb.characteristics:
+            for char in vdb.my_characteristics:
                 print(30*"#" +  " Characteristic: " + char + 30*"#")
                 print_vlist(vdb.vars_with_char(char), options)
 

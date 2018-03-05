@@ -28,18 +28,18 @@ class AbinitVariableDatabaseTest(AbipyTest):
         database.apropos("ecut")
         #assert len(database.json_dumps_varnames())
 
-        print("vargeo section:\n", database.vars_with_section("vargeo"))
-        for section in database.sections:
-            assert len(database.vars_with_section(section))
+        print("vargeo section:\n", database.vars_with_varset("vargeo"))
+        for section in database.my_varset_list:
+            assert len(database.vars_with_varset(section))
 
-        for charact in database.characteristics:
-            print("character:", charact)
+        for charact in database.my_characteristics:
+            #print("character:", charact)
             assert len(database.vars_with_char(charact))
 
-        name2section = database.name2section
-        assert name2section["ecut"] == "basic" and name2section["ionmov"] == "rlx"
+        name2varset = database.name2varset
+        assert name2varset["ecut"] == "basic" and name2varset["ionmov"] == "rlx"
 
-        assert database.group_by_section("ecut") == {'basic': ['ecut']}
+        assert database.group_by_varset("ecut") == {'basic': ['ecut']}
 
         natom_var = database["natom"]
         ecut_var = database["ecut"]
