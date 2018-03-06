@@ -18,7 +18,6 @@ class DataModuleTest(AbipyTest):
         assert paw_table.allpaw
         assert os.path.isfile(abidata.cif_file("al.cif"))
         assert os.path.isfile(abidata.pyscript("plot_bz.py"))
-        assert os.path.isfile(abidata.var_file("abinit_vars.yml"))
 
         d = abidata.get_mp_structures_dict()
         assert isinstance(d, dict) and d is abidata.get_mp_structures_dict()

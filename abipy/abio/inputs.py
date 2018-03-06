@@ -609,7 +609,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
 
             for name, value in items:
                 if mnemonics and value is not None:
-                    app("# <" + var_database[name].definition + ">")
+                    app("# <" + var_database[name].mnemonics + ">")
 
                 # Build variable, convert to string and append it
                 vname = name + post
@@ -620,7 +620,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
             # Group variables by section.
             # Get dict mapping section_name --> list of variable names belonging to the section.
             keys = [k for (k, v) in self.items() if k not in exclude and v is not None]
-            sec2names = var_database.group_by_section(keys)
+            sec2names = var_database.group_by_varset(keys)
             w = 92
 
             for sec, names in sec2names.items():
@@ -630,7 +630,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 for name in names:
                     value = self[name]
                     if mnemonics and value is not None:
-                        app(escape("# <" + var_database[name].definition + ">"))
+                        app(escape("# <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
                     vname = name + post
@@ -644,7 +644,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
                 app(w * "#")
                 for name, value in self.structure.to_abivars().items():
                     if mnemonics and value is not None:
-                        app(escape("# <" + var_database[name].definition + ">"))
+                        app(escape("# <" + var_database[name].mnemonics + ">"))
                     vname = name + post
                     if mode == "html": vname = var_database[name].html_link(label=vname)
                     app(str(InputVariable(vname, value)))

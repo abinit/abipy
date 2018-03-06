@@ -14,7 +14,6 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__
 from abipy import abilab
-from abipy.abio.abivars_db import get_abinit_variables
 
 
 def print_vlist(vlist, options):
@@ -32,6 +31,7 @@ def get_epilog():
 Usage example:
 
     abidoc.py man ecut        --> Show documentation for ecut input variable.
+    abidoc.py graphviz acell  --> Draw parents and children of variable with graphviz package.
     abidoc.py browse acell    --> Open url in external browser.
     abidoc.py apropos ecut    --> To search in the database for the variables related to ecut.
     abidoc.py find paw        --> To search in the database for the variables whose name contains paw.
@@ -58,6 +58,8 @@ def get_parser(with_epilog=False):
                               help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
                               help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    copts_parser.add_argument("-c", '--codename', type=str, default="abinit",
+                              help="Code name e.g. anaddb, optic... Default: abinit")
 
     var_parser = argparse.ArgumentParser(add_help=False)
     var_parser.add_argument('varname', help="ABINIT variable")
@@ -67,6 +69,15 @@ def get_parser(with_epilog=False):
 
     # Subparser for man.
     p_man = subparsers.add_parser('man', parents=[copts_parser, var_parser], help="Show documentation for varname.")
+
+    # Subparser for graphviz.
+    p_graphviz = subparsers.add_parser('graphviz', parents=[copts_parser, var_parser],
+        help=("Draw variable dependencies with graphviz package.)"
+             "See https://graphviz.readthedocs.io/."))
+    p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
+        help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
+            "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
 
     # Subparser for browse.
     p_browse = subparsers.add_parser('browse', parents=[copts_parser, var_parser], help="Open documentation in browser.")
@@ -88,7 +99,7 @@ def get_parser(with_epilog=False):
     # Subparser for list.
     p_list = subparsers.add_parser('list', parents=[copts_parser], help="List all variables.")
     p_list.add_argument('--mode', default="a",
-                        help="Sort mode, `a` for alphabethical, `s` for sections, `c` for characteristics.")
+                        help="Sort mode, `a` for alphabethical, `s` for varset, `c` for characteristics.")
 
     # Subparser for manager.
     p_manager = subparsers.add_parser('manager', parents=[copts_parser], help="Document the TaskManager options.")
@@ -130,46 +141,59 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    database = get_abinit_variables()
+    # Get the dabase of variables for codename.
+    from abipy.abio.abivar_database.variables import get_codevars
+    vdb = get_codevars()[options.codename]
 
     if options.command == "man":
         abilab.abinit_help(options.varname)
 
     elif options.command == "browse":
-        return database[options.varname].browse()
+        return vdb[options.varname].browse()
+
+    elif options.command == "graphviz":
+        if options.varname in vdb.my_varset_list:
+            graph = vdb.get_graphviz(varset=options.varname, vartype=None, engine=options.engine)
+        else:
+            graph = vdb.get_graphviz_varname(varname=options.varname, engine=options.engine)
+
+        import tempfile
+        directory = tempfile.mkdtemp()
+        print("Producing source files in:", directory)
+        graph.view(directory=directory, cleanup=False)
 
     elif options.command == "apropos":
-        vlist = database.apropos(options.varname)
+        vlist = vdb.apropos(options.varname)
         print_vlist(vlist, options)
 
     elif options.command == "find":
-        vlist = [v for v in database.values() if options.varname in v.varname]
+        vlist = [v for v in vdb.values() if options.varname in v.name]
         print("Find results:\n")
         print_vlist(vlist, options)
 
     elif options.command == "list":
         if options.mode == "a":
             # Alphabetical
-            for i, var in enumerate(database.values()):
+            for i, var in enumerate(vdb.values()):
                 print(i, repr(var))
 
         elif options.mode == "s":
-            # Grouped by sections.
-            for section in database.sections:
+            # Grouped by varset
+            for section in vdb.my_varset_list:
                 print(30*"#" +  " Section: " + section + " " + 30*"#")
-                print_vlist(database.vars_with_section(section), options)
+                print_vlist(vdb.vars_with_section(section), options)
 
         elif options.mode == "c":
             # Grouped by characteristics.
-            for char in database.characteristics:
+            for char in vdb.my_characteristics:
                 print(30*"#" +  " Characteristic: " + char + 30*"#")
-                print_vlist(database.vars_with_char(char), options)
+                print_vlist(vdb.vars_with_char(char), options)
 
         else:
             raise ValueError("Wrong mode %s" % options.mode)
 
     elif options.command == "withdim":
-        for var in database.values():
+        for var in vdb.values():
             if var.depends_on_dimension(options.dimname):
                 cprint(repr(var), "yellow")
                 print("dimensions:", str(var.dimensions), "\n")
