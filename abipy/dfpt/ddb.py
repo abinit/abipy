@@ -91,7 +91,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @classmethod
     def from_file(cls, filepath):
-        """Needed for the `TextFile` abstract interface."""
+        """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
 
     @classmethod
@@ -100,21 +100,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Fetch DDB file corresponding to a materials project ``material_id``,
         save it to temporary file and return new DdbFile object.
 
-        Raises:
-            MPRestError if DDB file is not available
+        Raises: MPRestError if DDB file is not available
 
         Args:
-            material_id (str): Materials Project material_id (a string, e.g., mp-1234).
-            api_key (str): A String API key for accessing the MaterialsProject
-                REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a `PMG_MAPI_KEY` in
-                your .pmgrc.yaml. If so, it will use that environment
-                This makes easier for heavy users to simply add
-                this environment variable to their setups and MPRester can
-                then be called without any arguments.
+            material_id (str): Materials Project material_id (e.g., mp-1234).
+            api_key (str): A String API key for accessing the MaterialsProject REST interface.
+                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
             endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address, but
-                can be changed to other urls implementing a similar interface.
+                Defaults to the standard Materials Project REST address
         """
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
@@ -1469,14 +1462,28 @@ class DdbRobot(Robot):
         """Exclude DDB.nc files. Override base class."""
         return filename.endswith("_" + cls.EXT)
 
+    @classmethod
     def from_mpid_list(cls, mpid_list, api_key=None, endpoint=None):
-        """Build DdbRobot from list of materials-project ids."""
-        # @Henrique: Do you think it's useful to have?
+        """
+        Build a DdbRobot from list of materials-project ids.
+
+        Args:
+            mpid_list: List of Materials Project material_ids (e.g., ["mp-1234", "mp-1245"]).
+            api_key (str): A String API key for accessing the MaterialsProject REST interface.
+                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
+                Defaults to the standard Materials Project REST address
+        """
         from abipy.core import restapi
         ddb_files = []
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-            for mpid in list_strings(smpid_list):
-                ddb_string = rest._make_request("/materials/%s/abinit_ddb" % mpid)
+            for mpid in list_strings(mpid_list):
+                try:
+                    ddb_string = rest._make_request("/materials/%s/abinit_ddb" % mpid)
+                except rest.Error:
+                    cprint("Cannot get DDB for mp-id: %s, ignoring error" % mpid, "yellow")
+                    continue
+
                 _, tmpfile = tempfile.mkstemp(prefix=mpid, suffix='_DDB')
                 ddb_files.append(tmpfile)
                 with open(tmpfile, "wt") as fh:
