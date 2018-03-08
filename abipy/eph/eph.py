@@ -535,7 +535,6 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #])
         #eph_intmeth=2,                  # Tetra method
         #eph_fsewin="0.8 eV",            # Energy window around Ef
-        #eph_mustar=0.12,                # mustar parameter
         #ddb_ngqpt=ddb_ngqpt,            # q-mesh used to produce the DDB file (must be consistent with DDB data)
         #eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials if != ddb_ngqpt
 
@@ -578,7 +577,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return self.reader.read_a2ftr(qsamp="qcoarse")
 
     @lazy_property
-    def a2ftr_qinpt(self):
+    def a2ftr_qintp(self):
         """
         :class:`A2ftr` with the Eliashberg transport spectral function a2F_tr(w, x, x')
         computed on the dense q-mesh by Fourier interpolation.
@@ -928,8 +927,8 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_lambda_convergence(self, what="lambda", sortby=None, ylims=None, fontsize=8,
-                                ax=None, colormap="jet", **kwargs):
+    def plot_lambda_convergence(self, what="lambda", sortby=None, hue=None, ylims=None, fontsize=8,
+                                colormap="jet", **kwargs):
         """
         Plot the convergence of the lambda(q, nu) parameters wrt to the ``sortby`` parameter.
 
@@ -940,25 +939,55 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: Legend and title fontsize.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib color map.
 
         Returns: |matplotlib-Figure|
         """
-        # TODO Add hue
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        # Build (1, ngroups) grid plot.
+        if hue is None:
+            labels_ncfiles_params = self.sortby(sortby, unpack=False)
+            nrows, ncols = 1, 1
+        else:
+            groups = self.group_and_sortby(hue, sortby)
+            nrows, ncols = 1, len(groups)
+
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
         cmap = plt.get_cmap(colormap)
-        for i, (label, ncfile, param) in enumerate(self.sortby(sortby)):
-            ncfile.plot_eph_strength(
-                    ax=ax,
-                    what=what, ylims=ylims,
-                    label=self.sortby_label(sortby, param),
-                    color=cmap(i / len(self)), fontsize=fontsize,
-                    show=False,
-                    )
+
+        if hue is None:
+            # Plot all results on the same figure with different color.
+            for i, (label, ncfile, param) in enumerate(labels_ncfiles_params):
+                ncfile.plot_eph_strength(
+                        ax=ax_mat[0, 0],
+                        what=what, ylims=ylims,
+                        label=self.sortby_label(sortby, param),
+                        color=cmap(i / len(self)), fontsize=fontsize,
+                        show=False,
+                        )
+        else:
+            # ngroup figures
+            for ig, g in enumerate(groups):
+                ax = ax_mat[0, ig]
+                label = "%s: %s" % (self._get_label(hue), g.hvalue)
+                for ifile, ncfile in enumerate(g.abifiles):
+                    ncfile.plot_eph_strength(
+                        ax=ax,
+                        what=what, ylims=ylims,
+                        label=label,
+                        color=cmap(ifile / len(g)), fontsize=fontsize,
+                        show=False,
+                        )
+                if ig != 0:
+                    set_visible(ax, False, "ylabel")
+
         return fig
 
     @add_fig_kwargs

@@ -53,7 +53,7 @@ class EphFileTest(AbipyTest):
 
         assert not ncfile.has_a2ftr
         assert ncfile.a2ftr_qcoarse is None
-        assert ncfile.a2ftr_qinpt is None
+        assert ncfile.a2ftr_qintp is None
         assert ncfile.get_a2ftr_qsamp("qcoarse") is ncfile.a2ftr_qcoarse
         phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
 
@@ -117,7 +117,8 @@ class EphRobotTest(AbipyTest):
                 assert robot.combiboxplot_phbands(show=False)
 
                 # Test EPHRobot plot methods
-                assert robot.plot_lambda_convergence(show=False)
+                assert robot.plot_lambda_convergence(sortby=None, hue=None, show=False)
+                assert robot.plot_lambda_convergence(what="gamma", sortby=None, hue="nkpt", show=False)
                 assert robot.plot_a2f_convergence(show=False)
                 assert robot.plot_a2f_convergence(hue="nkpt", show=False)
                 assert robot.plot_a2fdata_convergence(show=False, sortby=None, hue="nkpt")
