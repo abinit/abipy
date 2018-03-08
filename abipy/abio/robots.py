@@ -333,7 +333,6 @@ class Robot(NotebookWriter):
     #            except Exception as exc:
     #                print("Exception while closing: ", abifile.filepath)
     #                print(exc)
-    #                #raise
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""

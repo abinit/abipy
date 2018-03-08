@@ -59,13 +59,16 @@ class EphFileTest(AbipyTest):
 
         if self.has_matplotlib():
             # Test A2f plot methods
-            assert ncfile.a2f_qcoarse.plot(show=False)
+            assert ncfile.a2f_qcoarse.plot(exchange_xy=True, fontsize=8, units="meV", show=False)
+            assert ncfile.a2f_qcoarse.plot_with_lambda(show=False)
             assert ncfile.a2f_qcoarse.plot_tc_vs_mustar(show=False)
             assert ncfile.a2f_qintp.plot_a2(phdos_path, show=False)
             assert ncfile.a2f_qintp.plot_nuterms(show=False)
+            assert ncfile.plot_a2f_interpol(show=False)
 
             # Test Ephfile plot methods.
             assert ncfile.plot(show=False)
+            assert ncfile.plot_with_a2f(show=False)
             assert ncfile.plot_eph_strength(show=False)
             assert ncfile.plot_with_a2f(qsamp="qcoarse", show=False)
             assert ncfile.plot_with_a2f(phdos=phdos_path, show=False)
@@ -116,7 +119,11 @@ class EphRobotTest(AbipyTest):
                 # Test EPHRobot plot methods
                 assert robot.plot_lambda_convergence(show=False)
                 assert robot.plot_a2f_convergence(show=False)
-                #assert robot.plot_a2ftr_convergence(show=False)
+                assert robot.plot_a2f_convergence(hue="nkpt", show=False)
+                assert robot.plot_a2fdata_convergence(show=False, sortby=None, hue="nkpt")
+                assert robot.gridplot_a2f(show=False)
+
+                #assert robot.plot_a2ftr_convergence(show=False, sortby=None, hue="nkpt")
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

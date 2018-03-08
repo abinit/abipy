@@ -1184,9 +1184,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Used in abiview.py to get a quick look at the results.
         """
         yield self.plot_qpbands_ibzt(show=False)
-        #for qpk in self.sigma_kpoints:
-        #    yield self.plot_qpgaps_t(qp_kpoints=[qpk], show=False)
-        yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
+        #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
+        for qp_kpt in self.sigma_kpoints:
+            yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
         yield self.plot_qps_vs_e0(show=False)
 
     def write_notebook(self, nbpath=None, title=None):
@@ -1638,6 +1638,15 @@ class SigEPhRobot(Robot, RobotWithEbands):
                         set_visible(ax, False, "ylabel")
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        itemp = 0
+        for qp_kpt in self.abifiles[0].sigma_kpoints:
+            yield self.plot_qpgaps_convergence(qp_kpoints=qp_kpt, itemp=itemp, show=False)
+            yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
 
     def write_notebook(self, nbpath=None, title=None):
         """

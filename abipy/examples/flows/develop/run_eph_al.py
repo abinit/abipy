@@ -64,7 +64,7 @@ def build_flow(options):
     qpoints = gs_inp.abiget_ibz(ngkpt=ddb_ngqpt, shiftk=[0, 0, 0], kptopt=1).points
 
     flow = flowtk.Flow(options.workdir, manager=options.manager)
-    work0 = flow.register_task(gs_inp, task_class=flowtk.ScfTask)
+    work0 = flow.register_scf_task(gs_inp)
 
     ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints)
     flow.register_work(ph_work)

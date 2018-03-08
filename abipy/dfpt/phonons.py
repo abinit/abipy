@@ -2588,7 +2588,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 # FIXME: Remove. Use PhononBandsPlotter API.
 @add_fig_kwargs
 def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None,
-                     units="eV", width_ratios=(2, 1), **kwargs):
+                     units="eV", width_ratios=(2, 1), fontsize=8, **kwargs):
     """
     Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
@@ -2605,6 +2605,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
         units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
         width_ratios: Ratio between the width of the phonon band plots and the DOS plots.
             Used if `phdos_objects` is not None
+        fontsize: legend and title fontsize.
 
     Returns: |matplotlib-Figure|
     """
@@ -2635,7 +2636,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
 
         for i, (phbands, ax) in enumerate(zip(phbands_list, ax_list)):
             phbands.plot(ax=ax, units=units, show=False)
-            if titles is not None: ax.set_title(titles[i])
+            if titles is not None: ax.set_title(titles[i], fontsize=fontsize)
             if i % ncols != 0:
                 ax.set_ylabel("")
 
@@ -2653,7 +2654,7 @@ def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=
             ax2 = plt.subplot(subgrid[1], sharey=ax1)
             phbands.plot_with_phdos(phdos, ax_list=(ax1, ax2), units=units, show=False)
 
-            if titles is not None: ax1.set_title(titles[i])
+            if titles is not None: ax1.set_title(titles[i], fontsize=fontsize)
             if i % ncols != 0:
                 for ax in (ax1, ax2):
                     ax.set_ylabel("")
@@ -2926,13 +2927,14 @@ class PhononBandsPlotter(NotebookWriter):
         return self.combiplot(*args, **kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, with_dos=True, units="eV", **kwargs):
+    def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
         """
-        Plot multiple electron bandstructures and optionally DOSes on a grid.
+        Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             with_dos: True to plot phonon DOS (if available).
+            fontsize: legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -2942,7 +2944,7 @@ class PhononBandsPlotter(NotebookWriter):
         if self.phdoses_dict and with_dos:
             phdos_objects = list(self.phdoses_dict.values())
 
-        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, show=False)
+        return phbands_gridplot(phb_objects, titles=titles, phdos_objects=phdos_objects, units=units, fontsize=fontsize, show=False)
 
     @add_fig_kwargs
     def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1), ylims=None, fontsize=8, **kwargs):
