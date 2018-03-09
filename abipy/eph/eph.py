@@ -394,7 +394,7 @@ class A2f(object):
         return fig
 
     @add_fig_kwargs
-    def plot_tc_vs_mustar(self, start=0.1, stop=0.5, num=50, ax=None, **kwargs):
+    def plot_tc_vs_mustar(self, start=0.1, stop=0.3, num=50, ax=None, **kwargs):
         """
         Plot Tc(mustar)
 
@@ -612,89 +612,101 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         abispg = self.structure.abi_spacegroup
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
-        # Generate k-points for interpolation. Will interpolate all bands available in the sigeph file.
-        if vertices_names is None:
-            vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
-        qpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
-        qfrac_coords, qnames = qpath.frac_coords, qpath.names
+        # Generate k-points for interpolation.
+        #if vertices_names is None:
+        #    vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+        #qpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+        #qfrac_coords, qnames = qpath.frac_coords, qpath.names
 
-        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=0, ndivsm=20, asr=2, chneut=1, dipdip=1,
+        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=0, ndivsm=10, asr=2, chneut=1, dipdip=1,
             dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
             mpi_procs=1, workdir=None, manager=None)
 
         phbands = phbst_file.phbands
-        #phbst_file.close()
+        phbst_file.close()
 
+        # Read qibz and ab-initio linewidths from file.
         qcoords_ibz = self.reader.read_value("qibz")
+        data_ibz = self.reader.read_value("phgamma_qibz") * units.Ha_to_eV
+        import matplotlib.pyplot as plt
+        plt.plot(data_ibz[0])
+        plt.show()
 
-        # Build interpolator for QP corrections.
+        # Build interpolator.
         from abipy.core.skw import SkwInterpolator
         cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
 
         has_timrev = True
-        data_ibz = self.reader.read_value("phgamma_qibz") # * ...
-
         fermie, nelect = 0.0, 3 * len(self.structure)
         skw = SkwInterpolator(lpratio, qcoords_ibz, data_ibz, fermie, nelect,
                               cell, fm_symrel, has_timrev,
                               filter_params=filter_params, verbose=verbose)
 
-        linewidths_qpath = skw.interp_kpts(qfrac_coords).eigens
+        # Interpolate and set linewidths.
+        qfrac_coords = [q.frac_coords for q in phbands.qpoints]
+        phbands.linewidths = skw.interp_kpts(qfrac_coords).eigens
 
-        # Build new ebands object with k-path.
-        qpts_kpath = Kpath(self.structure.reciprocal_lattice, qfrac_coords, weights=None, names=qnames)
-
-        phbands.linewidths = linewidths_qpath
-        #return PhononBands(self.structure, qpts_kpath, phfreqs, phdispl_cart,
-        #non_anal_ph=None, amu=None, linewidths=None)
         return phbands
 
     @add_fig_kwargs
-    def plot_eph_strength(self, what="lambda", ylims=None, ax=None, label=None, fontsize=12, **kwargs):
+    def plot_eph_strength(self, what_list=("phbands", "gamma", "lambda"), ax_list=None,
+                          ylims=None, label=None, fontsize=12, **kwargs):
         """
-        Plot phonon bands with eph coupling strength lambda(q, nu)
+        Plot phonon bands with eph coupling strength lambda(q, nu) and lambda(q, nu)
+        These values are interpolated by the EPH code via FT interpolation.
 
         Args:
-            what: ``lambda`` for the eph coupling strength, ``gamma`` for phonon linewidths.
+            what_list: ``phfreqs`` for phonons, `lambda`` for the eph coupling strength,
+                ``gamma`` for phonon linewidths.
+            ax_list: List of |matplotlib-Axes| (same length as what_list)
+                or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                 or scalar e.g. ``left``. If left (right) is None, default values are used
-            ax: |matplotlib-Axes| or None if a new figure should be created.
             label: String used to label the plot in the legend.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        what_list = list_strings(what_list)
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
+        units = "eV"
 
-        # Plot phonon bands
-        #self.phbands.plot(ax=ax, units=units, show=False)
+        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+            # Decorate the axis (e.g add ticks and labels).
+            #if i == len(what_list) - 1:
+            self.phbands.decorate_ax(ax, units="")
 
-        # Decorate the axis (e.g add ticks and labels).
-        self.phbands.decorate_ax(ax, units="")
+            if what == "phbands":
+                # Plot phonon bands
+                self.phbands.plot(ax=ax, units=units, show=False)
+            else:
+                # Add eph coupling.
+                if what == "lambda":
+                    yvals = self.reader.read_phlambda_qpath()[0]
+                    ylabel = r"$\lambda(q,\nu)$"
+                elif what == "gamma":
+                    yvals = self.reader.read_phgamma_qpath()[0]
+                    ylabel = r"$\gamma(q,\nu)$ [eV]"
+                else:
+                    raise ValueError("Invalid value for what: `%s`" % str(what))
 
-        # Add eph coupling.
-        if what == "lambda":
-            yvals = self.reader.read_phlambda_qpath()[0]
-            ylabel = r"$\lambda(q,\nu)$"
-        elif what == "gamma":
-            yvals = self.reader.read_phgamma_qpath()[0]
-            ylabel = r"$\gamma(q,\nu)$ [eV]"
-        else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+                style = dict(
+                    linestyle=kwargs.pop("linestyle", "-"),
+                    color=kwargs.pop("color", "k"),
+                    linewidth=kwargs.pop("linewidth", 1),
+                )
 
-        style = dict(
-            linestyle=kwargs.pop("linestyle", "-"),
-            color=kwargs.pop("color", "k"),
-            linewidth=kwargs.pop("linewidth", 1),
-        )
+                xvals = np.arange(len(self.phbands.qpoints))
+                for nu in self.phbands.branches:
+                    ax.plot(xvals, yvals[:, nu],
+                            label=label if (nu == 0 and label) else None,
+                            **style)
 
-        xvals = np.arange(len(self.phbands.qpoints))
-        for nu in self.phbands.branches:
-            ax.plot(xvals, yvals[:, nu],
-                    label=label if (nu == 0 and label) else None,
-                    **style)
+                ax.set_ylabel(ylabel)
 
-        ax.set_ylabel(ylabel)
         set_axlims(ax, ylims, "y")
         if label: ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -765,7 +777,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_a2f_interpol(self, units="eV", ylims=None, **kwargs):
+    def plot_a2f_interpol(self, units="eV", ylims=None, fontsize=8, **kwargs):
         """
         Compare ab-initio a2F(w) with interpolated values.
 
@@ -773,7 +785,8 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: Legend and title fontsize
 
         Returns: |matplotlib-Figure|
         """
@@ -783,11 +796,17 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
-        linestyle_qsamp = dict(qcoarse="--", qintp="-")
+        styles = dict(
+            qcoarse={"linestyle": "--", "color": "b"},
+            qintp={"linestyle": "-", "color": "r"},
+        )
+
         for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
             for qsamp in ["qcoarse", "qintp"]:
                 a2f = self.get_a2f_qsamp(qsamp)
-                a2f.plot(what=what, units=units, ylims=ylims, ax=ax, show=False)
+                a2f.plot(what=what, ax=ax, units=units, ylims=ylims, fontsize=fontsize,
+                        label=qsamp if ix == 0 else None,
+                        show=False, **styles[qsamp])
 
         return fig
 
@@ -1007,9 +1026,9 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         if hue is None:
             # Plot all results on the same figure with different color.
             for i, (label, ncfile, param) in enumerate(labels_ncfiles_params):
-                ncfile.plot_eph_strength(
-                        ax=ax_mat[0, 0],
-                        what=what, ylims=ylims,
+                ncfile.plot_eph_strength(what_list=what,
+                        ax_list=[ax_mat[0, 0]],
+                        ylims=ylims,
                         label=self.sortby_label(sortby, param),
                         color=cmap(i / len(self)), fontsize=fontsize,
                         show=False,
@@ -1020,9 +1039,9 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 ax = ax_mat[0, ig]
                 label = "%s: %s" % (self._get_label(hue), g.hvalue)
                 for ifile, ncfile in enumerate(g.abifiles):
-                    ncfile.plot_eph_strength(
-                        ax=ax,
-                        what=what, ylims=ylims,
+                    ncfile.plot_eph_strength(what_list=what,
+                        ax_list=[ax],
+                        ylims=ylims,
                         label=label,
                         color=cmap(ifile / len(g)), fontsize=fontsize,
                         show=False,
