@@ -19,9 +19,10 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title)
-from abipy.electrons.ebands import ElectronsReader, ElectronDos, RobotWithEbands
+from abipy.electrons.ebands import ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
 from abipy.abio.robots import Robot
+from abipy.eph.common import BaseEphReader
 
 
 class A2f(object):
@@ -35,10 +36,9 @@ class A2f(object):
         """
         Args:
             mesh: Energy mesh in eV
-
-        values(nomega,0:natom3,nsppol)
-        vals(w,1:natom,1:nsppol): a2f(w) decomposed per phonon branch and spin
-        vals(w,0,1:nsppol): a2f(w) summed over phonons modes, decomposed in spin
+            values(nomega,0:natom3,nsppol)
+            vals(w,1:natom,1:nsppol): a2f(w) decomposed per phonon branch and spin
+            vals(w,0,1:nsppol): a2f(w) summed over phonons modes, decomposed in spin
 
         TODO: Add metadata (qsampling, broadening, possibility of computing a2f directly?
         """
@@ -528,15 +528,8 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def params(self):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
-        # TODO:
-        #os.update([
-        #    ("tsmear", self.reader.read_value("smearing_width"),
-        #    ("nqibz",  ),
-        #])
-        #eph_intmeth=2,                  # Tetra method
-        #eph_fsewin="0.8 eV",            # Energy window around Ef
-        #ddb_ngqpt=ddb_ngqpt,            # q-mesh used to produce the DDB file (must be consistent with DDB data)
-        #eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials if != ddb_ngqpt
+        # Add EPH parameters.
+        od.update(self.reader.read_base_eph_params())
 
         return od
 
@@ -595,6 +588,67 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Close the file."""
         self.reader.close()
 
+    def interpolate(self, ddb, lpratio=5, vertices_names=None, line_density=20, filter_params=None, verbose=0):
+        """
+        Interpolated the phonon linewidths on a k-path and, optionally, on a k-mesh.
+
+        Args:
+            lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
+                The default should be OK in many systems, larger values may be required for accurate derivatives.
+            vertices_names: Used to specify the k-path for the interpolated QP band structure
+                when ``ks_ebands_kpath`` is None.
+                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
+                the density of the sampling. If None, the k-path is automatically generated according
+                to the point group of the system.
+            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
+            filter_params: TO BE DESCRIBED
+            verbose: Verbosity level
+
+        Returns:
+        """
+        # Get symmetries from abinit spacegroup (read from file).
+        abispg = self.structure.abi_spacegroup
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+
+        # Generate k-points for interpolation. Will interpolate all bands available in the sigeph file.
+        if vertices_names is None:
+            vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+        qpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+        qfrac_coords, qnames = qpath.frac_coords, qpath.names
+
+        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=0, ndivsm=20, asr=2, chneut=1, dipdip=1,
+            dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+            mpi_procs=1, workdir=None, manager=None)
+
+        phbands = phbst_file.phbands
+        #phbst_file.close()
+
+        qcoords_ibz = self.reader.read_value("qibz")
+
+        # Build interpolator for QP corrections.
+        from abipy.core.skw import SkwInterpolator
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+
+        has_timrev = True
+        data_ibz = self.reader.read_value("phgamma_qibz") # * ...
+
+        fermie, nelect = 0.0, 3 * len(self.structure)
+        skw = SkwInterpolator(lpratio, qcoords_ibz, data_ibz, fermie, nelect,
+                              cell, fm_symrel, has_timrev,
+                              filter_params=filter_params, verbose=verbose)
+
+        linewidths_qpath = skw.interp_kpts(qfrac_coords).eigens
+
+        # Build new ebands object with k-path.
+        qpts_kpath = Kpath(self.structure.reciprocal_lattice, qfrac_coords, weights=None, names=qnames)
+
+        phbands.linewidths = linewidths_qpath
+        #return PhononBands(self.structure, qpts_kpath, phfreqs, phdispl_cart,
+        #non_anal_ph=None, amu=None, linewidths=None)
+        return phbands
+
     @add_fig_kwargs
     def plot_eph_strength(self, what="lambda", ylims=None, ax=None, label=None, fontsize=12, **kwargs):
         """
@@ -603,7 +657,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Args:
             what: ``lambda`` for the eph coupling strength, ``gamma`` for phonon linewidths.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             ax: |matplotlib-Axes| or None if a new figure should be created.
             label: String used to label the plot in the legend.
             fontsize: Legend and title fontsize.
@@ -665,6 +719,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+        cmap = plt.get_cmap(colormap)
 
         # Plot phonon bands.
         self.phbands.plot(ax=ax, units=units, show=False)
@@ -689,24 +744,11 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         gam_min, gam_max = gammas.min(), gammas.max()
         lambdas = self.reader.read_phlambda_qpath()[0]
         lamb_min, lamb_max = lambdas.min(), lambdas.max()
-        cmap = plt.get_cmap(colormap)
 
         for nu in self.phbands.branches:
-            """
-            scale = 100000
-            ax.scatter(xvals, yvals[:, nu], s=(scale * np.abs(gammas[:, nu]))**2,
-                       c=lambdas[:, nu],
-                       vmin=lamb_min, vmax=lamb_max,
-                       cmap=cmap,
-                       marker="o",
-                       #c=color,
-                       #alpha=alpha
-                       #label=term if ib == 0 else None
-            )
-            """
-
             scale = 500
-            ax.scatter(xvals, yvals[:, nu], s=scale * np.abs(lambdas[:, nu]),
+            ax.scatter(xvals, yvals[:, nu],
+                       s=scale * np.abs(lambdas[:, nu]),
                        c=gammas[:, nu],
                        vmin=gam_min, vmax=gam_max,
                        cmap=cmap,
@@ -757,7 +799,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Args:
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qsamp:
-            phdos: |PhononDos| object
+            phdos: |PhononDos| object. Used to plot the PhononDos on the right.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
 		or scalar e.g. ``left``. If left (right) is None, default values are used
 
@@ -1218,7 +1260,8 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class EphReader(ElectronsReader):
+
+class EphReader(BaseEphReader):
     """
     Reads data from the EPH.nc file and constructs objects.
 
@@ -1310,3 +1353,13 @@ class EphReader(ElectronsReader):
     #    vals_in = self.read_value("a2ftr_in_" + qsamp)
     #    vals_out = self.read_value("a2ftr_out_" + qsamp)
     #    return A2ftr(mesh=mesh, vals_in, vals_out)
+
+    #def read_phgamma_ibz_data(self):
+    #     ! linewidths in IBZ
+    #     nctkarr_t('qibz', "dp", "number_of_reduced_dimensions, nqibz"), &
+    #     nctkarr_t('wtq', "dp", "nqibz"), &
+    #     nctkarr_t('phfreq_qibz', "dp", "natom3, nqibz"), &
+    #     nctkarr_t('phdispl_cart_qibz', "dp", "two, natom3, natom3, nqibz"), &
+    #     nctkarr_t('phgamma_qibz', "dp", "natom3, nqibz, number_of_spins"), &
+    #     nctkarr_t('phlambda_qibz', "dp", "natom3, nqibz, number_of_spins") &
+

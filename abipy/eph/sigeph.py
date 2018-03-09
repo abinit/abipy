@@ -27,9 +27,10 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title)
 from abipy.tools import duck
-from abipy.electrons.ebands import ElectronsReader, ElectronBands, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
 #from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
 from abipy.abio.robots import Robot
+from abipy.eph.common import BaseEphReader
 
 
 # TODO QPState and QPList from electrons.gw (Define base abstract class?).
@@ -750,9 +751,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ("nbsum", self.nbsum),
             ("zcut", self.zcut),
             ("symsigma", self.symsigma),
+            # TODO: Remove
             ("nqbz", self.reader.nqbz),
             ("nqibz", self.reader.nqibz),
         ])
+        # Add EPH parameters.
+        od.update(self.reader.read_base_eph_params())
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
@@ -1930,7 +1934,7 @@ class TdepElectronBands(object): # pragma: no cover
         return edos_plotter
 
 
-class SigmaPhReader(ElectronsReader):
+class SigmaPhReader(BaseEphReader):
     """
     Reads data from file and constructs objects.
 
