@@ -25,7 +25,7 @@ TODO list:
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* Rename EPH.nc (A2F.nc, ELI.nc)
+* DONE Rename EPH.nc (A2F.nc)
 
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
 

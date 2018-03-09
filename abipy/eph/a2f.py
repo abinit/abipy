@@ -360,11 +360,11 @@ class A2f(object):
     @add_fig_kwargs
     def plot_a2(self, phdos, atol=1e-12, **kwargs):
         """
-        Grid with 3 plots showing (a2F(w), F(w), a2F(w)).
+        Grid with 3 plots showing: a2F(w), F(w), a2F(w).
 
         Args:
             phdos: |PhononDos|
-            atol:
+            atol: F(w) is replaced by atol in a2F(w) / F(w) ratio where |F(w)| < atol
 
         Returns: |matplotlib-Figure|
         """
@@ -389,7 +389,7 @@ class A2f(object):
         ax.set_ylabel(r"$F(\omega)$ [states/eV]")
 
         # Plot a2f
-        self.plot(ax=ax_list[2], show=False)
+        self.plot(ax=ax_list[2], color="k", linestyle="-", show=False)
 
         return fig
 
@@ -450,8 +450,7 @@ class A2Ftr(object):
             raise ValueError("Cannot find zero in energy mesh")
 
 
-# TODO Change name.
-class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the phonon linewidths, EliashbergFunction, the |PhononBands|,
     the |ElectronBands| and |ElectronDos| on the k-mesh.
@@ -461,13 +460,13 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     .. code-block:: python
 
-        with EphFile("out_EPH.nc") as ncfile:
+        with A2fFile("out_A2F.nc") as ncfile:
             print(ncfile)
             ncfile.ebands.plot()
             ncfile.phbands.plot()
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: EphFile
+    .. inheritance-diagram:: A2fFile
     """
     @classmethod
     def from_file(cls, filepath):
@@ -475,8 +474,8 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath):
-        super(EphFile, self).__init__(filepath)
-        self.reader = EphReader(filepath)
+        super(A2fFile, self).__init__(filepath)
+        self.reader = A2fReader(filepath)
 
     def __str__(self):
         """String representation."""
@@ -715,7 +714,7 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot(self, what="lambda", units="eV", alpha=0.8, ylims=None, ax=None, colormap="jet", **kwargs):
         """
-        Plot phonon bands with EPH coupling strength lambda(q, nu) or gamma(q, nu)
+        Plot phonon bands with coupling strength lambda(q, nu) or gamma(q, nu)
 
         Args:
             what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
@@ -751,14 +750,13 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #else:
         #    raise ValueError("Invalid value fo what: `%s`" % what)
 
-        scale = 1
         gammas = self.reader.read_phgamma_qpath()[0]
         gam_min, gam_max = gammas.min(), gammas.max()
         lambdas = self.reader.read_phlambda_qpath()[0]
         lamb_min, lamb_max = lambdas.min(), lambdas.max()
+        scale = 500
 
         for nu in self.phbands.branches:
-            scale = 500
             ax.scatter(xvals, yvals[:, nu],
                        s=scale * np.abs(lambdas[:, nu]),
                        c=gammas[:, nu],
@@ -927,15 +925,15 @@ class EphFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
+class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
     """
-    This robot analyzes the results contained in multiple EPH.nc files.
+    This robot analyzes the results contained in multiple A2F.nc files.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: EphRobot
+    .. inheritance-diagram:: A2fRobot
     """
     #TODO: Method to plot the convergence of DOS(e_F)
-    EXT = "EPH"
+    EXT = "A2F"
 
     linestyle_qsamp = dict(qcoarse="--", qintp="-")
 
@@ -949,7 +947,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             with_geo: True if structure info should be added to the dataframe
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a :class:`EphFile` object and returns a tuple (key, value)
+                Each function receives a :class:`A2fFile` object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
             with_params: False to exclude calculation parameters from the dataframe.
 
@@ -1260,7 +1258,7 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.EphRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot = abilab.A2fRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("data = robot.get_dataframe()\ndata"),
             nbv.new_code_cell("robot.plot_lambda_convergence();"),
             nbv.new_code_cell("robot.plot_a2f_convergence();"),
@@ -1279,13 +1277,12 @@ class EphRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-
-class EphReader(BaseEphReader):
+class A2fReader(BaseEphReader):
     """
     Reads data from the EPH.nc file and constructs objects.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: EphReader
+    .. inheritance-diagram:: A2fReader
     """
     def read_edos(self):
         """
@@ -1304,6 +1301,7 @@ class EphReader(BaseEphReader):
         #spin_idos = self.read_variable("edos_idos")[1:, :] / units.Ha_to_eV
         nelect = self.read_value("number_of_electrons")
         fermie = self.read_value("fermi_energy") * units.Ha_to_eV
+
         return ElectronDos(mesh, spin_dos, nelect, fermie=fermie)
 
     def read_phbands_qpath(self):
@@ -1321,6 +1319,11 @@ class EphReader(BaseEphReader):
         phfreqs = self.read_value("phfreq_qpath") * units.Ha_to_eV
         phdispl_cart = self.read_value("phdispl_cart_qpath", cmode="c") * units.bohr_to_ang
 
+        linewidths = self.read_phgamma_qpath()
+        if self.read_nsppol() == 2:
+            # We have spin-resolved linewidths, sum over spins here.
+            linewidths = linewidths.sum(axis=0)
+
         amu_list = self.read_value("atomic_mass_units", default=None)
         if amu_list is not None:
             atom_species = self.read_value("atomic_numbers")
@@ -1335,6 +1338,7 @@ class EphReader(BaseEphReader):
                            phdispl_cart=phdispl_cart,
                            non_anal_ph=None,
                            amu=amu,
+                           linewidths=linewidths,
                            )
 
     def read_phlambda_qpath(self):

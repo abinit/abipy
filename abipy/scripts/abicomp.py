@@ -456,9 +456,9 @@ def abicomp_optic(options):
     return _invoke_robot(options)
 
 
-def abicomp_eph(options):
+def abicomp_a2f(options):
     """
-    Compare results stored in EPH.nc files.
+    Compare results stored in A2f.nc files.
     """
     return _invoke_robot(options)
 
@@ -711,7 +711,7 @@ Usage example:
 # E-PH
 #########
 
-  abicomp.py eph *_EPH.nc -nb                   => Compare EPH results in the jupyter notebook.
+  abicomp.py a2f *_A2F.nc -nb                   => Compare A2f results in the jupyter notebook.
   abicomp.py sigeph *_SIGEPH.nc -nb             => Compare Fan-Migdal self-energy in the jupyter notebook.
 
 ########
@@ -915,7 +915,7 @@ def get_parser(with_epilog=False):
     p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
     p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
-    p_eph = subparsers.add_parser('eph', parents=robot_parents, help=abicomp_eph.__doc__)
+    p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
 
     # Subparser for pseudos command.

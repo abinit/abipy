@@ -228,7 +228,7 @@ class PhononBands(object):
 
         self._linewidths = None
         if linewidths is not None:
-            self._linewidths = np.reshape(linewidths, self._eigens.shape)
+            self._linewidths = np.reshape(linewidths, self.phfreqs.shape)
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
         self.params = OrderedDict()

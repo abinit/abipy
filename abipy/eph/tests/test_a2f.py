@@ -1,4 +1,4 @@
-"""Tests for eph module."""
+"""Tests for a2f module."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
@@ -8,11 +8,11 @@ from abipy import abilab
 from abipy.core.testing import AbipyTest
 
 
-class EphFileTest(AbipyTest):
+class A2fFileTest(AbipyTest):
 
-    def test_eph_file(self):
-        """Tests for EphFile."""
-        ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_EPH.nc"))
+    def test_a2fnc_file(self):
+        """Tests for A2fFile."""
+        ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
         repr(ncfile); str(ncfile)
         assert ncfile.to_string(verbose=2)
         assert ncfile.params["nspinor"] == ncfile.nspinor
@@ -25,6 +25,7 @@ class EphFileTest(AbipyTest):
         # Phbands
         assert ncfile.phbands.qpoints.is_path
         assert ncfile.phbands.qpoints.ksampling is None
+        assert ncfile.phbands.has_linewidths
 
         # Test edos
         # TODO
@@ -66,7 +67,7 @@ class EphFileTest(AbipyTest):
             assert ncfile.a2f_qintp.plot_nuterms(show=False)
             assert ncfile.plot_a2f_interpol(show=False)
 
-            # Test Ephfile plot methods.
+            # Test A2fFile plot methods.
             assert ncfile.plot(show=False)
             assert ncfile.plot_with_a2f(show=False)
             assert ncfile.plot_eph_strength(show=False)
@@ -79,16 +80,16 @@ class EphFileTest(AbipyTest):
         ncfile.close()
 
 
-class EphRobotTest(AbipyTest):
+class A2fRobotTest(AbipyTest):
 
-    def test_eph_robot(self):
-        """Test EphRobot."""
+    def test_a2f_robot(self):
+        """Test A2fRobot."""
         files = abidata.ref_files(
-                "al_888k_161616q_EPH.nc",
-                #"al_888k_161616q_EPH.nc",
+                "al_888k_161616q_A2F.nc",
+                #"al_888k_161616q_A2F.nc",
         )
-        with abilab.EphRobot.from_files(files[0]) as robot:
-            robot.add_file("same_eph", files[0])
+        with abilab.A2fRobot.from_files(files[0]) as robot:
+            robot.add_file("same_a2f", files[0])
             assert len(robot) == 2
             repr(robot); str(robot)
             robot.to_string(verbose=2)
@@ -116,7 +117,7 @@ class EphRobotTest(AbipyTest):
                 assert robot.boxplot_phbands(show=False)
                 assert robot.combiboxplot_phbands(show=False)
 
-                # Test EPHRobot plot methods
+                # Test A2fRobot plot methods
                 assert robot.plot_lambda_convergence(sortby=None, hue=None, show=False)
                 assert robot.plot_lambda_convergence(what="gamma", sortby=None, hue="nkpt", show=False)
                 assert robot.plot_a2f_convergence(show=False)
