@@ -756,7 +756,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ("nqibz", self.reader.nqibz),
         ])
         # Add EPH parameters.
-        od.update(self.reader.read_base_eph_params())
+        od.update(self.reader.common_eph_params)
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
@@ -1370,7 +1370,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                     sigma = ncfile.reader.read_sigeph_skb(spin, kpoint, band)
                     fig = sigma.plot_tdep(itemps=itemp, ax_list=ax_mat[:, ig],
                         label="%s: %s" % (self._get_label(sortby), param),
-                        color=cmap(ix/len(g)), show=False)
+                        color=cmap(ix / len(g)), show=False)
 
             if ig != 0:
                 for ax in ax_mat[:, ig]:

@@ -1,6 +1,7 @@
 # coding: utf-8
 """
-This module contains objects for the postprocessing of EPH calculations.
+This module contains objects for postprocessing A2F calculations (phonon lifetimes in metals
+and Eliashberg function).
 
 Warning:
     Work in progress, DO NOT USE THIS CODE.
@@ -25,6 +26,14 @@ from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 
+_LATEX_LABELS = {
+    "lambda_iso": r"$\lambda_{iso}$",
+    "omega_log": r"$\omega_{log}$",
+    "a2f": r"$\alpha^2F(\omega)$",
+    "lambda": r"$\lambda(\omega)$",
+}
+
+
 class A2f(object):
     """
     Eliashberg function a2F(w). Energies are in eV.
@@ -32,17 +41,24 @@ class A2f(object):
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
 
-    def __init__(self, mesh, values_spin, values_spin_nu):
+    def __init__(self, mesh, values_spin, values_spin_nu, ngqpt, meta):
         """
         Args:
             mesh: Energy mesh in eV
             values(nomega,0:natom3,nsppol)
             vals(w,1:natom,1:nsppol): a2f(w) decomposed per phonon branch and spin
             vals(w,0,1:nsppol): a2f(w) summed over phonons modes, decomposed in spin
+            ngqpt: Q-mesh used to compute A2f.
+            meta: Dictionary with metavariables.
 
-        TODO: Add metadata (qsampling, broadening, possibility of computing a2f directly?
+        TODO:
+
+            1. Add metadata (qsampling, broadening)
+            2. possibility of computing a2f directly from data on file?
         """
         self.mesh = mesh
+        self.ngqpt = ngqpt
+        self.meta = meta
 
         # Spin dependent and total a2F(w)
         values_spin = np.atleast_2d(values_spin)
@@ -86,16 +102,21 @@ class A2f(object):
         lines = []; app = lines.append
 
         app("Eliashberg Function" if not title else str(title))
-        app("Mesh from %.4f to %.4f [eV] with %d points" % (
-            self.mesh[0], self.mesh[-1], len(self.mesh)))
+        if verbose:
+            app("Mesh from %.4f to %.4f [eV] with %d points" % (
+                self.mesh[0], self.mesh[-1], len(self.mesh)))
 
         # TODO: Add ElectronDos
-        app("Isotropic lambda: %.3f" % (self.lambda_iso))
-        app("Omega_log: %s [eV], %s [K]" % (self.omega_log, self.omega_log * abu.eV_to_K))
-        for mustar in (0.1, 0.12, 0.2):
-            app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
+        #app("Isotropic lambda: %.3f" % (self.lambda_iso))
+        app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
+        app("Q-mesh: %s" % str(self.ngqpt))
+        app("Meta: %s" % str(self.meta))
 
         if verbose:
+            for mustar in (0.1, 0.12, 0.2):
+                app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
+
+        if verbose > 1:
             # $\int dw [a2F(w)/w] w^n$
             for n in [0, 4]:
                 app("Moment %s: %s" % (n, self.get_moment(n)))
@@ -199,13 +220,14 @@ class A2f(object):
             ylims: Limits for y-axis. See xlims for API.
             label: True to add legend label to each curve.
             fontsize: Legend and title fontsize
+            kwargs: linestyle, color, linewidth passed to ax.plot.
 
         Returns: |matplotlib-Figure|
         """""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         wfactor = abu.phfactor_ev2units(units)
+        ylabel = _LATEX_LABELS[what]
 
-        # TODO Better handling of styles
         style = dict(
             linestyle=kwargs.pop("linestyle", "-"),
             color=kwargs.pop("color", "k"),
@@ -217,7 +239,6 @@ class A2f(object):
             xx, yy = self.mesh * wfactor, self.values
             if exchange_xy: xx, yy = yy, xx
             ax.plot(xx, yy, label=label, **style)
-            ylabel = r"$\alpha^2F(\omega)$"
 
             if self.nsppol == 2:
                 # Plot spin resolved a2f(w).
@@ -232,13 +253,13 @@ class A2f(object):
             xx, yy = self.mesh * wfactor, lambda_w
             if exchange_xy: xx, yy = yy, xx
             ax.plot(xx, yy, label=label, **style)
-            ylabel = r"$\lambda(\omega)$"
 
         else:
             raise ValueError("Invalid value for what: `%s`" % str(what))
 
         xlabel = abu.wlabel_from_units(units)
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
+
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.grid(True)
@@ -265,7 +286,7 @@ class A2f(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for i, what in enumerate(["a2f", "lambda"]):
             this_ax = ax if i == 0 else ax.twinx()
-            self.plot(what=what, ax=this_ax, units=units, fontsize=fontsize, xlims=xlims, show=False)
+            self.plot(what=what, ax=this_ax, units=units, fontsize=fontsize, xlims=xlims, show=False, **kwargs)
             if i:
                 this_ax.yaxis.set_label_position("right")
                 this_ax.grid("off")
@@ -360,7 +381,7 @@ class A2f(object):
     @add_fig_kwargs
     def plot_a2(self, phdos, atol=1e-12, **kwargs):
         """
-        Grid with 3 plots showing: a2F(w), F(w), a2F(w).
+        Grid with 3 plots showing: a2F(w), F(w), a2F(w). Requires phonon DOS.
 
         Args:
             phdos: |PhononDos|
@@ -415,7 +436,7 @@ class A2f(object):
         ax.set_yscale("log")
         ax.grid(True)
         ax.set_xlabel(r"$\mu^*$")
-        ax.set_ylabel(r"$T_c [K]$")
+        ax.set_ylabel(r"$T_c$ [K]")
 
         return fig
 
@@ -496,10 +517,19 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
         # E-PH section
         app(marquee("E-PH calculation", mark="="))
+        #app("K-mesh for electrons:" % self.ngkpt)
         app("Has transport a2Ftr(w): %s" % self.has_a2ftr)
-        app(self.a2f_qcoarse.to_string(title="A2f(w) on the ab-initio q-mesh:", verbose=verbose))
+        #try:
+        #    app("eph_ngqpt %s, ph_ngqpt %s" % (eph_ngqpt, ph_ngqpt))
+        #except:
+        #    # FIXME: This to maintain compatibility with old format
+        #    pass
         app("")
-        app(self.a2f_qintp.to_string(title="A2f(w) interpolated on the dense q-mesh:", verbose=verbose))
+        title = "a2f(w) on the %s q-mesh (eph_ngqpt)" % str(self.a2f_qcoarse.ngqpt)
+        app(self.a2f_qcoarse.to_string(title=title, verbose=verbose))
+        app("")
+        title = "a2f(w) Fourier interpolated on the %s q-mesh (ph_ngqpt)" % str(self.a2f_qintp.ngqpt)
+        app(self.a2f_qintp.to_string(title=title, verbose=verbose))
 
         return "\n".join(lines)
 
@@ -520,7 +550,10 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @property
     def phbands(self):
-        """|PhononBands| object with frequencies along the q-path."""
+        """
+        |PhononBands| object with frequencies along the q-path.
+        Contains (interpolated) linewidths.
+        """
         return self.reader.read_phbands_qpath()
 
     @lazy_property
@@ -528,23 +561,29 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         # Add EPH parameters.
-        od.update(self.reader.read_base_eph_params())
+        od.update(self.reader.common_eph_params)
+
+        ph_ngqpt = self.reader.read_value("ph_ngqpt", default=None)
+        if ph_ngqpt is not None:
+            od["ph_nqbz"] = np.prod(ph_ngqpt)
+
+        #od.update(OrderedDict([
+        #    ("ph_nqbz"
+        #])
 
         return od
 
     @lazy_property
     def a2f_qcoarse(self):
         """
-        :class:`A2f` with the Eliashberg function a2F(w)
-        computed on the (coarse) ab-initio q-mesh.
+        :class:`A2f` with the Eliashberg function a2F(w) computed on the (coarse) ab-initio q-mesh.
         """
         return self.reader.read_a2f(qsamp="qcoarse")
 
     @lazy_property
     def a2f_qintp(self):
         """
-        :class:`A2f` with the Eliashberg function a2F(w)
-        computed on the dense q-mesh by Fourier interpolation.
+        :class:`A2f` with the Eliashberg function a2F(w) computed on the dense q-mesh by Fourier interpolation.
         """
         return self.reader.read_a2f(qsamp="qintp")
 
@@ -651,8 +690,8 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_eph_strength(self, what_list=("phbands", "gamma", "lambda"), ax_list=None,
                           ylims=None, label=None, fontsize=12, **kwargs):
         """
-        Plot phonon bands with eph coupling strength lambda(q, nu) and lambda(q, nu)
-        These values are interpolated by the EPH code via FT interpolation.
+        Plot phonon bands with EPH coupling strength lambda(q, nu) and lambda(q, nu)
+        These values have been Fourier interpolated by Abinit.
 
         Args:
             what_list: ``phfreqs`` for phonons, `lambda`` for the eph coupling strength,
@@ -936,6 +975,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
     EXT = "A2F"
 
     linestyle_qsamp = dict(qcoarse="--", qintp="-")
+    marker_qsamp = dict(qcoarse="^", qintp="o")
 
     all_qsamps = ["qcoarse", "qintp"]
 
@@ -1094,7 +1134,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 for j, (label, ncfile, param) in enumerate(labels_ncfiles_params):
                    ncfile.get_a2f_qsamp(qsamp).plot(what="a2f", ax=ax,
                        label=self.sortby_label(sortby, param) + " " + qsamp,
-                       color=cmap(i / len(self)), fontsize=fontsize,
+                       color=cmap(j / len(self)), fontsize=fontsize,
                        linestyle=self.linestyle_qsamp[qsamp],
                        show=False,
                    )
@@ -1114,10 +1154,14 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
                     if ig != 0:
                         set_visible(ax, False, "ylabel")
 
+                if i != len(qsamps) - 1:
+                    set_visible(ax, False, "xlabel")
+
         return fig
 
     @add_fig_kwargs
-    def plot_a2fdata_convergence(self, sortby=None, hue=None, qsamps="all", fontsize=8, **kwargs):
+    def plot_a2fdata_convergence(self, sortby=None, hue=None, qsamps="all", what_list=("lambda_iso", "omega_log"),
+                                 fontsize=8, **kwargs):
         """
         Plot the convergence of the isotropic lambda and omega_log wrt the ``sortby`` parameter.
 
@@ -1132,14 +1176,15 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
             qsamps:
+            what_list:
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        items = ["lambda_iso", "omega_log"]
+        what_list = list_strings(what_list)
 
         # Build grid with (n, 1) plots.
-        nrows, ncols = len(items), 1
+        nrows, ncols = len(what_list), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
@@ -1149,27 +1194,35 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         else:
             groups = self.group_and_sortby(hue, sortby)
 
-        #qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
-        qsamp = "qcoarse"
+        qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
         marker = kwargs.pop("marker", "o")
 
-        for ix, (ax, item) in enumerate(zip(ax_list, items)):
-            ax.set_title(item, fontsize=fontsize)
-
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+            #ax.set_title(what, fontsize=fontsize)
             if hue is None:
-                a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in ncfiles]
-                yvals = [getattr(a2f, item) for a2f in a2f_list]
-                ax.plot(params, yvals, marker=marker)
+                for iq, qsamp in enumerate(qsamps):
+                    a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in ncfiles]
+                    yvals = [getattr(a2f, what) for a2f in a2f_list]
+                    l = ax.plot(params, yvals,
+                                marker=self.marker_qsamp[qsamp],
+                                linestyle=self.linestyle_qsamp[qsamp],
+                                color=None if iq == 0 else l[0].get_color(),
+                                )
             else:
                 for g in groups:
-                    a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in g.abifiles]
-                    yvals = [getattr(a2f, item) for a2f in a2f_list]
-                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                    ax.plot(g.xvalues, yvals, label=label, marker=marker)
+                    for iq, qsamp in enumerate(qsamps):
+                        a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in g.abifiles]
+                        yvals = [getattr(a2f, what) for a2f in a2f_list]
+                        label = "%s: %s" % (self._get_label(hue), g.hvalue) if iq == 0 else None
+                        l = ax.plot(g.xvalues, yvals, label=label,
+                                    marker=self.marker_qsamp[qsamp],
+                                    linestyle=self.linestyle_qsamp[qsamp],
+                                    color=None if iq == 0 else l[0].get_color(),
+                                    )
 
             ax.grid(True)
-            ax.set_ylabel(str(item))
-            if ix == len(items) - 1:
+            ax.set_ylabel(_LATEX_LABELS[what])
+            if ix == len(what_list) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
             if hue is not None:
@@ -1194,7 +1247,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
     #def gridplot_a2ftr(self, xlims=None, fontsize=8, sharex=True, sharey=True, **kwargs):
     #    return self._gridplot_a2f_what("a2ftr", xlims=xlims, fontsize=fontsize, sharex=sharex, sharey=sharey, **kwargs)
 
-    def _gridplot_a2f_what(self, what, xlims=None, fontsize=8, sharex=True, sharey=True, **kwargs):
+    def _gridplot_a2f_what(self, what, qsamps="all", xlims=None, fontsize=8, sharex=True, sharey=True, **kwargs):
         """Internal method to plot a2F or a2f_tr"""
         nrows, ncols, nplots = 1, 1, len(self)
         if nplots > 1:
@@ -1208,26 +1261,31 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         # don't show the last ax if nplots is odd.
         if nplots % ncols != 0: ax_list[-1].axis("off")
 
-        qsamp = "qcoarse"
-        what = "a2f"
-        if what == "a2f":
+        qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
+        #qsamps = ["qcoarse"]
+        for qsamp in qsamps:
+            if what == "a2f":
+                a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in self.abifiles]
+            elif what == "a2ftr":
+                a2f_list = self.get_a2ftr_qsamp(qsamp)
+            else:
+                raise ValueError("Invalid value for what: `%s`" % what)
+
             a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in self.abifiles]
-        elif what == "a2ftr":
-            a2f_list = self.get_a2ftr_qsamp(qsamp)
-        else:
-            raise ValueError("Invalid value for what: `%s`" % what)
 
-        a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in self.abifiles]
+            for i, (a2f, ax, title) in enumerate(zip(a2f_list, ax_list, self.keys())):
+                irow, icol = divmod(i, ncols)
+                # FIXME: Twinx is problematic
+                a2f.plot_with_lambda(ax=ax, show=False,
+                                     linestyle=self.linestyle_qsamp[qsamp],
+                                     )
 
-        for i, (a2f, ax, title) in enumerate(zip(a2f_list, ax_list, self.keys())):
-            irow, icol = divmod(i, ncols)
-            a2f.plot_with_lambda(ax=ax, show=False)
-            set_axlims(ax, xlims, "x")
-            ax.set_title(title, fontsize=fontsize)
-            if (irow, icol) != (0, 0):
-                set_visible(ax, False, "ylabel")
-            if irow != nrows - 1:
-                set_visible(ax, False, "xlabel")
+                set_axlims(ax, xlims, "x")
+                ax.set_title(title, fontsize=fontsize)
+                if (irow, icol) != (0, 0):
+                    set_visible(ax, False, "ylabel")
+                if irow != nrows - 1:
+                    set_visible(ax, False, "xlabel")
 
         return fig
 
@@ -1366,7 +1424,16 @@ class A2fReader(BaseEphReader):
         data = self.read_value("a2f_values_" + qsamp) # * 0.25
         values_spin = data[:, 0, :].copy()
         values_spin_nu = data[:, 1:, :].copy()
-        return A2f(mesh, values_spin, values_spin_nu)
+
+        # TODO
+        # Extract q-mesh and meta variables.
+        params = self.common_eph_params
+        #ngqpt = params["eph_ngqpt_fine"] if qsamp == "qcoarse" else params["ph_ngqpt"]
+        ngqpt = [2, 2, 2]
+        #meta = {k: params[k] for k in ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]}
+        meta = {}
+
+        return A2f(mesh, values_spin, values_spin_nu, ngqpt, meta)
 
     #def read_a2ftr(self, qsamp):
     #    """Read and return the Eliashberg transport spectral function a2F_tr(w, x, x')."""

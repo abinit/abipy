@@ -2401,7 +2401,7 @@ class SigresRobot(Robot, RobotWithEbands):
                     sigma = ncfile.read_sigee_skb(spin, kpoint, band)
                     fig = sigma.plot(ax_list=ax_mat[:, ig],
                         label="%s: %s" % (self._get_label(sortby), param),
-                        color=cmap(i/len(g)), show=False)
+                        color=cmap(i / len(g)), show=False)
 
             if ig != 0:
                 for ax in ax_mat[:, ig]:
