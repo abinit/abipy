@@ -28,8 +28,8 @@ class BaseEphReader(ElectronsReader):
             ddb_nqbz = np.prod(ddb_ngqpt)
             eph_ngqpt_fine = self.read_value("eph_ngqpt_fine")
             eph_nqbz_fine = np.prod(eph_ngqpt_fine)
-            #ph_ngqpt = self.read_value("ph_ngqpt")
-            #ph_nqbz = np.prod(ph_ngqpt)
+            ph_ngqpt = self.read_value("ph_ngqpt")
+            ph_nqbz = np.prod(ph_ngqpt)
         except Exception:
             # TODO: Remove
             warnings.warn("ddb_ngqpt, eph_ngqpt_fine not in file.")
@@ -37,16 +37,16 @@ class BaseEphReader(ElectronsReader):
             ddb_nqbz = None
             eph_ngqpt_fine = None
             eph_nqbz_fine = None
-            #ph_ngqpt = None
-            #ph_nqbz= None
+            ph_ngqpt = None
+            ph_nqbz= None
 
         od = OrderedDict([
             ("ddb_ngqpt", ddb_ngqpt),
             ("ddb_nqbz", ddb_nqbz),
             ("eph_ngqpt_fine", eph_ngqpt_fine),
             ("eph_nqbz_fine", eph_nqbz_fine),
-            #("ph_ngqpt", ph_ngqpt),
-            #("ph_nqbz", ph_nqbz),
+            ("ph_ngqpt", ph_ngqpt),
+            ("ph_nqbz", ph_nqbz),
         ])
 
         for vname in ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]:

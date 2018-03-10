@@ -737,7 +737,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbstractInput, MSONable, Has_S
         Args:
             nqsmall: Number of k-points used to sample the smallest lattice vector.
             method: gaussian or tetra.
-            ph_qshift:
+            ph_qshift: Shift for the mesh.
         """
         # q-mesh for Fourier interpolatation of IFC and a2F(w)
         ph_ngqpt = self.structure.calc_ngkpt(nqsmall)

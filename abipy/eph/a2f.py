@@ -208,7 +208,7 @@ class A2f(object):
     def plot(self, what="a2f", units="eV", exchange_xy=False, ax=None,
              xlims=None, ylims=None, label=None, fontsize=12, **kwargs):
         """
-        Plot a2F(w) or lambda(w) depending on `what`.
+        Plot a2F(w) or lambda(w) depending on the value of `what`.
 
         Args:
             what: a2f for a2F(w), lambda for lambda(w)
@@ -626,65 +626,59 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Close the file."""
         self.reader.close()
 
-    def interpolate(self, ddb, lpratio=5, vertices_names=None, line_density=20, filter_params=None, verbose=0):
-        """
-        Interpolated the phonon linewidths on a k-path and, optionally, on a k-mesh.
+    #def interpolate(self, ddb, lpratio=5, vertices_names=None, line_density=20, filter_params=None, verbose=0):
+    #    """
+    #    Interpolate the phonon linewidths on a k-path and, optionally, on a k-mesh.
 
-        Args:
-            lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
-                The default should be OK in many systems, larger values may be required for accurate derivatives.
-            vertices_names: Used to specify the k-path for the interpolated QP band structure
-                when ``ks_ebands_kpath`` is None.
-                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
-                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
-                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
-                the density of the sampling. If None, the k-path is automatically generated according
-                to the point group of the system.
-            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
-            filter_params: TO BE DESCRIBED
-            verbose: Verbosity level
+    #    Args:
+    #        lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
+    #            The default should be OK in many systems, larger values may be required for accurate derivatives.
+    #        vertices_names: Used to specify the k-path for the interpolated QP band structure
+    #            when ``ks_ebands_kpath`` is None.
+    #            It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+    #            kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+    #            the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
+    #            the density of the sampling. If None, the k-path is automatically generated according
+    #            to the point group of the system.
+    #        line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
+    #        filter_params: TO BE DESCRIBED
+    #        verbose: Verbosity level
 
-        Returns:
-        """
-        # Get symmetries from abinit spacegroup (read from file).
-        abispg = self.structure.abi_spacegroup
-        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+    #    Returns:
+    #    """
+    #    # Get symmetries from abinit spacegroup (read from file).
+    #    abispg = self.structure.abi_spacegroup
+    #    fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
-        # Generate k-points for interpolation.
-        #if vertices_names is None:
-        #    vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
-        #qpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
-        #qfrac_coords, qnames = qpath.frac_coords, qpath.names
+    #    phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=0, ndivsm=10, asr=2, chneut=1, dipdip=1,
+    #        dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+    #        mpi_procs=1, workdir=None, manager=None)
 
-        phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=0, ndivsm=10, asr=2, chneut=1, dipdip=1,
-            dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
-            mpi_procs=1, workdir=None, manager=None)
+    #    phbands = phbst_file.phbands
+    #    phbst_file.close()
 
-        phbands = phbst_file.phbands
-        phbst_file.close()
+    #    # Read qibz and ab-initio linewidths from file.
+    #    qcoords_ibz = self.reader.read_value("qibz")
+    #    data_ibz = self.reader.read_value("phgamma_qibz") * units.Ha_to_eV
+    #    import matplotlib.pyplot as plt
+    #    plt.plot(data_ibz[0])
+    #    plt.show()
 
-        # Read qibz and ab-initio linewidths from file.
-        qcoords_ibz = self.reader.read_value("qibz")
-        data_ibz = self.reader.read_value("phgamma_qibz") * units.Ha_to_eV
-        import matplotlib.pyplot as plt
-        plt.plot(data_ibz[0])
-        plt.show()
+    #    # Build interpolator.
+    #    from abipy.core.skw import SkwInterpolator
+    #    cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
 
-        # Build interpolator.
-        from abipy.core.skw import SkwInterpolator
-        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+    #    has_timrev = True
+    #    fermie, nelect = 0.0, 3 * len(self.structure)
+    #    skw = SkwInterpolator(lpratio, qcoords_ibz, data_ibz, fermie, nelect,
+    #                          cell, fm_symrel, has_timrev,
+    #                          filter_params=filter_params, verbose=verbose)
 
-        has_timrev = True
-        fermie, nelect = 0.0, 3 * len(self.structure)
-        skw = SkwInterpolator(lpratio, qcoords_ibz, data_ibz, fermie, nelect,
-                              cell, fm_symrel, has_timrev,
-                              filter_params=filter_params, verbose=verbose)
+    #    # Interpolate and set linewidths.
+    #    qfrac_coords = [q.frac_coords for q in phbands.qpoints]
+    #    phbands.linewidths = skw.interp_kpts(qfrac_coords).eigens
 
-        # Interpolate and set linewidths.
-        qfrac_coords = [q.frac_coords for q in phbands.qpoints]
-        phbands.linewidths = skw.interp_kpts(qfrac_coords).eigens
-
-        return phbands
+    #    return phbands
 
     @add_fig_kwargs
     def plot_eph_strength(self, what_list=("phbands", "gamma", "lambda"), ax_list=None,
@@ -723,10 +717,10 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             else:
                 # Add eph coupling.
                 if what == "lambda":
-                    yvals = self.reader.read_phlambda_qpath()[0]
+                    yvals = self.reader.read_phlambda_qpath()
                     ylabel = r"$\lambda(q,\nu)$"
                 elif what == "gamma":
-                    yvals = self.reader.read_phgamma_qpath()[0]
+                    yvals = self.reader.read_phgamma_qpath()
                     ylabel = r"$\gamma(q,\nu)$ [eV]"
                 else:
                     raise ValueError("Invalid value for what: `%s`" % str(what))
@@ -751,9 +745,9 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot(self, what="lambda", units="eV", alpha=0.8, ylims=None, ax=None, colormap="jet", **kwargs):
+    def plot(self, what="gamma", units="eV", scale=None, alpha=0.7, ylims=None, ax=None, colormap="jet", **kwargs):
         """
-        Plot phonon bands with coupling strength lambda(q, nu) or gamma(q, nu)
+        Plot phonon bands with coupling strength lambda(q, nu) or gamma(q, nu) depending on `what`.
 
         Args:
             what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
@@ -776,33 +770,37 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Add eph coupling.
         xvals = np.arange(len(self.phbands.qpoints))
-        yvals = self.phbands.phfreqs * abu.phfactor_ev2units(units)
+        wvals = self.phbands.phfreqs * abu.phfactor_ev2units(units)
 
-        # [0] is for the number_of_spins
+        # Sum contributions over nsppol (if spin-polarized)
         # TODO units
-        #if what == "lambda":
-        #    s = self.reader.read_phlambda_qpath()[0]
-        #    scale = 100
-        #elif what == "gamma":
-        #    s = self.reader.read_phgamma_qpath()[0]
-        #    scale = 1
-        #else:
-        #    raise ValueError("Invalid value fo what: `%s`" % what)
-
-        gammas = self.reader.read_phgamma_qpath()[0]
-        gam_min, gam_max = gammas.min(), gammas.max()
-        lambdas = self.reader.read_phlambda_qpath()[0]
-        lamb_min, lamb_max = lambdas.min(), lambdas.max()
-        scale = 500
+        gammas = self.reader.read_phgamma_qpath()
+        lambdas = self.reader.read_phlambda_qpath()
+        #gam_min, gam_max = gammas.min(), gammas.max()
+        #lamb_min, lamb_max = lambdas.min(), lambdas.max()
+        if what == "lambda":
+            scale = 500 if scale is None else float(scale)
+            sqn = scale * np.abs(lambdas)
+            cqn = gammas
+        elif what == "gamma":
+            scale = 10**6 if scale is None else float(scale)
+            sqn = scale * np.abs(gammas)
+            cqn = lambdas
+        else:
+            raise ValueError("Invalid what: `%s`" % str(what))
+        vmin, vmax = cqn.min(), cqn.max()
 
         for nu in self.phbands.branches:
-            ax.scatter(xvals, yvals[:, nu],
-                       s=scale * np.abs(lambdas[:, nu]),
-                       c=gammas[:, nu],
-                       vmin=gam_min, vmax=gam_max,
+            ax.scatter(xvals,
+                       wvals[:, nu],
+                       s=sqn[:, nu],
+                       c=cqn[:, nu],
+                       vmin=vmin, vmax=vmax,
+                       #s=scale * np.abs(lambdas[:, nu]),
+                       #c=gammas[:, nu],
+                       #vmin=gam_min, vmax=gam_max,
                        cmap=cmap,
                        marker="o",
-                       #c=color,
                        alpha=alpha,
                        #label=term if ib == 0 else None
             )
@@ -848,11 +846,12 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_with_a2f(self, units="eV", qsamp="qintp", phdos=None, ylims=None, **kwargs):
+    def plot_with_a2f(self, what="gamma", units="eV", qsamp="qintp", phdos=None, ylims=None, **kwargs):
         """
         Plot phonon bands with lambda(q, nu) + a2F(w) + phonon DOS.
 
         Args:
+            what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             qsamp:
             phdos: |PhononDos| object. Used to plot the PhononDos on the right.
@@ -888,7 +887,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ax_doses.append(ax)
 
         # Plot phonon bands with markers.
-        self.plot(units=units, ylims=ylims, ax=ax_phbands, show=False)
+        self.plot(what=what, units=units, ylims=ylims, ax=ax_phbands, show=False)
 
         # Plot a2F(w)
         a2f = self.get_a2f_qsamp(qsamp)
@@ -1399,20 +1398,25 @@ class A2fReader(BaseEphReader):
                            linewidths=linewidths,
                            )
 
-    def read_phlambda_qpath(self):
+    def read_phlambda_qpath(self, sum_spin=True):
         """
         Reads the EPH coupling strength *interpolated* along the q-path.
-        Return |numpy-array| with shape [nsppol, nqpath, natom3]
-        """
-        return self.read_value("phlambda_qpath")
 
-    def read_phgamma_qpath(self):
+        Return:
+            |numpy-array| with shape [nqpath, natom3] if not sum_spin else [nsppol, nqpath, natom3]
         """
-        Reads the phonon linewidths *interpolated* along the q-path.
-        Return results in eV
-        Return |numpy-array| with shape [nsppol, nqpath, natom3]
+        vals = self.read_value("phlambda_qpath")
+        return vals if not sum_spin else vals.sum(axis=0)
+
+    def read_phgamma_qpath(self, sum_spin=True):
         """
-        return self.read_value("phgamma_qpath") * units.Ha_to_eV
+        Reads the phonon linewidths (eV) *interpolated* along the q-path.
+
+        Return:
+            |numpy-array| with shape [nqpath, natom3] if not sum_spin else [nsppol, nqpath, natom3]
+        """
+        vals = self.read_value("phgamma_qpath") * units.Ha_to_eV
+        return vals if not sum_spin else vals.sum(axis=0)
 
     def read_a2f(self, qsamp):
         """
@@ -1425,13 +1429,10 @@ class A2fReader(BaseEphReader):
         values_spin = data[:, 0, :].copy()
         values_spin_nu = data[:, 1:, :].copy()
 
-        # TODO
         # Extract q-mesh and meta variables.
         params = self.common_eph_params
-        #ngqpt = params["eph_ngqpt_fine"] if qsamp == "qcoarse" else params["ph_ngqpt"]
-        ngqpt = [2, 2, 2]
-        #meta = {k: params[k] for k in ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]}
-        meta = {}
+        ngqpt = params["eph_ngqpt_fine"] if qsamp == "qcoarse" else params["ph_ngqpt"]
+        meta = {k: params[k] for k in ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]}
 
         return A2f(mesh, values_spin, values_spin_nu, ngqpt, meta)
 
