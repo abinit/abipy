@@ -747,16 +747,18 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @lazy_property
     def params(self):
         """:class:`OrderedDict` with the convergence parameters, e.g. ``nbsum``."""
-        return OrderedDict([
+        od = OrderedDict([
             ("nbsum", self.nbsum),
             ("zcut", self.zcut),
             ("symsigma", self.symsigma),
-            # TODO: Remove
+            # TODO: Remove?
             ("nqbz", self.reader.nqbz),
             ("nqibz", self.reader.nqibz),
         ])
         # Add EPH parameters.
         od.update(self.reader.common_eph_params)
+
+        return od
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """

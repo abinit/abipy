@@ -52,9 +52,7 @@ class A2f(object):
             meta: Dictionary with metavariables.
 
         TODO:
-
-            1. Add metadata (qsampling, broadening)
-            2. possibility of computing a2f directly from data on file?
+            1. possibility of computing a2f directly from data on file?
         """
         self.mesh = mesh
         self.ngqpt = ngqpt
@@ -102,24 +100,22 @@ class A2f(object):
         lines = []; app = lines.append
 
         app("Eliashberg Function" if not title else str(title))
-        if verbose:
-            app("Mesh from %.4f to %.4f [eV] with %d points" % (
-                self.mesh[0], self.mesh[-1], len(self.mesh)))
-
         # TODO: Add ElectronDos
         #app("Isotropic lambda: %.3f" % (self.lambda_iso))
         app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
         app("Q-mesh: %s" % str(self.ngqpt))
-        app("Meta: %s" % str(self.meta))
+        app("Mesh from %.4f to %.4f [eV] with %d points" % (
+            self.mesh[0], self.mesh[-1], len(self.mesh)))
 
         if verbose:
             for mustar in (0.1, 0.12, 0.2):
                 app("\tFor mustar %s: McMillan Tc: %s [K]" % (mustar, self.get_mcmillan_tc(mustar)))
-
         if verbose > 1:
             # $\int dw [a2F(w)/w] w^n$
             for n in [0, 4]:
                 app("Moment %s: %s" % (n, self.get_moment(n)))
+
+            app("Meta: %s" % str(self.meta))
 
         return "\n".join(lines)
 
@@ -133,16 +129,12 @@ class A2f(object):
         r"""
         Logarithmic moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
         """
-        #return 270 / abu.eV_to_K
         iw = self.iw0 + 1
         wmesh, a2fw = self.mesh[iw:], self.values[iw:]
 
-        #ax, fig, plt = get_ax_fig_plt(ax=None)
-        #ax.plot(wmesh, a2fw / wmesh * np.log(wmesh))
-        #plt.show()
-
         fw = a2fw / wmesh * np.log(wmesh)
         integral = simps(fw, x=wmesh)
+
         return np.exp(1.0 / self.lambda_iso * integral)
 
     def get_moment(self, n, spin=None, cumulative=False):
@@ -403,14 +395,14 @@ class A2f(object):
         ax.grid(True)
         ax.set_ylabel(r"$\alpha^2(\omega)$ [1/eV]")
 
-        # Plot F. TODO: This should not be called plot_dos_idos!
+        # Plot F(w). TODO: This should not be called plot_dos_idos!
         ax = ax_list[1]
         phdos.plot_dos_idos(ax=ax, what="d", color="k", linestyle="-")
         ax.grid(True)
         ax.set_ylabel(r"$F(\omega)$ [states/eV]")
 
         # Plot a2f
-        self.plot(ax=ax_list[2], color="k", linestyle="-", show=False)
+        self.plot(ax=ax_list[2], color="k", linestyle="-", linewidths=2, show=False)
 
         return fig
 
@@ -519,17 +511,18 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app(marquee("E-PH calculation", mark="="))
         #app("K-mesh for electrons:" % self.ngkpt)
         app("Has transport a2Ftr(w): %s" % self.has_a2ftr)
-        #try:
-        #    app("eph_ngqpt %s, ph_ngqpt %s" % (eph_ngqpt, ph_ngqpt))
-        #except:
-        #    # FIXME: This to maintain compatibility with old format
-        #    pass
         app("")
-        title = "a2f(w) on the %s q-mesh (eph_ngqpt)" % str(self.a2f_qcoarse.ngqpt)
-        app(self.a2f_qcoarse.to_string(title=title, verbose=verbose))
+        a2f = self.a2f_qcoarse
+        app("a2f(w) on the %s q-mesh (eph_ngqpt)" % str(a2f.ngqpt))
+        app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (
+            a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
+        #app(self.a2f_qcoarse.to_string(title=title, verbose=verbose))
         app("")
-        title = "a2f(w) Fourier interpolated on the %s q-mesh (ph_ngqpt)" % str(self.a2f_qintp.ngqpt)
-        app(self.a2f_qintp.to_string(title=title, verbose=verbose))
+        a2f = self.a2f_qintp
+        app("a2f(w) Fourier interpolated on the %s q-mesh (ph_ngqpt)" % str(a2f.ngqpt))
+        app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (
+            a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
+        #app(self.a2f_qintp.to_string(title=title, verbose=verbose))
 
         return "\n".join(lines)
 
@@ -562,14 +555,6 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         od = self.get_ebands_params()
         # Add EPH parameters.
         od.update(self.reader.common_eph_params)
-
-        ph_ngqpt = self.reader.read_value("ph_ngqpt", default=None)
-        if ph_ngqpt is not None:
-            od["ph_nqbz"] = np.prod(ph_ngqpt)
-
-        #od.update(OrderedDict([
-        #    ("ph_nqbz"
-        #])
 
         return od
 
@@ -708,7 +693,6 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         for i, (ax, what) in enumerate(zip(ax_list, what_list)):
             # Decorate the axis (e.g add ticks and labels).
-            #if i == len(what_list) - 1:
             self.phbands.decorate_ax(ax, units="")
 
             if what == "phbands":
@@ -745,9 +729,9 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot(self, what="gamma", units="eV", scale=None, alpha=0.7, ylims=None, ax=None, colormap="jet", **kwargs):
+    def plot(self, what="gamma", units="eV", scale=None, alpha=0.6, ylims=None, ax=None, colormap="jet", **kwargs):
         """
-        Plot phonon bands with coupling strength lambda(q, nu) or gamma(q, nu) depending on `what`.
+        Plot phonon bands with gamma(q, nu) or lambda(q, nu) depending on the vaue of `what`.
 
         Args:
             what: ``lambda`` for eph coupling strength, ``gamma`` for phonon linewidths.
@@ -776,37 +760,31 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         # TODO units
         gammas = self.reader.read_phgamma_qpath()
         lambdas = self.reader.read_phlambda_qpath()
-        #gam_min, gam_max = gammas.min(), gammas.max()
-        #lamb_min, lamb_max = lambdas.min(), lambdas.max()
         if what == "lambda":
             scale = 500 if scale is None else float(scale)
             sqn = scale * np.abs(lambdas)
             cqn = gammas
         elif what == "gamma":
-            scale = 10**6 if scale is None else float(scale)
+            scale = 10 ** 6 if scale is None else float(scale)
             sqn = scale * np.abs(gammas)
             cqn = lambdas
         else:
             raise ValueError("Invalid what: `%s`" % str(what))
         vmin, vmax = cqn.min(), cqn.max()
 
-        for nu in self.phbands.branches:
-            ax.scatter(xvals,
-                       wvals[:, nu],
-                       s=sqn[:, nu],
-                       c=cqn[:, nu],
-                       vmin=vmin, vmax=vmax,
-                       #s=scale * np.abs(lambdas[:, nu]),
-                       #c=gammas[:, nu],
-                       #vmin=gam_min, vmax=gam_max,
-                       cmap=cmap,
-                       marker="o",
-                       alpha=alpha,
-                       #label=term if ib == 0 else None
-            )
+        sc = ax.scatter(np.tile(xvals, len(self.phbands.branches)),
+                        wvals.T, # [q, nu] --> [nu, q]
+                        s=sqn.T,
+                        c=cqn.T,
+                        vmin=vmin, vmax=vmax,
+                        cmap=cmap,
+                        marker="o",
+                        alpha=alpha,
+                        #label=term if ib == 0 else None
+        )
 
         # Make a color bar
-        #plt.colorbar(ax, cmap=cmap)
+        #plt.colorbar(sc, ax=ax, orientation="horizontal", pad=0.2)
         set_axlims(ax, ylims, "y")
 
         return fig
@@ -840,8 +818,8 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             for qsamp in ["qcoarse", "qintp"]:
                 a2f = self.get_a2f_qsamp(qsamp)
                 a2f.plot(what=what, ax=ax, units=units, ylims=ylims, fontsize=fontsize,
-                        label=qsamp if ix == 0 else None,
-                        show=False, **styles[qsamp])
+                         label=qsamp if ix == 0 else None,
+                         show=False, **styles[qsamp])
 
         return fig
 
@@ -1430,9 +1408,9 @@ class A2fReader(BaseEphReader):
         values_spin_nu = data[:, 1:, :].copy()
 
         # Extract q-mesh and meta variables.
-        params = self.common_eph_params
-        ngqpt = params["eph_ngqpt_fine"] if qsamp == "qcoarse" else params["ph_ngqpt"]
-        meta = {k: params[k] for k in ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]}
+        ngqpt = self.ngqpt if qsamp == "qcoarse" else self.ph_ngqpt
+        meta = {k: self.common_eph_params[k] for k in
+                ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]}
 
         return A2f(mesh, values_spin, values_spin_nu, ngqpt, meta)
 

@@ -16,6 +16,7 @@ class A2fFileTest(AbipyTest):
         repr(ncfile); str(ncfile)
         assert ncfile.to_string(verbose=2)
         assert ncfile.params["nspinor"] == ncfile.nspinor
+        assert "eph_fsewin" in ncfile.params
         assert ncfile.structure.formula == "Al1" and len(ncfile.structure) == 1
         # Ebands
         assert ncfile.nsppol == 1 and ncfile.nspden == 1 and ncfile.nspinor == 1
