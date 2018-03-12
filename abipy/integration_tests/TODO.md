@@ -21,7 +21,7 @@ TODO list:
 * Reorganize modules in flowtk to prepare future migration. Modules with gs_works, dfpt_works ...
   qadapter package ... (postponed to v0.4)
 
-* Reintegrate AbiPy with new abivars
+* DONE Reintegrate AbiPy with new abivars
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
@@ -31,7 +31,7 @@ TODO list:
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
 
-* Positive gw_qprange in EPH
+* Check Positive gw_qprange in EPH
 
 * DONE Fix problem with get_edos if we don't have enough bands 
 
@@ -61,8 +61,6 @@ TODO list:
 * DONE Change shifts default value in g0w0_with_ppmodel_inputs
 
 * Scheduler should report info on exceptions (especially if at the end when on_all_ok is invoked)
-
-
 
 * Replace core.tensor with pymatgen tensor (postponed to v0.4)
 
@@ -109,7 +107,7 @@ TODO list:
 
 * Fix issue with DOJO_REPORT and PAW XML files.
 
-* plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
+* DONE plot_networkx does not work with flows containing callbacks e.g. run_qptdm_flow
   FIXED with graphviz
 
 * Check xsf_write_data and visualization of potentials.
@@ -179,6 +177,6 @@ TODO list:
 
 * Cleanup and refactoring in OpticTask
 
-* Replace SIGRES with new fileformat based on SIGEPH.
+* Replace SIGRES with new fileformat based on SIGEPH (long-term)
 
 * [eV] --> (ev) in title

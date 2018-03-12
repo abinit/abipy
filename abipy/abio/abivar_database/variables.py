@@ -352,8 +352,15 @@ class Variable(object):
         """
         The absolute URL associated to this variable on the Abinit website.
         """
+        # This is gonna be the official API on the server
         #docs.abinit.org/vardocs/CODENAME/VARNAME?version=8.6.2
-        return "https://www.docs.abinit.org/vardoc/%s/%s" % (self.executable, self.name)
+        #return "docs.abinit.org/vardocs/%s/%s" % (self.executable, self.name)
+
+        # For the time being, we have to use:
+        if self.varset == "abinit":
+            return "docs.abinit.org/variables/%s#%s" % (self.vartype, self.name)
+        else:
+            return "docs.abinit.org/variables/%s#%s" % (self.executable, self.name)
 
     @lazy_property
     def topic2relevances(self):

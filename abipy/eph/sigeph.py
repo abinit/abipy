@@ -1189,9 +1189,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
+        verbose = kwargs.pop("verbose", 0)
         yield self.plot_qpbands_ibzt(show=False)
         #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
-        for qp_kpt in self.sigma_kpoints:
+        for i, qp_kpt in enumerate(self.sigma_kpoints):
+            if i > 5 and not verbose:
+                print("File contains more than 5 k-points. Only the first five k-points are displayed.")
+                break
             yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
         yield self.plot_qps_vs_e0(show=False)
 
@@ -1649,8 +1653,12 @@ class SigEPhRobot(Robot, RobotWithEbands):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
+        verbose = kwargs.pop("verbose", 0)
         itemp = 0
-        for qp_kpt in self.abifiles[0].sigma_kpoints:
+        for i, qp_kpt in enumerate(self.abifiles[0].sigma_kpoints):
+            if i > 5 and not verbose:
+                print("File contains more than 5 k-points. Only the first five k-points are displayed.")
+                break
             yield self.plot_qpgaps_convergence(qp_kpoints=qp_kpt, itemp=itemp, show=False)
             yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
 
