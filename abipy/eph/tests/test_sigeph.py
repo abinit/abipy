@@ -35,7 +35,7 @@ class SigEPhFileTest(AbipyTest):
         assert sigeph.has_spectral_function and sigeph.reader.nwr == 101
         assert len(sigeph.mu_e) == sigeph.ntemp
         assert "nbsum" in sigeph.params
-        assert "eph_fsewin" in ncfile.params
+        assert "eph_fsewin" in sigeph.params
 
         assert sigeph.ks_dirgaps.shape == (sigeph.nsppol, sigeph.nkcalc)
         assert sigeph.qp_dirgaps_t.shape == (sigeph.nsppol, sigeph.nkcalc, sigeph.ntemp)

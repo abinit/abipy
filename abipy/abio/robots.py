@@ -15,9 +15,9 @@ from collections import OrderedDict, deque
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
-from monty.functools import lazy_property
+#from monty.functools import lazy_property
 from abipy.core.mixins import NotebookWriter
-from abipy.tools import sort_and_groupby, getattrd, hasattrd, duck
+from abipy.tools import sort_and_groupby, getattrd, hasattrd #, duck
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     rotate_ticklabels, set_visible)
 

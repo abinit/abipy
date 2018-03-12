@@ -19,7 +19,7 @@ from monty.functools import lazy_property
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title)
+    rotate_ticklabels)
 from abipy.electrons.ebands import ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
 from abipy.abio.robots import Robot
@@ -1109,12 +1109,12 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
             if hue is None:
                 ax = ax_mat[i, 0]
                 for j, (label, ncfile, param) in enumerate(labels_ncfiles_params):
-                   ncfile.get_a2f_qsamp(qsamp).plot(what="a2f", ax=ax,
+                    ncfile.get_a2f_qsamp(qsamp).plot(what="a2f", ax=ax,
                        label=self.sortby_label(sortby, param) + " " + qsamp,
                        color=cmap(j / len(self)), fontsize=fontsize,
                        linestyle=self.linestyle_qsamp[qsamp],
                        show=False,
-                   )
+                    )
                 set_axlims(ax, xlims, "x")
             else:
                 for ig, g in enumerate(groups):

@@ -3511,8 +3511,8 @@ Variable(
 This variable defines the technique for the integration on the Fermi surface
 of electron-phonon quantities.
 
-1 for Gaussian technique with broadening factor [[eph_fsmear]].
-2 for tetrahedron method.
+* 1 --> Gaussian technique with broadening factor [[eph_fsmear]].
+* 2 --> Tetrahedron method.
 
 See also [[eph_fsewin]], [[eph_extrael]] and [[eph_fermie]].
 """,
@@ -3540,31 +3540,45 @@ Variable(
     dimensions=[3],
     defaultval=[0, 0, 0],
     mnemonics="Electron-PHonon: Number of Grid Q-PoinTs in FINE grid.",
-    text="""
-This variable activates the interpolation of the first-order variation of the
-self-consistent potential in the electron-phonon code. If eph_nqgpt_fine
-differs from [0, 0, 0], the code will use the Fourier transform to interpolate
+    text=r"""
+This variable activates the **interpolation** of the first-order variation of the
+self-consistent potential in the electron-phonon code ([[optdriver]] == 7).
+
+If eph_nqgpt_fine differs from [0, 0, 0], the code will use the Fourier transform to interpolate
 the DFPT potentials on this fine q-mesh starting from the irreducible set of
-q-points read from the DDB file. This approach is similar to the one used to
+q-points read from the DVDB file. This approach is similar to the one used to
 interpolate the interatomic force constants in q-space. If eph_ngqpt_fine is
 not given, the EPH code uses the list of irreducible q-points reported in the
-DDB file (default behavior).
+DDB file i.e. [[ddb_ngqpt]] (default behavior).
+
+!!! important
+
+    The computation of the electron-phonon matrix elements requires the knowledge of $\psi_{\bf k}$
+    and $\psi_{\bf k + q}$. This means that the k-mesh for electrons found in the WFK must be
+    compatible with the one given in *eph_ngqpt_fine*.
+    The code can interpolate DFPT potentials but won't try to interpolate KS wavefunctions.
+    and will stop if ${\bf k + q}$ is not found in the WFK file.
 """,
 ),
 
 Variable(
     abivarname="eph_task",
-    varset="dfpt",
+    varset="eph",
     vartype="integer",
     topics=['ElPhonInt_expert'],
     dimensions="scalar",
     defaultval=1,
     mnemonics="Electron-PHonon: Task",
-    characteristics=['[[DEVELOP]]'],
     text="""
-When [[optdriver]]==7, select the task to be performed. The choice is among:
-[[eph_task]]=1: phonon linewidth
-[[eph_task]]=2: electron-phonon coupling elements
+When [[optdriver]]==7, select the task to be performed.
+The choice is among:
+
+    0 --> No computation (mainly used to access the post-processing tools)
+    1 --> Compute phonon linewidths in metals.
+    2 --> Compute electron-phonon matrix elements
+    3 --> Compute phonon self-energy.
+    4 --> Compute EPH self-energy (Fan-Migdal + Debye-Waller)
+    5 --> Interpolate the DFPT potentials.
 """,
 ),
 
@@ -3579,7 +3593,7 @@ Variable(
     text="""
 NB - this does not work yet. This variable can be used to turn on the
 calculation of transport quantities in the eph module of abinit. Value of 1
-corresponds to elastic LOVA as in the PRB by Savrasov and Savrasov
+corresponds to elastic LOVA as in the PRB by [[cite:Savrasov1996]].
 """,
 ),
 
@@ -5680,11 +5694,11 @@ Variable(
     mnemonics="GWLS MODEL PARAMETER",
     characteristics=['[[ENERGY]]'],
     requires="[[optdriver]]==66",
-    text="""
+    text=r"""
 This is the width of the lorentzian, in Ha, used to model the frequency
 dependence of the dielectric matrix in the GWLS calculation (see eqs. (12),
 (13), (14), (15), (16) and (34) of Phys. Rev. B 91, 125120 (2015)). More
-precisely, this parameter is the value of \alpha used in eq. (34). This model
+precisely, this parameter is the value of $\alpha$ used in eq. (34). This model
 is then used to separate the integration over frequencies into a 'model' part
 (second term of eq. (12)) and a 'exact - model' part (first term of eq. (12)).
 Since the 'model' part can be integrated analytically (see eqs. (15), (16) and
@@ -6573,7 +6587,7 @@ bands in the calculation is usually enough (use [[nband]]).
 
 NOTES:
 
-  * The step at which the dielectric matrix is computed or recomputed is determined by modulo([[iprcel]],10). The recomputation happens just once in the calculation for [[iprcel]]  < 100\.
+  * The step at which the dielectric matrix is computed or recomputed is determined by modulo([[iprcel]],10). The recomputation happens just once in the calculation for [[iprcel]]  < 100.
   * For non-homogeneous relatively large cells [[iprcel]]=45 will likely give a large improvement over [[iprcel]]=0.
   * In case of PAW and [[iprcel]]>0, see [[pawsushat]] input variable. By default, an approximation (which can be suppressed) is done for the computation of susceptibility matrix.
   * For extremely large inhomogeneous cells where computation of the full dielectric matrix takes too many weeks, 70 < [[iprcel]] < 80 is advised.
@@ -7093,15 +7107,15 @@ but for inhomogeneous systems, you might gain a lot with [[iprcel]]=45.
 cycle is not variational - this should not affect the other properties, and at
 convergence, all values are OK)
 
-\- In the norm-conserving case, the default option is [[iscf]]=7, which is a
+- In the norm-conserving case, the default option is [[iscf]]=7, which is a
 compromise between speed and reliability. The value [[iscf]]= 2 is safer but
 slower.
-\- In the PAW case, default option is [[iscf]]=17. In PAW you have the
+- In the PAW case, default option is [[iscf]]=17. In PAW you have the
 possibility to mix density/potential on the fine or coarse FFT grid (see
 [[pawmixdg]]).
-\- Note that a Pulay mixing ([[iscf]]=7 or 17) with [[npulayit]] =1 (resp. 2)
+- Note that a Pulay mixing ([[iscf]]=7 or 17) with [[npulayit]] =1 (resp. 2)
 is equivalent to an Anderson mixing with [[iscf]]=3 or 13 (resp. 4 or 14).
-\- Also note that:
+- Also note that:
 * when mixing is done on potential (iscf <10), total energy is computed by "direct" decomposition.
 * when mixing is done on density (iscf >=10), total energy is computed by "double counting" decomposition.
 "Direct" and "double counting" decomposition of energy are equal when SCF
@@ -11870,9 +11884,9 @@ percentage allowed without stopping the execution.
 volume of the overlap of two spheres by the volume of the smallest sphere.
 The following values are permitted for [[pawovlp]]:
 
-- [[pawovlp]]<0\. : overlap is always allowed
-- [[pawovlp]]=0. : no overlap is allowed
-- [[pawovlp]]>0\. and <100\. : overlap is allowed only if it is less than [[pawovlp]] %
+- [[pawovlp]] < 0 --> overlap is always allowed
+- [[pawovlp]] = 0 --> no overlap is allowed
+- [[pawovlp]] > 0 and < 100 --> overlap is allowed only if it is less than [[pawovlp]] %
 """,
 ),
 
@@ -12232,7 +12246,7 @@ specified by [[ph_qpath]].
 
 Variable(
     abivarname="ph_ngqpt",
-    varset="dfpt",
+    varset="eph",
     vartype="integer",
     topics=['q-points_useful'],
     dimensions=[3],
@@ -12240,8 +12254,8 @@ Variable(
     mnemonics="PHonons: Number of Grid points for Q-PoinT mesh.",
     text="""
 This variable defines the q-mesh used to compute the phonon DOS and the
-Eliashberg function via Fourier interpolation. Related input variables:
-[[ph_qshift]] and [[ph_nqshift]].
+Eliashberg function via Fourier interpolation.
+Related input variables: [[ph_qshift]] and [[ph_nqshift]].
 """,
 ),
 
@@ -12275,7 +12289,7 @@ code assumes a Gamma-centered mesh. The shifts are specified by [[ph_qshift]].
 
 Variable(
     abivarname="ph_qpath",
-    varset="dfpt",
+    varset="eph",
     vartype="real",
     topics=['q-points_useful'],
     dimensions=[3, 'ph_nqpath'],
@@ -12284,8 +12298,8 @@ Variable(
     requires="specified([[ph_nqpath]])",
     text="""
 This array contains the list of special q-points used to construct the q-path
-for phonon band structures and phonon linewidths. See also [[ph_nqpath]] and
-[[[ph_ndivsm]].
+used to (Fourier) interpolate phonon band structures and phonon linewidths.
+See also [[ph_nqpath]] and [[[ph_ndivsm]].
 """,
 ),
 
@@ -12300,8 +12314,8 @@ Variable(
     requires="[[ph_nqshift]]",
     text="""
 This array gives the shifts to be used to construct the q-mesh for computing
-the phonon DOS and the Eliashberg functions (see also [[ph_nqshift]]. If not
-given, a Gamma-centered mesh is used.
+the phonon DOS and the Eliashberg functions (see also [[ph_nqshift]].
+If not given, a Gamma-centered mesh is used.
 """,
 ),
 
@@ -13918,7 +13932,7 @@ code to stop at some point.
 Debugging options:
 
   * = -1 --> stop in abinit (main program), before call driver. Useful to see the effect of the preprocessing of input variables (memory needed, effect of symmetries, k points...) without going further. Run very fast, on the order of the second.
-  * =-2 --> same as -1, except that print only the first dataset. All the non default input variables associated to all datasets are printed in the output file, but only for the first dataset. Also all the input variables are written in the NetCDF file \"OUT.nc\", even if the value is the default.
+  * =-2 --> same as -1, except that print only the first dataset. All the non default input variables associated to all datasets are printed in the output file, but only for the first dataset. Also all the input variables are written in the NetCDF file "OUT.nc", even if the value is the default.
   * = -3 --> stop in gstate, before call scfcv, move or brdmin. Useful to debug pseudopotentials
   * = -4 --> stop in move, after completion of all loops
   * = -5 --> stop in brdmin, after completion of all loops
@@ -18234,7 +18248,7 @@ Variable(
     defaultval=0,
     mnemonics="WeighTs for AToms in CONstraint equations",
     characteristics=['[[NO_MULTI]]'],
-    text="""
+    text=r"""
 Gives the weights determining how the motion of atoms is constrained during
 structural optimization or molecular dynamics (see [[nconeq]], [[natcon]],
 and [[iatcon]]). For each of the [[nconeq]] independent constraint equations,
@@ -18250,8 +18264,8 @@ Different types of motion constraints can be implemented this way. For example,
     nconeq 1 natcon 2 iatcon 1 2 wtatcon 0 0 +1 0 0 -1
 
 could be used to constrain the relative height difference of two adsorbate
-atoms on a surface (assuming their masses are equal), since F'  z,1  \- F'
-z,2  = 0 implies z  1  \- z  2  = constant.
+atoms on a surface (assuming their masses are equal), since F'  z,1  - F'
+z,2  = 0 implies z  1  - z  2  = constant.
 """,
 ),
 
@@ -18656,4 +18670,18 @@ with only a jellium surface, ABINIT sets arbitrarily the covalent radius to one.
 """,
 ),
 #{"abinit_version": "8.7.3"},
+Variable(
+    abivarname="tmesh",
+    varset="eph",
+    topics=['ElPhonInt_basic'],
+    vartype="real",
+    defaultval=[5.0, 59.0, 6.0],
+    dimensions=[3],
+    mnemonics="Temperature MESH",
+    text="""
+This variable defines the linear mesh of temperatures used in the EPH code ([[optdriver]] = 7).
+The first entry gives the initial temperature in Kelvin, the second entry the linear step in Kelvin,
+the third entry is the number of points in the mesh. The default value corresponds to 6 points between 5 K and 300 K.
+""",
+),
 ]

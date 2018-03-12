@@ -5,7 +5,6 @@ Objects common to the other eph modules.
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
-import warnings
 
 from collections import OrderedDict
 from monty.functools import lazy_property
