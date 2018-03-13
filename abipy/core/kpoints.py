@@ -1358,7 +1358,7 @@ class KSamplingInfo(AttrDict):
 
     KNOWN_KEYS = set([
         "mpdivs",          # Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None.
-        "kptrlatt",        # [3,3] matrix defined only if we have a sampling else None.
+        "kptrlatt",        # [3, 3] matrix defined only if we have a sampling else None.
         "kptrlatt_orig",   # Original set of shifts. Defined only if we have a sampling else None.
         "shifts",          # Actual shifts (Usually one). Defined only if we have a sampling else None.
         "shifts_orig",     # Original shifts specified by the user. Defined only if we have a sampling else None.
@@ -1454,12 +1454,21 @@ If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
-        app("kptopt:\n  %s" % str(self.kptopt))
-        app("mpdivs: %s" % str(self.mpdivs))
-        app("kptrlatt:\n %s" % str(self.kptrlatt))
-        app("shifts:\n %s" % str(self.shifts))
-        app("kptrlatt_orig:\n %s" % str(self.kptrlatt_orig))
-        app("shifts_orig:\n %s" % str(self.shifts_orig))
+
+        if self.is_mesh:
+            if self.has_diagonal_kptrlatt:
+                app("mpdivs: %s with shifts %s and kptopt: %s" % (str(self.mpdivs), str(self.shifts), self.kptopt))
+            else:
+                app("kptrlatt: %s" % str(self.kptrlatt))
+                app("shifts: %s" % str(self.shifts))
+                app("kptrlatt_orig: %s" % str(self.kptrlatt_orig))
+                app("shifts_orig: %s" % str(self.shifts_orig))
+                app("kptopt: %s" % str(self.kptopt))
+
+        elif self.is_path:
+            app("Path with kptopt: %s" % self.kptopt)
+        else:
+            app("Neither mesh or path!")
 
         return "\n".join(lines)
 

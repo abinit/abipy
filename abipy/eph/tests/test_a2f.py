@@ -28,6 +28,14 @@ class A2fFileTest(AbipyTest):
         assert ncfile.phbands.qpoints.ksampling is None
         assert ncfile.phbands.has_linewidths
 
+        # Test ksampling
+        ksamp = ncfile.reader.read_ksampling_info()
+        assert ksamp.is_mesh and not ksamp.is_path
+        assert ksamp.has_diagonal_kptrlatt
+        self.assert_equal(ksamp.mpdivs, [12, 12, 12])
+        self.assert_equal(ksamp.shifts.ravel(), [0, 0, 0])
+        assert ksamp.to_string(title="Ksampling")
+
         # Test edos
         # TODO
         #ncfile.edos

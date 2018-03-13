@@ -509,11 +509,13 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
         # E-PH section
         app(marquee("E-PH calculation", mark="="))
-        #app("K-mesh for electrons:" % self.ngkpt)
-        app("Has transport a2Ftr(w): %s" % self.has_a2ftr)
+        app("K-mesh for electrons:")
+        app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
+        if verbose:
+            app("Has transport a2Ftr(w): %s" % self.has_a2ftr)
         app("")
         a2f = self.a2f_qcoarse
-        app("a2f(w) on the %s q-mesh (eph_ngqpt)" % str(a2f.ngqpt))
+        app("a2f(w) on the %s q-mesh (ddb_ngqpt|eph_ngqpt)" % str(a2f.ngqpt))
         app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (
             a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
         #app(self.a2f_qcoarse.to_string(title=title, verbose=verbose))
