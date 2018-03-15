@@ -133,7 +133,7 @@ and install the AbiPy dependencies with::
     conda install --file ./requirements.txt
     conda install --file ./requirements-optional.txt
 
-Once the requirements have been installer (either with pip or conda), execute::
+Once the requirements have been installed (either with pip or conda), execute::
 
     python setup.py install
 
