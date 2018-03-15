@@ -514,6 +514,8 @@ class EphSelfEnergy(object):
 
         return fig
 
+    plot = plot_tdep
+
 
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
@@ -762,6 +764,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         od.update(self.reader.common_eph_params)
 
         return od
+
+    def get_sigeph_skb(self, spin, kpoint, band):
+        return self.reader.read_sigeph_skb(spin, kpoint, band)
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
