@@ -15,8 +15,9 @@ from collections import OrderedDict, deque
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
+#from monty.functools import lazy_property
 from abipy.core.mixins import NotebookWriter
-from abipy.tools import sort_and_groupby, getattrd, hasattrd
+from abipy.tools import sort_and_groupby, getattrd, hasattrd #, duck
 from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     rotate_ticklabels, set_visible)
 
@@ -333,7 +334,6 @@ class Robot(NotebookWriter):
     #            except Exception as exc:
     #                print("Exception while closing: ", abifile.filepath)
     #                print(exc)
-    #                #raise
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""
@@ -725,7 +725,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     def sortby_label(sortby, param):
         """Return the label to be used when files are sorted with ``sortby``."""
-        return "%s %s" % (sortby, param) if not callable(sortby) else str(param)
+        return "%s %s" % (sortby, param) if not (callable(sortby) or sortby is None) else str(param)
 
     def get_structure_dataframes(self, abspath=False, filter_abifile=None, **kwargs):
         """
@@ -1065,3 +1065,14 @@ class HueGroup(object):
     def __iter__(self):
         """Iterate over (label, abifile, xvalue)."""
         return six.moves.zip(self.labels, self.abifiles, self.xvalues)
+
+    #@lazy_property
+    #def pretty_hvalue(self):
+    #    """Return pretty string with hvalue."""
+    #    if duck.is_intlike(self.hvalue):
+    #        return "%d" % self.havalue
+    #    else:
+    #        try:
+    #            return "%.3f" % self.hvalue
+    #        except:
+    #            return str(self.hvalue)

@@ -27,9 +27,10 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title)
 from abipy.tools import duck
-from abipy.electrons.ebands import ElectronsReader, ElectronBands, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
 #from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
 from abipy.abio.robots import Robot
+from abipy.eph.common import BaseEphReader
 
 
 # TODO QPState and QPList from electrons.gw (Define base abstract class?).
@@ -513,6 +514,8 @@ class EphSelfEnergy(object):
 
         return fig
 
+    plot = plot_tdep
+
 
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
@@ -609,7 +612,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(marquee("SigmaEPh calculation", mark="="))
         app("Number of k-points computed: %d" % (self.nkcalc))
         app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
+        #app("a2f(w) on the %s q-mesh (ddb_ngqpt|eph_ngqpt)" % str(a2f.ngqpt))
         app("Q-mesh: nqibz: %s, nqbz: %s, ngqpt: %s" % (self.nqibz, self.nqbz, str(self.ngqpt)))
+        app("K-mesh for electrons:")
+        app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
         app("Number of bands included in self-energy: %d" % (self.nbsum))
         app("zcut: %.3f [Ha], %.3f [eV]" % (self.zcut, self.zcut * units.Ha_to_eV))
         app("Number of temperatures: %d, from %.1f to %.1f [K]" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
@@ -746,13 +752,21 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @lazy_property
     def params(self):
         """:class:`OrderedDict` with the convergence parameters, e.g. ``nbsum``."""
-        return OrderedDict([
+        od = OrderedDict([
             ("nbsum", self.nbsum),
             ("zcut", self.zcut),
             ("symsigma", self.symsigma),
+            # TODO: Remove?
             ("nqbz", self.reader.nqbz),
             ("nqibz", self.reader.nqibz),
         ])
+        # Add EPH parameters.
+        od.update(self.reader.common_eph_params)
+
+        return od
+
+    def get_sigeph_skb(self, spin, kpoint, band):
+        return self.reader.read_sigeph_skb(spin, kpoint, band)
 
     def get_dataframe(self, with_params=True, ignore_imag=False):
         """
@@ -1183,10 +1197,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
+        verbose = kwargs.pop("verbose", 0)
         yield self.plot_qpbands_ibzt(show=False)
-        #for qpk in self.sigma_kpoints:
-        #    yield self.plot_qpgaps_t(qp_kpoints=[qpk], show=False)
-        yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
+        #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
+        for i, qp_kpt in enumerate(self.sigma_kpoints):
+            if i > 5 and not verbose:
+                print("File contains more than 5 k-points. Only the first five k-points are displayed.")
+                break
+            yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
         yield self.plot_qps_vs_e0(show=False)
 
     def write_notebook(self, nbpath=None, title=None):
@@ -1366,7 +1384,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                     sigma = ncfile.reader.read_sigeph_skb(spin, kpoint, band)
                     fig = sigma.plot_tdep(itemps=itemp, ax_list=ax_mat[:, ig],
                         label="%s: %s" % (self._get_label(sortby), param),
-                        color=cmap(ix/len(g)), show=False)
+                        color=cmap(ix / len(g)), show=False)
 
             if ig != 0:
                 for ax in ax_mat[:, ig]:
@@ -1638,6 +1656,19 @@ class SigEPhRobot(Robot, RobotWithEbands):
                         set_visible(ax, False, "ylabel")
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        verbose = kwargs.pop("verbose", 0)
+        itemp = 0
+        for i, qp_kpt in enumerate(self.abifiles[0].sigma_kpoints):
+            if i > 5 and not verbose:
+                print("File contains more than 5 k-points. Only the first five k-points are displayed.")
+                break
+            yield self.plot_qpgaps_convergence(qp_kpoints=qp_kpt, itemp=itemp, show=False)
+            yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
 
     def write_notebook(self, nbpath=None, title=None):
         """
@@ -1921,7 +1952,7 @@ class TdepElectronBands(object): # pragma: no cover
         return edos_plotter
 
 
-class SigmaPhReader(ElectronsReader):
+class SigmaPhReader(BaseEphReader):
     """
     Reads data from file and constructs objects.
 

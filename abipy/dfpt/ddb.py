@@ -695,7 +695,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
-        Build and return |PhononDosPlotter| object.
+        Build and return |PhononBandsPlotter| object.
 
         Args:
             asr_list: List of ``asr`` values to test.
@@ -716,7 +716,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes used by anaddb.
 
         Return:
-            |PhononDosPlotter| object.
+            |PhononBandsPlotter| object.
 
             Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
             to visualize the results.

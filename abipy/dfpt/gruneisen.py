@@ -323,11 +323,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             set_axlims(ax, ylims, "x")
             ax.grid(True)
             ax.set_ylabel("")
-            ax.tick_params(labelbottom='off')
+            ax.tick_params(labelbottom=False)
             if i == len(dos_names) - 1:
                 ax.yaxis.set_ticks_position("right")
             else:
-                ax.tick_params(labelleft='off')
+                ax.tick_params(labelleft=False)
             ax.set_title(_ALL_DOS_NAMES[name]["latex"])
 
         return fig
