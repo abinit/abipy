@@ -289,8 +289,8 @@ def abiview_gruns(options):
     return 0
 
 
-def abiview_eph(options):
-    """Plot Eliashberg function. Requires EPH.nc file."""
+def abiview_a2f(options):
+    """Plot Eliashberg function. Requires A2F.nc file."""
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
         abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
@@ -351,7 +351,7 @@ Usage example:
 # E-PH
 #######
 
-  abiview.py eph out_EPH.nc              ==> Plot EPH results.
+  abiview.py a2f out_A2F.nc              ==> Plot Eliashberg results.
   abiview.py sigeph out_SIGEPH.nc        ==> Plot E-PH self-energy.
 
 ########
@@ -492,8 +492,8 @@ def get_parser(with_epilog=False):
     # Subparser for optic command.
     p_optic = subparsers.add_parser('optic', parents=[copts_parser, slide_parser], help=abiview_optic.__doc__)
 
-    # Subparser for eph command.
-    p_eph = subparsers.add_parser('eph', parents=[copts_parser, slide_parser], help=abiview_eph.__doc__)
+    # Subparser for a2f command.
+    p_a2f = subparsers.add_parser('a2f', parents=[copts_parser, slide_parser], help=abiview_a2f.__doc__)
 
     # Subparser for sigeph command.
     p_sigeph = subparsers.add_parser('sigeph', parents=[copts_parser, slide_parser], help=abiview_sigeph.__doc__)

@@ -105,7 +105,7 @@ class TestStructure(AbipyTest):
         same_znse = Structure.as_structure(tmp_path)
         assert same_znse == znse
 
-        for fmt in ["abivars", "cif", "POSCAR", "json", "xsf"]:
+        for fmt in ["abivars", "cif", "POSCAR", "json", "xsf", "qe"]:
             assert len(znse.convert(fmt=fmt)) > 0
 
         oxi_znse = znse.get_oxi_state_decorated()

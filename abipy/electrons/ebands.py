@@ -8,6 +8,7 @@ import copy
 import itertools
 import json
 import warnings
+import tempfile
 import pickle
 import numpy as np
 import pymatgen.core.units as units
@@ -1229,7 +1230,8 @@ class ElectronBands(Has_Structure):
                         if verbose: app("Exception:\n%s" % str(exc))
 
                 app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
-                app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
+                if verbose:
+                    app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
                 app("")
 
@@ -3645,6 +3647,16 @@ class Bands3D(Has_Structure):
                 if emax >= e0 >= emin: isobands[spin].append(band)
         if all(not l for l in isobands): return None
         return isobands
+
+    def xcrysden_view(self):  # pragma: no cover
+        """
+        Visualize electron energy isosurfaces with xcrysden_.
+        """
+        _, tmp_filepath = tempfile.mkstemp(suffix=".bxsf", text=True)
+        #print("Producing BXSF file in:", tmp_filepath)
+        self.to_bxsf(tmp_filepath, unit="eV")
+        from abipy.iotools.visualizer import Xcrysden
+        return Xcrysden(tmp_filepath)()
 
     def to_bxsf(self, filepath, unit="eV"):
         """

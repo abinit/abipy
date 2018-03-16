@@ -273,7 +273,6 @@ class DdbTest(AbipyTest):
                     nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
                 assert plotter.gridplot(show=False)
 
-
     def test_mgb2_ddbs_ngkpt_tsmear(self):
         """Testing multiple DDB files and gridplot_with_hue."""
         paths = [
@@ -304,6 +303,21 @@ class DdbTest(AbipyTest):
             assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=False, show=False)
 
         robot.close()
+
+    def test_ddb_from_mprester(self):
+        """Test creation methods for DdbFile and DdbRobot from MP REST API."""
+        #ddb = abilab.DdbFile.from_mpid("mp-1138")
+        ddb = abilab.DdbFile.from_mpid("mp-149")
+        assert ddb.structure.formula == "Si2"
+        self.assert_equal(ddb.guessed_ngqpt, [9, 9, 9])
+        assert ddb.header["version"] == 100401
+        assert ddb.header["ixc"] == -116133
+
+        mpid_list = ["mp-149", "mp-1138"]
+        robot = abilab.DdbRobot.from_mpid_list(mpid_list)
+        assert len(robot) == len(mpid_list)
+        assert robot.abifiles[1].structure.formula == "Li1 F1"
+        assert robot.abifiles[1].header["ixc"] == -116133
 
 
 class DielectricTensorGeneratorTest(AbipyTest):

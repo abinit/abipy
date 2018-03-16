@@ -1,4 +1,4 @@
-"""Tests for eph module."""
+"""Tests for a2f module."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
@@ -8,14 +8,15 @@ from abipy import abilab
 from abipy.core.testing import AbipyTest
 
 
-class EphFileTest(AbipyTest):
+class A2fFileTest(AbipyTest):
 
-    def test_eph_file(self):
-        """Tests for EphFile."""
-        ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_EPH.nc"))
+    def test_a2fnc_file(self):
+        """Tests for A2fFile."""
+        ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
         repr(ncfile); str(ncfile)
         assert ncfile.to_string(verbose=2)
         assert ncfile.params["nspinor"] == ncfile.nspinor
+        assert "eph_fsewin" in ncfile.params
         assert ncfile.structure.formula == "Al1" and len(ncfile.structure) == 1
         # Ebands
         assert ncfile.nsppol == 1 and ncfile.nspden == 1 and ncfile.nspinor == 1
@@ -25,6 +26,15 @@ class EphFileTest(AbipyTest):
         # Phbands
         assert ncfile.phbands.qpoints.is_path
         assert ncfile.phbands.qpoints.ksampling is None
+        assert ncfile.phbands.has_linewidths
+
+        # Test ksampling
+        ksamp = ncfile.reader.read_ksampling_info()
+        assert ksamp.is_mesh and not ksamp.is_path
+        assert ksamp.has_diagonal_kptrlatt
+        self.assert_equal(ksamp.mpdivs, [12, 12, 12])
+        self.assert_equal(ksamp.shifts.ravel(), [0, 0, 0])
+        assert ksamp.to_string(title="Ksampling")
 
         # Test edos
         # TODO
@@ -53,19 +63,22 @@ class EphFileTest(AbipyTest):
 
         assert not ncfile.has_a2ftr
         assert ncfile.a2ftr_qcoarse is None
-        assert ncfile.a2ftr_qinpt is None
+        assert ncfile.a2ftr_qintp is None
         assert ncfile.get_a2ftr_qsamp("qcoarse") is ncfile.a2ftr_qcoarse
         phdos_path = abidata.ref_file("al_161616q_PHDOS.nc")
 
         if self.has_matplotlib():
             # Test A2f plot methods
-            assert ncfile.a2f_qcoarse.plot(show=False)
+            assert ncfile.a2f_qcoarse.plot(exchange_xy=True, fontsize=8, units="meV", show=False)
+            assert ncfile.a2f_qcoarse.plot_with_lambda(show=False)
             assert ncfile.a2f_qcoarse.plot_tc_vs_mustar(show=False)
             assert ncfile.a2f_qintp.plot_a2(phdos_path, show=False)
             assert ncfile.a2f_qintp.plot_nuterms(show=False)
+            assert ncfile.plot_a2f_interpol(show=False)
 
-            # Test Ephfile plot methods.
+            # Test A2fFile plot methods.
             assert ncfile.plot(show=False)
+            assert ncfile.plot_with_a2f(show=False)
             assert ncfile.plot_eph_strength(show=False)
             assert ncfile.plot_with_a2f(qsamp="qcoarse", show=False)
             assert ncfile.plot_with_a2f(phdos=phdos_path, show=False)
@@ -76,16 +89,16 @@ class EphFileTest(AbipyTest):
         ncfile.close()
 
 
-class EphRobotTest(AbipyTest):
+class A2fRobotTest(AbipyTest):
 
-    def test_eph_robot(self):
-        """Test EphRobot."""
+    def test_a2f_robot(self):
+        """Test A2fRobot."""
         files = abidata.ref_files(
-                "al_888k_161616q_EPH.nc",
-                #"al_888k_161616q_EPH.nc",
+                "al_888k_161616q_A2F.nc",
+                #"al_888k_161616q_A2F.nc",
         )
-        with abilab.EphRobot.from_files(files[0]) as robot:
-            robot.add_file("same_eph", files[0])
+        with abilab.A2fRobot.from_files(files[0]) as robot:
+            robot.add_file("same_a2f", files[0])
             assert len(robot) == 2
             repr(robot); str(robot)
             robot.to_string(verbose=2)
@@ -113,10 +126,15 @@ class EphRobotTest(AbipyTest):
                 assert robot.boxplot_phbands(show=False)
                 assert robot.combiboxplot_phbands(show=False)
 
-                # Test EPHRobot plot methods
-                assert robot.plot_lambda_convergence(show=False)
+                # Test A2fRobot plot methods
+                assert robot.plot_lambda_convergence(sortby=None, hue=None, show=False)
+                assert robot.plot_lambda_convergence(what="gamma", sortby=None, hue="nkpt", show=False)
                 assert robot.plot_a2f_convergence(show=False)
-                #assert robot.plot_a2ftr_convergence(show=False)
+                assert robot.plot_a2f_convergence(hue="nkpt", show=False)
+                assert robot.plot_a2fdata_convergence(show=False, sortby=None, hue="nkpt")
+                assert robot.gridplot_a2f(show=False)
+
+                #assert robot.plot_a2ftr_convergence(show=False, sortby=None, hue="nkpt")
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

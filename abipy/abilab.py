@@ -36,7 +36,6 @@ from abipy.abio.robots import Robot
 from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot #, CubeFile
-#from abipy.tools.plotting import DirTreePlotter
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source
 from abipy.abio.factories import *
@@ -61,8 +60,7 @@ from abipy.dfpt.anaddbnc import AnaddbNcFile
 from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
-# TODO Change name. A2f?
-from abipy.eph.eph import EphFile, EphRobot
+from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 
 # Abinit Documentation.
@@ -117,7 +115,7 @@ abiext2ncfile = collections.OrderedDict([
     ("FOLD2BLOCH.nc", Fold2BlochNcfile),
     ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
     ("OPTIC.nc", OpticNcFile),
-    ("EPH.nc", EphFile),
+    ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
 ])
 

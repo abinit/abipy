@@ -35,6 +35,7 @@ class SigEPhFileTest(AbipyTest):
         assert sigeph.has_spectral_function and sigeph.reader.nwr == 101
         assert len(sigeph.mu_e) == sigeph.ntemp
         assert "nbsum" in sigeph.params
+        assert "eph_fsewin" in sigeph.params
 
         assert sigeph.ks_dirgaps.shape == (sigeph.nsppol, sigeph.nkcalc)
         assert sigeph.qp_dirgaps_t.shape == (sigeph.nsppol, sigeph.nkcalc, sigeph.ntemp)
@@ -65,6 +66,14 @@ class SigEPhFileTest(AbipyTest):
         assert len(qpkinds) == 2
         assert tuple(t[1] for t in qpkinds) == (0, 1)
         assert sigeph.find_qpkinds(qpkinds) is qpkinds
+
+        # Test ksampling
+        ksamp = sigeph.reader.read_ksampling_info()
+        assert ksamp.is_mesh and not ksamp.is_path
+        assert ksamp.has_diagonal_kptrlatt
+        self.assert_equal(ksamp.mpdivs, [4, 4, 4])
+        self.assert_equal(ksamp.shifts.ravel(), [0, 0, 0])
+        assert ksamp.to_string(title="Ksampling")
 
         # Test Dataframe construction.
         data_sk = sigeph.get_dataframe_sk(spin=0, kpoint=[0.5, 0.0, 0.0])
