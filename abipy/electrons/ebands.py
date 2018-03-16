@@ -1230,7 +1230,8 @@ class ElectronBands(Has_Structure):
                         if verbose: app("Exception:\n%s" % str(exc))
 
                 app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
-                app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
+                if verbose:
+                    app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
                 app("")
 
