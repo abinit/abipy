@@ -11,7 +11,7 @@ import pandas as pd
 
 from collections import OrderedDict
 from six.moves import map, zip, StringIO
-from monty.string import marquee
+from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -91,35 +91,33 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @classmethod
     def from_file(cls, filepath):
-        """Needed for the `TextFile` abstract interface."""
+        """Needed for the :class:`TextFile` abstract interface."""
         return cls(filepath)
 
-    #@classmethod
-    #def from_mpid(cls, material_id, api_key=None, endpoint=None):
-    #    """
-    #    Fetch DDB corresponding to a materials project ``material_id``.
-    #
-    #    Raises:
-    #        MPRestError
-    #
-    #    Args:
-    #        material_id (str): Materials Project material_id (a string, e.g., mp-1234).
-    #        api_key (str): A String API key for accessing the MaterialsProject
-    #            REST interface. Please apply on the Materials Project website for one.
-    #            If this is None, the code will check if there is a `PMG_MAPI_KEY` in
-    #            your .pmgrc.yaml. If so, it will use that environment
-    #            This makes easier for heavy users to simply add
-    #            this environment variable to their setups and MPRester can
-    #            then be called without any arguments.
-    #        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-    #            Defaults to the standard Materials Project REST address, but
-    #            can be changed to other urls implementing a similar interface.
-    #    """
-    #    # Get pytmatgen structure and convert it to abipy structure
-    #    from abipy.core import restapi
-    #    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-    #        pmgb = rest.get_bandstructure_by_material_id(material_id=material_id)
-    #    return cls.from_string(s)
+    @classmethod
+    def from_mpid(cls, material_id, api_key=None, endpoint=None):
+        """
+        Fetch DDB file corresponding to a materials project ``material_id``,
+        save it to temporary file and return new DdbFile object.
+
+        Raises: MPRestError if DDB file is not available
+
+        Args:
+            material_id (str): Materials Project material_id (e.g., mp-1234).
+            api_key (str): A String API key for accessing the MaterialsProject REST interface.
+                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
+                Defaults to the standard Materials Project REST address
+        """
+        from abipy.core import restapi
+        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+            ddb_string = rest._make_request("/materials/%s/abinit_ddb" % material_id)
+
+        _, tmpfile = tempfile.mkstemp(prefix=material_id, suffix='_DDB')
+        with open(tmpfile, "wt") as fh:
+            fh.write(ddb_string)
+
+        return cls(tmpfile)
 
     def __init__(self, filepath):
         super(DdbFile, self).__init__(filepath)
@@ -697,7 +695,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
-        Build and return |PhononDosPlotter| object.
+        Build and return |PhononBandsPlotter| object.
 
         Args:
             asr_list: List of ``asr`` values to test.
@@ -718,7 +716,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             mpi_procs: Number of MPI processes used by anaddb.
 
         Return:
-            |PhononDosPlotter| object.
+            |PhononBandsPlotter| object.
 
             Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``
             to visualize the results.
@@ -1463,6 +1461,35 @@ class DdbRobot(Robot):
     def class_handles_filename(cls, filename):
         """Exclude DDB.nc files. Override base class."""
         return filename.endswith("_" + cls.EXT)
+
+    @classmethod
+    def from_mpid_list(cls, mpid_list, api_key=None, endpoint=None):
+        """
+        Build a DdbRobot from list of materials-project ids.
+
+        Args:
+            mpid_list: List of Materials Project material_ids (e.g., ["mp-1234", "mp-1245"]).
+            api_key (str): A String API key for accessing the MaterialsProject REST interface.
+                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
+            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
+                Defaults to the standard Materials Project REST address
+        """
+        from abipy.core import restapi
+        ddb_files = []
+        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+            for mpid in list_strings(mpid_list):
+                try:
+                    ddb_string = rest._make_request("/materials/%s/abinit_ddb" % mpid)
+                except rest.Error:
+                    cprint("Cannot get DDB for mp-id: %s, ignoring error" % mpid, "yellow")
+                    continue
+
+                _, tmpfile = tempfile.mkstemp(prefix=mpid, suffix='_DDB')
+                ddb_files.append(tmpfile)
+                with open(tmpfile, "wt") as fh:
+                    fh.write(ddb_string)
+
+        return cls.from_files(ddb_files)
 
     #def get_qpoints_union(self):
     #    """

@@ -133,7 +133,7 @@ and install the AbiPy dependencies with::
     conda install --file ./requirements.txt
     conda install --file ./requirements-optional.txt
 
-Once the requirements have been installer (either with pip or conda), execute::
+Once the requirements have been installed (either with pip or conda), execute::
 
     python setup.py install
 
@@ -200,15 +200,16 @@ Command line tools
 
 The following scripts can be invoked directly from the terminal:
 
-* ``abicheck.py``
-* ``abidoc.py``
-* ``abiopen.py``
-* ``abistruct.py``
-* ``abicomp.py``
-* ``abinp.py``
-* ``abirun.py``
-* ``abiview.py``
+* ``abiopen.py``    Open file inside ipython.
+* ``abistruct.py``  Swiss knife to operate on structures.
+* ``abiview.py``    Visualize results from file.
+* ``abicomp.py``    Compare results extracted from multiple files.
+* ``abicheck.py``   Validate integration between AbiPy and Abinit
+* ``abirun.py``     Execute AbiPy flow from terminal.
+* ``abidoc.py``     Document Abinit input variables and Abipy configuration files.
+* ``abinp.py``      Build input files (simplified interface for the AbiPy factory functions).
 
+Use ``SCRIPT --help`` to get the list of supported options.
 For further information, please consult the `official documentation <http://pythonhosted.org/abipy/scripts.html>`_.
 
 License
