@@ -180,33 +180,33 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
             return _TIPS
 
+    @classmethod
+    def get_fields_for_plot(cls, with_fields, exclude_fields):
+        """
+        Return list of QPState fields to plot from input arguments.
+        """
+        all_fields = list(cls.get_fields(exclude=["spin", "kpoint"]))[:]
 
-def _get_fields_for_plot(with_fields, exclude_fields):
-    """
-    Return list of QPState fields to plot from input arguments.
-    """
-    all_fields = list(QPState.get_fields(exclude=["spin", "kpoint"]))[:]
+        # Initialize fields.
+        if is_string(with_fields) and with_fields == "all":
+            fields = all_fields
+        else:
+            fields = list_strings(with_fields)
+            for f in fields:
+                if f not in all_fields:
+                    raise ValueError("Field %s not in allowed values %s" % (f, all_fields))
 
-    # Initialize fields.
-    if is_string(with_fields) and with_fields == "all":
-        fields = all_fields
-    else:
-        fields = list_strings(with_fields)
-        for f in fields:
-            if f not in all_fields:
-                raise ValueError("Field %s not in allowed values %s" % (f, all_fields))
+        # Remove entries
+        if exclude_fields:
+            if is_string(exclude_fields):
+                exclude_fields = exclude_fields.split()
+            for e in exclude_fields:
+                try:
+                    fields.remove(e)
+                except ValueError:
+                    pass
 
-    # Remove entries
-    if exclude_fields:
-        if is_string(exclude_fields):
-            exclude_fields = exclude_fields.split()
-        for e in exclude_fields:
-            try:
-                fields.remove(e)
-            except ValueError:
-                pass
-
-    return fields
+        return fields
 
 
 class QPList(list):
@@ -321,7 +321,7 @@ class QPList(list):
             fermie = fermi
             warnings.warn("fermi keyword argument have beeen renamed fermie. Old arg will be removed in version 0.4")
 
-        fields = _get_fields_for_plot(with_fields, exclude_fields)
+        fields = QPState.get_fields_for_plot(with_fields, exclude_fields)
         if not fields: return None
 
         num_plots, ncols, nrows = len(fields), 1, 1
@@ -913,7 +913,7 @@ class SigresPlotter(Iterable):
 
         Returns: |matplotlib-Figure|
         """
-        fields = _get_fields_for_plot(with_fields, exclude_fields)
+        fields = QPState.get_fields_for_plot(with_fields, exclude_fields)
         if not fields: return None
 
         # Build plot grid
@@ -1193,7 +1193,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: |matplotlib-Figure|
         """
-        with_fields = _get_fields_for_plot(with_fields, exclude_fields)
+        with_fields = QPState.get_fields_for_plot(with_fields, exclude_fields)
 
         fermie = self.ebands.get_e0(e0)
         for spin in range(self.nsppol):

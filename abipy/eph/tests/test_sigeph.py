@@ -127,6 +127,7 @@ class SigEPhFileTest(AbipyTest):
         #assert len(qp.qpeme0) == qpt.ntemp
         self.assert_equal(qp.qpeme0, qp.qpe - qp.e0)
         self.assert_equal(qp.re_qpe + 1j * qp.imag_qpe, qp.qpe)
+        self.assert_equal(qp.re_fan0 + 1j * qp.imag_fan0, qp.fan0)
         fields = qp.get_fields()
         assert all(k in fields for k in ("qpeme0", "kpoint"))
         #self.assert_almost_equal(qp.e0, -5.04619941555265, decimal=5)

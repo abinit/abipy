@@ -37,7 +37,7 @@ from abipy.eph.common import BaseEphReader
 # __eq__ based on skb?
 # broadening, adiabatic ??
 
-class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")):
+class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 fan0 dw qpe_adb")):
     """
     Quasi-particle result for given (spin, kpoint, band).
 
@@ -50,36 +50,44 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
         e0: Initial KS energy.
         qpe: Quasiparticle energy (complex) computed with the perturbative approach.
         ze0: Renormalization factor computed at e=e0.
+        fan0: Fan term (complex) at e_KS
+        dw: Debye-Waller
+        qpe_adb: Quasiparticle energy (real) in the adiabatic approximation.
 
     .. note::
 
         Energies are in eV.
     """
 
-    @property
+    @lazy_property
     def qpeme0(self):
         """E_QP[T] - E_0"""
         return self.qpe - self.e0
 
-    @property
+    @lazy_property
     def re_qpe(self):
         """Real part of the QP energy."""
         return self.qpe.real
 
-    @property
+    @lazy_property
     def imag_qpe(self):
         """Imaginay part of the QP energy."""
         return self.qpe.imag
 
     @property
+    def re_fan0(self):
+        """Real part of the Fan term at KS."""
+        return self.fan0.real
+
+    @property
+    def imag_fan0(self):
+        """Imaginary part of the Fan term at KS."""
+        return self.fan0.imag
+
+    @lazy_property
     def skb(self):
         """Tuple with (spin, kpoint, band)"""
         return self.spin, self.kpoint, self.band
-
-    #def copy(self):
-    #    """Shallow copy."""
-    #    d = {f: copy.copy(getattr(self, f)) for f in self._fields}
-    #    return self.__class__(**d)
 
     @classmethod
     def get_fields(cls, exclude=()):
@@ -123,6 +131,41 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
         return pd.DataFrame(od, index=index)
 
+    @classmethod
+    def get_fields_for_plot(cls, vs, with_fields, exclude_fields):
+        """
+        Return list of QpTempState fields to plot from input arguments.
+
+        Args:
+            vs in ["temp", "e0"]
+            with_fields:
+            exclude_fields:
+        """
+        if vs == "temp":
+            all_fields = list(cls.get_fields(exclude=["spin", "kpoint", "band", "e0", "tmesh"]))
+        elif vs == "e0":
+            all_fields = list(cls.get_fields(exclude=["spin", "kpoint", "band", "e0", "tmesh"]))
+        else:
+            raise ValueError("Invalid vs: `%s`" % str(vs))
+
+        # Initialize fields.
+        if duck.is_string(with_fields) and with_fields == "all":
+            fields = all_fields
+        else:
+            fields = list_strings(with_fields)
+            for f in fields:
+                if f not in all_fields:
+                    raise ValueError("Field %s not in allowed values %s" % (f, str(all_fields)))
+
+        # Remove entries
+        if exclude_fields:
+            if duck.is_string(exclude_fields):
+                exclude_fields = exclude_fields.split()
+            for e in exclude_fields:
+                fields.remove(e)
+
+        return fields
+
     @add_fig_kwargs
     def plot(self, with_fields="all", exclude_fields=None, ax_list=None, label=None, fontsize=12, **kwargs):
         """
@@ -139,7 +182,7 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
         Returns: |matplotlib-Figure|
         """
-        fields = _get_fields_for_plot("temp", with_fields, exclude_fields)
+        fields = self.get_fields_for_plot("temp", with_fields, exclude_fields)
         if not fields: return None
 
         num_plots, ncols, nrows = len(fields), 1, 1
@@ -178,38 +221,6 @@ class QpTempState(namedtuple("QpTempState", "tmesh e0 qpe ze0 spin kpoint band")
 
         #fig.tight_layout()
         return fig
-
-
-def _get_fields_for_plot(vs, with_fields, exclude_fields):
-    """
-    Return list of QpTempState fields to plot from input arguments.
-    vs in ["temp", "e0"]
-    """
-    if vs == "temp":
-        all_fields = list(QpTempState.get_fields(exclude=["spin", "kpoint", "band", "e0", "tmesh"]))
-    elif vs == "e0":
-        all_fields = list(QpTempState.get_fields(exclude=["spin", "kpoint", "band", "e0", "tmesh"]))
-    else:
-        raise ValueError("Invalid vs: `%s`" % str(vs))
-
-    # Initialize fields.
-    if duck.is_string(with_fields) and with_fields == "all":
-        fields = all_fields
-    else:
-        fields = list_strings(with_fields)
-        for f in fields:
-            if f not in all_fields:
-                raise ValueError("Field %s not in allowed values %s" % (f, str(all_fields)))
-
-    # Remove entries
-    if exclude_fields:
-        if duck.is_string(exclude_fields):
-            exclude_fields = exclude_fields.split()
-        for e in exclude_fields:
-            fields.remove(e)
-
-    return fields
-
 
 class QpTempList(list):
     """
@@ -315,7 +326,7 @@ class QpTempList(list):
 
         Returns: |matplotlib-Figure|
         """
-        fields = _get_fields_for_plot("e0", with_fields, exclude_fields)
+        fields = QpTempState.get_fields_for_plot("e0", with_fields, exclude_fields)
         if not fields: return None
 
         num_plots, ncols, nrows = len(fields), 1, 1
@@ -612,7 +623,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(marquee("SigmaEPh calculation", mark="="))
         app("Number of k-points computed: %d" % (self.nkcalc))
         app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
-        #app("a2f(w) on the %s q-mesh (ddb_ngqpt|eph_ngqpt)" % str(a2f.ngqpt))
         app("Q-mesh: nqibz: %s, nqbz: %s, ngqpt: %s" % (self.nqibz, self.nqbz, str(self.ngqpt)))
         app("K-mesh for electrons:")
         app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
@@ -635,8 +645,9 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 for spin in range(self.nsppol):
                     ks_gap = self.ks_dirgaps[spin, ikc]
                     qp_gap = self.qp_dirgaps_t[spin, ikc, it]
+                    #qp_gap_adb = self.qp_dirgaps_adb_t[spin, ikc, it]
                     data.append([spin, repr(kpoint), ks_gap, qp_gap, qp_gap - ks_gap])
-            app(str(tabulate(data, headers=["Spin", "K-point", "KS_gap", "QP_gap", "QP - KS"], floatfmt=".3f")))
+            app(str(tabulate(data, headers=["Spin", "k-point", "KS_gap", "QP_gap", "QP - KS"], floatfmt=".3f")))
             app("")
 
         if verbose > 1:
@@ -784,7 +795,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return pd.concat(df_list)
 
-    def get_dataframe_sk(self, spin, kpoint, itemp=None, index=None, with_params=True, ignore_imag=False):
+    def get_dataframe_sk(self, spin, kpoint, itemp=None, index=None, with_params=False, ignore_imag=False):
         """
         Returns |pandas-DataFrame| with QP results for the given (spin, k-point).
 
@@ -1062,7 +1073,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         # TODO: Add more quantities DW, Fan(0)
         # Quantities to plot.
-        what_list = ["re_qpe", "imag_qpe", "ze0"]
+        what_list = ["re_qpe", "imag_qpe", "ze0"]   # "re_fan0", "imag_fan0", "dw"
 
         # Build grid plot.
         nrows, ncols = len(what_list), 1
@@ -1369,7 +1380,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
             for ix, (label, ncfile, param) in enumerate(lnp_list):
                 sigma = ncfile.reader.read_sigeph_skb(spin, kpoint, band)
                 fig = sigma.plot_tdep(itemps=itemp, ax_list=ax_list,
-                    label=label, color=cmap(ix/len(lnp_list)), show=False)
+                    label=label, color=cmap(ix / len(lnp_list)), show=False)
                 ax_list = fig.axes
         else:
             # group_and_sortby and build (3, ngroups) subplots
@@ -2095,33 +2106,38 @@ class SigmaPhReader(BaseEphReader):
         Return :class:`QpTempState` for the given (spin, kpoint, band).
         Only real part is returned if ``ignore_imag``.
         """
-        spin, ikc, ib, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)
+        spin, ikc, ibc, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)
 
         def ri(a):
             return np.real(a) if ignore_imag else a
 
-        # complex(dpc),allocatable :: qp_enes(:,:)
-        # qp_enes(ntemp, max_nbcalc)
-        # (Complex) QP energies computed with the non-adiabatic formalism.
+        # (Complex) QP energies computed with the dynamic formalism.
         # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
         var = self.read_variable("qp_enes")
-        qpe = (var[spin, ikc, ib, :, 0] + 1j * var[spin, ikc, ib, :, 1]) * units.Ha_to_eV
+        qpe = (var[spin, ikc, ibc, :, 0] + 1j * var[spin, ikc, ibc, :, 1]) * units.Ha_to_eV
 
-        #var = self.read_variable("qpadb_enes")
-        #qpe_adb = var[spin, ikc, ib, :] * units.Ha_to_eV
+        # Adiabatic energies.
+        # nctkarr_t("qpadb_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
+        var = self.read_variable("qpadb_enes")
+        qpe_adb = var[spin, ikc, ibc, :, 0] * units.Ha_to_eV
 
-        # nctkarr_t("dw_vals", "dp", "ntemp, max_nbcalc, nkcalc, nsppol"),
         # Debye-Waller term (static).
+        # nctkarr_t("dw_vals", "dp", "ntemp, max_nbcalc, nkcalc, nsppol"),
+        var = self.read_variable("dw_vals")
+        dw = var[spin, ikc, ibc, :] * units.Ha_to_eV
 
-        # complex(dpc),allocatable :: vals_e0ks(:,:)
-        # vals_e0ks(ntemp, max_nbcalc)
-        # Sigma_eph(omega=eKS, kT, band) for fixed (kcalc, spin).
+        # Sigma_eph(omega=eKS, kT, band, ikcalc, spin)
+        # nctkarr_t("vals_e0ks", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
         # TODO: Add Fan0 instead of computing Sigma - DW?
+        var = self.read_variable("vals_e0ks")
+        sigc = (var[spin, ikc, ibc, :, 0] + var[spin, ikc, ibc, :, 1]) * units.Ha_to_eV
+        fan0 = sigc - dw
 
-        # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol"),
-        #nctkarr_t("ze0_vals", "dp", "ntemp, max_nbcalc, nkcalc, nsppol"), &
-        e0 = self.read_variable("ks_enes")[spin, ikc, ib] * units.Ha_to_eV
-        ze0 = self.read_variable("ze0_vals")[spin, ikc, ib]
+        # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
+        e0 = self.read_variable("ks_enes")[spin, ikc, ibc] * units.Ha_to_eV
+
+        # nctkarr_t("ze0_vals", "dp", "ntemp, max_nbcalc, nkcalc, nsppol")
+        ze0 = self.read_variable("ze0_vals")[spin, ikc, ibc]
 
         return QpTempState(
             spin=spin,
@@ -2130,9 +2146,10 @@ class SigmaPhReader(BaseEphReader):
             tmesh=self.tmesh,
             e0=e0,
             qpe=ri(qpe),
-            #sigxme=self._sigxme[spin, ikc, ib_file],
-            #sigcmee0=ri(self._sigcmee0[spin, ikc, ib_file]),
             ze0=ze0,
+            fan0=ri(fan0),
+            dw=dw,
+            qpe_adb=qpe_adb,
         )
 
     def read_allqps(self, ignore_imag=False):
