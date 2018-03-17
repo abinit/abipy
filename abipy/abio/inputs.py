@@ -2449,7 +2449,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
         if qppa:
             ng2qpt = KSampling.automatic_density(structure, kppa=qppa).kpts[0]
             #set new variables
-            new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos)
+            new.set_vars(ng2qpt=ng2qpt,prtdos=prtdos,dossmear=dossmear)
         else:
             new.set_autoqmesh(nqsmall)
             new.set_vars(prtdos=prtdos, dosdeltae=dosdeltae, dossmear=dossmear)
