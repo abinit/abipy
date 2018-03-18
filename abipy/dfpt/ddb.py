@@ -1006,25 +1006,30 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
 
-    def write(self, filepath):
+    def write(self, filepath, filter_blocks=None):
         """
         Writes the DDB file in filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         lines = list(self.header.lines)
 
+        if filter_blocks is None:
+            blocks = self.blocks
+        else:
+            blocks = [self.blocks[i] for i in filter_blocks]
+
         lines.append(" **** Database of total energy derivatives ****")
-        lines.append(" Number of data blocks={0:5}".format(len(self.blocks)))
+        lines.append(" Number of data blocks={0:5}".format(len(blocks)))
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"])
             lines.append(" ")
 
         lines.append(" List of bloks and their characteristics")
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"][:2])
             lines.append(" ")
 
