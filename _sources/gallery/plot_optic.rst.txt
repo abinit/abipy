@@ -81,7 +81,7 @@ no local-field effects and no excitonic effects.
     # Remember to close the file or use the `with` context manager.
     robot.close()
 
-**Total running time of the script:** ( 0 minutes  1.084 seconds)
+**Total running time of the script:** ( 0 minutes  0.866 seconds)
 
 
 

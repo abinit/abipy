@@ -33,8 +33,8 @@ structure are plotted with matplotlib.
 
  Out::
 
-    KS fermie 5.5984532787385985 --> QP fermie 5.40725126572 Delta(QP-KS)= -0.191202013015
-    KS fermie 5.5984532787385985 --> QP fermie 5.40725126572 Delta(QP-KS)= -0.191202013015
+    KS fermie 5.5984532787385985 --> QP fermie 5.407251265724052 Delta(QP-KS)= -0.19120201301454642
+    KS fermie 5.5984532787385985 --> QP fermie 5.407251265724052 Delta(QP-KS)= -0.19120201301454642
 
 
 
@@ -88,7 +88,7 @@ structure are plotted with matplotlib.
     plotter.gridplot(title="Silicon band structure")
     sigma_file.close()
 
-**Total running time of the script:** ( 0 minutes  3.110 seconds)
+**Total running time of the script:** ( 0 minutes  2.232 seconds)
 
 
 

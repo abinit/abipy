@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>display Package &#8212; abipy 0.3.0 documentation</title>
+    <title>display Package &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -188,7 +188,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
+<li><strong>lattice</strong> – Reciprocal-space <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object</li>
 <li><strong>figure</strong> – mayavi figure, None to plot on the curretn figure</li>
 <li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
@@ -230,7 +230,7 @@ and line_width to 1.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object.</li>
 <li><strong>figure</strong> – mayavi figure, None if a new figure should be created.</li>
 <li><strong>kwargs</strong> – kwargs passed to the mayavi function <code class="docutils literal"><span class="pre">plot3d</span></code>. Color defaults to black
 and line_width to 1.</li>
@@ -277,7 +277,7 @@ and line_width to 1.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>labels</strong> – dict containing the label as a key and the coordinates as value.</li>
-<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.2.13)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
+<li><strong>lattice</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.core.lattice.html#pymatgen.core.lattice.Lattice" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.core.lattice.Lattice</span></code></a> object used to convert from reciprocal to cartesian coordinates</li>
 <li><strong>coords_are_cartesian</strong> – Set to True if you are providing.
 coordinates in cartesian coordinates. Defaults to False.
 Requires lattice if False.</li>
@@ -344,7 +344,7 @@ PairGrid(data[, hue, hue_order, palette, …])  Subplot grid for plotting pairwi
 JointGrid(x, y[, data, size, ratio, space, …])        Grid for drawing a bivariate plot with marginal univariate plots.</p>
 <dl class="function">
 <dt id="abipy.display.seabornw.jointplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">jointplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data=None</em>, <em>kind='scatter'</em>, <em>stat_func=&lt;function pearsonr&gt;</em>, <em>color=None</em>, <em>size=6</em>, <em>ratio=5</em>, <em>space=0.2</em>, <em>dropna=True</em>, <em>xlim=None</em>, <em>ylim=None</em>, <em>joint_kws=None</em>, <em>marginal_kws=None</em>, <em>annot_kws=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/distributions.html#jointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.jointplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">jointplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data=None</em>, <em>kind='scatter'</em>, <em>stat_func=&lt;function pearsonr&gt;</em>, <em>color=None</em>, <em>size=6</em>, <em>ratio=5</em>, <em>space=0.2</em>, <em>dropna=True</em>, <em>xlim=None</em>, <em>ylim=None</em>, <em>joint_kws=None</em>, <em>marginal_kws=None</em>, <em>annot_kws=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/axisgrid.html#jointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.jointplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a plot of two variables with bivariate and univariate graphs.</p>
 <p>This function provides a convenient interface to the <code class="xref py py-class docutils literal"><span class="pre">JointGrid</span></code>
 class, with several canned plot kinds. This is intended to be a fairly
@@ -441,7 +441,7 @@ the marginal Axes tightly with the joint Axes:</p>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.pairplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">pairplot</code><span class="sig-paren">(</span><em>data</em>, <em>hue=None</em>, <em>hue_order=None</em>, <em>palette=None</em>, <em>vars=None</em>, <em>x_vars=None</em>, <em>y_vars=None</em>, <em>kind='scatter'</em>, <em>diag_kind='hist'</em>, <em>markers=None</em>, <em>size=2.5</em>, <em>aspect=1</em>, <em>dropna=True</em>, <em>plot_kws=None</em>, <em>diag_kws=None</em>, <em>grid_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/linearmodels.html#pairplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pairplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">pairplot</code><span class="sig-paren">(</span><em>data</em>, <em>hue=None</em>, <em>hue_order=None</em>, <em>palette=None</em>, <em>vars=None</em>, <em>x_vars=None</em>, <em>y_vars=None</em>, <em>kind='scatter'</em>, <em>diag_kind='hist'</em>, <em>markers=None</em>, <em>size=2.5</em>, <em>aspect=1</em>, <em>dropna=True</em>, <em>plot_kws=None</em>, <em>diag_kws=None</em>, <em>grid_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/axisgrid.html#pairplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pairplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot pairwise relationships in a dataset.</p>
 <p>By default, this function will create a grid of Axes such that each
 variable in <code class="docutils literal"><span class="pre">data</span></code> will by shared in the y-axis across a single row and
@@ -451,7 +451,7 @@ for the variable in that column.</p>
 <p>It is also possible to show a subset of variables or plot different
 variables on the rows and columns.</p>
 <p>This is a high-level interface for <code class="xref py py-class docutils literal"><span class="pre">PairGrid</span></code> that is intended to
-make it easy to draw a few common styles. You should use :class`PairGrid`
+make it easy to draw a few common styles. You should use <code class="xref py py-class docutils literal"><span class="pre">PairGrid</span></code>
 directly if you need more flexibility.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -554,7 +554,7 @@ to use <code class="xref py py-class docutils literal"><span class="pre">PairGri
 
 <dl class="function">
 <dt id="abipy.display.seabornw.lmplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">lmplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data</em>, <em>hue=None</em>, <em>col=None</em>, <em>row=None</em>, <em>palette=None</em>, <em>col_wrap=None</em>, <em>size=5</em>, <em>aspect=1</em>, <em>markers='o'</em>, <em>sharex=True</em>, <em>sharey=True</em>, <em>hue_order=None</em>, <em>col_order=None</em>, <em>row_order=None</em>, <em>legend=True</em>, <em>legend_out=True</em>, <em>x_estimator=None</em>, <em>x_bins=None</em>, <em>x_ci='ci'</em>, <em>scatter=True</em>, <em>fit_reg=True</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>order=1</em>, <em>logistic=False</em>, <em>lowess=False</em>, <em>robust=False</em>, <em>logx=False</em>, <em>x_partial=None</em>, <em>y_partial=None</em>, <em>truncate=False</em>, <em>x_jitter=None</em>, <em>y_jitter=None</em>, <em>scatter_kws=None</em>, <em>line_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/linearmodels.html#lmplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.lmplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">lmplot</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>data</em>, <em>hue=None</em>, <em>col=None</em>, <em>row=None</em>, <em>palette=None</em>, <em>col_wrap=None</em>, <em>size=5</em>, <em>aspect=1</em>, <em>markers='o'</em>, <em>sharex=True</em>, <em>sharey=True</em>, <em>hue_order=None</em>, <em>col_order=None</em>, <em>row_order=None</em>, <em>legend=True</em>, <em>legend_out=True</em>, <em>x_estimator=None</em>, <em>x_bins=None</em>, <em>x_ci='ci'</em>, <em>scatter=True</em>, <em>fit_reg=True</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>order=1</em>, <em>logistic=False</em>, <em>lowess=False</em>, <em>robust=False</em>, <em>logx=False</em>, <em>x_partial=None</em>, <em>y_partial=None</em>, <em>truncate=False</em>, <em>x_jitter=None</em>, <em>y_jitter=None</em>, <em>scatter_kws=None</em>, <em>line_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/regression.html#lmplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.lmplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot data and regression model fits across a FacetGrid.</p>
 <p>This function combines <code class="xref py py-func docutils literal"><span class="pre">regplot()</span></code> and <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. It is
 intended as a convenient interface to fit regression models across
@@ -581,7 +581,7 @@ row is an observation.</li>
 <li><strong>col</strong><strong>, </strong><strong>row</strong> (<em>hue</em><em>,</em>) – Variables that define subsets of the data, which will be drawn on
 separate facets in the grid. See the <code class="docutils literal"><span class="pre">*_order</span></code> parameters to control
 the order of levels of this variable.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
@@ -601,7 +601,7 @@ are pandas categoricals, the category order.</li>
 drawn outside the plot on the center right.</li>
 <li><strong>x_estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Apply this function to each unique value of <code class="docutils literal"><span class="pre">x</span></code> and plot the
 resulting estimate. This is useful when <code class="docutils literal"><span class="pre">x</span></code> is a discrete variable.
-If <code class="docutils literal"><span class="pre">x_ci</span></code> is not <code class="docutils literal"><span class="pre">None</span></code>, this estimate will be bootstrapped and a
+If <code class="docutils literal"><span class="pre">x_ci</span></code> is given, this estimate will be bootstrapped and a
 confidence interval will be drawn.</li>
 <li><strong>x_bins</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em> or </em><em>vector</em><em>, </em><em>optional</em>) – Bin the <code class="docutils literal"><span class="pre">x</span></code> variable into discrete bins and then estimate the central
 tendency and a confidence interval. This binning only influences how
@@ -610,9 +610,10 @@ data.  This parameter is interpreted either as the number of
 evenly-sized (not necessary spaced) bins or the positions of the bin
 centers. When this parameter is used, it implies that the default of
 <code class="docutils literal"><span class="pre">x_estimator</span></code> is <code class="docutils literal"><span class="pre">numpy.mean</span></code>.</li>
-<li><strong>x_ci</strong> (<em>&quot;ci&quot;</em><em>, </em><em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval used when plotting a central tendency
-for discrete values of <code class="docutils literal"><span class="pre">x</span></code>. If “ci”, defer to the value of the``ci``
-parameter.</li>
+<li><strong>x_ci</strong> (<em>&quot;ci&quot;</em><em>, </em><em>&quot;sd&quot;</em><em>, </em><em>int in</em><em> [</em><em>0</em><em>, </em><em>100</em><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of the confidence interval used when plotting a central tendency
+for discrete values of <code class="docutils literal"><span class="pre">x</span></code>. If <code class="docutils literal"><span class="pre">&quot;ci&quot;</span></code>, defer to the value of the
+<code class="docutils literal"><span class="pre">ci</span></code> parameter. If <code class="docutils literal"><span class="pre">&quot;sd&quot;</span></code>, skip bootstrappig and show the standard
+deviation of the observations in each bin.</li>
 <li><strong>scatter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, draw a scatterplot with the underlying observations (or
 the <code class="docutils literal"><span class="pre">x_estimator</span></code> values).</li>
 <li><strong>fit_reg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code>, estimate and plot a regression model relating the <code class="docutils literal"><span class="pre">x</span></code>
@@ -786,9 +787,10 @@ to a variable, and each row should correspond to an observation.</li>
 <li><strong>col_wrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – “Wrap” the column variable at this width, so that the column facets
 span multiple rows. Incompatible with a <code class="docutils literal"><span class="pre">row</span></code> facet.</li>
 <li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
-<code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and error bars will
-not be drawn.</li>
+<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><em>&quot;sd&quot;</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values.  If
+“sd”, skip bootstrapping and draw the standard deviation of the
+observations. If <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and
+error bars will not be drawn.</li>
 <li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
 intervals.</li>
 <li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
@@ -805,9 +807,8 @@ of each facet in inches.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>legend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal"><span class="pre">True</span></code> and there is a <code class="docutils literal"><span class="pre">hue</span></code> variable, draw a legend on the plot.</li>
@@ -873,7 +874,7 @@ tweaking.</p>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.boxplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">boxplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>width=0.8</em>, <em>fliersize=5</em>, <em>linewidth=None</em>, <em>whis=1.5</em>, <em>notch=False</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#boxplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.boxplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">boxplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>width=0.8</em>, <em>dodge=True</em>, <em>fliersize=5</em>, <em>linewidth=None</em>, <em>whis=1.5</em>, <em>notch=False</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#boxplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.boxplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a box plot to show distributions with respect to categories.</p>
 <p>A box plot (or box-and-whisker plot) shows the distribution of quantitative
 data in a way that facilitates comparisons between variables or across
@@ -908,9 +909,8 @@ inferred from the data objects.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
@@ -919,6 +919,8 @@ often look better with slightly desaturated colors, but set this to
 spec.</li>
 <li><strong>width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of a full element when not using hue nesting, or width of all the
 elements for one level of the major grouping variable.</li>
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When hue nesting is used, whether elements should be shifted along the
+categorical axis.</li>
 <li><strong>fliersize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Size of the markers used to indicate outlier observations.</li>
 <li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
 <li><strong>whis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the IQR past the low and high quartiles to extend the
@@ -984,22 +986,29 @@ time.</li>
 <div class="figure">
 <img alt="../_images/display_api-42.png" src="../_images/display_api-42.png" />
 </div>
-<p>Use <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> to show the datapoints on top of the boxes:</p>
+<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing box position or width:</p>
 <p>(<a class="reference external" href="../api/display_api-43.py">Source code</a>, <a class="reference external" href="../api/display_api-43.png">png</a>, <a class="reference external" href="../api/display_api-43.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-43.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-43.png" src="../_images/display_api-43.png" />
 </div>
-<p>Draw a box plot on to a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to group within an additional
-categorical variable:</p>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> to show the datapoints on top of the boxes:</p>
 <p>(<a class="reference external" href="../api/display_api-44.py">Source code</a>, <a class="reference external" href="../api/display_api-44.png">png</a>, <a class="reference external" href="../api/display_api-44.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-44.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-44.png" src="../_images/display_api-44.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.boxplot" title="abipy.display.seabornw.boxplot"><code class="xref py py-func docutils literal"><span class="pre">boxplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-45.py">Source code</a>, <a class="reference external" href="../api/display_api-45.png">png</a>, <a class="reference external" href="../api/display_api-45.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-45.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-45.png" src="../_images/display_api-45.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.violinplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">violinplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>bw='scott'</em>, <em>cut=2</em>, <em>scale='area'</em>, <em>scale_hue=True</em>, <em>gridsize=100</em>, <em>width=0.8</em>, <em>inner='box'</em>, <em>split=False</em>, <em>orient=None</em>, <em>linewidth=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#violinplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.violinplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">violinplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>bw='scott'</em>, <em>cut=2</em>, <em>scale='area'</em>, <em>scale_hue=True</em>, <em>gridsize=100</em>, <em>width=0.8</em>, <em>inner='box'</em>, <em>split=False</em>, <em>dodge=True</em>, <em>orient=None</em>, <em>linewidth=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#violinplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.violinplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a combination of boxplot and kernel density estimate.</p>
 <p>A violin plot plays a similar role as a box and whisker plot. It shows the
 distribution of quantitative data across several levels of one (or more)
@@ -1061,14 +1070,15 @@ datapoint. Using <code class="docutils literal"><span class="pre">None</span></c
 <li><strong>split</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When using hue nesting with a variable that takes two levels, setting
 <code class="docutils literal"><span class="pre">split</span></code> to True will draw half of a violin for each level. This can
 make it easier to directly compare the distributions.</li>
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When hue nesting is used, whether elements should be shifted along the
+categorical axis.</li>
 <li><strong>orient</strong> (<em>&quot;v&quot; | &quot;h&quot;</em><em>, </em><em>optional</em>) – Orientation of the plot (vertical or horizontal). This is usually
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
 <li><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the gray lines that frame the plot elements.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
@@ -1100,71 +1110,83 @@ spec.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal violinplot:</p>
-<p>(<a class="reference external" href="../api/display_api-45.py">Source code</a>, <a class="reference external" href="../api/display_api-45.png">png</a>, <a class="reference external" href="../api/display_api-45.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-45.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-45.png" src="../_images/display_api-45.png" />
-</div>
-<p>Draw a vertical violinplot grouped by a categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-46.py">Source code</a>, <a class="reference external" href="../api/display_api-46.png">png</a>, <a class="reference external" href="../api/display_api-46.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-46.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-46.png" src="../_images/display_api-46.png" />
 </div>
-<p>Draw a violinplot with nested grouping by two categorical variables:</p>
+<p>Draw a vertical violinplot grouped by a categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-47.py">Source code</a>, <a class="reference external" href="../api/display_api-47.png">png</a>, <a class="reference external" href="../api/display_api-47.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-47.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-47.png" src="../_images/display_api-47.png" />
 </div>
-<p>Draw split violins to compare the across the hue variable:</p>
+<p>Draw a violinplot with nested grouping by two categorical variables:</p>
 <p>(<a class="reference external" href="../api/display_api-48.py">Source code</a>, <a class="reference external" href="../api/display_api-48.png">png</a>, <a class="reference external" href="../api/display_api-48.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-48.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-48.png" src="../_images/display_api-48.png" />
 </div>
-<p>Control violin order by passing an explicit order:</p>
+<p>Draw split violins to compare the across the hue variable:</p>
 <p>(<a class="reference external" href="../api/display_api-49.py">Source code</a>, <a class="reference external" href="../api/display_api-49.png">png</a>, <a class="reference external" href="../api/display_api-49.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-49.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-49.png" src="../_images/display_api-49.png" />
 </div>
-<p>Scale the violin width by the number of observations in each bin:</p>
+<p>Control violin order by passing an explicit order:</p>
 <p>(<a class="reference external" href="../api/display_api-50.py">Source code</a>, <a class="reference external" href="../api/display_api-50.png">png</a>, <a class="reference external" href="../api/display_api-50.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-50.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-50.png" src="../_images/display_api-50.png" />
 </div>
-<p>Draw the quartiles as horizontal lines instead of a mini-box:</p>
+<p>Scale the violin width by the number of observations in each bin:</p>
 <p>(<a class="reference external" href="../api/display_api-51.py">Source code</a>, <a class="reference external" href="../api/display_api-51.png">png</a>, <a class="reference external" href="../api/display_api-51.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-51.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-51.png" src="../_images/display_api-51.png" />
 </div>
-<p>Show each observation with a stick inside the violin:</p>
+<p>Draw the quartiles as horizontal lines instead of a mini-box:</p>
 <p>(<a class="reference external" href="../api/display_api-52.py">Source code</a>, <a class="reference external" href="../api/display_api-52.png">png</a>, <a class="reference external" href="../api/display_api-52.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-52.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-52.png" src="../_images/display_api-52.png" />
 </div>
-<p>Scale the density relative to the counts across all bins:</p>
+<p>Show each observation with a stick inside the violin:</p>
 <p>(<a class="reference external" href="../api/display_api-53.py">Source code</a>, <a class="reference external" href="../api/display_api-53.png">png</a>, <a class="reference external" href="../api/display_api-53.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-53.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-53.png" src="../_images/display_api-53.png" />
 </div>
-<p>Use a narrow bandwidth to reduce the amount of smoothing:</p>
+<p>Scale the density relative to the counts across all bins:</p>
 <p>(<a class="reference external" href="../api/display_api-54.py">Source code</a>, <a class="reference external" href="../api/display_api-54.png">png</a>, <a class="reference external" href="../api/display_api-54.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-54.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-54.png" src="../_images/display_api-54.png" />
 </div>
-<p>Draw horizontal violins:</p>
+<p>Use a narrow bandwidth to reduce the amount of smoothing:</p>
 <p>(<a class="reference external" href="../api/display_api-55.py">Source code</a>, <a class="reference external" href="../api/display_api-55.png">png</a>, <a class="reference external" href="../api/display_api-55.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-55.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-55.png" src="../_images/display_api-55.png" />
 </div>
-<p>Draw a violin plot on to a <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code> to group within an additional
-categorical variable:</p>
+<p>Draw horizontal violins:</p>
 <p>(<a class="reference external" href="../api/display_api-56.py">Source code</a>, <a class="reference external" href="../api/display_api-56.png">png</a>, <a class="reference external" href="../api/display_api-56.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-56.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-56.png" src="../_images/display_api-56.png" />
+</div>
+<p>Don’t let density extend past extreme values in the data:</p>
+<p>(<a class="reference external" href="../api/display_api-57.py">Source code</a>, <a class="reference external" href="../api/display_api-57.png">png</a>, <a class="reference external" href="../api/display_api-57.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-57.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-57.png" src="../_images/display_api-57.png" />
+</div>
+<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing violin position or width:</p>
+<p>(<a class="reference external" href="../api/display_api-58.py">Source code</a>, <a class="reference external" href="../api/display_api-58.png">png</a>, <a class="reference external" href="../api/display_api-58.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-58.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-58.png" src="../_images/display_api-58.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.violinplot" title="abipy.display.seabornw.violinplot"><code class="xref py py-func docutils literal"><span class="pre">violinplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-59.py">Source code</a>, <a class="reference external" href="../api/display_api-59.png">png</a>, <a class="reference external" href="../api/display_api-59.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-59.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-59.png" src="../_images/display_api-59.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.stripplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">stripplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>jitter=False</em>, <em>split=False</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>size=5</em>, <em>edgecolor='gray'</em>, <em>linewidth=0</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#stripplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.stripplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">stripplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>jitter=False</em>, <em>dodge=False</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>size=5</em>, <em>edgecolor='gray'</em>, <em>linewidth=0</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#stripplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.stripplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a scatterplot where one variable is categorical.</p>
 <p>A strip plot can be drawn on its own, but it is also a good complement
 to a box or violin plot in cases where you want to show all observations
@@ -1205,9 +1227,8 @@ each other.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Diameter of the markers, in points. (Although <code class="docutils literal"><span class="pre">plt.scatter</span></code> is used
@@ -1242,71 +1263,79 @@ of the points.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal strip plot:</p>
-<p>(<a class="reference external" href="../api/display_api-57.py">Source code</a>, <a class="reference external" href="../api/display_api-57.png">png</a>, <a class="reference external" href="../api/display_api-57.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-57.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-57.png" src="../_images/display_api-57.png" />
-</div>
-<p>Group the strips by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-58.py">Source code</a>, <a class="reference external" href="../api/display_api-58.png">png</a>, <a class="reference external" href="../api/display_api-58.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-58.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-58.png" src="../_images/display_api-58.png" />
-</div>
-<p>Add jitter to bring out the distribution of values:</p>
-<p>(<a class="reference external" href="../api/display_api-59.py">Source code</a>, <a class="reference external" href="../api/display_api-59.png">png</a>, <a class="reference external" href="../api/display_api-59.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-59.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-59.png" src="../_images/display_api-59.png" />
-</div>
-<p>Use a smaller amount of jitter:</p>
 <p>(<a class="reference external" href="../api/display_api-60.py">Source code</a>, <a class="reference external" href="../api/display_api-60.png">png</a>, <a class="reference external" href="../api/display_api-60.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-60.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-60.png" src="../_images/display_api-60.png" />
 </div>
-<p>Draw horizontal strips:</p>
+<p>Group the strips by a categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-61.py">Source code</a>, <a class="reference external" href="../api/display_api-61.png">png</a>, <a class="reference external" href="../api/display_api-61.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-61.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-61.png" src="../_images/display_api-61.png" />
 </div>
-<p>Draw outlines around the points:</p>
+<p>Add jitter to bring out the distribution of values:</p>
 <p>(<a class="reference external" href="../api/display_api-62.py">Source code</a>, <a class="reference external" href="../api/display_api-62.png">png</a>, <a class="reference external" href="../api/display_api-62.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-62.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-62.png" src="../_images/display_api-62.png" />
 </div>
-<p>Nest the strips within a second categorical variable:</p>
+<p>Use a smaller amount of jitter:</p>
 <p>(<a class="reference external" href="../api/display_api-63.py">Source code</a>, <a class="reference external" href="../api/display_api-63.png">png</a>, <a class="reference external" href="../api/display_api-63.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-63.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-63.png" src="../_images/display_api-63.png" />
 </div>
-<p>Draw each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable at different locations on the
-major categorical axis:</p>
+<p>Draw horizontal strips:</p>
 <p>(<a class="reference external" href="../api/display_api-64.py">Source code</a>, <a class="reference external" href="../api/display_api-64.png">png</a>, <a class="reference external" href="../api/display_api-64.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-64.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-64.png" src="../_images/display_api-64.png" />
 </div>
-<p>Control strip order by passing an explicit order:</p>
+<p>Draw outlines around the points:</p>
 <p>(<a class="reference external" href="../api/display_api-65.py">Source code</a>, <a class="reference external" href="../api/display_api-65.png">png</a>, <a class="reference external" href="../api/display_api-65.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-65.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-65.png" src="../_images/display_api-65.png" />
 </div>
-<p>Draw strips with large points and different aesthetics:</p>
+<p>Nest the strips within a second categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-66.py">Source code</a>, <a class="reference external" href="../api/display_api-66.png">png</a>, <a class="reference external" href="../api/display_api-66.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-66.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-66.png" src="../_images/display_api-66.png" />
 </div>
-<p>Draw strips of observations on top of a box plot:</p>
+<p>Draw each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable at different locations on the
+major categorical axis:</p>
 <p>(<a class="reference external" href="../api/display_api-67.py">Source code</a>, <a class="reference external" href="../api/display_api-67.png">png</a>, <a class="reference external" href="../api/display_api-67.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-67.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-67.png" src="../_images/display_api-67.png" />
 </div>
-<p>Draw strips of observations on top of a violin plot:</p>
+<p>Control strip order by passing an explicit order:</p>
 <p>(<a class="reference external" href="../api/display_api-68.py">Source code</a>, <a class="reference external" href="../api/display_api-68.png">png</a>, <a class="reference external" href="../api/display_api-68.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-68.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-68.png" src="../_images/display_api-68.png" />
+</div>
+<p>Draw strips with large points and different aesthetics:</p>
+<p>(<a class="reference external" href="../api/display_api-69.py">Source code</a>, <a class="reference external" href="../api/display_api-69.png">png</a>, <a class="reference external" href="../api/display_api-69.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-69.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-69.png" src="../_images/display_api-69.png" />
+</div>
+<p>Draw strips of observations on top of a box plot:</p>
+<p>(<a class="reference external" href="../api/display_api-70.py">Source code</a>, <a class="reference external" href="../api/display_api-70.png">png</a>, <a class="reference external" href="../api/display_api-70.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-70.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-70.png" src="../_images/display_api-70.png" />
+</div>
+<p>Draw strips of observations on top of a violin plot:</p>
+<p>(<a class="reference external" href="../api/display_api-71.py">Source code</a>, <a class="reference external" href="../api/display_api-71.png">png</a>, <a class="reference external" href="../api/display_api-71.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-71.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-71.png" src="../_images/display_api-71.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.stripplot" title="abipy.display.seabornw.stripplot"><code class="xref py py-func docutils literal"><span class="pre">stripplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-72.py">Source code</a>, <a class="reference external" href="../api/display_api-72.png">png</a>, <a class="reference external" href="../api/display_api-72.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-72.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-72.png" src="../_images/display_api-72.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.swarmplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">swarmplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>split=False</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>size=5</em>, <em>edgecolor='gray'</em>, <em>linewidth=0</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#swarmplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.swarmplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">swarmplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>dodge=False</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>size=5</em>, <em>edgecolor='gray'</em>, <em>linewidth=0</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#swarmplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.swarmplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a categorical scatterplot with non-overlapping points.</p>
 <p>This function is similar to <a class="reference internal" href="#abipy.display.seabornw.stripplot" title="abipy.display.seabornw.stripplot"><code class="xref py py-func docutils literal"><span class="pre">stripplot()</span></code></a>, but the points are adjusted
 (only along the categorical axis) so that they don’t overlap. This gives a
@@ -1351,9 +1380,8 @@ Otherwise, the points for each level will be plotted in one swarm.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Diameter of the markers, in points. (Although <code class="docutils literal"><span class="pre">plt.scatter</span></code> is used
@@ -1390,55 +1418,63 @@ of the points.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a single horizontal swarm plot:</p>
-<p>(<a class="reference external" href="../api/display_api-69.py">Source code</a>, <a class="reference external" href="../api/display_api-69.png">png</a>, <a class="reference external" href="../api/display_api-69.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-69.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-69.png" src="../_images/display_api-69.png" />
-</div>
-<p>Group the swarms by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-70.py">Source code</a>, <a class="reference external" href="../api/display_api-70.png">png</a>, <a class="reference external" href="../api/display_api-70.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-70.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-70.png" src="../_images/display_api-70.png" />
-</div>
-<p>Draw horizontal swarms:</p>
-<p>(<a class="reference external" href="../api/display_api-71.py">Source code</a>, <a class="reference external" href="../api/display_api-71.png">png</a>, <a class="reference external" href="../api/display_api-71.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-71.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-71.png" src="../_images/display_api-71.png" />
-</div>
-<p>Color the points using a second categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-72.py">Source code</a>, <a class="reference external" href="../api/display_api-72.png">png</a>, <a class="reference external" href="../api/display_api-72.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-72.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-72.png" src="../_images/display_api-72.png" />
-</div>
-<p>Split each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable along the categorical axis:</p>
 <p>(<a class="reference external" href="../api/display_api-73.py">Source code</a>, <a class="reference external" href="../api/display_api-73.png">png</a>, <a class="reference external" href="../api/display_api-73.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-73.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-73.png" src="../_images/display_api-73.png" />
 </div>
-<p>Control swarm order by passing an explicit order:</p>
+<p>Group the swarms by a categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-74.py">Source code</a>, <a class="reference external" href="../api/display_api-74.png">png</a>, <a class="reference external" href="../api/display_api-74.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-74.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-74.png" src="../_images/display_api-74.png" />
 </div>
-<p>Plot using larger points:</p>
+<p>Draw horizontal swarms:</p>
 <p>(<a class="reference external" href="../api/display_api-75.py">Source code</a>, <a class="reference external" href="../api/display_api-75.png">png</a>, <a class="reference external" href="../api/display_api-75.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-75.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-75.png" src="../_images/display_api-75.png" />
 </div>
-<p>Draw swarms of observations on top of a box plot:</p>
+<p>Color the points using a second categorical variable:</p>
 <p>(<a class="reference external" href="../api/display_api-76.py">Source code</a>, <a class="reference external" href="../api/display_api-76.png">png</a>, <a class="reference external" href="../api/display_api-76.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-76.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-76.png" src="../_images/display_api-76.png" />
 </div>
-<p>Draw swarms of observations on top of a violin plot:</p>
+<p>Split each level of the <code class="docutils literal"><span class="pre">hue</span></code> variable along the categorical axis:</p>
 <p>(<a class="reference external" href="../api/display_api-77.py">Source code</a>, <a class="reference external" href="../api/display_api-77.png">png</a>, <a class="reference external" href="../api/display_api-77.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-77.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-77.png" src="../_images/display_api-77.png" />
+</div>
+<p>Control swarm order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-78.py">Source code</a>, <a class="reference external" href="../api/display_api-78.png">png</a>, <a class="reference external" href="../api/display_api-78.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-78.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-78.png" src="../_images/display_api-78.png" />
+</div>
+<p>Plot using larger points:</p>
+<p>(<a class="reference external" href="../api/display_api-79.py">Source code</a>, <a class="reference external" href="../api/display_api-79.png">png</a>, <a class="reference external" href="../api/display_api-79.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-79.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-79.png" src="../_images/display_api-79.png" />
+</div>
+<p>Draw swarms of observations on top of a box plot:</p>
+<p>(<a class="reference external" href="../api/display_api-80.py">Source code</a>, <a class="reference external" href="../api/display_api-80.png">png</a>, <a class="reference external" href="../api/display_api-80.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-80.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-80.png" src="../_images/display_api-80.png" />
+</div>
+<p>Draw swarms of observations on top of a violin plot:</p>
+<p>(<a class="reference external" href="../api/display_api-81.py">Source code</a>, <a class="reference external" href="../api/display_api-81.png">png</a>, <a class="reference external" href="../api/display_api-81.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-81.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-81.png" src="../_images/display_api-81.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.swarmplot" title="abipy.display.seabornw.swarmplot"><code class="xref py py-func docutils literal"><span class="pre">swarmplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-82.py">Source code</a>, <a class="reference external" href="../api/display_api-82.png">png</a>, <a class="reference external" href="../api/display_api-82.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-82.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-82.png" src="../_images/display_api-82.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.pointplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">pointplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>estimator=&lt;function mean&gt;</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>markers='o'</em>, <em>linestyles='-'</em>, <em>dodge=False</em>, <em>join=True</em>, <em>scale=1</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>ax=None</em>, <em>errwidth=None</em>, <em>capsize=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#pointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pointplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">pointplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>estimator=&lt;function mean&gt;</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>markers='o'</em>, <em>linestyles='-'</em>, <em>dodge=False</em>, <em>join=True</em>, <em>scale=1</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>errwidth=None</em>, <em>capsize=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#pointplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.pointplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show point estimates and confidence intervals using scatter plot glyphs.</p>
 <p>A point plot represents an estimate of central tendency for a numeric
 variable by the position of scatter plot points and provides some
@@ -1480,9 +1516,10 @@ interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
 <li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
-<code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and error bars will
-not be drawn.</li>
+<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><em>&quot;sd&quot;</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values.  If
+“sd”, skip bootstrapping and draw the standard deviation of the
+observations. If <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and
+error bars will not be drawn.</li>
 <li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
 intervals.</li>
 <li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
@@ -1498,11 +1535,12 @@ along the categorical axis.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
+<li><strong>errwidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Thickness of error bar lines (and caps).</li>
+<li><strong>capsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the “caps” on error bars.</li>
 <li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
 </ul>
 </td>
@@ -1526,70 +1564,83 @@ dictionary mapping hue levels to matplotlib colors.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a set of vertical point plots grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-78.py">Source code</a>, <a class="reference external" href="../api/display_api-78.png">png</a>, <a class="reference external" href="../api/display_api-78.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-78.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-78.png" src="../_images/display_api-78.png" />
-</div>
-<p>Draw a set of vertical points with nested grouping by a two variables:</p>
-<p>(<a class="reference external" href="../api/display_api-79.py">Source code</a>, <a class="reference external" href="../api/display_api-79.png">png</a>, <a class="reference external" href="../api/display_api-79.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-79.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-79.png" src="../_images/display_api-79.png" />
-</div>
-<p>Separate the points for different hue levels along the categorical axis:</p>
-<p>(<a class="reference external" href="../api/display_api-80.py">Source code</a>, <a class="reference external" href="../api/display_api-80.png">png</a>, <a class="reference external" href="../api/display_api-80.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-80.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-80.png" src="../_images/display_api-80.png" />
-</div>
-<p>Use a different marker and line style for the hue levels:</p>
-<p>(<a class="reference external" href="../api/display_api-81.py">Source code</a>, <a class="reference external" href="../api/display_api-81.png">png</a>, <a class="reference external" href="../api/display_api-81.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-81.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-81.png" src="../_images/display_api-81.png" />
-</div>
-<p>Draw a set of horizontal points:</p>
-<p>(<a class="reference external" href="../api/display_api-82.py">Source code</a>, <a class="reference external" href="../api/display_api-82.png">png</a>, <a class="reference external" href="../api/display_api-82.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-82.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-82.png" src="../_images/display_api-82.png" />
-</div>
-<p>Don’t draw a line connecting each point:</p>
 <p>(<a class="reference external" href="../api/display_api-83.py">Source code</a>, <a class="reference external" href="../api/display_api-83.png">png</a>, <a class="reference external" href="../api/display_api-83.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-83.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-83.png" src="../_images/display_api-83.png" />
 </div>
-<p>Use a different color for a single-layer plot:</p>
+<p>Draw a set of vertical points with nested grouping by a two variables:</p>
 <p>(<a class="reference external" href="../api/display_api-84.py">Source code</a>, <a class="reference external" href="../api/display_api-84.png">png</a>, <a class="reference external" href="../api/display_api-84.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-84.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-84.png" src="../_images/display_api-84.png" />
 </div>
-<p>Use a different color palette for the points:</p>
+<p>Separate the points for different hue levels along the categorical axis:</p>
 <p>(<a class="reference external" href="../api/display_api-85.py">Source code</a>, <a class="reference external" href="../api/display_api-85.png">png</a>, <a class="reference external" href="../api/display_api-85.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-85.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-85.png" src="../_images/display_api-85.png" />
 </div>
-<p>Control point order by passing an explicit order:</p>
+<p>Use a different marker and line style for the hue levels:</p>
 <p>(<a class="reference external" href="../api/display_api-86.py">Source code</a>, <a class="reference external" href="../api/display_api-86.png">png</a>, <a class="reference external" href="../api/display_api-86.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-86.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-86.png" src="../_images/display_api-86.png" />
 </div>
-<p>Use median as the estimate of central tendency:</p>
+<p>Draw a set of horizontal points:</p>
 <p>(<a class="reference external" href="../api/display_api-87.py">Source code</a>, <a class="reference external" href="../api/display_api-87.png">png</a>, <a class="reference external" href="../api/display_api-87.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-87.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-87.png" src="../_images/display_api-87.png" />
 </div>
-<p>Show the standard error of the mean with the error bars:</p>
+<p>Don’t draw a line connecting each point:</p>
 <p>(<a class="reference external" href="../api/display_api-88.py">Source code</a>, <a class="reference external" href="../api/display_api-88.png">png</a>, <a class="reference external" href="../api/display_api-88.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-88.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-88.png" src="../_images/display_api-88.png" />
 </div>
-<p>Add “caps” to the error bars:</p>
+<p>Use a different color for a single-layer plot:</p>
 <p>(<a class="reference external" href="../api/display_api-89.py">Source code</a>, <a class="reference external" href="../api/display_api-89.png">png</a>, <a class="reference external" href="../api/display_api-89.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-89.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-89.png" src="../_images/display_api-89.png" />
+</div>
+<p>Use a different color palette for the points:</p>
+<p>(<a class="reference external" href="../api/display_api-90.py">Source code</a>, <a class="reference external" href="../api/display_api-90.png">png</a>, <a class="reference external" href="../api/display_api-90.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-90.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-90.png" src="../_images/display_api-90.png" />
+</div>
+<p>Control point order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-91.py">Source code</a>, <a class="reference external" href="../api/display_api-91.png">png</a>, <a class="reference external" href="../api/display_api-91.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-91.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-91.png" src="../_images/display_api-91.png" />
+</div>
+<p>Use median as the estimate of central tendency:</p>
+<p>(<a class="reference external" href="../api/display_api-92.py">Source code</a>, <a class="reference external" href="../api/display_api-92.png">png</a>, <a class="reference external" href="../api/display_api-92.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-92.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-92.png" src="../_images/display_api-92.png" />
+</div>
+<p>Show the standard error of the mean with the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-93.py">Source code</a>, <a class="reference external" href="../api/display_api-93.png">png</a>, <a class="reference external" href="../api/display_api-93.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-93.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-93.png" src="../_images/display_api-93.png" />
+</div>
+<p>Show standard deviation of observations instead of a confidence interval:</p>
+<p>(<a class="reference external" href="../api/display_api-94.py">Source code</a>, <a class="reference external" href="../api/display_api-94.png">png</a>, <a class="reference external" href="../api/display_api-94.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-94.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-94.png" src="../_images/display_api-94.png" />
+</div>
+<p>Add “caps” to the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-95.py">Source code</a>, <a class="reference external" href="../api/display_api-95.png">png</a>, <a class="reference external" href="../api/display_api-95.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-95.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-95.png" src="../_images/display_api-95.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-96.py">Source code</a>, <a class="reference external" href="../api/display_api-96.png">png</a>, <a class="reference external" href="../api/display_api-96.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-96.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-96.png" src="../_images/display_api-96.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.barplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">barplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>estimator=&lt;function mean&gt;</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>errcolor='.26'</em>, <em>errwidth=None</em>, <em>capsize=None</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#barplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.barplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">barplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>estimator=&lt;function mean&gt;</em>, <em>ci=95</em>, <em>n_boot=1000</em>, <em>units=None</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>errcolor='.26'</em>, <em>errwidth=None</em>, <em>capsize=None</em>, <em>dodge=True</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#barplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.barplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show point estimates and confidence intervals as rectangular bars.</p>
 <p>A bar plot represents an estimate of central tendency for a numeric
 variable with the height of each rectangle and provides some indication of
@@ -1629,9 +1680,10 @@ interpreted as wide-form. Otherwise it is expected to be long-form.</li>
 <li><strong>hue_order</strong> (<a class="reference internal" href="core_api.html#abipy.core.symmetries.LatticeRotation.order" title="abipy.core.symmetries.LatticeRotation.order"><em>order</em></a><em>,</em>) – Order to plot the categorical levels in, otherwise the levels are
 inferred from the data objects.</li>
 <li><strong>estimator</strong> (<em>callable that maps vector -&gt; scalar</em><em>, </em><em>optional</em>) – Statistical function to estimate within each categorical bin.</li>
-<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values. If
-<code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and error bars will
-not be drawn.</li>
+<li><strong>ci</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em> or </em><em>&quot;sd&quot;</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.6)"><em>None</em></a><em>, </em><em>optional</em>) – Size of confidence intervals to draw around estimated values.  If
+“sd”, skip bootstrapping and draw the standard deviation of the
+observations. If <code class="docutils literal"><span class="pre">None</span></code>, no bootstrapping will be performed, and
+error bars will not be drawn.</li>
 <li><strong>n_boot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>, </em><em>optional</em>) – Number of bootstrap iterations to use when computing confidence
 intervals.</li>
 <li><strong>units</strong> (name of variable in <code class="docutils literal"><span class="pre">data</span></code> or vector data, optional) – Identifier of sampling units, which will be used to perform a
@@ -1640,9 +1692,8 @@ multilevel bootstrap and account for repeated measures design.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
@@ -1650,9 +1701,11 @@ often look better with slightly desaturated colors, but set this to
 <code class="docutils literal"><span class="pre">1</span></code> if you want the plot colors to perfectly match the input color
 spec.</li>
 <li><strong>errcolor</strong> (<em>matplotlib color</em>) – Color for the lines that represent the confidence interval.</li>
-<li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
 <li><strong>errwidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Thickness of error bar lines (and caps).</li>
 <li><strong>capsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Width of the “caps” on error bars.</li>
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When hue nesting is used, whether elements should be shifted along the
+categorical axis.</li>
+<li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
 <li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value mappings</em>) – Other keyword arguments are passed through to <code class="docutils literal"><span class="pre">plt.bar</span></code> at draw
 time.</li>
 </ul>
@@ -1679,60 +1732,78 @@ time.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Draw a set of vertical bar plots grouped by a categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-90.py">Source code</a>, <a class="reference external" href="../api/display_api-90.png">png</a>, <a class="reference external" href="../api/display_api-90.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-90.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-90.png" src="../_images/display_api-90.png" />
-</div>
-<p>Draw a set of vertical bars with nested grouping by a two variables:</p>
-<p>(<a class="reference external" href="../api/display_api-91.py">Source code</a>, <a class="reference external" href="../api/display_api-91.png">png</a>, <a class="reference external" href="../api/display_api-91.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-91.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-91.png" src="../_images/display_api-91.png" />
-</div>
-<p>Draw a set of horizontal bars:</p>
-<p>(<a class="reference external" href="../api/display_api-92.py">Source code</a>, <a class="reference external" href="../api/display_api-92.png">png</a>, <a class="reference external" href="../api/display_api-92.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-92.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-92.png" src="../_images/display_api-92.png" />
-</div>
-<p>Control bar order by passing an explicit order:</p>
-<p>(<a class="reference external" href="../api/display_api-93.py">Source code</a>, <a class="reference external" href="../api/display_api-93.png">png</a>, <a class="reference external" href="../api/display_api-93.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-93.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-93.png" src="../_images/display_api-93.png" />
-</div>
-<p>Use median as the estimate of central tendency:</p>
-<p>(<a class="reference external" href="../api/display_api-94.py">Source code</a>, <a class="reference external" href="../api/display_api-94.png">png</a>, <a class="reference external" href="../api/display_api-94.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-94.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-94.png" src="../_images/display_api-94.png" />
-</div>
-<p>Show the standard error of the mean with the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-95.py">Source code</a>, <a class="reference external" href="../api/display_api-95.png">png</a>, <a class="reference external" href="../api/display_api-95.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-95.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-95.png" src="../_images/display_api-95.png" />
-</div>
-<p>Add “caps” to the error bars:</p>
-<p>(<a class="reference external" href="../api/display_api-96.py">Source code</a>, <a class="reference external" href="../api/display_api-96.png">png</a>, <a class="reference external" href="../api/display_api-96.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-96.pdf">pdf</a>)</p>
-<div class="figure">
-<img alt="../_images/display_api-96.png" src="../_images/display_api-96.png" />
-</div>
-<p>Use a different color palette for the bars:</p>
 <p>(<a class="reference external" href="../api/display_api-97.py">Source code</a>, <a class="reference external" href="../api/display_api-97.png">png</a>, <a class="reference external" href="../api/display_api-97.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-97.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-97.png" src="../_images/display_api-97.png" />
 </div>
-<p>Plot all bars in a single color:</p>
+<p>Draw a set of vertical bars with nested grouping by a two variables:</p>
 <p>(<a class="reference external" href="../api/display_api-98.py">Source code</a>, <a class="reference external" href="../api/display_api-98.png">png</a>, <a class="reference external" href="../api/display_api-98.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-98.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-98.png" src="../_images/display_api-98.png" />
 </div>
-<p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments to further change the aesthetic:</p>
+<p>Draw a set of horizontal bars:</p>
 <p>(<a class="reference external" href="../api/display_api-99.py">Source code</a>, <a class="reference external" href="../api/display_api-99.png">png</a>, <a class="reference external" href="../api/display_api-99.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-99.pdf">pdf</a>)</p>
 <div class="figure">
 <img alt="../_images/display_api-99.png" src="../_images/display_api-99.png" />
+</div>
+<p>Control bar order by passing an explicit order:</p>
+<p>(<a class="reference external" href="../api/display_api-100.py">Source code</a>, <a class="reference external" href="../api/display_api-100.png">png</a>, <a class="reference external" href="../api/display_api-100.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-100.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-100.png" src="../_images/display_api-100.png" />
+</div>
+<p>Use median as the estimate of central tendency:</p>
+<p>(<a class="reference external" href="../api/display_api-101.py">Source code</a>, <a class="reference external" href="../api/display_api-101.png">png</a>, <a class="reference external" href="../api/display_api-101.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-101.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-101.png" src="../_images/display_api-101.png" />
+</div>
+<p>Show the standard error of the mean with the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-102.py">Source code</a>, <a class="reference external" href="../api/display_api-102.png">png</a>, <a class="reference external" href="../api/display_api-102.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-102.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-102.png" src="../_images/display_api-102.png" />
+</div>
+<p>Show standard deviation of observations instead of a confidence interval:</p>
+<p>(<a class="reference external" href="../api/display_api-103.py">Source code</a>, <a class="reference external" href="../api/display_api-103.png">png</a>, <a class="reference external" href="../api/display_api-103.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-103.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-103.png" src="../_images/display_api-103.png" />
+</div>
+<p>Add “caps” to the error bars:</p>
+<p>(<a class="reference external" href="../api/display_api-104.py">Source code</a>, <a class="reference external" href="../api/display_api-104.png">png</a>, <a class="reference external" href="../api/display_api-104.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-104.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-104.png" src="../_images/display_api-104.png" />
+</div>
+<p>Use a different color palette for the bars:</p>
+<p>(<a class="reference external" href="../api/display_api-105.py">Source code</a>, <a class="reference external" href="../api/display_api-105.png">png</a>, <a class="reference external" href="../api/display_api-105.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-105.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-105.png" src="../_images/display_api-105.png" />
+</div>
+<p>Use <code class="docutils literal"><span class="pre">hue</span></code> without changing bar position or width:</p>
+<p>(<a class="reference external" href="../api/display_api-106.py">Source code</a>, <a class="reference external" href="../api/display_api-106.png">png</a>, <a class="reference external" href="../api/display_api-106.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-106.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-106.png" src="../_images/display_api-106.png" />
+</div>
+<p>Plot all bars in a single color:</p>
+<p>(<a class="reference external" href="../api/display_api-107.py">Source code</a>, <a class="reference external" href="../api/display_api-107.png">png</a>, <a class="reference external" href="../api/display_api-107.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-107.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-107.png" src="../_images/display_api-107.png" />
+</div>
+<p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments to further change the aesthetic:</p>
+<p>(<a class="reference external" href="../api/display_api-108.py">Source code</a>, <a class="reference external" href="../api/display_api-108.png">png</a>, <a class="reference external" href="../api/display_api-108.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-108.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-108.png" src="../_images/display_api-108.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.barplot" title="abipy.display.seabornw.barplot"><code class="xref py py-func docutils literal"><span class="pre">barplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-109.py">Source code</a>, <a class="reference external" href="../api/display_api-109.png">png</a>, <a class="reference external" href="../api/display_api-109.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-109.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-109.png" src="../_images/display_api-109.png" />
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="abipy.display.seabornw.countplot">
-<code class="descclassname">abipy.display.seabornw.</code><code class="descname">countplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#countplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.countplot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">abipy.display.seabornw.</code><code class="descname">countplot</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>hue=None</em>, <em>data=None</em>, <em>order=None</em>, <em>hue_order=None</em>, <em>orient=None</em>, <em>color=None</em>, <em>palette=None</em>, <em>saturation=0.75</em>, <em>dodge=True</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seaborn/categorical.html#countplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.display.seabornw.countplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show the counts of observations in each categorical bin using bars.</p>
 <p>A count plot can be thought of as a histogram across a categorical, instead
 of quantitative, variable. The basic API and options are identical to those
@@ -1764,15 +1835,16 @@ inferred from the data objects.</li>
 inferred from the dtype of the input variables, but can be used to
 specify when the “categorical” variable is a numeric or when plotting
 wide-form data.</li>
-<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for <code class="xref py py-func docutils literal"><span class="pre">light_palette()</span></code> when
-using hue nesting.</li>
-<li><strong>palette</strong> (<em>seaborn color palette</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
+<li><strong>color</strong> (<em>matplotlib color</em><em>, </em><em>optional</em>) – Color for all of the elements, or seed for a gradient palette.</li>
+<li><strong>palette</strong> (<em>palette name</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><em>list</em></a><em>, or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a><em>, </em><em>optional</em>) – Colors to use for the different levels of the <code class="docutils literal"><span class="pre">hue</span></code> variable. Should
 be something that can be interpreted by <code class="xref py py-func docutils literal"><span class="pre">color_palette()</span></code>, or a
 dictionary mapping hue levels to matplotlib colors.</li>
 <li><strong>saturation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>, </em><em>optional</em>) – Proportion of the original saturation to draw colors at. Large patches
 often look better with slightly desaturated colors, but set this to
 <code class="docutils literal"><span class="pre">1</span></code> if you want the plot colors to perfectly match the input color
 spec.</li>
+<li><strong>dodge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><em>optional</em>) – When hue nesting is used, whether elements should be shifted along the
+categorical axis.</li>
 <li><strong>ax</strong> (<em>matplotlib Axes</em><em>, </em><em>optional</em>) – Axes object to draw the plot onto, otherwise uses the current Axes.</li>
 <li><strong>kwargs</strong> (<em>key</em><em>, </em><em>value mappings</em>) – Other keyword arguments are passed to <code class="docutils literal"><span class="pre">plt.bar</span></code>.</li>
 </ul>
@@ -1797,29 +1869,37 @@ spec.</li>
 </div>
 <p class="rubric">Examples</p>
 <p>Show value counts for a single categorical variable:</p>
-<p>(<a class="reference external" href="../api/display_api-100.py">Source code</a>, <a class="reference external" href="../api/display_api-100.png">png</a>, <a class="reference external" href="../api/display_api-100.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-100.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-110.py">Source code</a>, <a class="reference external" href="../api/display_api-110.png">png</a>, <a class="reference external" href="../api/display_api-110.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-110.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-100.png" src="../_images/display_api-100.png" />
+<img alt="../_images/display_api-110.png" src="../_images/display_api-110.png" />
 </div>
 <p>Show value counts for two categorical variables:</p>
-<p>(<a class="reference external" href="../api/display_api-101.py">Source code</a>, <a class="reference external" href="../api/display_api-101.png">png</a>, <a class="reference external" href="../api/display_api-101.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-101.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-111.py">Source code</a>, <a class="reference external" href="../api/display_api-111.png">png</a>, <a class="reference external" href="../api/display_api-111.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-111.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-101.png" src="../_images/display_api-101.png" />
+<img alt="../_images/display_api-111.png" src="../_images/display_api-111.png" />
 </div>
 <p>Plot the bars horizontally:</p>
-<p>(<a class="reference external" href="../api/display_api-102.py">Source code</a>, <a class="reference external" href="../api/display_api-102.png">png</a>, <a class="reference external" href="../api/display_api-102.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-102.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-112.py">Source code</a>, <a class="reference external" href="../api/display_api-112.png">png</a>, <a class="reference external" href="../api/display_api-112.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-112.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-102.png" src="../_images/display_api-102.png" />
+<img alt="../_images/display_api-112.png" src="../_images/display_api-112.png" />
 </div>
 <p>Use a different color palette:</p>
-<p>(<a class="reference external" href="../api/display_api-103.py">Source code</a>, <a class="reference external" href="../api/display_api-103.png">png</a>, <a class="reference external" href="../api/display_api-103.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-103.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-113.py">Source code</a>, <a class="reference external" href="../api/display_api-113.png">png</a>, <a class="reference external" href="../api/display_api-113.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-113.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-103.png" src="../_images/display_api-103.png" />
+<img alt="../_images/display_api-113.png" src="../_images/display_api-113.png" />
 </div>
 <p>Use <code class="docutils literal"><span class="pre">plt.bar</span></code> keyword arguments for a different look:</p>
-<p>(<a class="reference external" href="../api/display_api-104.py">Source code</a>, <a class="reference external" href="../api/display_api-104.png">png</a>, <a class="reference external" href="../api/display_api-104.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-104.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/display_api-114.py">Source code</a>, <a class="reference external" href="../api/display_api-114.png">png</a>, <a class="reference external" href="../api/display_api-114.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-114.pdf">pdf</a>)</p>
 <div class="figure">
-<img alt="../_images/display_api-104.png" src="../_images/display_api-104.png" />
+<img alt="../_images/display_api-114.png" src="../_images/display_api-114.png" />
+</div>
+<p>Use <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> to combine a <a class="reference internal" href="#abipy.display.seabornw.countplot" title="abipy.display.seabornw.countplot"><code class="xref py py-func docutils literal"><span class="pre">countplot()</span></code></a> and a
+<code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>. This allows grouping within additional categorical
+variables. Using <a class="reference internal" href="#abipy.display.seabornw.factorplot" title="abipy.display.seabornw.factorplot"><code class="xref py py-func docutils literal"><span class="pre">factorplot()</span></code></a> is safer than using <code class="xref py py-class docutils literal"><span class="pre">FacetGrid</span></code>
+directly, as it ensures synchronization of variable order across facets:</p>
+<p>(<a class="reference external" href="../api/display_api-115.py">Source code</a>, <a class="reference external" href="../api/display_api-115.png">png</a>, <a class="reference external" href="../api/display_api-115.hires.png">hires.png</a>, <a class="reference external" href="../api/display_api-115.pdf">pdf</a>)</p>
+<div class="figure">
+<img alt="../_images/display_api-115.png" src="../_images/display_api-115.png" />
 </div>
 </dd></dl>
 
@@ -1882,8 +1962,8 @@ spec.</li>
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

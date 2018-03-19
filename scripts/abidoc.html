@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abidoc.py &#8212; abipy 0.3.0 documentation</title>
+    <title>abidoc.py &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -106,41 +106,46 @@
 <li><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#browse">browse</a><ul>
+<li><a class="reference internal" href="#graphviz">graphviz</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#apropos">apropos</a><ul>
+<li><a class="reference internal" href="#browse">browse</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#find">find</a><ul>
+<li><a class="reference internal" href="#apropos">apropos</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#withdim">withdim</a><ul>
+<li><a class="reference internal" href="#find">find</a><ul>
 <li><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#list">list</a><ul>
+<li><a class="reference internal" href="#withdim">withdim</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#manager">manager</a><ul>
-<li><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li><a class="reference internal" href="#list">list</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#scheduler">scheduler</a><ul>
+<li><a class="reference internal" href="#manager">manager</a><ul>
+<li><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
 <li><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#abibuild">abibuild</a><ul>
+<li><a class="reference internal" href="#scheduler">scheduler</a><ul>
 <li><a class="reference internal" href="#Named Arguments_repeat9">Named Arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#abibuild">abibuild</a><ul>
+<li><a class="reference internal" href="#Named Arguments_repeat10">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -204,7 +209,7 @@ For example, the documentation for the <code class="docutils literal"><span clas
 <p>For the full list of commands use:</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abidoc.py --help
 usage: abidoc.py [-h] [-V]
-                 {man,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+                 {man,graphviz,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
                  ...
 
 optional arguments:
@@ -214,9 +219,11 @@ optional arguments:
 subcommands:
   Valid subcommands
 
-  {man,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
+  {man,graphviz,browse,apropos,find,withdim,list,manager,scheduler,abibuild}
                         sub-command help
     man                 Show documentation for varname.
+    graphviz            Draw variable dependencies with graphviz package.)See
+                        https://graphviz.readthedocs.io/.
     browse              Open documentation in browser.
     apropos             Find variables related to varname.
     find                Find all variables whose name contains varname.
@@ -229,6 +236,7 @@ subcommands:
 Usage example:
 
     abidoc.py man ecut        --&gt; Show documentation for ecut input variable.
+    abidoc.py graphviz acell  --&gt; Draw parents and children of variable with graphviz package.
     abidoc.py browse acell    --&gt; Open url in external browser.
     abidoc.py apropos ecut    --&gt; To search in the database for the variables related to ecut.
     abidoc.py find paw        --&gt; To search in the database for the variables whose name contains paw.
@@ -243,7 +251,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 </div>
 <p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span>
-                 <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span>
+                 <span class="p">{</span><span class="n">man</span><span class="p">,</span><span class="n">graphviz</span><span class="p">,</span><span class="n">browse</span><span class="p">,</span><span class="n">apropos</span><span class="p">,</span><span class="n">find</span><span class="p">,</span><span class="n">withdim</span><span class="p">,</span><span class="nb">list</span><span class="p">,</span><span class="n">manager</span><span class="p">,</span><span class="n">scheduler</span><span class="p">,</span><span class="n">abibuild</span><span class="p">}</span>
                  <span class="o">...</span>
 </pre></div>
 </div>
@@ -268,7 +276,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>command</kbd></td>
-<td><p class="first">Possible choices: man, browse, apropos, find, withdim, list, manager, scheduler, abibuild</p>
+<td><p class="first">Possible choices: man, graphviz, browse, apropos, find, withdim, list, manager, scheduler, abibuild</p>
 <p class="last">sub-command help</p>
 </td></tr>
 </tbody>
@@ -279,7 +287,7 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <div class="section" id="man">
 <h3>man<a class="headerlink" href="#man" title="Permalink to this headline">¶</a></h3>
 <p>Show documentation for varname.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">man</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="n">varname</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">man</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="n">varname</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments">
@@ -310,14 +318,20 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="browse">
-<h3>browse<a class="headerlink" href="#browse" title="Permalink to this headline">¶</a></h3>
-<p>Open documentation in browser.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">browse</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="n">varname</span>
+<div class="section" id="graphviz">
+<h3>graphviz<a class="headerlink" href="#graphviz" title="Permalink to this headline">¶</a></h3>
+<p>Draw variable dependencies with graphviz package.)See <a class="reference external" href="https://graphviz.readthedocs.io/">https://graphviz.readthedocs.io/</a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">graphviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span>
+                   <span class="n">varname</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat1">
@@ -348,14 +362,24 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-e, --engine</kbd></td>
+<td><p class="first">graphviz engine: [‘dot’, ‘neato’, ‘twopi’, ‘circo’, ‘fdp’, ‘sfdp’, ‘patchwork’, ‘osage’]. Default: automatic i.e. the engine is automatically selected. See <a class="reference external" href="http://www.graphviz.org/pdf/dot.1.pdf">http://www.graphviz.org/pdf/dot.1.pdf</a> Use <cite>conda install python-graphviz</cite> or <cite>pip install graphviz</cite> to install the python package</p>
+<p class="last">Default: “automatic”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="apropos">
-<h3>apropos<a class="headerlink" href="#apropos" title="Permalink to this headline">¶</a></h3>
-<p>Find variables related to varname.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">apropos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="n">varname</span>
+<div class="section" id="browse">
+<h3>browse<a class="headerlink" href="#browse" title="Permalink to this headline">¶</a></h3>
+<p>Open documentation in browser.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">browse</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="n">varname</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat2">
@@ -386,14 +410,19 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="find">
-<h3>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h3>
-<p>Find all variables whose name contains varname.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">find</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="n">varname</span>
+<div class="section" id="apropos">
+<h3>apropos<a class="headerlink" href="#apropos" title="Permalink to this headline">¶</a></h3>
+<p>Find variables related to varname.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">apropos</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="n">varname</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat3">
@@ -424,14 +453,19 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="withdim">
-<h3>withdim<a class="headerlink" href="#withdim" title="Permalink to this headline">¶</a></h3>
-<p>Find all arrays depending on the given dimension.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">withdim</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="n">dimname</span>
+<div class="section" id="find">
+<h3>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h3>
+<p>Find all variables whose name contains varname.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">find</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="n">varname</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments_repeat4">
@@ -441,8 +475,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <col class="description" />
 <tbody valign="top">
 <tr><td class="option-group">
-<kbd>dimname</kbd></td>
-<td>Dimension name</td></tr>
+<kbd>varname</kbd></td>
+<td>ABINIT variable</td></tr>
 </tbody>
 </table>
 </div>
@@ -462,15 +496,32 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="list">
-<h3>list<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h3>
-<p>List all variables.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="nb">list</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mode</span> <span class="n">MODE</span><span class="p">]</span>
+<div class="section" id="withdim">
+<h3>withdim<a class="headerlink" href="#withdim" title="Permalink to this headline">¶</a></h3>
+<p>Find all arrays depending on the given dimension.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">withdim</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="n">dimname</span>
 </pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>dimname</kbd></td>
+<td>Dimension name</td></tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="Named Arguments_repeat6">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
@@ -489,31 +540,19 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <p class="last">Default: “ERROR”</p>
 </td></tr>
 <tr><td class="option-group">
-<kbd>--mode</kbd></td>
-<td><p class="first">Sort mode, <cite>a</cite> for alphabethical, <cite>s</cite> for sections, <cite>c</cite> for characteristics.</p>
-<p class="last">Default: “a”</p>
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
 </td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="manager">
-<h3>manager<a class="headerlink" href="#manager" title="Permalink to this headline">¶</a></h3>
-<p>Document the TaskManager options.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">manager</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="n">qtype</span><span class="p">]</span>
+<div class="section" id="list">
+<h3>list<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h3>
+<p>List all variables.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="nb">list</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mode</span> <span class="n">MODE</span><span class="p">]</span>
 </pre></div>
-</div>
-<div class="section" id="Positional Arguments_repeat5">
-<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd>qtype</kbd></td>
-<td>Write job script to terminal if qtype=’script’ else document the qparams for the given QueueAdapter qtype e.g. slurm.</td></tr>
-</tbody>
-</table>
 </div>
 <div class="section" id="Named Arguments_repeat7">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
@@ -531,15 +570,37 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--mode</kbd></td>
+<td><p class="first">Sort mode, <cite>a</cite> for alphabethical, <cite>s</cite> for varset, <cite>c</cite> for characteristics.</p>
+<p class="last">Default: “a”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="scheduler">
-<h3>scheduler<a class="headerlink" href="#scheduler" title="Permalink to this headline">¶</a></h3>
-<p>Document the options available in scheduler.yml.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="section" id="manager">
+<h3>manager<a class="headerlink" href="#manager" title="Permalink to this headline">¶</a></h3>
+<p>Document the TaskManager options.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">manager</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span> <span class="p">[</span><span class="n">qtype</span><span class="p">]</span>
 </pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>qtype</kbd></td>
+<td>Write job script to terminal if qtype=’script’ else document the qparams for the given QueueAdapter qtype e.g. slurm.</td></tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="Named Arguments_repeat8">
 <h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
@@ -557,14 +618,19 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="section" id="abibuild">
-<h3>abibuild<a class="headerlink" href="#abibuild" title="Permalink to this headline">¶</a></h3>
-<p>Show ABINIT build information and exit.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">abibuild</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
+<div class="section" id="scheduler">
+<h3>scheduler<a class="headerlink" href="#scheduler" title="Permalink to this headline">¶</a></h3>
+<p>Document the options available in scheduler.yml.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">scheduler</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="Named Arguments_repeat9">
@@ -582,6 +648,42 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 <kbd>--loglevel</kbd></td>
 <td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
 <p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="abibuild">
+<h3>abibuild<a class="headerlink" href="#abibuild" title="Permalink to this headline">¶</a></h3>
+<p>Show ABINIT build information and exit.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abidoc</span><span class="o">.</span><span class="n">py</span> <span class="n">abibuild</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CODENAME</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments_repeat10">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat10" title="Permalink to this headline">¶</a></h4>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td><p class="first">verbose, can be supplied multiple times to increase verbosity</p>
+<p class="last">Default: 0</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>--loglevel</kbd></td>
+<td><p class="first">Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG</p>
+<p class="last">Default: “ERROR”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-c, --codename</kbd></td>
+<td><p class="first">Code name e.g. anaddb, optic… Default: abinit</p>
+<p class="last">Default: “abinit”</p>
 </td></tr>
 </tbody>
 </table>
@@ -602,8 +704,8 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

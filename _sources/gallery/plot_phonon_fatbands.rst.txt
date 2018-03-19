@@ -80,7 +80,7 @@ See tutorial/lesson_rf2.html
     # Decompose contributions along the three Cartesian directions.
     phbands.plot_phdispl_cartdirs(qpoint=(0, 0, 0), units="cm-1")
 
-**Total running time of the script:** ( 0 minutes  2.649 seconds)
+**Total running time of the script:** ( 0 minutes  2.029 seconds)
 
 
 

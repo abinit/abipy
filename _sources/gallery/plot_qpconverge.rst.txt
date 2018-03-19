@@ -61,7 +61,7 @@ QP results stored in the SIGRES.nc files produced by the GW code (sigma run).
     # sphinx_gallery_thumbnail_number = 3
     robot.plot_qpfield_vs_e0("qpeme0", sortby="sigma_nband", title="QP energies vs sigma_nband")
 
-**Total running time of the script:** ( 0 minutes  3.402 seconds)
+**Total running time of the script:** ( 0 minutes  2.239 seconds)
 
 
 

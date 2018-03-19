@@ -38,8 +38,8 @@ See tutorial/lesson_rf2.html
     Calling spglib to find inequivalent sites.
     Note that `symafm` magnetic symmetries (if any) are not taken into account.
     Found 2 inequivalent position(s).
-    Irred_Site: [ 0.  0.  0.] Al
-    Irred_Site: [ 1.40364255  1.40364255  1.40364255] As
+    Irred_Site: [0. 0. 0.] Al
+    Irred_Site: [1.40364255 1.40364255 1.40364255] As
 
 
 
@@ -67,7 +67,7 @@ See tutorial/lesson_rf2.html
         # To plot the PJDOS for all the inequivalent sites.
         phdos_file.plot_pjdos_cartdirs_site(view="inequivalent", stacked=True)
 
-**Total running time of the script:** ( 0 minutes  0.548 seconds)
+**Total running time of the script:** ( 0 minutes  0.264 seconds)
 
 
 

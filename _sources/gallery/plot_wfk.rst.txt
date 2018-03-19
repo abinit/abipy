@@ -34,7 +34,7 @@ stored in the WFK.nc file.
     Name: si_nscf_WFK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
     Size: 389.84 kb
-    Access Time: Thu Feb 22 20:37:23 2018
+    Access Time: Mon Mar 19 21:46:56 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -63,8 +63,6 @@ stored in the WFK.nc file.
         Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
         Final state:   spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
     Bandwidth: 11.856 [eV]
-    Valence minimum located at:
-        spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=0, eig=-6.258, occ=2.000
     Valence maximum located at:
         spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
 
@@ -121,7 +119,7 @@ stored in the WFK.nc file.
 
     ncfile.close()
 
-**Total running time of the script:** ( 0 minutes  1.435 seconds)
+**Total running time of the script:** ( 0 minutes  1.540 seconds)
 
 
 

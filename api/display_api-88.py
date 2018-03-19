@@ -1,1 +1,1 @@
-ax = sns.pointplot(x="day", y="tip", data=tips, ci=68)
+ax = sns.pointplot(x="tip", y="day", data=tips, join=False)

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Eliashberg function &#8212; abipy 0.3.0 documentation</title>
+    <title>Eliashberg function &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -28,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Band structure plot" href="plot_ebands.html" />
-    <link rel="prev" title="Dielectric function with LFE" href="plot_scr.html" />
+    <link rel="next" title="Joint Density of States" href="plot_ejdos.html" />
+    <link rel="prev" title="Gruneisen parameters" href="plot_gruneisen.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -107,11 +107,11 @@
               
                 
   <li>
-    <a href="plot_scr.html" title="Previous Chapter: Dielectric function with LFE"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Dielectric fu...</span>
+    <a href="plot_gruneisen.html" title="Previous Chapter: Gruneisen parameters"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Gruneisen parameters</span>
     </a>
   </li>
   <li>
-    <a href="plot_ebands.html" title="Next Chapter: Band structure plot"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Band structure plot &raquo;</span>
+    <a href="plot_ejdos.html" title="Next Chapter: Joint Density of States"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Joint Density... &raquo;</span>
     </a>
   </li>
               
@@ -149,15 +149,22 @@
 <span id="sphx-glr-gallery-plot-a2f-py"></span><h1>Eliashberg function<a class="headerlink" href="#eliashberg-function" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot the Eliashberg function a2F(w)
 and the e-ph coupling strenght in metals.</p>
-<img alt="../_images/sphx_glr_plot_a2f_001.png" class="align-center" src="../_images/sphx_glr_plot_a2f_001.png" />
+<ul class="sphx-glr-horizontal">
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_a2f_001.png"><img alt="../_images/sphx_glr_plot_a2f_001.png" src="../_images/sphx_glr_plot_a2f_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_a2f_002.png"><img alt="../_images/sphx_glr_plot_a2f_002.png" src="../_images/sphx_glr_plot_a2f_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_a2f_003.png"><img alt="../_images/sphx_glr_plot_a2f_003.png" src="../_images/sphx_glr_plot_a2f_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+</li>
+</ul>
 <p class="sphx-glr-script-out">Out:</p>
 <div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="o">=================================</span> <span class="n">File</span> <span class="n">Info</span> <span class="o">=================================</span>
-<span class="n">Name</span><span class="p">:</span> <span class="n">al_888k_161616q_EPH</span><span class="o">.</span><span class="n">nc</span>
+<span class="n">Name</span><span class="p">:</span> <span class="n">al_888k_161616q_A2F</span><span class="o">.</span><span class="n">nc</span>
 <span class="n">Directory</span><span class="p">:</span> <span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">gmatteo</span><span class="o">/</span><span class="n">git_repos</span><span class="o">/</span><span class="n">abipy</span><span class="o">/</span><span class="n">abipy</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">al_eph</span>
-<span class="n">Size</span><span class="p">:</span> <span class="mf">129.04</span> <span class="n">kb</span>
-<span class="n">Access</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Thu</span> <span class="n">Feb</span> <span class="mi">22</span> <span class="mi">20</span><span class="p">:</span><span class="mi">35</span><span class="p">:</span><span class="mi">40</span> <span class="mi">2018</span>
-<span class="n">Modification</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Wed</span> <span class="n">Nov</span>  <span class="mi">8</span> <span class="mi">01</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">19</span> <span class="mi">2017</span>
-<span class="n">Change</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Wed</span> <span class="n">Nov</span>  <span class="mi">8</span> <span class="mi">01</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">19</span> <span class="mi">2017</span>
+<span class="n">Size</span><span class="p">:</span> <span class="mf">252.30</span> <span class="n">kb</span>
+<span class="n">Access</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Mon</span> <span class="n">Mar</span> <span class="mi">19</span> <span class="mi">21</span><span class="p">:</span><span class="mi">45</span><span class="p">:</span><span class="mi">15</span> <span class="mi">2018</span>
+<span class="n">Modification</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Fri</span> <span class="n">Mar</span> <span class="mi">16</span> <span class="mi">11</span><span class="p">:</span><span class="mi">08</span><span class="p">:</span><span class="mi">07</span> <span class="mi">2018</span>
+<span class="n">Change</span> <span class="n">Time</span><span class="p">:</span> <span class="n">Fri</span> <span class="n">Mar</span> <span class="mi">16</span> <span class="mi">11</span><span class="p">:</span><span class="mi">08</span><span class="p">:</span><span class="mi">07</span> <span class="mi">2018</span>
 
 <span class="o">=================================</span> <span class="n">Structure</span> <span class="o">=================================</span>
 <span class="n">Full</span> <span class="n">Formula</span> <span class="p">(</span><span class="n">Al1</span><span class="p">)</span>
@@ -178,26 +185,18 @@ and the e-ph coupling strenght in metals.</p>
 
 <span class="o">================================</span> <span class="n">Phonon</span> <span class="n">Bands</span> <span class="o">================================</span>
 <span class="n">Number</span> <span class="n">of</span> <span class="n">q</span><span class="o">-</span><span class="n">points</span><span class="p">:</span> <span class="mi">198</span>
-<span class="n">Atomic</span> <span class="n">mass</span> <span class="n">units</span><span class="p">:</span> <span class="p">{</span><span class="mf">13.0</span><span class="p">:</span> <span class="mf">26.981539000000001</span><span class="p">}</span>
+<span class="n">Atomic</span> <span class="n">mass</span> <span class="n">units</span><span class="p">:</span> <span class="p">{</span><span class="mf">13.0</span><span class="p">:</span> <span class="mf">26.981539</span><span class="p">}</span>
 <span class="n">Has</span> <span class="n">non</span><span class="o">-</span><span class="n">analytical</span> <span class="n">contribution</span> <span class="k">for</span> <span class="n">q</span> <span class="o">--&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="kc">False</span>
 
 <span class="o">==============================</span> <span class="n">E</span><span class="o">-</span><span class="n">PH</span> <span class="n">calculation</span> <span class="o">==============================</span>
-<span class="n">Has</span> <span class="n">transport</span> <span class="n">a2Ftr</span><span class="p">(</span><span class="n">w</span><span class="p">):</span> <span class="kc">False</span>
-<span class="n">A2f</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="n">on</span> <span class="n">the</span> <span class="n">ab</span><span class="o">-</span><span class="n">initio</span> <span class="n">q</span><span class="o">-</span><span class="n">mesh</span><span class="p">:</span>
-<span class="n">Mesh</span> <span class="kn">from</span> <span class="mf">0.0010</span> <span class="n">to</span> <span class="mf">0.0488</span> <span class="p">[</span><span class="n">eV</span><span class="p">]</span> <span class="k">with</span> <span class="mi">479</span> <span class="n">points</span>
-<span class="n">Isotropic</span> <span class="k">lambda</span><span class="p">:</span> <span class="mf">0.217</span>
-<span class="n">Omega_log</span><span class="p">:</span> <span class="mf">0.0300091375283</span> <span class="p">[</span><span class="n">eV</span><span class="p">],</span> <span class="mf">348.241197454</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.1</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">0.00143246457827</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.12</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">4.65131401583e-05</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.2</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">1.44375663501e+58</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+<span class="n">K</span><span class="o">-</span><span class="n">mesh</span> <span class="k">for</span> <span class="n">electrons</span><span class="p">:</span>
+<span class="n">mpdivs</span><span class="p">:</span> <span class="p">[</span><span class="mi">12</span> <span class="mi">12</span> <span class="mi">12</span><span class="p">]</span> <span class="k">with</span> <span class="n">shifts</span> <span class="p">[[</span><span class="mf">0.</span> <span class="mf">0.</span> <span class="mf">0.</span><span class="p">]]</span> <span class="ow">and</span> <span class="n">kptopt</span><span class="p">:</span> <span class="mi">1</span>
 
-<span class="n">A2f</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="n">interpolated</span> <span class="n">on</span> <span class="n">the</span> <span class="n">dense</span> <span class="n">q</span><span class="o">-</span><span class="n">mesh</span><span class="p">:</span>
-<span class="n">Mesh</span> <span class="kn">from</span> <span class="mf">0.0010</span> <span class="n">to</span> <span class="mf">0.0488</span> <span class="p">[</span><span class="n">eV</span><span class="p">]</span> <span class="k">with</span> <span class="mi">479</span> <span class="n">points</span>
-<span class="n">Isotropic</span> <span class="k">lambda</span><span class="p">:</span> <span class="mf">0.239</span>
-<span class="n">Omega_log</span><span class="p">:</span> <span class="mf">0.0295942843752</span> <span class="p">[</span><span class="n">eV</span><span class="p">],</span> <span class="mf">343.427031814</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.1</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">0.00919655159085</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.12</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">0.00088744298154</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
-        <span class="n">For</span> <span class="n">mustar</span> <span class="mf">0.2</span><span class="p">:</span> <span class="n">McMillan</span> <span class="n">Tc</span><span class="p">:</span> <span class="mf">1.10732077542e-55</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+<span class="n">a2f</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="n">on</span> <span class="n">the</span> <span class="p">[</span><span class="mi">4</span> <span class="mi">4</span> <span class="mi">4</span><span class="p">]</span> <span class="n">q</span><span class="o">-</span><span class="n">mesh</span> <span class="p">(</span><span class="n">ddb_ngqpt</span><span class="o">|</span><span class="n">eph_ngqpt</span><span class="p">)</span>
+<span class="n">Isotropic</span> <span class="k">lambda</span><span class="p">:</span> <span class="mf">0.22</span><span class="p">,</span> <span class="n">omega_log</span><span class="p">:</span> <span class="mf">0.030</span> <span class="p">[</span><span class="n">eV</span><span class="p">],</span> <span class="mf">348.241</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
+
+<span class="n">a2f</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="n">Fourier</span> <span class="n">interpolated</span> <span class="n">on</span> <span class="n">the</span> <span class="p">[</span><span class="mi">16</span> <span class="mi">16</span> <span class="mi">16</span><span class="p">]</span> <span class="n">q</span><span class="o">-</span><span class="n">mesh</span> <span class="p">(</span><span class="n">ph_ngqpt</span><span class="p">)</span>
+<span class="n">Isotropic</span> <span class="k">lambda</span><span class="p">:</span> <span class="mf">0.24</span><span class="p">,</span> <span class="n">omega_log</span><span class="p">:</span> <span class="mf">0.030</span> <span class="p">[</span><span class="n">eV</span><span class="p">],</span> <span class="mf">343.427</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="line-block">
@@ -208,24 +207,27 @@ and the e-ph coupling strenght in metals.</p>
 
 <span class="n">phdos_path</span> <span class="o">=</span> <span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;al_161616q_PHDOS.nc&quot;</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;al_888k_161616q_EPH.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">eph</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">eph</span><span class="p">)</span>
-    <span class="c1">#eph.phbands.plot()</span>
-
-    <span class="c1">#eph.a2f_qintp.plot()</span>
+<span class="k">with</span> <span class="n">abilab</span><span class="o">.</span><span class="n">abiopen</span><span class="p">(</span><span class="n">abidata</span><span class="o">.</span><span class="n">ref_file</span><span class="p">(</span><span class="s2">&quot;al_888k_161616q_A2F.nc&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ncfile</span><span class="p">)</span>
+    <span class="c1">#ncfile.phbands.plot()</span>
+    <span class="c1">#ncfile.a2f_qintp.plot()</span>
     <span class="c1">#with_lambda = False</span>
-    <span class="c1">#fig = eph.a2f_qcoarse.plot_nuterms(with_lambda=with_lambda, show=False)</span>
-    <span class="c1">#eph.a2f_qintp.plot_nuterms(axmat=fig.axes, with_lambda=with_lambda)</span>
+    <span class="c1">#fig = ncfile.a2f_qcoarse.plot_nuterms(with_lambda=with_lambda, show=False)</span>
+    <span class="c1">#ncfile.a2f_qintp.plot_nuterms(axmat=fig.axes, with_lambda=with_lambda)</span>
 
-    <span class="c1">#eph.plot()</span>
-    <span class="c1">#eph.plot_eph_strength(what=&quot;lambda&quot;)</span>
-    <span class="n">eph</span><span class="o">.</span><span class="n">plot_with_a2f</span><span class="p">(</span><span class="n">phdos</span><span class="o">=</span><span class="n">phdos_path</span><span class="p">)</span>
+    <span class="c1">#ncfile.plot()</span>
+    <span class="n">ncfile</span><span class="o">.</span><span class="n">plot_with_a2f</span><span class="p">(</span><span class="n">phdos</span><span class="o">=</span><span class="n">phdos_path</span><span class="p">)</span>
+
+    <span class="n">ncfile</span><span class="o">.</span><span class="n">plot_eph_strength</span><span class="p">(</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+    <span class="c1">#ncfile.plot_eph_strength(what=&quot;lambda&quot;)</span>
+
+    <span class="n">ncfile</span><span class="o">.</span><span class="n">plot_a2f_interpol</span><span class="p">()</span>
 
     <span class="c1"># Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.</span>
-    <span class="c1">#eph.a2f_qintp.plot_a2(phdos_path)</span>
+    <span class="c1">#ncfile.a2f_qintp.plot_a2(phdos_path)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  2.548 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  16.940 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_a2f.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_a2f.py</span></code></a></div>
@@ -247,8 +249,8 @@ and the e-ph coupling strenght in metals.</p>
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

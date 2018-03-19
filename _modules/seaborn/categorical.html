@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>seaborn.categorical &#8212; abipy 0.3.0 documentation</title>
+    <title>seaborn.categorical &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -135,7 +135,6 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">pandas.core.series</span> <span class="k">import</span> <span class="n">remove_na</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="k">import</span> <span class="n">PatchCollection</span>
 <span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">Patches</span>
@@ -146,9 +145,9 @@
 <span class="kn">from</span> <span class="nn">.external.six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">utils</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">iqr</span><span class="p">,</span> <span class="n">categorical_order</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">iqr</span><span class="p">,</span> <span class="n">categorical_order</span><span class="p">,</span> <span class="n">remove_na</span>
 <span class="kn">from</span> <span class="nn">.algorithms</span> <span class="k">import</span> <span class="n">bootstrap</span>
-<span class="kn">from</span> <span class="nn">.palettes</span> <span class="k">import</span> <span class="n">color_palette</span><span class="p">,</span> <span class="n">husl_palette</span><span class="p">,</span> <span class="n">light_palette</span>
+<span class="kn">from</span> <span class="nn">.palettes</span> <span class="k">import</span> <span class="n">color_palette</span><span class="p">,</span> <span class="n">husl_palette</span><span class="p">,</span> <span class="n">light_palette</span><span class="p">,</span> <span class="n">dark_palette</span>
 <span class="kn">from</span> <span class="nn">.axisgrid</span> <span class="k">import</span> <span class="n">FacetGrid</span><span class="p">,</span> <span class="n">_facet_docs</span>
 
 
@@ -159,6 +158,7 @@
 <span class="k">class</span> <span class="nc">_CategoricalPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="n">width</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span>
+    <span class="n">default_palette</span> <span class="o">=</span> <span class="s2">&quot;light&quot;</span>
 
     <span class="k">def</span> <span class="nf">establish_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -412,7 +412,12 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_colors</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">colors</span> <span class="o">=</span> <span class="n">light_palette</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">n_colors</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_palette</span> <span class="o">==</span> <span class="s2">&quot;light&quot;</span><span class="p">:</span>
+                    <span class="n">colors</span> <span class="o">=</span> <span class="n">light_palette</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">n_colors</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_palette</span> <span class="o">==</span> <span class="s2">&quot;dark&quot;</span><span class="p">:</span>
+                    <span class="n">colors</span> <span class="o">=</span> <span class="n">dark_palette</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">n_colors</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No default palette specified&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
 
             <span class="c1"># Let `palette` be a dict mapping level to color</span>
@@ -448,7 +453,10 @@
         <span class="k">def</span> <span class="nf">is_categorical</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="c1"># Correct way, but doesnt exist in older Pandas</span>
-                <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
                 <span class="c1"># Also works, but feels hackier</span>
                 <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span>
@@ -487,16 +495,23 @@
     <span class="k">def</span> <span class="nf">hue_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A list of center positions for plots when hue nesting is used.&quot;&quot;&quot;</span>
         <span class="n">n_levels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span>
-        <span class="n">each_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="n">n_levels</span>
-        <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">each_width</span><span class="p">,</span> <span class="n">n_levels</span><span class="p">)</span>
-        <span class="n">offsets</span> <span class="o">-=</span> <span class="n">offsets</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
+            <span class="n">each_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="n">n_levels</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">each_width</span><span class="p">,</span> <span class="n">n_levels</span><span class="p">)</span>
+            <span class="n">offsets</span> <span class="o">-=</span> <span class="n">offsets</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_levels</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">offsets</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nested_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A float with the width of plot elements when hue nesting is used.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">98</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">98</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span>
+        <span class="k">return</span> <span class="n">width</span>
 
     <span class="k">def</span> <span class="nf">annotate_axes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add descriptive labels to an Axes object.&quot;&quot;&quot;</span>
@@ -552,11 +567,12 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                  <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                 <span class="n">width</span><span class="p">,</span> <span class="n">fliersize</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">):</span>
+                 <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">fliersize</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_variables</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_colors</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span> <span class="o">=</span> <span class="n">dodge</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fliersize</span> <span class="o">=</span> <span class="n">fliersize</span>
 
@@ -666,7 +682,7 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                  <span class="n">bw</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">scale_hue</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">,</span>
-                 <span class="n">width</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span>
+                 <span class="n">width</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span>
                  <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_variables</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">)</span>
@@ -675,6 +691,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">gridsize</span> <span class="o">=</span> <span class="n">gridsize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span> <span class="o">=</span> <span class="n">dodge</span>
 
         <span class="k">if</span> <span class="n">inner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">inner</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;quart&quot;</span><span class="p">),</span>
@@ -686,7 +703,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">inner</span> <span class="o">=</span> <span class="n">inner</span>
 
         <span class="k">if</span> <span class="n">split</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot use `split` with more than 2 hue levels.&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;There must be exactly two hue levels to use `split`.&#39;&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
 
         <span class="k">if</span> <span class="n">linewidth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -899,7 +917,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span>
@@ -970,7 +988,7 @@
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">hue_level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">):</span>
 
                     <span class="n">support</span><span class="p">,</span> <span class="n">density</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
-                    <span class="n">kws</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                    <span class="n">kws</span><span class="p">[</span><span class="s2">&quot;facecolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
                     <span class="c1"># Add legend data, but just for one set of violins</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="p">:</span>
@@ -1198,6 +1216,8 @@
 
 <span class="k">class</span> <span class="nc">_CategoricalScatterPlotter</span><span class="p">(</span><span class="n">_CategoricalPlotter</span><span class="p">):</span>
 
+    <span class="n">default_palette</span> <span class="o">=</span> <span class="s2">&quot;dark&quot;</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">point_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a color for each scatter point based on group and hue.&quot;&quot;&quot;</span>
@@ -1238,20 +1258,20 @@
 <span class="k">class</span> <span class="nc">_StripPlotter</span><span class="p">(</span><span class="n">_CategoricalScatterPlotter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;1-d scatterplot with categorical organization.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
-                 <span class="n">jitter</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">):</span>
+                 <span class="n">jitter</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the plotter.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_variables</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_colors</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># Set object attributes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span> <span class="o">=</span> <span class="n">dodge</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span>
 
         <span class="k">if</span> <span class="n">jitter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Use a good default for `jitter = True`</span>
             <span class="n">jlim</span> <span class="o">=</span> <span class="mf">0.1</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">jlim</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">jitter</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">split</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dodge</span><span class="p">:</span>
             <span class="n">jlim</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">jitterer</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">jlim</span><span class="p">,</span> <span class="n">jlim</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">rvs</span>
 
@@ -1260,7 +1280,7 @@
         <span class="c1"># Set the default zorder to 2.1, so that the points</span>
         <span class="c1"># will be drawn on top of line elements (like in a boxplot)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_data</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_hues</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_hues</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">hue_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">group_data</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
@@ -1309,20 +1329,14 @@
 <span class="k">class</span> <span class="nc">_SwarmPlotter</span><span class="p">(</span><span class="n">_CategoricalScatterPlotter</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
-                 <span class="n">split</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">):</span>
+                 <span class="n">dodge</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the plotter.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_variables</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_colors</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># Set object attributes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span> <span class="o">=</span> <span class="n">dodge</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span>
-
-    <span class="k">def</span> <span class="nf">overlap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xy_i</span><span class="p">,</span> <span class="n">xy_j</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return True if two circles with the same diameter will overlap.&quot;&quot;&quot;</span>
-        <span class="n">x_i</span><span class="p">,</span> <span class="n">y_i</span> <span class="o">=</span> <span class="n">xy_i</span>
-        <span class="n">x_j</span><span class="p">,</span> <span class="n">y_j</span> <span class="o">=</span> <span class="n">xy_j</span>
-        <span class="k">return</span> <span class="p">((</span><span class="n">x_i</span> <span class="o">-</span> <span class="n">x_j</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y_i</span> <span class="o">-</span> <span class="n">y_j</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">d</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">could_overlap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xy_i</span><span class="p">,</span> <span class="n">swarm</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a list of all swarm points that could overlap with target.</span>
@@ -1337,7 +1351,7 @@
                 <span class="n">neighbors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xy_j</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">break</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">neighbors</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)))</span>
 
     <span class="k">def</span> <span class="nf">position_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xy_i</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a list of (x, y) coordinates that might be valid.&quot;&quot;&quot;</span>
@@ -1354,19 +1368,41 @@
                 <span class="n">new_candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">cr</span><span class="p">,</span> <span class="n">cl</span><span class="p">]</span>
             <span class="n">candidates</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_candidates</span><span class="p">)</span>
             <span class="n">left_first</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">left_first</span>
-        <span class="k">return</span> <span class="n">candidates</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">prune_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">first_non_overlapping_candidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Remove candidates from the list if they overlap with the swarm.&quot;&quot;&quot;</span>
-        <span class="n">good_candidates</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># IF we have no neighbours, all candidates are good.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">neighbors_x</span> <span class="o">=</span> <span class="n">neighbors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">neighbors_y</span> <span class="o">=</span> <span class="n">neighbors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">d_square</span> <span class="o">=</span> <span class="n">d</span> <span class="o">**</span> <span class="mi">2</span>
+
         <span class="k">for</span> <span class="n">xy_i</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
-            <span class="n">good_candidate</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">for</span> <span class="n">xy_j</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlap</span><span class="p">(</span><span class="n">xy_i</span><span class="p">,</span> <span class="n">xy_j</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-                    <span class="n">good_candidate</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">x_i</span><span class="p">,</span> <span class="n">y_i</span> <span class="o">=</span> <span class="n">xy_i</span>
+
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">neighbors_x</span> <span class="o">-</span> <span class="n">x_i</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="n">neighbors_y</span> <span class="o">-</span> <span class="n">y_i</span>
+
+            <span class="n">sq_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+
+            <span class="c1"># good candidate does not overlap any of neighbors</span>
+            <span class="c1"># which means that squared distance between candidate</span>
+            <span class="c1"># and any of the neighbours has to be at least</span>
+            <span class="c1"># square of the diameter</span>
+            <span class="n">good_candidate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">sq_distances</span> <span class="o">&gt;=</span> <span class="n">d_square</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">good_candidate</span><span class="p">:</span>
-                <span class="n">good_candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xy_i</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">good_candidates</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">xy_i</span>
+
+        <span class="c1"># If `position_candidates` works well</span>
+        <span class="c1"># this should never happen</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No non-overlapping candidates found. &#39;</span>
+                        <span class="s1">&#39;This should not happen.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">beeswarm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orig_xy</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Adjust x position of points to avoid overlaps.&quot;&quot;&quot;</span>
@@ -1388,14 +1424,15 @@
             <span class="c1"># with respect to each of the swarm neighbors</span>
             <span class="n">candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_candidates</span><span class="p">(</span><span class="n">xy_i</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
 
-            <span class="c1"># Remove the positions that overlap with any of the</span>
-            <span class="c1"># other neighbors</span>
-            <span class="n">candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_candidates</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
-
-            <span class="c1"># Find the most central of the remaining positions</span>
+            <span class="c1"># Sort candidates by their centrality</span>
             <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">candidates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">midline</span><span class="p">)</span>
-            <span class="n">best_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
-            <span class="n">new_xy_i</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">best_index</span><span class="p">]</span>
+            <span class="n">candidates</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">offsets</span><span class="p">)]</span>
+
+            <span class="c1"># Find the first candidate that doesn&#39;t overlap any neighbours</span>
+            <span class="n">new_xy_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_non_overlapping_candidate</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span>
+                                                            <span class="n">neighbors</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+            <span class="c1"># Place it into the swarm</span>
             <span class="n">swarm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_xy_i</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">swarm</span><span class="p">)</span>
@@ -1418,7 +1455,8 @@
         <span class="c1"># Convert from point size (area) to diameter</span>
         <span class="n">default_lw</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;patch.linewidth&quot;</span><span class="p">]</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kws</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;linewidth&quot;</span><span class="p">,</span> <span class="n">kws</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="n">default_lw</span><span class="p">))</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="n">lw</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">dpi</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="n">lw</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">dpi</span> <span class="o">/</span> <span class="mi">72</span><span class="p">)</span>
 
         <span class="c1"># Transform the data coordinates to point coordinates.</span>
         <span class="c1"># We&#39;ll figure out the swarm positions in the latter</span>
@@ -1462,7 +1500,7 @@
         <span class="c1"># Plot each swarm</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">group_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_data</span><span class="p">):</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_hues</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_hues</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
 
                 <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span>
 
@@ -1537,7 +1575,11 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nested_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A float with the width of plot elements when hue nesting is used.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span>
+        <span class="k">return</span> <span class="n">width</span>
 
     <span class="k">def</span> <span class="nf">estimate_statistic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">):</span>
 
@@ -1577,10 +1619,18 @@
                         <span class="n">confint</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
                         <span class="k">continue</span>
 
-                    <span class="n">boots</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="n">stat_data</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">estimator</span><span class="p">,</span>
-                                      <span class="n">n_boot</span><span class="o">=</span><span class="n">n_boot</span><span class="p">,</span>
-                                      <span class="n">units</span><span class="o">=</span><span class="n">unit_data</span><span class="p">)</span>
-                    <span class="n">confint</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">ci</span><span class="p">(</span><span class="n">boots</span><span class="p">,</span> <span class="n">ci</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">ci</span> <span class="o">==</span> <span class="s2">&quot;sd&quot;</span><span class="p">:</span>
+
+                        <span class="n">estimate</span> <span class="o">=</span> <span class="n">estimator</span><span class="p">(</span><span class="n">stat_data</span><span class="p">)</span>
+                        <span class="n">sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">stat_data</span><span class="p">)</span>
+                        <span class="n">confint</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">estimate</span> <span class="o">-</span> <span class="n">sd</span><span class="p">,</span> <span class="n">estimate</span> <span class="o">+</span> <span class="n">sd</span><span class="p">))</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+
+                        <span class="n">boots</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="n">stat_data</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">estimator</span><span class="p">,</span>
+                                          <span class="n">n_boot</span><span class="o">=</span><span class="n">n_boot</span><span class="p">,</span>
+                                          <span class="n">units</span><span class="o">=</span><span class="n">unit_data</span><span class="p">)</span>
+                        <span class="n">confint</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">ci</span><span class="p">(</span><span class="n">boots</span><span class="p">,</span> <span class="n">ci</span><span class="p">))</span>
 
             <span class="c1"># Option 2: we are grouping by a hue layer</span>
             <span class="c1"># ----------------------------------------</span>
@@ -1619,19 +1669,22 @@
                             <span class="n">confint</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
                             <span class="k">continue</span>
 
-                        <span class="n">boots</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="n">stat_data</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">estimator</span><span class="p">,</span>
-                                          <span class="n">n_boot</span><span class="o">=</span><span class="n">n_boot</span><span class="p">,</span>
-                                          <span class="n">units</span><span class="o">=</span><span class="n">unit_data</span><span class="p">)</span>
-                        <span class="n">confint</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">ci</span><span class="p">(</span><span class="n">boots</span><span class="p">,</span> <span class="n">ci</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">ci</span> <span class="o">==</span> <span class="s2">&quot;sd&quot;</span><span class="p">:</span>
+
+                            <span class="n">estimate</span> <span class="o">=</span> <span class="n">estimator</span><span class="p">(</span><span class="n">stat_data</span><span class="p">)</span>
+                            <span class="n">sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">stat_data</span><span class="p">)</span>
+                            <span class="n">confint</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">estimate</span> <span class="o">-</span> <span class="n">sd</span><span class="p">,</span> <span class="n">estimate</span> <span class="o">+</span> <span class="n">sd</span><span class="p">))</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+
+                            <span class="n">boots</span> <span class="o">=</span> <span class="n">bootstrap</span><span class="p">(</span><span class="n">stat_data</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">estimator</span><span class="p">,</span>
+                                              <span class="n">n_boot</span><span class="o">=</span><span class="n">n_boot</span><span class="p">,</span>
+                                              <span class="n">units</span><span class="o">=</span><span class="n">unit_data</span><span class="p">)</span>
+                            <span class="n">confint</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">ci</span><span class="p">(</span><span class="n">boots</span><span class="p">,</span> <span class="n">ci</span><span class="p">))</span>
 
         <span class="c1"># Save the resulting values for plotting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">statistic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">statistic</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">confint</span><span class="p">)</span>
-
-        <span class="c1"># Rename the value label to reflect the estimation</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">estimator</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                                               <span class="bp">self</span><span class="o">.</span><span class="n">value_label</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">draw_confints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">at_group</span><span class="p">,</span> <span class="n">confint</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span>
                       <span class="n">errwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kws</span><span class="p">):</span>
@@ -1667,13 +1720,15 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                  <span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span>
-                 <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">errcolor</span><span class="p">,</span> <span class="n">errwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">capsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">errcolor</span><span class="p">,</span>
+                 <span class="n">errwidth</span><span class="p">,</span> <span class="n">capsize</span><span class="p">,</span> <span class="n">dodge</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the plotter.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_variables</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span>
                                  <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">establish_colors</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">estimate_statistic</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span> <span class="o">=</span> <span class="n">dodge</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">errcolor</span> <span class="o">=</span> <span class="n">errcolor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">errwidth</span> <span class="o">=</span> <span class="n">errwidth</span>
@@ -1730,6 +1785,9 @@
 
 
 <span class="k">class</span> <span class="nc">_PointPlotter</span><span class="p">(</span><span class="n">_CategoricalStatPlotter</span><span class="p">):</span>
+
+    <span class="n">default_palette</span> <span class="o">=</span> <span class="s2">&quot;dark&quot;</span>
+
     <span class="sd">&quot;&quot;&quot;Show point estimates and confidence intervals with (joined) points.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                  <span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span>
@@ -1773,8 +1831,11 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hue_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Offsets relative to the center position for each hue level.&quot;&quot;&quot;</span>
-        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">))</span>
-        <span class="n">offset</span> <span class="o">-=</span> <span class="n">offset</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">:</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">))</span>
+            <span class="n">offset</span> <span class="o">-=</span> <span class="n">offset</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hue_names</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">offset</span>
 
     <span class="k">def</span> <span class="nf">draw_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
@@ -1803,16 +1864,17 @@
             <span class="c1"># Draw the confidence intervals</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">draw_confints</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">pointpos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">confint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">,</span>
                                <span class="bp">self</span><span class="o">.</span><span class="n">errwidth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">capsize</span><span class="p">)</span>
+
             <span class="c1"># Draw the estimate points</span>
             <span class="n">marker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">hex_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orient</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">statistic</span><span class="p">,</span> <span class="n">pointpos</span><span class="p">,</span>
-                           <span class="n">linewidth</span><span class="o">=</span><span class="n">mew</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span>
-                           <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">)</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistic</span><span class="p">,</span> <span class="n">pointpos</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pointpos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistic</span><span class="p">,</span>
-                           <span class="n">linewidth</span><span class="o">=</span><span class="n">mew</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span>
-                           <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">)</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">pointpos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistic</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                       <span class="n">linewidth</span><span class="o">=</span><span class="n">mew</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span>
+                       <span class="n">c</span><span class="o">=</span><span class="n">hex_colors</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">hex_colors</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
 
@@ -1846,17 +1908,23 @@
                                        <span class="n">zorder</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 
                 <span class="c1"># Draw the estimate points</span>
+                <span class="n">n_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">remove_na</span><span class="p">(</span><span class="n">offpos</span><span class="p">))</span>
                 <span class="n">marker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markers</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orient</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">statistic</span><span class="p">,</span> <span class="n">offpos</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hue_level</span><span class="p">,</span>
-                               <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">offpos</span><span class="p">),</span>
-                               <span class="n">linewidth</span><span class="o">=</span><span class="n">mew</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span>
-                               <span class="n">edgecolor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">zorder</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
+                <span class="n">hex_color</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">n_points</span><span class="p">:</span>
+                    <span class="n">point_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">hex_color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">)]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">offpos</span><span class="p">,</span> <span class="n">statistic</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hue_level</span><span class="p">,</span>
-                               <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">offpos</span><span class="p">),</span>
-                               <span class="n">linewidth</span><span class="o">=</span><span class="n">mew</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span>
-                               <span class="n">edgecolor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">zorder</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
+                    <span class="n">point_colors</span> <span class="o">=</span> <span class="n">hex_color</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orient</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">statistic</span><span class="p">,</span> <span class="n">offpos</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">offpos</span><span class="p">,</span> <span class="n">statistic</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">remove_na</span><span class="p">(</span><span class="n">statistic</span><span class="p">)):</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">hue_level</span><span class="p">,</span>
+                           <span class="n">c</span><span class="o">=</span><span class="n">point_colors</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">point_colors</span><span class="p">,</span>
+                           <span class="n">linewidth</span><span class="o">=</span><span class="n">mew</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">markersize</span><span class="p">,</span>
+                           <span class="n">zorder</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make the plot.&quot;&quot;&quot;</span>
@@ -1870,11 +1938,14 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                  <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                 <span class="n">width</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="p">):</span>
+                 <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="p">):</span>
 
+        <span class="c1"># TODO assigning variables for None is unceccesary</span>
         <span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">width</span> <span class="o">=</span> <span class="o">.</span><span class="mi">8</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dodge</span> <span class="o">=</span> <span class="n">dodge</span>
 
         <span class="k">if</span> <span class="n">saturation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">saturation</span> <span class="o">=</span> <span class="o">.</span><span class="mi">75</span>
@@ -2157,10 +2228,11 @@
     <span class="n">stat_api_params</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    estimator : callable that maps vector -&gt; scalar, optional</span>
 <span class="s2">        Statistical function to estimate within each categorical bin.</span>
-<span class="s2">    ci : float or None, optional</span>
-<span class="s2">        Size of confidence intervals to draw around estimated values. If</span>
-<span class="s2">        ``None``, no bootstrapping will be performed, and error bars will</span>
-<span class="s2">        not be drawn.</span>
+<span class="s2">    ci : float or &quot;sd&quot; or None, optional</span>
+<span class="s2">        Size of confidence intervals to draw around estimated values.  If</span>
+<span class="s2">        &quot;sd&quot;, skip bootstrapping and draw the standard deviation of the</span>
+<span class="s2">        observations. If ``None``, no bootstrapping will be performed, and</span>
+<span class="s2">        error bars will not be drawn.</span>
 <span class="s2">    n_boot : int, optional</span>
 <span class="s2">        Number of bootstrap iterations to use when computing confidence</span>
 <span class="s2">        intervals.</span>
@@ -2177,8 +2249,7 @@
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">color</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    color : matplotlib color, optional</span>
-<span class="s2">        Color for all of the elements, or seed for :func:`light_palette` when</span>
-<span class="s2">        using hue nesting.</span><span class="se">\</span>
+<span class="s2">        Color for all of the elements, or seed for a gradient palette.</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">palette</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    palette : palette name, list, or dict, optional</span>
@@ -2205,6 +2276,11 @@
 <span class="s2">    width : float, optional</span>
 <span class="s2">        Width of a full element when not using hue nesting, or width of all the</span>
 <span class="s2">        elements for one level of the major grouping variable.</span><span class="se">\</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
+    <span class="n">dodge</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">    dodge : bool, optional</span>
+<span class="s2">        When hue nesting is used, whether elements should be shifted along the</span>
+<span class="s2">        categorical axis.</span><span class="se">\</span>
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">),</span>
     <span class="n">linewidth</span><span class="o">=</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">    linewidth : float, optional</span>
@@ -2258,52 +2334,12 @@
 
 <div class="viewcode-block" id="boxplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.boxplot">[docs]</a><span class="k">def</span> <span class="nf">boxplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
-            <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">fliersize</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">whis</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">notch</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-    <span class="c1"># Try to handle broken backwards-compatability</span>
-    <span class="c1"># This should help with the lack of a smooth deprecation,</span>
-    <span class="c1"># but won&#39;t catch everything</span>
-    <span class="n">warn</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;vals&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;vals&quot;</span><span class="p">)</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;groupby&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;groupby&quot;</span><span class="p">)</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;vert&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">vert</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;vert&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">vert</span><span class="p">:</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span>
-        <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span> <span class="k">if</span> <span class="n">vert</span> <span class="k">else</span> <span class="s2">&quot;h&quot;</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;names&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;names&quot;</span><span class="p">)</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;join_rm&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;join_rm&quot;</span><span class="p">)</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The boxplot API has been changed. Attempting to adjust your &quot;</span>
-           <span class="s2">&quot;arguments for the new API (which might not work). Please update &quot;</span>
-           <span class="s2">&quot;your code. See the version 0.6 release notes for more info.&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">warn</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+            <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fliersize</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">whis</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">notch</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_BoxPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                           <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                          <span class="n">width</span><span class="p">,</span> <span class="n">fliersize</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">)</span>
+                          <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">fliersize</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
@@ -2334,6 +2370,7 @@
 <span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{saturation}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{width}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
 <span class="s2">    fliersize : float, optional</span>
 <span class="s2">        Size of the markers used to indicate outlier observations.</span>
 <span class="s2">    </span><span class="si">{linewidth}</span><span class="s2"></span>
@@ -2413,6 +2450,15 @@
 <span class="s2">        &gt;&gt;&gt; iris = sns.load_dataset(&quot;iris&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.boxplot(data=iris, orient=&quot;h&quot;, palette=&quot;Set2&quot;)</span>
 
+<span class="s2">    Use ``hue`` without changing box position or width:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; tips[&quot;weekend&quot;] = tips[&quot;day&quot;].isin([&quot;Sat&quot;, &quot;Sun&quot;])</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.boxplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;weekend&quot;,</span>
+<span class="s2">        ...                  data=tips, dodge=False)</span>
+
 <span class="s2">    Use :func:`swarmplot` to show the datapoints on top of the boxes:</span>
 
 <span class="s2">    .. plot::</span>
@@ -2421,60 +2467,31 @@
 <span class="s2">        &gt;&gt;&gt; ax = sns.boxplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips, color=&quot;.25&quot;)</span>
 
-<span class="s2">    Draw a box plot on to a :class:`FacetGrid` to group within an additional</span>
-<span class="s2">    categorical variable:</span>
+<span class="s2">    Use :func:`factorplot` to combine a :func:`boxplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.FacetGrid(tips, col=&quot;time&quot;, size=4, aspect=.7)</span>
-<span class="s2">        &gt;&gt;&gt; (g.map(sns.boxplot, &quot;sex&quot;, &quot;total_bill&quot;, &quot;smoker&quot;)</span>
-<span class="s2">        ...   .despine(left=True)</span>
-<span class="s2">        ...   .add_legend(title=&quot;smoker&quot;))  #doctest: +ELLIPSIS</span>
-<span class="s2">        &lt;seaborn.axisgrid.FacetGrid object at 0x...&gt;</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;box&quot;,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="violinplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.violinplot">[docs]</a><span class="k">def</span> <span class="nf">violinplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">bw</span><span class="o">=</span><span class="s2">&quot;scott&quot;</span><span class="p">,</span> <span class="n">cut</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="s2">&quot;area&quot;</span><span class="p">,</span> <span class="n">scale_hue</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-               <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">inner</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-    <span class="c1"># Try to handle broken backwards-compatability</span>
-    <span class="c1"># This should help with the lack of a smooth deprecation,</span>
-    <span class="c1"># but won&#39;t catch everything</span>
-    <span class="n">warn</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;vals&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;vals&quot;</span><span class="p">)</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;groupby&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;groupby&quot;</span><span class="p">)</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">if</span> <span class="s2">&quot;vert&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">vert</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;vert&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">vert</span><span class="p">:</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span>
-        <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span> <span class="k">if</span> <span class="n">vert</span> <span class="k">else</span> <span class="s2">&quot;h&quot;</span>
-        <span class="n">warn</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The violinplot API has been changed. Attempting to adjust your &quot;</span>
-           <span class="s2">&quot;arguments for the new API (which might not work). Please update &quot;</span>
-           <span class="s2">&quot;your code. See the version 0.6 release notes for more info.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">warn</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+               <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">inner</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
+               <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_ViolinPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                              <span class="n">bw</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">scale_hue</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">,</span>
-                             <span class="n">width</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span>
+                             <span class="n">width</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span>
                              <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2538,6 +2555,7 @@
 <span class="s2">        When using hue nesting with a variable that takes two levels, setting</span>
 <span class="s2">        ``split`` to True will draw half of a violin for each level. This can</span>
 <span class="s2">        make it easier to directly compare the distributions.</span>
+<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{orient}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{linewidth}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{color}</span><span class="s2"></span>
@@ -2655,27 +2673,51 @@
 <span class="s2">        ...                     data=planets[planets.orbital_period &lt; 1000],</span>
 <span class="s2">        ...                     scale=&quot;width&quot;, palette=&quot;Set3&quot;)</span>
 
-<span class="s2">    Draw a violin plot on to a :class:`FacetGrid` to group within an additional</span>
-<span class="s2">    categorical variable:</span>
+<span class="s2">    Don&#39;t let density extend past extreme values in the data:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.FacetGrid(tips, col=&quot;time&quot;, size=4, aspect=.7)</span>
-<span class="s2">        &gt;&gt;&gt; (g.map(sns.violinplot, &quot;sex&quot;, &quot;total_bill&quot;, &quot;smoker&quot;, split=True)</span>
-<span class="s2">        ...   .despine(left=True)</span>
-<span class="s2">        ...   .add_legend(title=&quot;smoker&quot;))  # doctest: +ELLIPSIS</span>
-<span class="s2">        &lt;seaborn.axisgrid.FacetGrid object at 0x...&gt;</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.violinplot(x=&quot;orbital_period&quot;, y=&quot;method&quot;,</span>
+<span class="s2">        ...                     data=planets[planets.orbital_period &lt; 1000],</span>
+<span class="s2">        ...                     cut=0, scale=&quot;width&quot;, palette=&quot;Set3&quot;)</span>
+
+<span class="s2">    Use ``hue`` without changing violin position or width:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; tips[&quot;weekend&quot;] = tips[&quot;day&quot;].isin([&quot;Sat&quot;, &quot;Sun&quot;])</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.violinplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;weekend&quot;,</span>
+<span class="s2">        ...                     data=tips, dodge=False)</span>
+
+<span class="s2">    Use :func:`factorplot` to combine a :func:`violinplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;violin&quot;, split=True,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="stripplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.stripplot">[docs]</a><span class="k">def</span> <span class="nf">stripplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">jitter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">jitter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
+    <span class="k">if</span> <span class="s2">&quot;split&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">dodge</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;split&quot;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The `split` parameter has been renamed to `dodge`.&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_StripPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
-                            <span class="n">jitter</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">)</span>
+                            <span class="n">jitter</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
@@ -2808,7 +2850,7 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;smoker&quot;,</span>
 <span class="s2">        ...                    data=tips, jitter=True,</span>
-<span class="s2">        ...                    palette=&quot;Set2&quot;, split=True)</span>
+<span class="s2">        ...                    palette=&quot;Set2&quot;, dodge=True)</span>
 
 <span class="s2">    Control strip order by passing an explicit order:</span>
 
@@ -2845,15 +2887,34 @@
 <span class="s2">        ...                     inner=None, color=&quot;.8&quot;)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips, jitter=True)</span>
 
+<span class="s2">    Use :func:`factorplot` to combine a :func:`stripplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;strip&quot;,</span>
+<span class="s2">        ...                    jitter=True,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
+
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="swarmplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.swarmplot">[docs]</a><span class="k">def</span> <span class="nf">swarmplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">split</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">dodge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
+    <span class="k">if</span> <span class="s2">&quot;split&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">dodge</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;split&quot;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The `split` parameter has been renamed to `dodge`.&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_SwarmPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
-                            <span class="n">split</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">)</span>
+                            <span class="n">dodge</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
@@ -2967,7 +3028,7 @@
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;smoker&quot;,</span>
-<span class="s2">        ...                    data=tips, palette=&quot;Set2&quot;, split=True)</span>
+<span class="s2">        ...                    data=tips, palette=&quot;Set2&quot;, dodge=True)</span>
 
 <span class="s2">    Control swarm order by passing an explicit order:</span>
 
@@ -2984,14 +3045,13 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;time&quot;, y=&quot;tip&quot;, data=tips, size=6)</span>
 
-
 <span class="s2">    Draw swarms of observations on top of a box plot:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.boxplot(x=&quot;tip&quot;, y=&quot;day&quot;, data=tips, whis=np.inf)</span>
-<span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;tip&quot;, y=&quot;day&quot;, data=tips)</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;tip&quot;, y=&quot;day&quot;, data=tips, color=&quot;.2&quot;)</span>
 
 <span class="s2">    Draw swarms of observations on top of a violin plot:</span>
 
@@ -3002,32 +3062,32 @@
 <span class="s2">        &gt;&gt;&gt; ax = sns.swarmplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips,</span>
 <span class="s2">        ...                    color=&quot;white&quot;, edgecolor=&quot;gray&quot;)</span>
 
+<span class="s2">    Use :func:`factorplot` to combine a :func:`swarmplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;swarm&quot;,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
+
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="barplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.barplot">[docs]</a><span class="k">def</span> <span class="nf">barplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">estimator</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
-            <span class="n">errcolor</span><span class="o">=</span><span class="s2">&quot;.26&quot;</span><span class="p">,</span> <span class="n">errwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-    <span class="c1"># Handle some deprecated arguments</span>
-    <span class="k">if</span> <span class="s2">&quot;hline&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hline&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `hline` parameter has been removed&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;dropna&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dropna&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `dropna` parameter has been removed&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;x_order&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;x_order&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `x_order` parameter has been renamed `order`&quot;</span><span class="p">,</span>
-                      <span class="ne">UserWarning</span><span class="p">)</span>
+            <span class="n">errcolor</span><span class="o">=</span><span class="s2">&quot;.26&quot;</span><span class="p">,</span> <span class="n">errwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_BarPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                           <span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span>
                           <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                          <span class="n">errcolor</span><span class="p">,</span> <span class="n">errwidth</span><span class="p">,</span> <span class="n">capsize</span><span class="p">)</span>
+                          <span class="n">errcolor</span><span class="p">,</span> <span class="n">errwidth</span><span class="p">,</span> <span class="n">capsize</span><span class="p">,</span> <span class="n">dodge</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
@@ -3070,9 +3130,10 @@
 <span class="s2">    </span><span class="si">{saturation}</span><span class="s2"></span>
 <span class="s2">    errcolor : matplotlib color</span>
 <span class="s2">        Color for the lines that represent the confidence interval.</span>
-<span class="s2">    </span><span class="si">{ax_in}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{errwidth}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{capsize}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{ax_in}</span><span class="s2"></span>
 <span class="s2">    kwargs : key, value mappings</span>
 <span class="s2">        Other keyword arguments are passed through to ``plt.bar`` at draw</span>
 <span class="s2">        time.</span>
@@ -3137,6 +3198,13 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.barplot(x=&quot;day&quot;, y=&quot;tip&quot;, data=tips, ci=68)</span>
 
+<span class="s2">    Show standard deviation of observations instead of a confidence interval:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.barplot(x=&quot;day&quot;, y=&quot;tip&quot;, data=tips, ci=&quot;sd&quot;)</span>
+
 <span class="s2">    Add &quot;caps&quot; to the error bars:</span>
 
 <span class="s2">    .. plot::</span>
@@ -3151,6 +3219,15 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.barplot(&quot;size&quot;, y=&quot;total_bill&quot;, data=tips,</span>
 <span class="s2">        ...                  palette=&quot;Blues_d&quot;)</span>
+
+<span class="s2">    Use ``hue`` without changing bar position or width:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; tips[&quot;weekend&quot;] = tips[&quot;day&quot;].isin([&quot;Sat&quot;, &quot;Sun&quot;])</span>
+<span class="s2">        &gt;&gt;&gt; ax = sns.barplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, hue=&quot;weekend&quot;,</span>
+<span class="s2">        ...                  data=tips, dodge=False)</span>
 
 <span class="s2">    Plot all bars in a single color:</span>
 
@@ -3169,28 +3246,27 @@
 <span class="s2">        ...                  linewidth=2.5, facecolor=(1, 1, 1, 0),</span>
 <span class="s2">        ...                  errcolor=&quot;.2&quot;, edgecolor=&quot;.2&quot;)</span>
 
+<span class="s2">    Use :func:`factorplot` to combine a :func:`barplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;bar&quot;,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
+
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="pointplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.pointplot">[docs]</a><span class="k">def</span> <span class="nf">pointplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">estimator</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">ci</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span> <span class="n">n_boot</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">markers</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-              <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-              <span class="n">capsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-    <span class="c1"># Handle some deprecated arguments</span>
-    <span class="k">if</span> <span class="s2">&quot;hline&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hline&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `hline` parameter has been removed&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;dropna&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dropna&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `dropna` parameter has been removed&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;x_order&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;x_order&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `x_order` parameter has been renamed `order`&quot;</span><span class="p">,</span>
-                      <span class="ne">UserWarning</span><span class="p">)</span>
+              <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">capsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_PointPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                             <span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span>
@@ -3249,6 +3325,8 @@
 <span class="s2">    </span><span class="si">{orient}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{color}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{errwidth}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{capsize}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{ax_in}</span><span class="s2"></span>
 
 <span class="s2">    Returns</span>
@@ -3352,6 +3430,13 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.pointplot(x=&quot;day&quot;, y=&quot;tip&quot;, data=tips, ci=68)</span>
 
+<span class="s2">    Show standard deviation of observations instead of a confidence interval:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; ax = sns.pointplot(x=&quot;day&quot;, y=&quot;tip&quot;, data=tips, ci=&quot;sd&quot;)</span>
+
 <span class="s2">    Add &quot;caps&quot; to the error bars:</span>
 
 <span class="s2">    .. plot::</span>
@@ -3359,18 +3444,34 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.pointplot(x=&quot;day&quot;, y=&quot;tip&quot;, data=tips, capsize=.2)</span>
 
+<span class="s2">    Use :func:`factorplot` to combine a :func:`barplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;point&quot;,</span>
+<span class="s2">        ...                    dodge=True,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
+
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="countplot"><a class="viewcode-back" href="../../api/display_api.html#abipy.display.seabornw.countplot">[docs]</a><span class="k">def</span> <span class="nf">countplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
-              <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+              <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">estimator</span> <span class="o">=</span> <span class="nb">len</span>
     <span class="n">ci</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">n_boot</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">units</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">errcolor</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">errwidth</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">capsize</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span>
@@ -3386,7 +3487,7 @@
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_BarPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                           <span class="n">estimator</span><span class="p">,</span> <span class="n">ci</span><span class="p">,</span> <span class="n">n_boot</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span>
                           <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                          <span class="n">errcolor</span><span class="p">)</span>
+                          <span class="n">errcolor</span><span class="p">,</span> <span class="n">errwidth</span><span class="p">,</span> <span class="n">capsize</span><span class="p">,</span> <span class="n">dodge</span><span class="p">)</span>
 
     <span class="n">plotter</span><span class="o">.</span><span class="n">value_label</span> <span class="o">=</span> <span class="s2">&quot;count&quot;</span>
 
@@ -3415,6 +3516,7 @@
 <span class="s2">    </span><span class="si">{color}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{saturation}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{ax_in}</span><span class="s2"></span>
 <span class="s2">    kwargs : key, value mappings</span>
 <span class="s2">        Other keyword arguments are passed to ``plt.bar``.</span>
@@ -3472,6 +3574,18 @@
 <span class="s2">        ...                    linewidth=5,</span>
 <span class="s2">        ...                    edgecolor=sns.color_palette(&quot;dark&quot;, 3))</span>
 
+<span class="s2">    Use :func:`factorplot` to combine a :func:`countplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
+
+<span class="s2">    .. plot::</span>
+<span class="s2">        :context: close-figs</span>
+
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;class&quot;, hue=&quot;who&quot;, col=&quot;survived&quot;,</span>
+<span class="s2">        ...                    data=titanic, kind=&quot;count&quot;,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
+
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 
 
@@ -3482,20 +3596,6 @@
                <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">legend_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                <span class="n">margin_titles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">facet_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-    <span class="c1"># Handle some deprecated arguments</span>
-    <span class="k">if</span> <span class="s2">&quot;hline&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hline&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `hline` parameter has been removed&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;dropna&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dropna&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `dropna` parameter has been removed&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;x_order&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;x_order&quot;</span><span class="p">)</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The `x_order` parameter has been renamed `order`&quot;</span><span class="p">,</span>
-                      <span class="ne">UserWarning</span><span class="p">)</span>
 
     <span class="c1"># Determine the plotting function</span>
     <span class="k">try</span><span class="p">:</span>
@@ -3568,7 +3668,7 @@
             <span class="n">g</span><span class="o">.</span><span class="n">set_axis_labels</span><span class="p">(</span><span class="n">y_var</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">legend</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">hue</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]):</span>
-        <span class="n">hue_order</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">))</span>
+        <span class="n">hue_order</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">to_utf8</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">))</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">hue</span><span class="p">,</span> <span class="n">label_order</span><span class="o">=</span><span class="n">hue_order</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">g</span></div>
@@ -3697,7 +3797,7 @@
 <span class="s2">        ...                    hue=&quot;sex&quot;, row=&quot;class&quot;,</span>
 <span class="s2">        ...                    data=titanic[titanic.embark_town.notnull()],</span>
 <span class="s2">        ...                    orient=&quot;h&quot;, size=2, aspect=3.5, palette=&quot;Set3&quot;,</span>
-<span class="s2">        ...                    kind=&quot;violin&quot;, split=True, cut=0, bw=.2)</span>
+<span class="s2">        ...                    kind=&quot;violin&quot;, dodge=True, cut=0, bw=.2)</span>
 
 <span class="s2">    Use methods on the returned :class:`FacetGrid` to tweak the presentation:</span>
 
@@ -3719,12 +3819,12 @@
 
 <span class="k">def</span> <span class="nf">lvplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hue_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
            <span class="n">orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=.</span><span class="mi">75</span><span class="p">,</span>
-           <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">k_depth</span><span class="o">=</span><span class="s1">&#39;proportion&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span>
-           <span class="n">outlier_prop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+           <span class="n">width</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span> <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">k_depth</span><span class="o">=</span><span class="s1">&#39;proportion&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+           <span class="n">scale</span><span class="o">=</span><span class="s1">&#39;exponential&#39;</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">plotter</span> <span class="o">=</span> <span class="n">_LVPlotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">hue_order</span><span class="p">,</span>
                          <span class="n">orient</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">palette</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-                         <span class="n">width</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="p">)</span>
+                         <span class="n">width</span><span class="p">,</span> <span class="n">dodge</span><span class="p">,</span> <span class="n">k_depth</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">outlier_prop</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
@@ -3733,7 +3833,7 @@
     <span class="k">return</span> <span class="n">ax</span>
 
 <span class="n">lvplot</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">    Create a letter value plot</span>
+<span class="s2">    Draw a letter value plot to show distributions of large datasets.</span>
 
 <span class="s2">    Letter value (LV) plots are non-parametric estimates of the distribution of</span>
 <span class="s2">    a dataset, similar to boxplots. LV plots are also similar to violin plots</span>
@@ -3757,6 +3857,7 @@
 <span class="s2">    </span><span class="si">{palette}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{saturation}</span><span class="s2"></span>
 <span class="s2">    </span><span class="si">{width}</span><span class="s2"></span>
+<span class="s2">    </span><span class="si">{dodge}</span><span class="s2"></span>
 <span class="s2">    k_depth : &quot;proportion&quot; | &quot;tukey&quot; | &quot;trustworthy&quot;, optional</span>
 <span class="s2">        The number of boxes, and by extension number of percentiles, to draw.</span>
 <span class="s2">        All methods are detailed in Wickham&#39;s paper. Each makes different</span>
@@ -3845,19 +3946,20 @@
 
 <span class="s2">        &gt;&gt;&gt; ax = sns.lvplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips)</span>
 <span class="s2">        &gt;&gt;&gt; ax = sns.stripplot(x=&quot;day&quot;, y=&quot;total_bill&quot;, data=tips,</span>
-<span class="s2">        ...                    size=4, jitter=True, edgecolor=&quot;gray&quot;)</span>
+<span class="s2">        ...                    size=4, jitter=True, color=&quot;gray&quot;)</span>
 
-<span class="s2">    Draw a letter value plot on to a :class:`FacetGrid` to group within an</span>
-<span class="s2">    additional categorical variable:</span>
+<span class="s2">    Use :func:`factorplot` to combine a :func:`lvplot` and a</span>
+<span class="s2">    :class:`FacetGrid`. This allows grouping within additional categorical</span>
+<span class="s2">    variables. Using :func:`factorplot` is safer than using :class:`FacetGrid`</span>
+<span class="s2">    directly, as it ensures synchronization of variable order across facets:</span>
 
 <span class="s2">    .. plot::</span>
 <span class="s2">        :context: close-figs</span>
 
-<span class="s2">        &gt;&gt;&gt; g = sns.FacetGrid(tips, col=&quot;time&quot;, size=4, aspect=.7)</span>
-<span class="s2">        &gt;&gt;&gt; (g.map(sns.lvplot, &quot;sex&quot;, &quot;total_bill&quot;, &quot;smoker&quot;)</span>
-<span class="s2">        ...   .despine(left=True)</span>
-<span class="s2">        ...   .add_legend(title=&quot;smoker&quot;))  #doctest: +ELLIPSIS</span>
-<span class="s2">        &lt;seaborn.axisgrid.FacetGrid object at 0x...&gt;</span>
+<span class="s2">        &gt;&gt;&gt; g = sns.factorplot(x=&quot;sex&quot;, y=&quot;total_bill&quot;,</span>
+<span class="s2">        ...                    hue=&quot;smoker&quot;, col=&quot;time&quot;,</span>
+<span class="s2">        ...                    data=tips, kind=&quot;lv&quot;,</span>
+<span class="s2">        ...                    size=4, aspect=.7);</span>
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">_categorical_docs</span><span class="p">)</span>
 </pre></div>
@@ -3873,8 +3975,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

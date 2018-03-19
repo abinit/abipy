@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.robots &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.abio.robots &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -146,8 +146,9 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
+<span class="c1">#from monty.functools import lazy_property</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">NotebookWriter</span>
-<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">sort_and_groupby</span><span class="p">,</span> <span class="n">getattrd</span><span class="p">,</span> <span class="n">hasattrd</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">sort_and_groupby</span><span class="p">,</span> <span class="n">getattrd</span><span class="p">,</span> <span class="n">hasattrd</span> <span class="c1">#, duck</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="p">(</span><span class="n">plot_xy_with_hue</span><span class="p">,</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span>
     <span class="n">rotate_ticklabels</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">)</span>
 
@@ -464,7 +465,6 @@
     <span class="c1">#            except Exception as exc:</span>
     <span class="c1">#                print(&quot;Exception while closing: &quot;, abifile.filepath)</span>
     <span class="c1">#                print(exc)</span>
-    <span class="c1">#                #raise</span>
 
 <div class="viewcode-block" id="Robot.iter_lineopt"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.iter_lineopt">[docs]</a>    <span class="k">def</span> <span class="nf">iter_lineopt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generates matplotlib linestyles.&quot;&quot;&quot;</span>
@@ -856,7 +856,7 @@
 <div class="viewcode-block" id="Robot.sortby_label"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.sortby_label">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">sortby_label</span><span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the label to be used when files are sorted with ``sortby``.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">sortby</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sortby</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">callable</span><span class="p">(</span><span class="n">sortby</span><span class="p">)</span> <span class="ow">or</span> <span class="n">sortby</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Robot.get_structure_dataframes"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.robots.Robot.get_structure_dataframes">[docs]</a>    <span class="k">def</span> <span class="nf">get_structure_dataframes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filter_abifile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1196,6 +1196,17 @@
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Iterate over (label, abifile, xvalue).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xvalues</span><span class="p">)</span></div>
+
+    <span class="c1">#@lazy_property</span>
+    <span class="c1">#def pretty_hvalue(self):</span>
+    <span class="c1">#    &quot;&quot;&quot;Return pretty string with hvalue.&quot;&quot;&quot;</span>
+    <span class="c1">#    if duck.is_intlike(self.hvalue):</span>
+    <span class="c1">#        return &quot;%d&quot; % self.havalue</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        try:</span>
+    <span class="c1">#            return &quot;%.3f&quot; % self.hvalue</span>
+    <span class="c1">#        except:</span>
+    <span class="c1">#            return str(self.hvalue)</span>
 </pre></div>
 
     </div>
@@ -1209,8 +1220,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

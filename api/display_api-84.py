@@ -1,2 +1,2 @@
-ax = sns.pointplot("time", y="total_bill", data=tips,
-                   color="#bb3f3f")
+ax = sns.pointplot(x="time", y="total_bill", hue="smoker",
+                   data=tips)

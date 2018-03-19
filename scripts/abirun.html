@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abirun.py &#8212; abipy 0.3.0 documentation</title>
+    <title>abirun.py &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -424,7 +424,7 @@ subcommands:
     diff                Compare files produced by two or three nodes.
     networkx            Draw flow and node dependencies with networkx package.
     graphviz            Draw flow and node dependencies with graphviz package.
-                        Accept (FLOWDIR|WORKDIR|TASKDIR)See
+                        Accept (FLOWDIR|WORKDIR|TASKDIR). See
                         https://graphviz.readthedocs.io/.
     listext             List all the output files with the given extension
                         that have been produced by the nodes.
@@ -648,7 +648,7 @@ qtype supported: [&#39;bluegene&#39;, &#39;moab&#39;, &#39;pbspro&#39;, &#39;sge
 Use `abirun.py . manager slurm` to have the list of qparams for slurm.
 </pre></div>
 </div>
-<p>At the time of writing (Feb 22, 2018), AbiPy supports the following resource managers:</p>
+<p>At the time of writing (Mar 19, 2018), AbiPy supports the following resource managers:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">shell</span></code></li>
 <li><a class="reference external" href="http://pbspro.org/">pbspro</a></li>
@@ -1746,7 +1746,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd>robot_ext</kbd></td>
-<td><p class="first">The file extension of the output file (case insensitive). Must be in: [‘DDB’, ‘EPH’, ‘GSR’, ‘HIST’, ‘MDF’, ‘OPTIC’, ‘PHBST’, ‘SIGEPH’, ‘SIGRES’, ‘abo’]</p>
+<td><p class="first">The file extension of the output file (case insensitive). Must be in: [‘A2F’, ‘DDB’, ‘GSR’, ‘HIST’, ‘MDF’, ‘OPTIC’, ‘PHBST’, ‘SIGEPH’, ‘SIGRES’, ‘abo’]</p>
 <p class="last">Default: “GSR”</p>
 </td></tr>
 </tbody>
@@ -3193,7 +3193,7 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
 </div>
 <div class="section" id="graphviz">
 <h3>graphviz<a class="headerlink" href="#graphviz" title="Permalink to this headline">¶</a></h3>
-<p>Draw flow and node dependencies with graphviz package. Accept (FLOWDIR|WORKDIR|TASKDIR)See <a class="reference external" href="https://graphviz.readthedocs.io/">https://graphviz.readthedocs.io/</a>.</p>
+<p>Draw flow and node dependencies with graphviz package. Accept (FLOWDIR|WORKDIR|TASKDIR). See <a class="reference external" href="https://graphviz.readthedocs.io/">https://graphviz.readthedocs.io/</a>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abirun</span><span class="o">.</span><span class="n">py</span> <span class="n">graphviz</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">colors</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">logo</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span>
                    <span class="p">[</span><span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">lock</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENGINE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span>
 </pre></div>
@@ -3315,8 +3315,8 @@ Examples: –nids=12 –nids=12,13,16 –nids=10:12 to select 10 and 11 (slice s
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

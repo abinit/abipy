@@ -24,9 +24,9 @@ The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.
     Name: ni_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/ni_ebands
     Size: 619.35 kb
-    Access Time: Thu Feb 22 20:36:26 2018
-    Modification Time: Wed Nov  8 01:06:20 2017
-    Change Time: Wed Nov  8 01:06:20 2017
+    Access Time: Mon Mar 19 21:45:58 2018
+    Modification Time: Thu Feb 22 21:38:00 2018
+    Change Time: Thu Feb 22 21:38:00 2018
 
     ================================= Structure =================================
     Full Formula (Ni1)
@@ -98,7 +98,7 @@ The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.
 
     fbnc_kpath.close()
 
-**Total running time of the script:** ( 0 minutes  5.436 seconds)
+**Total running time of the script:** ( 0 minutes  5.096 seconds)
 
 
 

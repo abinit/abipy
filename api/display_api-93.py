@@ -1,2 +1,1 @@
-ax = sns.barplot(x="time", y="tip", data=tips,
-                 order=["Dinner", "Lunch"])
+ax = sns.pointplot(x="day", y="tip", data=tips, ci=68)

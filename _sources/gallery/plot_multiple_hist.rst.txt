@@ -80,7 +80,7 @@ structure relaxations with the HIST robot.
     # (meaningless in this case as we are using the same HIST file).
     robot.combiplot()
 
-**Total running time of the script:** ( 0 minutes  1.321 seconds)
+**Total running time of the script:** ( 0 minutes  0.688 seconds)
 
 
 

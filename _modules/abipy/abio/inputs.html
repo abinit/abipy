@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.inputs &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.abio.inputs &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -740,7 +740,7 @@
 
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
 
                 <span class="c1"># Build variable, convert to string and append it</span>
                 <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
@@ -751,7 +751,7 @@
             <span class="c1"># Group variables by section.</span>
             <span class="c1"># Get dict mapping section_name --&gt; list of variable names belonging to the section.</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
-            <span class="n">sec2names</span> <span class="o">=</span> <span class="n">var_database</span><span class="o">.</span><span class="n">group_by_section</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+            <span class="n">sec2names</span> <span class="o">=</span> <span class="n">var_database</span><span class="o">.</span><span class="n">group_by_varset</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
             <span class="n">w</span> <span class="o">=</span> <span class="mi">92</span>
 
             <span class="k">for</span> <span class="n">sec</span><span class="p">,</span> <span class="n">names</span> <span class="ow">in</span> <span class="n">sec2names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -761,7 +761,7 @@
                 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
+                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
 
                     <span class="c1"># Build variable, convert to string and append it</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
@@ -775,7 +775,7 @@
                 <span class="n">app</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="s2">&quot;#&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_abivars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">mnemonics</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">definition</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
+                        <span class="n">app</span><span class="p">(</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;# &lt;&quot;</span> <span class="o">+</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mnemonics</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">))</span>
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="n">post</span>
                     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;html&quot;</span><span class="p">:</span> <span class="n">vname</span> <span class="o">=</span> <span class="n">var_database</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">html_link</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">vname</span><span class="p">)</span>
                     <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">InputVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
@@ -868,7 +868,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            nqsmall: Number of k-points used to sample the smallest lattice vector.</span>
 <span class="sd">            method: gaussian or tetra.</span>
-<span class="sd">            ph_qshift:</span>
+<span class="sd">            ph_qshift: Shift for the mesh.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># q-mesh for Fourier interpolatation of IFC and a2F(w)</span>
         <span class="n">ph_ngqpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">calc_ngkpt</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
@@ -2315,6 +2315,22 @@
         <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
 
+<div class="viewcode-block" id="MultiDataset.get_vars_dataframe"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.get_vars_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_vars_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">varnames</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return pandas DataFrame with the value of the variables specified in `varnames`.</span>
+
+<span class="sd">        .. example:</span>
+
+<span class="sd">            df = multi.get_vars_dataframe(&quot;ecut&quot;, &quot;ngkpt&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([{</span><span class="n">v</span><span class="p">:</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">varnames</span><span class="p">}],</span>
+                              <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dataset </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">varnames</span><span class="p">)</span>
+            <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="MultiDataset.filter_by_tags"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.MultiDataset.filter_by_tags">[docs]</a>    <span class="k">def</span> <span class="nf">filter_by_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_tags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Filters the input according to the tags</span>
@@ -3379,8 +3395,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

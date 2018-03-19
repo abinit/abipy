@@ -148,7 +148,7 @@ and then plot the two band structure on the same figure with:
    :alt: Band structure of GaAs without/with SOC on the same graph
 
 
-**Total running time of the script:** ( 0 minutes  0.131 seconds)
+**Total running time of the script:** ( 0 minutes  0.130 seconds)
 
 
 

@@ -1,4 +1,4 @@
-planets = sns.load_dataset("planets")
-ax = sns.violinplot(x="orbital_period", y="method",
-                    data=planets[planets.orbital_period < 1000],
-                    scale="width", palette="Set3")
+ax = sns.violinplot(x="day", y="total_bill", hue="sex",
+                    data=tips, palette="Set2", split=True,
+                    scale="count", inner="stick",
+                    scale_hue=False, bw=.2)

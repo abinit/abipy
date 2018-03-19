@@ -1,1 +1,5 @@
-ax = sns.barplot(x="day", y="tip", data=tips, capsize=.2)
+g = sns.factorplot(x="sex", y="total_bill",
+                   hue="smoker", col="time",
+                   data=tips, kind="point",
+                   dodge=True,
+                   size=4, aspect=.7);

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.kpoints &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.core.kpoints &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1489,7 +1489,7 @@
 
     <span class="n">KNOWN_KEYS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
         <span class="s2">&quot;mpdivs&quot;</span><span class="p">,</span>          <span class="c1"># Mesh divisions. Defined only if we have a sampling with diagonal kptrlatt else None.</span>
-        <span class="s2">&quot;kptrlatt&quot;</span><span class="p">,</span>        <span class="c1"># [3,3] matrix defined only if we have a sampling else None.</span>
+        <span class="s2">&quot;kptrlatt&quot;</span><span class="p">,</span>        <span class="c1"># [3, 3] matrix defined only if we have a sampling else None.</span>
         <span class="s2">&quot;kptrlatt_orig&quot;</span><span class="p">,</span>   <span class="c1"># Original set of shifts. Defined only if we have a sampling else None.</span>
         <span class="s2">&quot;shifts&quot;</span><span class="p">,</span>          <span class="c1"># Actual shifts (Usually one). Defined only if we have a sampling else None.</span>
         <span class="s2">&quot;shifts_orig&quot;</span><span class="p">,</span>     <span class="c1"># Original shifts specified by the user. Defined only if we have a sampling else None.</span>
@@ -1585,12 +1585,21 @@
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt:</span><span class="se">\n</span><span class="s2">  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;mpdivs: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt_orig:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts_orig:</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts_orig</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mesh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_diagonal_kptrlatt</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;mpdivs: </span><span class="si">%s</span><span class="s2"> with shifts </span><span class="si">%s</span><span class="s2"> and kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpdivs</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptrlatt_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;shifts_orig: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts_orig</span><span class="p">))</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Path with kptopt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptopt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Neither mesh or path!&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
@@ -1855,8 +1864,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

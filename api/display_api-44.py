@@ -1,5 +1,2 @@
-g = sns.FacetGrid(tips, col="time", size=4, aspect=.7)
-(g.map(sns.boxplot, "sex", "total_bill", "smoker")
-  .despine(left=True)
-  .add_legend(title="smoker"))  #doctest: +ELLIPSIS
-# <seaborn.axisgrid.FacetGrid object at 0x...>
+ax = sns.boxplot(x="day", y="total_bill", data=tips)
+ax = sns.swarmplot(x="day", y="total_bill", data=tips, color=".25")

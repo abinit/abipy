@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.structure &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.core.structure &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1078,6 +1078,20 @@
         <span class="c1"># Construct the stars.</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">kpoint</span><span class="o">.</span><span class="n">compute_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">)</span> <span class="k">for</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsym_kpoints</span><span class="p">]</span></div>
 
+    <span class="c1"># TODO</span>
+    <span class="c1">#def get_star_kpoint(self, kpoint):</span>
+
+    <span class="c1">#    # Call spglib to get spacegroup if Abinit spacegroup is not available.</span>
+    <span class="c1">#    if self.abi_spacegroup is None:</span>
+    <span class="c1">#        self.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)</span>
+
+    <span class="c1">#    kpoint = Kpoint(options.kpoint, self.reciprocal_lattice)</span>
+    <span class="c1">#    kstar = kpoint.compute_star(self.abi_spacegroup, wrap_tows=True)</span>
+    <span class="c1">#    return kstar</span>
+    <span class="c1">#    #print(&quot;Found %s points in the star of %s\n&quot; % (len(kstar), repr(kpoint)))</span>
+    <span class="c1">#    #for k in kstar:</span>
+    <span class="c1">#    #    print(4 * &quot; &quot;, repr(k))</span>
+
 <div class="viewcode-block" id="Structure.get_sorted_structure_z"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.get_sorted_structure_z">[docs]</a>    <span class="k">def</span> <span class="nf">get_sorted_structure_z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Order the structure according to increasing Z of the elements&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">site</span><span class="p">:</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">Z</span><span class="p">))</span></div>
@@ -1362,6 +1376,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;abivars&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">abi_string</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;qe&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">pymatgen.io.pwscf</span> <span class="k">import</span> <span class="n">PWInput</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">PWInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pseudo</span><span class="o">=</span><span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">&quot;.pseudo&quot;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_set</span><span class="p">}))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -2167,8 +2184,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

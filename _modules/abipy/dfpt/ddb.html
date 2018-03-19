@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.dfpt.ddb &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.dfpt.ddb &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -142,7 +142,7 @@
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="n">StringIO</span>
-<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span>
+<span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">marquee</span><span class="p">,</span> <span class="n">list_strings</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span><span class="p">,</span> <span class="n">tree</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
@@ -222,35 +222,33 @@
 
 <div class="viewcode-block" id="DdbFile.from_file"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Needed for the `TextFile` abstract interface.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Needed for the :class:`TextFile` abstract interface.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span></div>
 
-    <span class="c1">#@classmethod</span>
-    <span class="c1">#def from_mpid(cls, material_id, api_key=None, endpoint=None):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Fetch DDB corresponding to a materials project ``material_id``.</span>
-    <span class="c1">#</span>
-    <span class="c1">#    Raises:</span>
-    <span class="c1">#        MPRestError</span>
-    <span class="c1">#</span>
-    <span class="c1">#    Args:</span>
-    <span class="c1">#        material_id (str): Materials Project material_id (a string, e.g., mp-1234).</span>
-    <span class="c1">#        api_key (str): A String API key for accessing the MaterialsProject</span>
-    <span class="c1">#            REST interface. Please apply on the Materials Project website for one.</span>
-    <span class="c1">#            If this is None, the code will check if there is a `PMG_MAPI_KEY` in</span>
-    <span class="c1">#            your .pmgrc.yaml. If so, it will use that environment</span>
-    <span class="c1">#            This makes easier for heavy users to simply add</span>
-    <span class="c1">#            this environment variable to their setups and MPRester can</span>
-    <span class="c1">#            then be called without any arguments.</span>
-    <span class="c1">#        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
-    <span class="c1">#            Defaults to the standard Materials Project REST address, but</span>
-    <span class="c1">#            can be changed to other urls implementing a similar interface.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    # Get pytmatgen structure and convert it to abipy structure</span>
-    <span class="c1">#    from abipy.core import restapi</span>
-    <span class="c1">#    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:</span>
-    <span class="c1">#        pmgb = rest.get_bandstructure_by_material_id(material_id=material_id)</span>
-    <span class="c1">#    return cls.from_string(s)</span>
+<div class="viewcode-block" id="DdbFile.from_mpid"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbFile.from_mpid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_mpid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material_id</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetch DDB file corresponding to a materials project ``material_id``,</span>
+<span class="sd">        save it to temporary file and return new DdbFile object.</span>
+
+<span class="sd">        Raises: MPRestError if DDB file is not available</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            material_id (str): Materials Project material_id (e.g., mp-1234).</span>
+<span class="sd">            api_key (str): A String API key for accessing the MaterialsProject REST interface.</span>
+<span class="sd">                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.</span>
+<span class="sd">            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
+<span class="sd">                Defaults to the standard Materials Project REST address</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+        <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
+            <span class="n">ddb_string</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">_make_request</span><span class="p">(</span><span class="s2">&quot;/materials/</span><span class="si">%s</span><span class="s2">/abinit_ddb&quot;</span> <span class="o">%</span> <span class="n">material_id</span><span class="p">)</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">material_id</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_DDB&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ddb_string</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DdbFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
@@ -828,7 +826,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Invoke anaddb to compute the phonon band structure and the phonon DOS with different</span>
 <span class="sd">        values of the ``asr`` input variable (acoustic sum rule treatment).</span>
-<span class="sd">        Build and return |PhononDosPlotter| object.</span>
+<span class="sd">        Build and return |PhononBandsPlotter| object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            asr_list: List of ``asr`` values to test.</span>
@@ -849,7 +847,7 @@
 <span class="sd">            mpi_procs: Number of MPI processes used by anaddb.</span>
 
 <span class="sd">        Return:</span>
-<span class="sd">            |PhononDosPlotter| object.</span>
+<span class="sd">            |PhononBandsPlotter| object.</span>
 
 <span class="sd">            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()``</span>
 <span class="sd">            to visualize the results.</span>
@@ -1595,6 +1593,35 @@
         <span class="sd">&quot;&quot;&quot;Exclude DDB.nc files. Override base class.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EXT</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="DdbRobot.from_mpid_list"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.ddb.DdbRobot.from_mpid_list">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_mpid_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mpid_list</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a DdbRobot from list of materials-project ids.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mpid_list: List of Materials Project material_ids (e.g., [&quot;mp-1234&quot;, &quot;mp-1245&quot;]).</span>
+<span class="sd">            api_key (str): A String API key for accessing the MaterialsProject REST interface.</span>
+<span class="sd">                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.</span>
+<span class="sd">            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.</span>
+<span class="sd">                Defaults to the standard Materials Project REST address</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.core</span> <span class="k">import</span> <span class="n">restapi</span>
+        <span class="n">ddb_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="n">restapi</span><span class="o">.</span><span class="n">get_mprester</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">as</span> <span class="n">rest</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mpid</span> <span class="ow">in</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">mpid_list</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ddb_string</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">_make_request</span><span class="p">(</span><span class="s2">&quot;/materials/</span><span class="si">%s</span><span class="s2">/abinit_ddb&quot;</span> <span class="o">%</span> <span class="n">mpid</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">rest</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+                    <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Cannot get DDB for mp-id: </span><span class="si">%s</span><span class="s2">, ignoring error&quot;</span> <span class="o">%</span> <span class="n">mpid</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="n">_</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">mpid</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_DDB&#39;</span><span class="p">)</span>
+                <span class="n">ddb_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ddb_string</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="n">ddb_files</span><span class="p">)</span></div>
+
     <span class="c1">#def get_qpoints_union(self):</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
     <span class="c1">#    Return numpy array with the q-points in reduced coordinates found in the DDB files.</span>
@@ -1744,8 +1771,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

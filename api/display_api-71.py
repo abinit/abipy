@@ -1,1 +1,3 @@
-ax = sns.swarmplot(x="total_bill", y="day", data=tips)
+ax = sns.violinplot(x="day", y="total_bill", data=tips,
+                    inner=None, color=".8")
+ax = sns.stripplot(x="day", y="total_bill", data=tips, jitter=True)

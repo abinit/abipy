@@ -1,2 +1,2 @@
-ax = sns.stripplot(x="time", y="tip", data=tips,
-                   order=["Dinner", "Lunch"])
+ax = sns.stripplot(x="total_bill", y="day", data=tips,
+                   jitter=True, linewidth=1)

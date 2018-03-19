@@ -1,2 +1,1 @@
-ax = sns.boxplot(x="tip", y="day", data=tips, whis=np.inf)
-ax = sns.swarmplot(x="tip", y="day", data=tips)
+ax = sns.swarmplot(x="day", y="total_bill", hue="sex", data=tips)

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.eph.sigeph &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.eph.sigeph &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -158,16 +158,17 @@
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="p">(</span><span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span>
     <span class="n">rotate_ticklabels</span><span class="p">,</span> <span class="n">ax_append_title</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
-<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">ElectronBands</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronBands</span><span class="p">,</span> <span class="n">RobotWithEbands</span><span class="p">,</span> <span class="n">ElectronBandsPlotter</span><span class="p">,</span> <span class="n">ElectronDosPlotter</span>
 <span class="c1">#from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
+<span class="kn">from</span> <span class="nn">abipy.eph.common</span> <span class="k">import</span> <span class="n">BaseEphReader</span>
 
 
 <span class="c1"># TODO QPState and QPList from electrons.gw (Define base abstract class?).</span>
 <span class="c1"># __eq__ based on skb?</span>
 <span class="c1"># broadening, adiabatic ??</span>
 
-<div class="viewcode-block" id="QpTempState"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState">[docs]</a><span class="k">class</span> <span class="nc">QpTempState</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;QpTempState&quot;</span><span class="p">,</span> <span class="s2">&quot;tmesh e0 qpe ze0 spin kpoint band&quot;</span><span class="p">)):</span>
+<div class="viewcode-block" id="QpTempState"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState">[docs]</a><span class="k">class</span> <span class="nc">QpTempState</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;QpTempState&quot;</span><span class="p">,</span> <span class="s2">&quot;spin kpoint band tmesh e0 qpe ze0 fan0 dw qpe_adb&quot;</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Quasi-particle result for given (spin, kpoint, band).</span>
 
@@ -180,36 +181,44 @@
 <span class="sd">        e0: Initial KS energy.</span>
 <span class="sd">        qpe: Quasiparticle energy (complex) computed with the perturbative approach.</span>
 <span class="sd">        ze0: Renormalization factor computed at e=e0.</span>
+<span class="sd">        fan0: Fan term (complex) at e_KS</span>
+<span class="sd">        dw: Debye-Waller</span>
+<span class="sd">        qpe_adb: Quasiparticle energy (real) in the adiabatic approximation.</span>
 
 <span class="sd">    .. note::</span>
 
 <span class="sd">        Energies are in eV.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@property</span>
+<div class="viewcode-block" id="QpTempState.qpeme0"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.qpeme0">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">qpeme0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;E_QP[T] - E_0&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpe</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">e0</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpe</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">e0</span></div>
 
-    <span class="nd">@property</span>
+<div class="viewcode-block" id="QpTempState.re_qpe"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.re_qpe">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">re_qpe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Real part of the QP energy.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpe</span><span class="o">.</span><span class="n">real</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpe</span><span class="o">.</span><span class="n">real</span></div>
 
-    <span class="nd">@property</span>
+<div class="viewcode-block" id="QpTempState.imag_qpe"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.imag_qpe">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">imag_qpe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Imaginay part of the QP energy.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpe</span><span class="o">.</span><span class="n">imag</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qpe</span><span class="o">.</span><span class="n">imag</span></div>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">re_fan0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Real part of the Fan term at KS.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fan0</span><span class="o">.</span><span class="n">real</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">imag_fan0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Imaginary part of the Fan term at KS.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fan0</span><span class="o">.</span><span class="n">imag</span>
+
+<div class="viewcode-block" id="QpTempState.skb"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.skb">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">skb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tuple with (spin, kpoint, band)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span>
-
-    <span class="c1">#def copy(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;Shallow copy.&quot;&quot;&quot;</span>
-    <span class="c1">#    d = {f: copy.copy(getattr(self, f)) for f in self._fields}</span>
-    <span class="c1">#    return self.__class__(**d)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span></div>
 
 <div class="viewcode-block" id="QpTempState.get_fields"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.get_fields">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">()):</span>
@@ -253,6 +262,41 @@
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">od</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="QpTempState.get_fields_for_plot"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.get_fields_for_plot">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_fields_for_plot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return list of QpTempState fields to plot from input arguments.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vs in [&quot;temp&quot;, &quot;e0&quot;]</span>
+<span class="sd">            with_fields:</span>
+<span class="sd">            exclude_fields:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">vs</span> <span class="o">==</span> <span class="s2">&quot;temp&quot;</span><span class="p">:</span>
+            <span class="n">all_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">,</span> <span class="s2">&quot;band&quot;</span><span class="p">,</span> <span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="s2">&quot;tmesh&quot;</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">vs</span> <span class="o">==</span> <span class="s2">&quot;e0&quot;</span><span class="p">:</span>
+            <span class="n">all_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">,</span> <span class="s2">&quot;band&quot;</span><span class="p">,</span> <span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="s2">&quot;tmesh&quot;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid vs: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">vs</span><span class="p">))</span>
+
+        <span class="c1"># Initialize fields.</span>
+        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span> <span class="ow">and</span> <span class="n">with_fields</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">all_fields</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_fields</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2"> not in allowed values </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">all_fields</span><span class="p">)))</span>
+
+        <span class="c1"># Remove entries</span>
+        <span class="k">if</span> <span class="n">exclude_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">exclude_fields</span><span class="p">):</span>
+                <span class="n">exclude_fields</span> <span class="o">=</span> <span class="n">exclude_fields</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude_fields</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fields</span></div>
+
 <div class="viewcode-block" id="QpTempState.plot"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempState.plot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_fields</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -269,7 +313,7 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">_get_fields_for_plot</span><span class="p">(</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fields_for_plot</span><span class="p">(</span><span class="s2">&quot;temp&quot;</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
@@ -308,38 +352,6 @@
 
         <span class="c1">#fig.tight_layout()</span>
         <span class="k">return</span> <span class="n">fig</span></div></div>
-
-
-<span class="k">def</span> <span class="nf">_get_fields_for_plot</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return list of QpTempState fields to plot from input arguments.</span>
-<span class="sd">    vs in [&quot;temp&quot;, &quot;e0&quot;]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">vs</span> <span class="o">==</span> <span class="s2">&quot;temp&quot;</span><span class="p">:</span>
-        <span class="n">all_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">QpTempState</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">,</span> <span class="s2">&quot;band&quot;</span><span class="p">,</span> <span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="s2">&quot;tmesh&quot;</span><span class="p">]))</span>
-    <span class="k">elif</span> <span class="n">vs</span> <span class="o">==</span> <span class="s2">&quot;e0&quot;</span><span class="p">:</span>
-        <span class="n">all_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">QpTempState</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">,</span> <span class="s2">&quot;band&quot;</span><span class="p">,</span> <span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="s2">&quot;tmesh&quot;</span><span class="p">]))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid vs: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">vs</span><span class="p">))</span>
-
-    <span class="c1"># Initialize fields.</span>
-    <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span> <span class="ow">and</span> <span class="n">with_fields</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">all_fields</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_fields</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2"> not in allowed values </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">all_fields</span><span class="p">)))</span>
-
-    <span class="c1"># Remove entries</span>
-    <span class="k">if</span> <span class="n">exclude_fields</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">exclude_fields</span><span class="p">):</span>
-            <span class="n">exclude_fields</span> <span class="o">=</span> <span class="n">exclude_fields</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude_fields</span><span class="p">:</span>
-            <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">fields</span>
-
 
 <div class="viewcode-block" id="QpTempList"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.QpTempList">[docs]</a><span class="k">class</span> <span class="nc">QpTempList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -445,7 +457,7 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">_get_fields_for_plot</span><span class="p">(</span><span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">QpTempState</span><span class="o">.</span><span class="n">get_fields_for_plot</span><span class="p">(</span><span class="s2">&quot;e0&quot;</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
@@ -642,7 +654,9 @@
             <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;K-point: </span><span class="si">%s</span><span class="s2">, band: </span><span class="si">%d</span><span class="s2">, spin: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">)</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">fig</span></div></div>
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    <span class="n">plot</span> <span class="o">=</span> <span class="n">plot_tdep</span></div>
 
 
 <span class="k">class</span> <span class="nc">_MyQpkindsList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
@@ -741,6 +755,8 @@
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of k-points computed: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nkcalc</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Max bstart: </span><span class="si">%d</span><span class="s2">, min bstop: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">max_bstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">min_bstop</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Q-mesh: nqibz: </span><span class="si">%s</span><span class="s2">, nqbz: </span><span class="si">%s</span><span class="s2">, ngqpt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nqibz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nqbz</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngqpt</span><span class="p">)))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-mesh for electrons:&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of bands included in self-energy: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbsum</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;zcut: </span><span class="si">%.3f</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zcut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zcut</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> [K]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
@@ -760,8 +776,9 @@
                 <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
                     <span class="n">ks_gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ks_dirgaps</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">]</span>
                     <span class="n">qp_gap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qp_dirgaps_t</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">it</span><span class="p">]</span>
+                    <span class="c1">#qp_gap_adb = self.qp_dirgaps_adb_t[spin, ikc, it]</span>
                     <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">spin</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">kpoint</span><span class="p">),</span> <span class="n">ks_gap</span><span class="p">,</span> <span class="n">qp_gap</span><span class="p">,</span> <span class="n">qp_gap</span> <span class="o">-</span> <span class="n">ks_gap</span><span class="p">])</span>
-            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Spin&quot;</span><span class="p">,</span> <span class="s2">&quot;K-point&quot;</span><span class="p">,</span> <span class="s2">&quot;KS_gap&quot;</span><span class="p">,</span> <span class="s2">&quot;QP_gap&quot;</span><span class="p">,</span> <span class="s2">&quot;QP - KS&quot;</span><span class="p">],</span> <span class="n">floatfmt</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)))</span>
+            <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Spin&quot;</span><span class="p">,</span> <span class="s2">&quot;k-point&quot;</span><span class="p">,</span> <span class="s2">&quot;KS_gap&quot;</span><span class="p">,</span> <span class="s2">&quot;QP_gap&quot;</span><span class="p">,</span> <span class="s2">&quot;QP - KS&quot;</span><span class="p">],</span> <span class="n">floatfmt</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)))</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -877,13 +894,21 @@
 <div class="viewcode-block" id="SigEPhFile.params"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.params">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:class:`OrderedDict` with the convergence parameters, e.g. ``nbsum``.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">([</span>
+        <span class="n">od</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
             <span class="p">(</span><span class="s2">&quot;nbsum&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbsum</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">&quot;zcut&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zcut</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">&quot;symsigma&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symsigma</span><span class="p">),</span>
+            <span class="c1"># TODO: Remove?</span>
             <span class="p">(</span><span class="s2">&quot;nqbz&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">nqbz</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">&quot;nqibz&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">nqibz</span><span class="p">),</span>
-        <span class="p">])</span></div>
+        <span class="p">])</span>
+        <span class="c1"># Add EPH parameters.</span>
+        <span class="n">od</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">common_eph_params</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">od</span></div>
+
+<div class="viewcode-block" id="SigEPhFile.get_sigeph_skb"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.get_sigeph_skb">[docs]</a>    <span class="k">def</span> <span class="nf">get_sigeph_skb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_sigeph_skb</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigEPhFile.get_dataframe"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.get_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_imag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -901,7 +926,7 @@
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SigEPhFile.get_dataframe_sk"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe_sk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_imag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SigEPhFile.get_dataframe_sk"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">[docs]</a>    <span class="k">def</span> <span class="nf">get_dataframe_sk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_params</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignore_imag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns |pandas-DataFrame| with QP results for the given (spin, k-point).</span>
 
@@ -1179,7 +1204,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Add more quantities DW, Fan(0)</span>
         <span class="c1"># Quantities to plot.</span>
-        <span class="n">what_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;re_qpe&quot;</span><span class="p">,</span> <span class="s2">&quot;imag_qpe&quot;</span><span class="p">,</span> <span class="s2">&quot;ze0&quot;</span><span class="p">]</span>
+        <span class="n">what_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;re_qpe&quot;</span><span class="p">,</span> <span class="s2">&quot;imag_qpe&quot;</span><span class="p">,</span> <span class="s2">&quot;ze0&quot;</span><span class="p">]</span>   <span class="c1"># &quot;re_fan0&quot;, &quot;imag_fan0&quot;, &quot;dw&quot;</span>
 
         <span class="c1"># Build grid plot.</span>
         <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">what_list</span><span class="p">),</span> <span class="mi">1</span>
@@ -1314,10 +1339,14 @@
 <span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
 <span class="sd">        Used in abiview.py to get a quick look at the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpbands_ibzt</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1">#for qpk in self.sigma_kpoints:</span>
-        <span class="c1">#    yield self.plot_qpgaps_t(qp_kpoints=[qpk], show=False)</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps_t</span><span class="p">(</span><span class="n">qp_kpoints</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1">#yield self.plot_qpgaps_t(qp_kpoints=0, show=False)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qp_kpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_kpoints</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File contains more than 5 k-points. Only the first five k-points are displayed.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps_t</span><span class="p">(</span><span class="n">qp_kpoints</span><span class="o">=</span><span class="n">qp_kpt</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigEPhFile.write_notebook"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1482,7 +1511,7 @@
             <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ncfile</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lnp_list</span><span class="p">):</span>
                 <span class="n">sigma</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_sigeph_skb</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
                 <span class="n">fig</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">.</span><span class="n">plot_tdep</span><span class="p">(</span><span class="n">itemps</span><span class="o">=</span><span class="n">itemp</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="n">ax_list</span><span class="p">,</span>
-                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">ix</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">lnp_list</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">ix</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">lnp_list</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">ax_list</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># group_and_sortby and build (3, ngroups) subplots</span>
@@ -1497,7 +1526,7 @@
                     <span class="n">sigma</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_sigeph_skb</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
                     <span class="n">fig</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">.</span><span class="n">plot_tdep</span><span class="p">(</span><span class="n">itemps</span><span class="o">=</span><span class="n">itemp</span><span class="p">,</span> <span class="n">ax_list</span><span class="o">=</span><span class="n">ax_mat</span><span class="p">[:,</span> <span class="n">ig</span><span class="p">],</span>
                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_label</span><span class="p">(</span><span class="n">sortby</span><span class="p">),</span> <span class="n">param</span><span class="p">),</span>
-                        <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">ix</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">ix</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">ig</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_mat</span><span class="p">[:,</span> <span class="n">ig</span><span class="p">]:</span>
@@ -1769,6 +1798,19 @@
                         <span class="n">set_visible</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;ylabel&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="SigEPhRobot.yield_figs"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhRobot.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">itemp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">qp_kpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sigma_kpoints</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File contains more than 5 k-points. Only the first five k-points are displayed.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps_convergence</span><span class="p">(</span><span class="n">qp_kpoints</span><span class="o">=</span><span class="n">qp_kpt</span><span class="p">,</span> <span class="n">itemp</span><span class="o">=</span><span class="n">itemp</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps_t</span><span class="p">(</span><span class="n">qp_kpoints</span><span class="o">=</span><span class="n">qp_kpt</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigEPhRobot.write_notebook"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigEPhRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2052,7 +2094,7 @@
         <span class="k">return</span> <span class="n">edos_plotter</span></div></div>
 
 
-<div class="viewcode-block" id="SigmaPhReader"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigmaPhReader">[docs]</a><span class="k">class</span> <span class="nc">SigmaPhReader</span><span class="p">(</span><span class="n">ElectronsReader</span><span class="p">):</span>
+<div class="viewcode-block" id="SigmaPhReader"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigmaPhReader">[docs]</a><span class="k">class</span> <span class="nc">SigmaPhReader</span><span class="p">(</span><span class="n">BaseEphReader</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads data from file and constructs objects.</span>
 
@@ -2195,33 +2237,38 @@
 <span class="sd">        Return :class:`QpTempState` for the given (spin, kpoint, band).</span>
 <span class="sd">        Only real part is returned if ``ignore_imag``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ib</span><span class="p">,</span> <span class="n">kpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sigma_skb_kpoint</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
+        <span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="n">kpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sigma_skb_kpoint</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">ri</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">if</span> <span class="n">ignore_imag</span> <span class="k">else</span> <span class="n">a</span>
 
-        <span class="c1"># complex(dpc),allocatable :: qp_enes(:,:)</span>
-        <span class="c1"># qp_enes(ntemp, max_nbcalc)</span>
-        <span class="c1"># (Complex) QP energies computed with the non-adiabatic formalism.</span>
+        <span class="c1"># (Complex) QP energies computed with the dynamic formalism.</span>
         <span class="c1"># nctkarr_t(&quot;qp_enes&quot;, &quot;dp&quot;, &quot;two, ntemp, max_nbcalc, nkcalc, nsppol&quot;)</span>
         <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;qp_enes&quot;</span><span class="p">)</span>
-        <span class="n">qpe</span> <span class="o">=</span> <span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ib</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ib</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
+        <span class="n">qpe</span> <span class="o">=</span> <span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
 
-        <span class="c1">#var = self.read_variable(&quot;qpadb_enes&quot;)</span>
-        <span class="c1">#qpe_adb = var[spin, ikc, ib, :] * units.Ha_to_eV</span>
+        <span class="c1"># Adiabatic energies.</span>
+        <span class="c1"># nctkarr_t(&quot;qpadb_enes&quot;, &quot;dp&quot;, &quot;two, ntemp, max_nbcalc, nkcalc, nsppol&quot;)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;qpadb_enes&quot;</span><span class="p">)</span>
+        <span class="n">qpe_adb</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
 
-        <span class="c1"># nctkarr_t(&quot;dw_vals&quot;, &quot;dp&quot;, &quot;ntemp, max_nbcalc, nkcalc, nsppol&quot;),</span>
         <span class="c1"># Debye-Waller term (static).</span>
+        <span class="c1"># nctkarr_t(&quot;dw_vals&quot;, &quot;dp&quot;, &quot;ntemp, max_nbcalc, nkcalc, nsppol&quot;),</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;dw_vals&quot;</span><span class="p">)</span>
+        <span class="n">dw</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
 
-        <span class="c1"># complex(dpc),allocatable :: vals_e0ks(:,:)</span>
-        <span class="c1"># vals_e0ks(ntemp, max_nbcalc)</span>
-        <span class="c1"># Sigma_eph(omega=eKS, kT, band) for fixed (kcalc, spin).</span>
+        <span class="c1"># Sigma_eph(omega=eKS, kT, band, ikcalc, spin)</span>
+        <span class="c1"># nctkarr_t(&quot;vals_e0ks&quot;, &quot;dp&quot;, &quot;two, ntemp, max_nbcalc, nkcalc, nsppol&quot;)</span>
         <span class="c1"># TODO: Add Fan0 instead of computing Sigma - DW?</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vals_e0ks&quot;</span><span class="p">)</span>
+        <span class="n">sigc</span> <span class="o">=</span> <span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
+        <span class="n">fan0</span> <span class="o">=</span> <span class="n">sigc</span> <span class="o">-</span> <span class="n">dw</span>
 
-        <span class="c1"># nctkarr_t(&quot;ks_enes&quot;, &quot;dp&quot;, &quot;max_nbcalc, nkcalc, nsppol&quot;),</span>
-        <span class="c1">#nctkarr_t(&quot;ze0_vals&quot;, &quot;dp&quot;, &quot;ntemp, max_nbcalc, nkcalc, nsppol&quot;), &amp;</span>
-        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;ks_enes&quot;</span><span class="p">)[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ib</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
-        <span class="n">ze0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;ze0_vals&quot;</span><span class="p">)[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ib</span><span class="p">]</span>
+        <span class="c1"># nctkarr_t(&quot;ks_enes&quot;, &quot;dp&quot;, &quot;max_nbcalc, nkcalc, nsppol&quot;)</span>
+        <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;ks_enes&quot;</span><span class="p">)[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
+
+        <span class="c1"># nctkarr_t(&quot;ze0_vals&quot;, &quot;dp&quot;, &quot;ntemp, max_nbcalc, nkcalc, nsppol&quot;)</span>
+        <span class="n">ze0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;ze0_vals&quot;</span><span class="p">)[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">QpTempState</span><span class="p">(</span>
             <span class="n">spin</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span>
@@ -2230,9 +2277,10 @@
             <span class="n">tmesh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">,</span>
             <span class="n">e0</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span>
             <span class="n">qpe</span><span class="o">=</span><span class="n">ri</span><span class="p">(</span><span class="n">qpe</span><span class="p">),</span>
-            <span class="c1">#sigxme=self._sigxme[spin, ikc, ib_file],</span>
-            <span class="c1">#sigcmee0=ri(self._sigcmee0[spin, ikc, ib_file]),</span>
             <span class="n">ze0</span><span class="o">=</span><span class="n">ze0</span><span class="p">,</span>
+            <span class="n">fan0</span><span class="o">=</span><span class="n">ri</span><span class="p">(</span><span class="n">fan0</span><span class="p">),</span>
+            <span class="n">dw</span><span class="o">=</span><span class="n">dw</span><span class="p">,</span>
+            <span class="n">qpe_adb</span><span class="o">=</span><span class="n">qpe_adb</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigmaPhReader.read_allqps"><a class="viewcode-back" href="../../../api/eph_api.html#abipy.eph.sigeph.SigmaPhReader.read_allqps">[docs]</a>    <span class="k">def</span> <span class="nf">read_allqps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore_imag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -2265,8 +2313,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

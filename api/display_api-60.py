@@ -1,1 +1,4 @@
-ax = sns.stripplot(x="day", y="total_bill", data=tips, jitter=0.05)
+import seaborn as sns
+sns.set_style("whitegrid")
+tips = sns.load_dataset("tips")
+ax = sns.stripplot(x=tips["total_bill"])

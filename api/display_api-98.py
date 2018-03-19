@@ -1,2 +1,1 @@
-ax = sns.barplot("size", y="total_bill", data=tips,
-                 color="salmon", saturation=.5)
+ax = sns.barplot(x="day", y="total_bill", hue="sex", data=tips)

@@ -379,26 +379,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w) and the e-ph coupling strenght in...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_a2f_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_a2f.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_a2f
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr...">
 
 .. only:: html
@@ -456,6 +436,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_gruneisen
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the Eliashberg function a2F(w) and the e-ph coupling strenght in...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_a2f_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_a2f.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_a2f
 
 .. raw:: html
 

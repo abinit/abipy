@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.gw &#8212; abipy 0.3.0 documentation</title>
+    <title>abipy.electrons.gw &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -309,35 +309,35 @@
             <span class="k">if</span> <span class="n">diffset</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The following fields are not documented: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">diffset</span><span class="p">))</span>
 
-            <span class="k">return</span> <span class="n">_TIPS</span></div></div>
+            <span class="k">return</span> <span class="n">_TIPS</span></div>
 
+<div class="viewcode-block" id="QPState.get_fields_for_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.QPState.get_fields_for_plot">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_fields_for_plot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return list of QPState fields to plot from input arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">]))[:]</span>
 
-<span class="k">def</span> <span class="nf">_get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return list of QPState fields to plot from input arguments.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">all_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">QPState</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spin&quot;</span><span class="p">,</span> <span class="s2">&quot;kpoint&quot;</span><span class="p">]))[:]</span>
+        <span class="c1"># Initialize fields.</span>
+        <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span> <span class="ow">and</span> <span class="n">with_fields</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">all_fields</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_fields</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2"> not in allowed values </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">all_fields</span><span class="p">))</span>
 
-    <span class="c1"># Initialize fields.</span>
-    <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span> <span class="ow">and</span> <span class="n">with_fields</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">all_fields</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">list_strings</span><span class="p">(</span><span class="n">with_fields</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_fields</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2"> not in allowed values </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">all_fields</span><span class="p">))</span>
+        <span class="c1"># Remove entries</span>
+        <span class="k">if</span> <span class="n">exclude_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">exclude_fields</span><span class="p">):</span>
+                <span class="n">exclude_fields</span> <span class="o">=</span> <span class="n">exclude_fields</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude_fields</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">pass</span>
 
-    <span class="c1"># Remove entries</span>
-    <span class="k">if</span> <span class="n">exclude_fields</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">is_string</span><span class="p">(</span><span class="n">exclude_fields</span><span class="p">):</span>
-            <span class="n">exclude_fields</span> <span class="o">=</span> <span class="n">exclude_fields</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude_fields</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="k">pass</span>
-
-    <span class="k">return</span> <span class="n">fields</span>
+        <span class="k">return</span> <span class="n">fields</span></div></div>
 
 
 <span class="k">class</span> <span class="nc">QPList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
@@ -452,7 +452,7 @@
             <span class="n">fermie</span> <span class="o">=</span> <span class="n">fermi</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;fermi keyword argument have beeen renamed fermie. Old arg will be removed in version 0.4&quot;</span><span class="p">)</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">_get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">QPState</span><span class="o">.</span><span class="n">get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">num_plots</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
@@ -1044,7 +1044,7 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="n">_get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">QPState</span><span class="o">.</span><span class="n">get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Build plot grid</span>
@@ -1324,7 +1324,7 @@
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">with_fields</span> <span class="o">=</span> <span class="n">_get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
+        <span class="n">with_fields</span> <span class="o">=</span> <span class="n">QPState</span><span class="o">.</span><span class="n">get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
 
         <span class="n">fermie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
@@ -2532,7 +2532,7 @@
                     <span class="n">sigma</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">read_sigee_skb</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kpoint</span><span class="p">,</span> <span class="n">band</span><span class="p">)</span>
                     <span class="n">fig</span> <span class="o">=</span> <span class="n">sigma</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax_list</span><span class="o">=</span><span class="n">ax_mat</span><span class="p">[:,</span> <span class="n">ig</span><span class="p">],</span>
                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_label</span><span class="p">(</span><span class="n">sortby</span><span class="p">),</span> <span class="n">param</span><span class="p">),</span>
-                        <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)),</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">ig</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_mat</span><span class="p">[:,</span> <span class="n">ig</span><span class="p">]:</span>
@@ -2576,8 +2576,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

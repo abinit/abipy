@@ -1,4 +1,3 @@
-import seaborn as sns
-sns.set_style("whitegrid")
-tips = sns.load_dataset("tips")
-ax = sns.stripplot(x=tips["total_bill"])
+ax = sns.violinplot(x="orbital_period", y="method",
+                    data=planets[planets.orbital_period < 1000],
+                    cut=0, scale="width", palette="Set3")

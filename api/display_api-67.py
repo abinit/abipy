@@ -1,3 +1,3 @@
-ax = sns.boxplot(x="tip", y="day", data=tips, whis=np.inf)
-ax = sns.stripplot(x="tip", y="day", data=tips,
-                   jitter=True, color=".3")
+ax = sns.stripplot(x="day", y="total_bill", hue="smoker",
+                   data=tips, jitter=True,
+                   palette="Set2", dodge=True)

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abistruct.py &#8212; abipy 0.3.0 documentation</title>
+    <title>abistruct.py &#8212; abipy 0.4.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.3.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -677,7 +677,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
 </td></tr>
 </tbody>
@@ -738,7 +738,7 @@ have dimensions 2a x b x c.</li>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1077,7 +1077,7 @@ closest points in this particular structure. This is usually what you want in a 
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1706,7 +1706,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
 </td></tr>
 </tbody>
@@ -1770,7 +1770,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1840,7 +1840,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <tr><td>&#160;</td><td>Select structures with this space group number.</td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -1962,7 +1962,7 @@ ehull &lt; show_unstable will be shown.</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -2011,7 +2011,7 @@ ehull &lt; show_unstable will be shown.</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
-<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, cssr, json, None)</p>
+<td><p class="first">Output format. Default: abivars. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “abivars”</p>
 </td></tr>
 </tbody>
@@ -2071,8 +2071,8 @@ ehull &lt; show_unstable will be shown.</p>
       
     </p>
     <p>
-        &copy; Copyright 2018, The AbiPy group.<br/>
-      Last updated on Feb 22, 2018.<br/>
+        &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
+      Last updated on Mar 19, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>
