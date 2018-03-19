@@ -377,7 +377,7 @@ class A2f(object):
 
         Args:
             phdos: |PhononDos|
-            atol: F(w) is replaced by atol in a2F(w) / F(w) ratio where |F(w)| < atol
+            atol: F(w) is replaced by atol in a2F(w) / F(w) ratio where :math:`|F(w)|` < atol
 
         Returns: |matplotlib-Figure|
         """
