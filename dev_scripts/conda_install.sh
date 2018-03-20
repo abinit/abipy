@@ -20,7 +20,8 @@ echo "Installing bader executable (http://theory.cm.utexas.edu/henkelman/code/ba
 conda install -y -c matsci bader
 
 echo "Installing abinit from abinit channel ..."
-conda install -y -c gmatteo abinit=${ABINIT_VERSION}
+#conda install -y -c gmatteo abinit=${ABINIT_VERSION}
+conda install -y -c abinit abinit=${ABINIT_VERSION}
 abinit --version
 abinit --build
 
