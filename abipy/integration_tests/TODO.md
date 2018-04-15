@@ -2,6 +2,8 @@ TODO list:
 
 ## High priority
 
+* Add ebands.method to fix the fermi level in semiconductors
+
 * Send PR to phononwebsite with phonon band structures for tutorials.
 
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice 
@@ -34,6 +36,8 @@ TODO list:
 * Check Positive gw_qprange in EPH
 
 * DONE Fix problem with get_edos if we don't have enough bands 
+
+* abicomp should accept tolsym args
 
 ## Medium priority
 
