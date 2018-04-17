@@ -5,7 +5,6 @@ from __future__ import print_function
 import sys
 import os
 import shutil
-import numpy as np
 
 from glob import glob
 from setuptools import find_packages, setup, Extension
@@ -149,8 +148,27 @@ def cleanup():
 
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
-with open("requirements.txt", "rt") as fh:
-    install_requires = [s.strip() for s in fh]
+#with open("requirements.txt", "rt") as fh:
+#    install_requires = [s.strip() for s in fh]
+
+install_requires = [
+"six",
+"prettytable",
+"tabulate",
+"apscheduler==2.1.0",
+"pydispatcher>=2.0.5",
+"tqdm",
+"html2text",
+"pyyaml>=3.11",
+"pandas",
+"numpy",
+"scipy",
+"spglib",
+"pymatgen==2018.3.14",
+"netCDF4",
+"matplotlib",
+"seaborn",
+]
 
 with_wxpython = False
 if with_wxpython:
@@ -158,8 +176,6 @@ if with_wxpython:
         "wxmplot",
         "wxpython",
     ]
-
-#print("install_requires\n", install_requires)
 
 
 #---------------------------------------------------------------------------

@@ -2379,7 +2379,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         for i, (symbol, pjdos) in enumerate(self.pjdos_symbol.items()):
             x, y = pjdos.mesh * factor, pjdos.values / factor
-            color = cmap(float(i) / (num_plots - 1))
+            if num_plots != 1:
+                color = cmap(float(i) / (num_plots - 1))
+            else:
+                color = cmap(0.0)
             if not stacked:
                 ax.plot(x, y, lw=lw, label=symbol, color=color)
             else:

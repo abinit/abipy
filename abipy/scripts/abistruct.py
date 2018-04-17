@@ -694,6 +694,10 @@ def main():
 
     elif options.command == "kstar":
         structure = abilab.Structure.from_file(options.filepath)
+
+        # TODO
+        #kstar = structure.get_star_kpoint(options.kpoint, has_timerev=not options.no_time_reversal)
+
         # Call spglib to get spacegroup if Abinit spacegroup is not available.
         if structure.abi_spacegroup is None:
             structure.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)

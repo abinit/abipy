@@ -1056,7 +1056,7 @@ Default: o
 
     # Subparser for graphviz.
     p_graphviz = subparsers.add_parser('graphviz', parents=[copts_parser],
-        help=("Draw flow and node dependencies with graphviz package. Accept (FLOWDIR|WORKDIR|TASKDIR)"
+        help=("Draw flow and node dependencies with graphviz package. Accept (FLOWDIR|WORKDIR|TASKDIR). "
              "See https://graphviz.readthedocs.io/."))
     p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "

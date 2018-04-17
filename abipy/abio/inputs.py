@@ -2186,6 +2186,22 @@ class MultiDataset(object):
         """Integration with jupyter_ notebooks."""
         return self.to_string(mode="html")
 
+    def get_vars_dataframe(self, *varnames):
+        """
+        Return pandas DataFrame with the value of the variables specified in `varnames`.
+
+        .. example:
+
+            df = multi.get_vars_dataframe("ecut", "ngkpt")
+        """
+        import pandas as pd
+        frames = []
+        for i, inp in enumerate(self):
+            df = pd.DataFrame([{v: inp.get(v, None) for v in varnames}],
+                              index=["dataset %d" % i], columns=varnames)
+            frames.append(df)
+        return pd.concat(frames)
+
     def filter_by_tags(self, tags=None, exclude_tags=None):
         """
         Filters the input according to the tags
