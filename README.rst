@@ -73,19 +73,23 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
 To install AbiPy with conda, download the `minconda installer <https://conda.io/miniconda.html>`_
 (select python3.6 and the version corresponding to your operating system).
-Create a new conda_ environment (``abipy3.6``) based on python3.6 with::
+Create a new conda_ environment (let's call it ``abipy3.6``) based on python3.6 with::
 
-    conda create -n abipy3.6 python=3.6
+    conda create --name abipy3.6 python=3.6
 
 and activate it with::
 
     source activate abipy3.6
 
-Add ``conda-forge``, ``matsci`` and ``abinit`` to your channels with::
+You should see the name of the conda environment in the shell prompt.
+
+Now add ``conda-forge``, ``matsci`` and ``abinit`` to your conda channels with::
 
     conda config --add channels conda-forge
     conda config --add channels matsci
     conda config --add channels abinit
+
+These are the channels from which we will download pymatgen, abipy and abinit.
 
 Finally, install AbiPy from the abinit-channel_ with::
 
@@ -188,8 +192,6 @@ Below is a brief description of the different directories found there:
 
     Scripts showing how to generate an AbiPy flow, run the calculation and use ipython to analyze the data.
 
-  * `notebooks <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_
-
 Additional jupyter notebooks with the Abinit tutorials written with AbiPy are available in the
 `abitutorial repository <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
 
@@ -209,7 +211,8 @@ The following scripts can be invoked directly from the terminal:
 * ``abidoc.py``     Document Abinit input variables and Abipy configuration files.
 * ``abinp.py``      Build input files (simplified interface for the AbiPy factory functions).
 
-Use ``SCRIPT --help`` to get the list of supported options.
+Use ``SCRIPT --help`` to get the list of supported commands and 
+``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
 For further information, please consult the `official documentation <http://abinit.github.io/abipy/scripts/index.html>`_.
 
 License

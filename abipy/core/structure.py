@@ -947,6 +947,20 @@ class Structure(pymatgen.Structure, NotebookWriter):
         # Construct the stars.
         return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
 
+    # TODO
+    #def get_star_kpoint(self, kpoint):
+
+    #    # Call spglib to get spacegroup if Abinit spacegroup is not available.
+    #    if self.abi_spacegroup is None:
+    #        self.spgset_abi_spacegroup(has_timerev=not options.no_time_reversal)
+
+    #    kpoint = Kpoint(options.kpoint, self.reciprocal_lattice)
+    #    kstar = kpoint.compute_star(self.abi_spacegroup, wrap_tows=True)
+    #    return kstar
+    #    #print("Found %s points in the star of %s\n" % (len(kstar), repr(kpoint)))
+    #    #for k in kstar:
+    #    #    print(4 * " ", repr(k))
+
     def get_sorted_structure_z(self):
         """Order the structure according to increasing Z of the elements"""
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))

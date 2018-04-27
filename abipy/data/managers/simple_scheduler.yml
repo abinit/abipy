@@ -1,3 +1,6 @@
+max_njobs_inqueue: 2
+max_ncores_used: 4
+
 # number of weeks to wait.
 #weeks: 0
 

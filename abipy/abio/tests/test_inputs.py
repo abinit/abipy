@@ -499,6 +499,10 @@ class TestMultiDataset(AbipyTest):
         assert all(inp["ecut"] == 2 for inp in multi)
         self.assert_equal(multi.get("ecut"), [2, 2])
 
+        df = multi.get_vars_dataframe("ecut", "foobar")
+        assert "ecut" in df
+        self.assert_equal(df["ecut"].values, [2, 2])
+
         multi[1].set_vars(ecut=1)
         assert multi[0]["ecut"] == 2 and multi[1]["ecut"] == 1
         self.assert_equal(multi.get("ecut"), [2, 1])

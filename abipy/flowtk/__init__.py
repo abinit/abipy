@@ -19,6 +19,7 @@ except ImportError:
     pass
 from pymatgen.io.abinit.nodes import Status
 from pymatgen.io.abinit.tasks import *
+from pymatgen.io.abinit.tasks import EphTask
 from pymatgen.io.abinit.works import *
 from pymatgen.io.abinit.flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow,
     g0w0_flow, phonon_flow, phonon_conv_flow, NonLinearCoeffFlow)
