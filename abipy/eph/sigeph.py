@@ -2130,7 +2130,7 @@ class SigmaPhReader(BaseEphReader):
         # nctkarr_t("vals_e0ks", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
         # TODO: Add Fan0 instead of computing Sigma - DW?
         var = self.read_variable("vals_e0ks")
-        sigc = (var[spin, ikc, ibc, :, 0] + var[spin, ikc, ibc, :, 1]) * units.Ha_to_eV
+        sigc = (var[spin, ikc, ibc, :, 0] + 1j * var[spin, ikc, ibc, :, 1]) * units.Ha_to_eV
         fan0 = sigc - dw
 
         # nctkarr_t("ks_enes", "dp", "max_nbcalc, nkcalc, nsppol")
