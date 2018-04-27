@@ -696,6 +696,34 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbst_file, phdos_file
 
+    def get_coarse(self, filepath, ngqpt_coarse):
+        """
+        Get a version of this file on a coarse mesh
+
+        Args:
+            ngqpt: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+        """
+        #check if ngqpt is a sub-mesh of ngqpt
+        ngqpt_fine = self.guessed_ngqpt
+        if all([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+            raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
+
+        #get the points in the fine mesh
+        fine_qpoints = [q.frac_coords for q in self.qpoints]
+
+        #generate the points of the coarse mesh
+        map_fine_to_coarse = []
+        nx,ny,nz = ngqpt_coarse
+        for i,j,k in itertools.product(range(nx),range(ny),range(nz)):
+            for n,fine_qpt in enumerate(fine_qpoints):
+                coarse_qpt = np.array([i,j,k])/np.array(ngqpt_coarse)
+                if np.allclose(coarse_qpt,fine_qpt):
+                    map_fine_to_coarse.append(n)
+
+        #write the file with a subset of q-points
+        self.write(filepath,map_fine_to_coarse)
+        return DdbFile(filepath)
+
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
                        verbose=0, mpi_procs=1):
@@ -1006,25 +1034,30 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
 
-    def write(self, filepath):
+    def write(self, filepath, filter_blocks=None):
         """
         Writes the DDB file in filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         lines = list(self.header.lines)
 
+        if filter_blocks is None:
+            blocks = self.blocks
+        else:
+            blocks = [self.blocks[i] for i in filter_blocks]
+
         lines.append(" **** Database of total energy derivatives ****")
-        lines.append(" Number of data blocks={0:5}".format(len(self.blocks)))
+        lines.append(" Number of data blocks={0:5}".format(len(blocks)))
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"])
             lines.append(" ")
 
         lines.append(" List of bloks and their characteristics")
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"][:2])
             lines.append(" ")
 
