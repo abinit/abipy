@@ -2071,8 +2071,11 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * abu.kb_eVK * temp)
-            vals[it] = np.trapz(w * coth(wd2kt) * gw, x=w)
+            if temp:
+                wd2kt = w / (2 * abu.kb_eVK * temp)
+                vals[it] = np.trapz(w * coth(wd2kt) * gw, x=w)
+            else:
+                vals[it] =  np.trapz(w * gw, x=w)
 
         return Function1D(tmesh, 0.5 * vals)
 
@@ -2093,8 +2096,11 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * abu.kb_eVK * temp)
-            vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
+            if temp:
+                wd2kt = w / (2 * abu.kb_eVK * temp)
+                vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
+            else:
+                vals[it] = 0
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
@@ -2133,8 +2139,11 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * abu.kb_eVK * temp)
-            vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
+            if temp:
+                wd2kt = w / (2 * abu.kb_eVK * temp)
+                vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
+            else:
+                vals[it] = 0
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
