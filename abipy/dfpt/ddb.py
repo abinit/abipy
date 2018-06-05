@@ -620,8 +620,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, ndivsm=20, asr=2, chneut=1, dipdip=1, dos_method="tetra",
-                                     lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None, verbose=0,
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+                                     anaddb_kwargs=None, verbose=0,
                                      mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
@@ -630,7 +631,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
             ndivsm: Number of division used for the smallest segment of the q-path.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening.
@@ -660,10 +665,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, q1shft=(0, 0, 0), qptbounds=qptbounds,
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density, 
+            nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)
 
+        #work as usual
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
 
         if verbose:
@@ -688,6 +695,34 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         #if phdos_file is not None: self._add_params(phdos_file.phdos)
 
         return phbst_file, phdos_file
+
+    def get_coarse(self, filepath, ngqpt_coarse):
+        """
+        Get a version of this file on a coarse mesh
+
+        Args:
+            ngqpt: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
+        """
+        #check if ngqpt is a sub-mesh of ngqpt
+        ngqpt_fine = self.guessed_ngqpt
+        if all([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+            raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
+
+        #get the points in the fine mesh
+        fine_qpoints = [q.frac_coords for q in self.qpoints]
+
+        #generate the points of the coarse mesh
+        map_fine_to_coarse = []
+        nx,ny,nz = ngqpt_coarse
+        for i,j,k in itertools.product(range(nx),range(ny),range(nz)):
+            for n,fine_qpt in enumerate(fine_qpoints):
+                coarse_qpt = np.array([i,j,k])/np.array(ngqpt_coarse)
+                if np.allclose(coarse_qpt,fine_qpt):
+                    map_fine_to_coarse.append(n)
+
+        #write the file with a subset of q-points
+        self.write(filepath,map_fine_to_coarse)
+        return DdbFile(filepath)
 
     def anacompare_asr(self, asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
@@ -999,25 +1034,30 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
 
-    def write(self, filepath):
+    def write(self, filepath, filter_blocks=None):
         """
         Writes the DDB file in filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks will be used to produce the file
         """
         lines = list(self.header.lines)
 
+        if filter_blocks is None:
+            blocks = self.blocks
+        else:
+            blocks = [self.blocks[i] for i in filter_blocks]
+
         lines.append(" **** Database of total energy derivatives ****")
-        lines.append(" Number of data blocks={0:5}".format(len(self.blocks)))
+        lines.append(" Number of data blocks={0:5}".format(len(blocks)))
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"])
             lines.append(" ")
 
         lines.append(" List of bloks and their characteristics")
         lines.append(" ")
 
-        for b in self.blocks:
+        for b in blocks:
             lines.extend(b["data"][:2])
             lines.append(" ")
 
