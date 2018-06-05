@@ -1671,11 +1671,8 @@ class ElectronBands(Has_Structure):
 
         # Plot the band energies.
         for spin in spin_list:
-            if spin == 0:
-                opts = {"color": "black", "linewidth": 2.0}
-            else:
-                opts = {"color": "red", "linewidth": 2.0}
-
+            opts = ({"color": "black", "linewidth": 2.0} if spin == 0 else
+                    {"color": "red", "linewidth": 2.0})
             for band in band_list:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
@@ -1838,8 +1835,6 @@ class ElectronBands(Has_Structure):
                 The values are the labels. e.g. ``klabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
                 is created and the two axes are automatically generated.
-            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
 
                 * ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
@@ -1852,6 +1847,8 @@ class ElectronBands(Has_Structure):
                 *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 *  None: Don't shift energies, equivalent to ``e0 = 0``
 
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
 
         Return: |matplotlib-Figure|
@@ -2148,7 +2145,7 @@ class ElectronBands(Has_Structure):
                     kmesh=None, is_shift=None, filter_params=None, verbose=0):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
-        Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
+        Note that the interpolation will likely fail if there are symmetrical k-points in the input set
         so it's recommended to call this method with band structure obtained in the IBZ.
 
         Args:
@@ -2923,8 +2920,9 @@ class ElectronDos(object):
         Args:
             mesh: array-like object with the mesh points in eV.
             spin_dos: array-like object with the DOS value for the different spins.
-                      spin_dos[1, nw] if spin-unpolarized.
-                      spin_dos[2, nw] if spin-polarized case.
+                Shape:
+                      (1, nw) if spin-unpolarized.
+                      (2, nw) if spin-polarized case.
             nelect: Number of electrons in the unit cell.
             fermie: Fermi level in eV. If None, fermie is obtained from the idos integral.
 

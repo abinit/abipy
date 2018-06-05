@@ -45,12 +45,12 @@ def sort_paths(options):
     print("Use --no-sort to disable automatic sorting.")
 
 
-def abiview_fields(options):
-    """Animate fields with Mayavi. Accept any file with density or potential ..."""
-    from abipy.display.mvtk import MayaviFieldAnimator
-    a = MayaviFieldAnimator(options.filepath)
-    a.volume_animate()
-    return 0
+#def abiview_fields(options):
+#    """Animate fields with Mayavi. Accept any file with density or potential ..."""
+#    from abipy.display.mvtk import MayaviFieldAnimator
+#    a = MayaviFieldAnimator(options.filepath)
+#    a.volume_animate()
+#    return 0
 
 
 def abicomp_structure(options):
@@ -468,6 +468,14 @@ def abicomp_sigeph(options):
     Compare multiple SIGEPH files.
     """
     return _invoke_robot(options)
+
+
+def abicomp_sdelta(options):
+    """
+    Compare multiple SDELTA files.
+    """
+    return _invoke_robot(options)
+
 
 
 def dataframe_from_pseudos(pseudos, index=None):
@@ -917,6 +925,7 @@ def get_parser(with_epilog=False):
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
     p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_sdelta = subparsers.add_parser('sdelta', parents=robot_parents, help=abicomp_sdelta.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
