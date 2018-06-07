@@ -794,8 +794,8 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='Verbose, can be supplied multiple times to increase verbosity.')
     #copts_parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings for plots.")
-    copts_parser.add_argument('-sns', "--seaborn", const="talk", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: talk')
+    copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."

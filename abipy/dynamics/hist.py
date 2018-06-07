@@ -678,6 +678,13 @@ class HistRobot(Robot):
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.gridplot(show=False)
+        yield self.combiplot(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current

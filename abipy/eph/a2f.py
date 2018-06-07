@@ -1285,6 +1285,15 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
     #    set_axlims(ax, xlims, "x")
     #    return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_lambda_convergence(show=False)
+        yield self.plot_a2f_convergence(show=False)
+        yield self.plot_a2fdata_convergence(show=False)
+        yield self.gridplot_a2f(show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
@@ -1433,4 +1442,3 @@ class A2fReader(BaseEphReader):
     #     nctkarr_t('phdispl_cart_qibz', "dp", "two, natom3, natom3, nqibz"), &
     #     nctkarr_t('phgamma_qibz', "dp", "natom3, nqibz, number_of_spins"), &
     #     nctkarr_t('phlambda_qibz', "dp", "natom3, nqibz, number_of_spins") &
-
