@@ -114,6 +114,9 @@ class PhononBandsTest(AbipyTest):
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
             assert phbands.plot_colored_matched(units="cm^-1", show=False)
             assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False)
+            assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False, cart_dir="x+y")
+            assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False, use_sqrt=True,
+                                        normalize=False)
             with self.assertRaises(ValueError):
                 # No LO-TO terms
                 assert phbands.plot_phdispl(qpoint=1, is_non_analytical_direction=True, show=False)
@@ -366,6 +369,9 @@ class PhononDosTest(AbipyTest):
 
         f = phdos.get_free_energy()
         self.assert_almost_equal(f.values, (u - s.mesh * s.values).values)
+
+        self.assertAlmostEqual(phdos.debye_temp, 469.01524830328606)
+        self.assertAlmostEqual(phdos.get_acoustic_debye_temp(len(ncfile.structure)), 372.2576492728813)
 
         assert ncfile.to_pymatgen()
 

@@ -919,7 +919,7 @@ class PhononBands(object):
         # Decorate the axis (e.g add ticks and labels).
         self.decorate_ax(ax, units=units, qlabels=qlabels)
 
-        if "color" not in kwargs and not match_bands:
+        if "color" not in kwargs:
             kwargs["color"] = "black"
 
         if "linewidth" not in kwargs:
@@ -1400,19 +1400,21 @@ class PhononBands(object):
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl(self, qpoint, cart_dir=None, ax=None, units="eV",
+    def plot_phdispl(self, qpoint, cart_dir=None, use_reduced_coords=False, ax=None, units="eV",
                      is_non_analytical_direction=False, use_eigvec=False,
-                     colormap="viridis", hatches="default", fontsize=12, **kwargs):
-        r"""
-        Plot vertical bars with the contribution of the different atomic types to all the phonon modes
+                     colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
+                     normalize=True, use_sqrt=False, fontsize=12, branches=None, format_w="%.3f", **kwargs):
+        """
+        Plot vertical bars with the contribution of the different atoms or atomic types to all the phonon modes
         at a given ``qpoint``. The contribution is given by ||v_{type}||
         where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
         v_{type} selects only the terms associated to the atomic type.
+        Options allow to specify which atoms should be taken into account and how should be reparted.
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
-            cart_dir: "x", "y", or "z" to select a particular Cartesian directions.
-                None if no projection is wanted.
+            cart_dir: "x", "y", or "z" to select a particular Cartesian directions. or combinations separated by "+".
+                Example: "x+y". None if no projection is wanted.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
@@ -1424,13 +1426,39 @@ class PhononBands(object):
             colormap: Matplotlib colormap used for atom type.
             hatches: List of strings with matplotlib hatching patterns. None or empty list to disable hatching.
             fontsize: Legend and title fontsize.
+            normalize: if True divides by the square norm of the total eigenvector
+            use_sqrt: if True the square root of the sum of the components will be taken
+            use_reduced_coords: if True coordinates will be converted to reduced coordinates. So the values will be
+                fraction of a,b,c rather than x,y,z.
+            atoms_index: list of lists. Each list contains the indices of atoms in the structure that will be
+                summed on a separate group. if None all the atoms will be considered and grouped by type.
+            labels_groups: If atoms_index is not None will provide the labels for each of the group in atoms_index.
+                Should have the same length of atoms_index or be None. If None automatic labelling will be used.
+            branches: list of indices for the modes that shoul be represented. If None all the modes will be shown.
+            format_w: string used to format the values of the frequency. Default "%.3f".
 
         Returns: |matplotlib-Figure|
         """
         factor = abu.phfactor_ev2units(units)
-        icart = {"x": 0, "y": 1, "z": 2, None: None}[cart_dir]
+
+        dxyz = {"x": 0, "y": 1, "z": 2, None: None}
+
+        if cart_dir is None:
+            icart = None
+        else:
+            icart = [dxyz[c] for c in cart_dir.split("+")]
 
         iq, qpoint = self.qindex_qpoint(qpoint, is_non_analytical_direction=is_non_analytical_direction)
+
+        if use_sqrt:
+            f_sqrt = np.sqrt
+        else:
+            f_sqrt = lambda x: x
+
+        if branches is None:
+            branches = self.branches
+        elif not isinstance(branches, (list, tuple)):
+            branches = [branches]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -1448,7 +1476,6 @@ class PhononBands(object):
         else:
             ax.set_ylabel(r"${|\vec{%s}_{%s,type}|} (stacked)$" % (what, cart_dir), fontsize=fontsize)
 
-        # {Mg: [0], B: [1, 2]}
         symbol2indices = self.structure.get_symbol2indices()
 
         width, pad = 4, 1
@@ -1460,7 +1487,7 @@ class PhononBands(object):
             hatches = list_strings(hatches) if hatches is not None else []
 
         x = 0
-        for nu in self.branches:
+        for nu in branches:
             # Select frequencies and cartesian displacements/eigenvectors
             if is_non_analytical_direction:
                 w_qnu = self.non_anal_phfreqs[iq, nu] * factor
@@ -1475,27 +1502,55 @@ class PhononBands(object):
                 else:
                     vcart_qnu = np.reshape(self.phdispl_cart[iq, nu], (len(self.structure), 3))
 
-            #vnorm2 = sum(np.linalg.norm(d)**2 for d in vcart_qnu)
-            vnorm2 = 1.0
+            if use_reduced_coords:
+                vcart_qnu = np.dot(vcart_qnu, self.structure.lattice.inv_matrix)
+
+            if normalize:
+                vnorm2 = f_sqrt(sum(np.linalg.norm(d) ** 2 for d in vcart_qnu))
+            else:
+                vnorm2 = 1.0
 
             # Make a bar plot with rectangles bounded by (x - width/2, x + width/2, bottom, bottom + height)
             # The align keyword controls if x is interpreted as the center or the left edge of the rectangle.
             bottom, height = 0.0, 0.0
-            for itype, (symbol, inds) in enumerate(symbol2indices.items()):
-                if icart is None:
-                    height = np.sqrt(sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds]) / vnorm2)
-                else:
-                    height = np.sqrt(sum(np.linalg.norm(d)**2 for d in vcart_qnu[inds, icart]) / vnorm2)
+            if atoms_index is None:
+                for itype, (symbol, inds) in enumerate(symbol2indices.items()):
+                    if icart is None:
+                        height = f_sqrt(sum(np.linalg.norm(d) ** 2 for d in vcart_qnu[inds]) / vnorm2)
+                    else:
+                        height = f_sqrt(
+                            sum(np.linalg.norm(d) ** 2 for ic in icart for d in vcart_qnu[inds, ic]) / vnorm2)
 
-                ax.bar(x, height, width, bottom, align="center",
-                       color=cmap(float(itype) / max(1, ntypat - 1)),
-                       label=symbol if nu == 0 else None, edgecolor='black',
-                       hatch=hatches[itype % len(hatches)] if hatches else None,
-                      )
-                bottom += height
+                    ax.bar(x, height, width, bottom, align="center",
+                           color=cmap(float(itype) / max(1, ntypat - 1)),
+                           label=symbol if nu == 0 else None, edgecolor='black',
+                           hatch=hatches[itype % len(hatches)] if hatches else None,
+                           )
+                    bottom += height
+            else:
+                for igroup, inds in enumerate(atoms_index):
+                    inds = np.array(inds)
+
+                    if labels_groups:
+                        symbol = labels_groups[igroup]
+                    else:
+                        symbol = "+".join("{}{}".format(self.structure[ia].specie.name, ia) for ia in inds)
+
+                    if icart is None:
+                        height = f_sqrt(sum(np.linalg.norm(d) ** 2 for d in vcart_qnu[inds]) / vnorm2)
+                    else:
+                        height = f_sqrt(
+                            sum(np.linalg.norm(d) ** 2 for ic in icart for d in vcart_qnu[inds, ic]) / vnorm2)
+
+                    ax.bar(x, height, width, bottom, align="center",
+                           color=cmap(float(igroup) / max(1, len(atoms_index) - 1)),
+                           label=symbol if nu == 0 else None, edgecolor='black',
+                           hatch=hatches[igroup % len(hatches)] if hatches else None,
+                           )
+                    bottom += height
 
             xticks.append(x)
-            xticklabels.append("%.3f" % w_qnu)
+            xticklabels.append(format_w % w_qnu)
             x += (width + pad) / 2
 
         ax.set_xticks(xticks)
@@ -1507,14 +1562,35 @@ class PhononBands(object):
     @add_fig_kwargs
     def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
                               is_non_analytical_direction=False, use_eigvec=False,
-                              colormap="viridis", hatches="default", fontsize=8, **kwargs):
+                              colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
+                              normalize=True, use_sqrt=False, fontsize=8, branches=None, format_w="%.3f", **kwargs):
         """
         Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
         to all the phonon displacements at the given ``qpoint`` along on the Cartesian directions in ``cart_dirs``.
 
         Args:
             qpoint: integer, vector of reduced coordinates or |Kpoint| object.
-            cart_dirs: List of strings defining the Cartesian directions.
+            cart_dirs: List of strings defining the Cartesian directions. "x", "y", or "z" to select a particular
+                Cartesian directions. or combinations separated by "+". Example: "x+y".
+            units: Units for phonon frequencies. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
+                Case-insensitive.
+            is_non_analytical_direction: If True, the ``qpoint`` is interpreted as a direction in q-space
+                and the phonon (displacements/eigenvectors) for q --> 0 along this direction are used.
+                Requires band structure with :class:`NonAnalyticalPh` object.
+            use_eigvec: True if eigenvectors should be used instead of displacements (eigenvectors
+                are orthonormal, unlike diplacements)
+            colormap: Matplotlib colormap used for atom type.
+            hatches: List of strings with matplotlib hatching patterns. None or empty list to disable hatching.
+            fontsize: Legend and title fontsize.
+            normalize: if True divides by the square norm of the total eigenvector
+            use_sqrt: if True the square root of the sum of the components will be taken
+                fraction of a,b,c rather than x,y,z.
+            atoms_index: list of lists. Each list contains the indices of atoms in the structure that will be
+                summed on a separate group. if None all the atoms will be considered and grouped by type.
+            labels_groups: If atoms_index is not None will provide the labels for each of the group in atoms_index.
+                Should have the same length of atoms_index or be None. If None automatic labelling will be used.
+            branches: list of indices for the modes that shoul be represented. If None all the modes will be shown.
+            format_w: string used to format the values of the frequency. Default "%.3f".
 
         See plot_phdispl for the meaning of the other arguments.
         """
@@ -1524,7 +1600,8 @@ class PhononBands(object):
         for i, (cart_dir, ax) in enumerate(zip(cart_dirs, ax_list.ravel())):
             self.plot_phdispl(qpoint, cart_dir=cart_dir, ax=ax, units=units, colormap=colormap,
                               is_non_analytical_direction=is_non_analytical_direction, use_eigvec=use_eigvec,
-                              fontsize=fontsize, hatches=hatches, show=False)
+                              fontsize=fontsize, hatches=hatches, atoms_index=atoms_index, labels_groups=labels_groups,
+                              normalize=normalize, use_sqrt=use_sqrt, branches=branches, show=False)
             # Disable artists.
             if i != 0:
                 set_visible(ax, False, "legend", "title")
@@ -2077,10 +2154,13 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * abu.kb_eVK * temp)
-            vals[it] = np.trapz(w * coth(wd2kt) * gw, x=w)
+            if temp == 0:
+                vals[it] = self.zero_point_energy
+            else:
+                wd2kt = w / (2 * abu.kb_eVK * temp)
+                vals[it] = 0.5 * np.trapz(w * coth(wd2kt) * gw, x=w)
 
-        return Function1D(tmesh, 0.5 * vals)
+        return Function1D(tmesh, vals)
 
     def get_entropy(self, tstart=5, tstop=300, num=50):
         """
@@ -2099,8 +2179,11 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * abu.kb_eVK * temp)
-            vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
+            if temp == 0:
+                vals[it] = 0
+            else:
+                wd2kt = w / (2 * abu.kb_eVK * temp)
+                vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
@@ -2139,8 +2222,11 @@ class PhononDos(Function1D):
 
         vals = np.empty(len(tmesh))
         for it, temp in enumerate(tmesh):
-            wd2kt = w / (2 * abu.kb_eVK * temp)
-            vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
+            if temp == 0:
+                vals[it] = 0
+            else:
+                wd2kt = w / (2 * abu.kb_eVK * temp)
+                vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
@@ -2202,6 +2288,27 @@ class PhononDos(Function1D):
         factor = abu.phfactor_ev2units("thz")
 
         return PmgPhononDos(self.mesh*factor, self.values/factor)
+
+    @property
+    def debye_temp(self):
+        """
+        Debye temperature in K.
+        """
+
+        integrals = (self * self.mesh ** 2).spline_integral() / self.spline_integral()
+        t_d = np.sqrt(5/3*integrals)/abu.kb_eVK
+
+        return t_d
+
+    def get_acoustic_debye_temp(self, nsites):
+        """
+        Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).
+
+        Args:
+            nsites: the number of sites in the cell.
+        """
+
+        return self.debye_temp/nsites**(1/3)
 
 
 class PhdosReader(ETSF_Reader):
@@ -2524,10 +2631,9 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
 
-            if idir in (0, 2):
-                ax.set_ylabel(r'PJDOS along %s' % {0: "x", 1: "y", 2: "z"}[idir])
-                if idir == 2:
-                    ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+            ax.set_ylabel(r'PJDOS along %s' % {0: "x", 1: "y", 2: "z"}[idir])
+            if idir == 2:
+                ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
 
             # Plot Type projected DOSes along cartesian direction idir
             cumulative = np.zeros(len(self.wmesh))

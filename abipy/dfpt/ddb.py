@@ -713,7 +713,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         #check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
-        if all([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+        if any([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
             raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
 
         #get the points in the fine mesh
@@ -722,9 +722,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         #generate the points of the coarse mesh
         map_fine_to_coarse = []
         nx,ny,nz = ngqpt_coarse
-        for i,j,k in itertools.product(range(nx),range(ny),range(nz)):
+        for i,j,k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
+                                       range(-int(ny/2), int(ny/2) + 1),
+                                       range(-int(nz/2), int(nz/2) + 1)):
+            coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
-                coarse_qpt = np.array([i,j,k])/np.array(ngqpt_coarse)
                 if np.allclose(coarse_qpt,fine_qpt):
                     map_fine_to_coarse.append(n)
 
@@ -1040,7 +1042,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
-
 
     def write(self, filepath, filter_blocks=None):
         """
