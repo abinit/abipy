@@ -2426,6 +2426,13 @@ class ElectronBandsPlotter(NotebookWriter):
 
         return "\n\n".join(text)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        for mname in ("gridplot", "boxplot"):
+            yield getattr(self, mname)(show=False)
+
     @add_fig_kwargs
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8, **kwargs):
         """

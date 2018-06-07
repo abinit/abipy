@@ -606,7 +606,7 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         yield self.plot_lattice_convergence(show=False)
         yield self.plot_gsr_convergence(show=False)
-        #for fig in self.get_ebands_plotter.yield_figs(): yield fig
+        for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

@@ -2935,6 +2935,11 @@ class PhononBandsPlotter(NotebookWriter):
         """An alias for combiplot."""
         return self.combiplot(*args, **kwargs)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
+        yield self.gridplot(show=False)
+        yield self.boxplot(show=False)
+
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
         """
@@ -4054,6 +4059,14 @@ class PhbstRobot(Robot, RobotWithPhbands):
     .. inheritance-diagram:: PhbstRobot
     """
     EXT = "PHBST"
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        plotter = self.get_phbands_plotter()
+        for fig in plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """
