@@ -555,6 +555,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbands.view_phononwebsite(browser=browser, verbose=verbose, dryrun=dryrun)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.structure.plot(show=False)
+        yield self.qpoints.plot(show=False)
+        yield self.structure.plot_bz(show=False)
+
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
         """
@@ -620,8 +628,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
-                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
                                      anaddb_kwargs=None, verbose=0,
                                      mpi_procs=1, workdir=None, manager=None):
         """
@@ -665,7 +673,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density, 
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
             nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs)

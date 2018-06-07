@@ -1139,6 +1139,13 @@ class Structure(pymatgen.Structure, NotebookWriter):
         xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+        yield self.plot_bz(show=False)
+
     def export(self, filename, visu=None, verbose=1):
         """
         Export the crystalline structure to file ``filename``.

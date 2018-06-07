@@ -415,7 +415,7 @@ class MplExpose(object): # pragma: no cover
             if self.slide_mode:
                 print("\nSliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
             else:
-                print("\nLoading all mpl figures before showing them. Could take some time...")
+                print("\nLoading all matplotlib figures before showing them. It may take some time...")
 
         self.start_time = time.time()
 

@@ -187,7 +187,7 @@ class ElectronTransition(object):
     def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
-        app("Energy: %.3f [eV]" % self.energy)
+        app("Energy: %.3f (eV)" % self.energy)
         app("Initial state: %s" % str(self.in_state))
         app("Final state:   %s" % str(self.out_state))
 
@@ -285,7 +285,7 @@ class Smearing(AttrDict):
 class StatParams(namedtuple("StatParams", "mean stdev min max")):
     """Named tuple with statistical parameters."""
     def __str__(self):
-        return "mean = %.3f, stdev = %.3f, min = %.3f, max = %.3f [eV]" % (
+        return "mean = %.3f, stdev = %.3f, min = %.3f, max = %.3f (eV)" % (
             self.mean, self.stdev, self.min, self.max)
 
 
@@ -1207,7 +1207,7 @@ class ElectronBands(Has_Structure):
             app(self.structure.to_string(verbose=verbose, title="Structure"))
             app("")
 
-        app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
+        app("Number of electrons: %s, Fermi level: %.3f (eV)" % (self.nelect, self.fermie))
         app("nsppol: %d, nkpt: %d, mband: %d, nspinor: %s, nspden: %s" % (
            self.nsppol, self.nkpt, self.mband, self.nspinor, self.nspden))
         app(str(self.smearing))
@@ -1229,7 +1229,7 @@ class ElectronBands(Has_Structure):
                         app("WARNING: Cannot compute direct and fundamental gap.")
                         if verbose: app("Exception:\n%s" % str(exc))
 
-                app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
+                app("Bandwidth: %.3f (eV)" % self.bandwidths[spin])
                 if verbose:
                     app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
@@ -1315,8 +1315,8 @@ class ElectronBands(Has_Structure):
         return ipw.interact_manual(
                 plot_dos,
                 method=["gaussian", "tetra"],
-                step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh [eV]"),
-                width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening [eV]"),
+                step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh (eV)"),
+                width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening (eV)"),
             )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
@@ -1375,7 +1375,7 @@ class ElectronBands(Has_Structure):
         edos_plotter = ElectronDosPlotter()
         for width in widths:
            edos = self.get_edos(method="gaussian", step=0.1, width=width)
-           label=r"$\sigma = %s$ [eV]" % width
+           label=r"$\sigma = %s$ (eV)" % width
            edos_plotter.add_edos(label, edos)
 
         return edos_plotter
@@ -1542,7 +1542,7 @@ class ElectronBands(Has_Structure):
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Energy [eV]')
+        ax.set_xlabel('Energy (eV)')
         cmap = plt.get_cmap(colormap)
         lw = kwargs.pop("lw", 1.0)
 
@@ -1735,7 +1735,7 @@ class ElectronBands(Has_Structure):
         if title is not None: ax.set_title(title, fontsize=fontsize)
 
         ax.grid(True)
-        ax.set_ylabel('Energy [eV]')
+        ax.set_ylabel('Energy (eV)')
 
         # Set ticks and labels.
         klabels = kwargs.pop("klabels", None)
@@ -1933,9 +1933,9 @@ class ElectronBands(Has_Structure):
         e0 = self.get_e0(e0)
         e0mesh = np.array(e0mesh) - e0
 
-        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        xlabel = r"$\epsilon_{KS}\;(eV)$"
         #if fermie is not None:
-        #    xlable = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
+        #    xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         #kw_lw = kwargs.pop("lw", 1)
@@ -1985,7 +1985,7 @@ class ElectronBands(Has_Structure):
             w("# %s" % s)
         w("# mband: %d, nkpt: %d, nsppol: %d, nspinor: %d" % (self.mband, self.nkpt, self.nsppol, self.nspinor))
         w("# nelect: %8.2f, %s" % (self.nelect, str(self.smearing)))
-        w("# Energies are in eV. Zero set to efermi, previously it was at: %s [eV]" % self.fermie)
+        w("# Energies are in eV. Zero set to efermi, previously it was at: %s (eV)" % self.fermie)
         w("# List of k-points and their index (C notation i.e. count from 0)")
         for ik, kpt in enumerate(self.kpoints):
             w("# %d %s" % (ik, str(kpt.frac_coords)))
@@ -2015,7 +2015,7 @@ class ElectronBands(Has_Structure):
 
         w('@xaxis  ticklabel char size 1.500000')
         w('@yaxis  tick major 10')
-        w('@yaxis  label "Band Energy [eV]"')
+        w('@yaxis  label "Band Energy (eV)"')
         w('@yaxis  label char size 1.500000')
         w('@yaxis  ticklabel char size 1.500000')
         ii = -1
@@ -2244,7 +2244,7 @@ class EffectiveMassAlongLine(object):
     def __str__(self):
         lines = []; app = lines.append
         app("Effective masses for spin: %s, band: %s, accuracy: %s" % (self.spin, self.band, self.acc))
-        app("K-point: %s, eigenvalue: %s [eV]" % (self.kpoint, self.eig))
+        app("K-point: %s, eigenvalue: %s (eV)" % (self.kpoint, self.eig))
         app("h_left: %s, h_right %s" % (self.h_left, self.h_right))
         app("is_inside: %s, vers_left: %s, vers_right: %s" % (self.is_inside, self.vers_left, self.vers_right))
         app("em_left: %s, em_right: %s" % (self.em_left, self.em_right))
@@ -2970,7 +2970,7 @@ class ElectronDos(object):
         """String representation."""
         lines = []; app = lines.append
         app("nsppol: %d, nelect: %s" % (self.nsppol, self.nelect))
-        app("Fermi energy: %s [eV] (recomputed from nelect):" % self.fermie)
+        app("Fermi energy: %s (eV) (recomputed from nelect):" % self.fermie)
         return "\n".join(lines)
 
     @classmethod
@@ -3151,8 +3151,8 @@ class ElectronDos(object):
             ax.plot(x, y, **opts)
 
         ax.grid(True)
-        ax.set_xlabel('Energy [eV]')
-        ax.set_ylabel('DOS [states/eV]')
+        ax.set_xlabel('Energy (eV)')
+        ax.set_ylabel('DOS (states/eV)')
         set_axlims(ax, xlims, "x")
 
         return fig
@@ -3192,7 +3192,7 @@ class ElectronDos(object):
 
             ax0.set_ylabel("TOT IDOS")
             ax1.set_ylabel("TOT DOS")
-            ax1.set_xlabel('Energy [eV]')
+            ax1.set_xlabel('Energy (eV)')
         else:
             fig = ax_list[0].get_figure()
 
@@ -3238,8 +3238,8 @@ class ElectronDos(object):
 
         ax.grid(True)
         set_axlims(ax, xlims, "x")
-        ax.set_ylabel('Dos_up - Dos_down [states/eV]')
-        ax.set_xlabel('Energy [eV]')
+        ax.set_ylabel('Dos_up - Dos_down (states/eV)')
+        ax.set_xlabel('Energy (eV)')
 
         return fig
 
@@ -3351,8 +3351,8 @@ class ElectronDosPlotter(NotebookWriter):
 
             ax.grid(True)
             if i == len(what_list) - 1:
-                ax.set_xlabel("Energy [eV]")
-            ax.set_ylabel('DOS [states/eV]' if what == "dos" else "IDOS")
+                ax.set_xlabel("Energy (eV)")
+            ax.set_ylabel('DOS (states/eV)' if what == "dos" else "IDOS")
             set_axlims(ax, xlims, "x")
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -3433,7 +3433,7 @@ class ElectronDosPlotter(NotebookWriter):
             if (irow, icol) == (0, 0):
                 ax.set_ylabel('DOS [states/eV]' if what == "dos" else "IDOS")
             if irow == nrows - 1:
-                ax.set_xlabel("Energy [eV]")
+                ax.set_xlabel("Energy (eV)")
 
             #ax.legend(loc="best", shadow=True, fontsize=fontsize)
 

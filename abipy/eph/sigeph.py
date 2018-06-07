@@ -343,10 +343,10 @@ class QpTempList(list):
         # Get QpTempList and sort it.
         qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
-        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        xlabel = r"$\epsilon_{KS}\;(eV)$"
         if fermie is not None:
             e0mesh -= fermie
-            xlabel = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
+            xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         kw_color = kwargs.pop("color", None)
@@ -431,8 +431,8 @@ class EphSelfEnergy(object):
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
         app("K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin))
-        app("Number of temperatures: %d, from %.1f to %.1f [K]" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
-        app("Number of frequencies: %d, from %.1f to %.1f [eV]" % (self.nwr, self.wmesh[0], self.wmesh[-1]))
+        app("Number of temperatures: %d, from %.1f to %.1f (K)" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
+        app("Number of frequencies: %d, from %.1f to %.1f (eV)" % (self.nwr, self.wmesh[0], self.wmesh[-1]))
         app(self.qp.to_string(verbose=verbose, title="QP data"))
 
         return "\n".join(lines)
@@ -441,14 +441,14 @@ class EphSelfEnergy(object):
         """Return (wmesh, xlabel) from zero_energy input argument."""
         if zero_energy is None:
             xx = self.wmesh
-            xlabel = r"$\omega\;[eV]$"
+            xlabel = r"$\omega\;(eV)$"
         elif zero_energy == "e0":
             xx = self.wmesh - self.qp.e0
-            xlabel = r"$\omega - \epsilon_{nk}\;[eV]$"
+            xlabel = r"$\omega - \epsilon_{nk}\;(eV)$"
         # TODO: chemical potential? but then I have mu(T) to handle in plots!
         #elif zero_energy == "fermie":
         #    xx = self.wmesh - self.fermie
-        #    xlabel = r"$\omega\;[eV]$"
+        #    xlabel = r"$\omega\;(eV)$"
         else:
             raise ValueError("Invalid value of zero_energy: `%s`" % str(zero_energy))
 
@@ -627,8 +627,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("K-mesh for electrons:")
         app(self.ebands.kpoints.ksampling.to_string(verbose=verbose))
         app("Number of bands included in self-energy: %d" % (self.nbsum))
-        app("zcut: %.3f [Ha], %.3f [eV]" % (self.zcut, self.zcut * units.Ha_to_eV))
-        app("Number of temperatures: %d, from %.1f to %.1f [K]" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
+        app("zcut: %.3f [Ha], %.3f (eV)" % (self.zcut, self.zcut * units.Ha_to_eV))
+        app("Number of temperatures: %d, from %.1f to %.1f (K)" % (self.ntemp, self.tmesh[0], self.tmesh[-1]))
         app("symsigma: %s" % (self.symsigma))
         app("Has Spectral function: %s" % (self.has_spectral_function))
 
@@ -1047,11 +1047,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
             ax.grid(True)
             if ix == len(qpkinds) - 1:
-                ax.set_xlabel("Temperature [K]")
+                ax.set_xlabel("Temperature (K)")
                 if plot_qpmks:
-                    ax.set_ylabel("QP-KS gap [eV]")
+                    ax.set_ylabel("QP-KS gap (eV)")
                 else:
-                    ax.set_ylabel("QP direct gap [eV]")
+                    ax.set_ylabel("QP direct gap (eV)")
             ax.set_title("k:%s" % (repr(kpt)), fontsize=fontsize)
             if label:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -1527,7 +1527,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
 
             ax.grid(True)
             if ix == len(qpkinds) - 1:
-                ax.set_ylabel("%s [eV]" % name)
+                ax.set_ylabel("%s (eV)" % name)
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
             if hue is not None:

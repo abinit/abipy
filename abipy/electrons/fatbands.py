@@ -1066,7 +1066,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
                 # Display yticklabels on the first plot and last plot only.
                 # and display the legend only on the first plot.
-                ax.set_xlabel("Energy [eV]")
+                ax.set_xlabel("Energy (eV)")
                 if l == 0:
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -1221,7 +1221,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
                 # Display yticklabels on the first plot and last plot only.
                 # and display the legend only on the first plot.
-                ax.set_xlabel("Energy [eV]")
+                ax.set_xlabel("Energy (eV)")
                 if itype == 0:
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -1440,7 +1440,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                             label="PS-onsite" if (irow, l, spin) == (0, 0, 0) else None)
 
         for ax in ax_mat[-1, :]:
-            ax.set_xlabel('Energy [eV]')
+            ax.set_xlabel('Energy (eV)')
             set_axlims(ax, xlims, "x")
 
     # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
@@ -1519,7 +1519,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #        ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])
 
     #    ax.grid(True)
-    #    ax.set_xlabel("Energy [eV]")
+    #    ax.set_xlabel("Energy (eV)")
     #    set_axlims(ax, xlims, "x")
     #    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

@@ -337,9 +337,9 @@ class QPList(list):
         # Get qplist and sort it.
         qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
-        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        xlabel = r"$\epsilon_{KS}\;(eV)$"
         if fermie is not None:
-            xlable = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
+            xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
             e0mesh -= fermie
 
         kw_linestyle = kwargs.pop("linestyle", "o")
@@ -489,7 +489,7 @@ class SelfEnergy(object):
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
         app("K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin))
-        app("Number of frequencies: %d, from %.1f to %.1f [eV]" % (len(self.wmesh), self.wmesh[0], self.wmesh[-1]))
+        app("Number of frequencies: %d, from %.1f to %.1f (eV)" % (len(self.wmesh), self.wmesh[0], self.wmesh[-1]))
 
         return "\n".join(lines)
 
@@ -514,7 +514,7 @@ class SelfEnergy(object):
             label = kwargs.get("label", r"$\Sigma(\omega)$")
             extend(f.plot_ax(ax, cplx_mode="re", label="Re " + label))
             extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
-            #ax.set_ylabel('Energy [eV]')
+            #ax.set_ylabel('Energy (eV)')
 
         elif what == "a":
             f = self.spfunc
@@ -548,10 +548,10 @@ class SelfEnergy(object):
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
-        xlabel = r"$\omega\;[eV]$"
+        xlabel = r"$\omega\;(eV)$"
         wmesh = self.wmesh
         if fermie is not None:
-            xlabel = r"$\omega - \epsilon_F}\;[eV]$"
+            xlabel = r"$\omega - \epsilon_F}\;(eV)$"
             wmesh = self.wmesh - fermie
 
         kw_color = kwargs.pop("color", None)
@@ -771,7 +771,7 @@ class SigresPlotter(Iterable):
         ax.grid(True)
         if self.param_name is not None:
             ax.set_xlabel(self.param_name)
-        ax.set_ylabel('Energy [eV]')
+        ax.set_ylabel('Energy (eV)')
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         title = kwargs.pop("title", None)
@@ -1161,9 +1161,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ax.grid(True)
             ax.set_xlabel("K-point")
             if plot_qpmks:
-                ax.set_ylabel("QP-KS gap [eV]")
+                ax.set_ylabel("QP-KS gap (eV)")
             else:
-                ax.set_ylabel("QP direct gap [eV]")
+                ax.set_ylabel("QP direct gap (eV)")
             #ax.set_title("k:%s" % (repr(kgw)), fontsize=fontsize)
             if label:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -2208,9 +2208,9 @@ class SigresRobot(Robot, RobotWithEbands):
                 if sortby is None: rotate_ticklabels(ax, 15)
             if ik == 0:
                 if plot_qpmks:
-                    ax.set_ylabel("QP-KS direct gap [eV]", fontsize=fontsize)
+                    ax.set_ylabel("QP-KS direct gap (eV)", fontsize=fontsize)
                 else:
-                    ax.set_ylabel("QP direct gap [eV]", fontsize=fontsize)
+                    ax.set_ylabel("QP direct gap (eV)", fontsize=fontsize)
 
             if hue is not None:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)

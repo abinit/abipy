@@ -33,9 +33,13 @@ Get information about a generic ``FILE``
 
 Use::
 
-    abiopen.py FILE -p 
+    abiopen.py FILE --print 
 
-to print information about a file inside the terminal.
+to print information about a file inside the terminal or
+
+    abiopen.py FILE --expose
+
+to generate multiple matplotlib figures depending on FILE.
 
 Use ``--verbose`` or ``-v`` to increase verbosity level. 
 The option can be can be supplied multiple times e.g. ``-vv``.
@@ -184,6 +188,50 @@ At present, AbiPy supports vesta_, ovito_, xcrysden_, avogadro_, and v_sim_.
 
 To visualize the crystalline structure inside the jupyter_ notebook, you may want to
 try the nbjsmol_ jupyter extension.
+
+Get a high-symmetry kpath for a given structure
+-----------------------------------------------
+
+Use the `kpath` command and pass a FILE providing structural info::
+
+    abistruct.py kpath FILE
+
+to generate a template with the input variables defining the k-path
+
+.. code-block:: shell
+
+     # Abinit Structure
+     natom 2
+     ntypat 1
+     typat 1 1
+     znucl 14
+     xred
+        0.0000000000    0.0000000000    0.0000000000
+        0.2500000000    0.2500000000    0.2500000000
+     acell    1.0    1.0    1.0
+     rprim
+        0.0000000000    5.1085000000    5.1085000000
+        5.1085000000    0.0000000000    5.1085000000
+        5.1085000000    5.1085000000    0.0000000000
+
+     # K-path in reduced coordinates:
+     # tolwfr 1e-20 iscf -2 getden ??
+     ndivsm 10
+     kptopt -11
+     kptbounds
+        +0.00000  +0.00000  +0.00000 # $\Gamma$
+        +0.50000  +0.00000  +0.50000 # X
+        +0.50000  +0.25000  +0.75000 # W
+        +0.37500  +0.37500  +0.75000 # K
+        +0.00000  +0.00000  +0.00000 # $\Gamma$
+        +0.50000  +0.50000  +0.50000 # L
+        +0.62500  +0.25000  +0.62500 # U
+        +0.50000  +0.25000  +0.75000 # W
+        +0.50000  +0.50000  +0.50000 # L
+        +0.37500  +0.37500  +0.75000 # K
+        +0.62500  +0.25000  +0.62500 # U
+        +0.50000  +0.00000  +0.50000 # X
+
 
 Get neighbors for each atom in the unit cell out to a distance radius
 ---------------------------------------------------------------------

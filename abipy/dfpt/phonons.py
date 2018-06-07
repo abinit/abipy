@@ -86,7 +86,7 @@ class PhononMode(object):
             verbose: Verbosity level.
             with_displ: True to print phonon displacement.
 	"""
-        lines = ["%s: q-point %s, frequency %.5f [eV]" % (self.__class__.__name__, self.qpoint, self.freq)]
+        lines = ["%s: q-point %s, frequency %.5f (eV)" % (self.__class__.__name__, self.qpoint, self.freq)]
         app = lines.append
 
         if with_displ:
@@ -1885,6 +1885,12 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
                           displ_cart=self.phbands.phdispl_cart[qindex, branch, :],
                           structure=self.structure)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        return self.yield_phbands_figs(**kwargs)
+
     def write_notebook(self, nbpath=None):
         """
         Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
@@ -1904,10 +1910,10 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
 
 _THERMO_YLABELS = {  # [name][units] --> latex string
-    "internal_energy": {"eV": "$U(T)$ [eV/cell]", "Jmol": "$U(T)$ [J/mole]"},
-    "free_energy": {"eV": "$F(T) + ZPE$ [eV/cell]", "Jmol": "$F(T) + ZPE$ [J/mole]"},
-    "entropy": {"eV": "$S(T)$ [eV/cell]", "Jmol": "$S(T)$ [J/mole]"},
-    "cv": {"eV": "$C_V(T)$ [eV/cell]", "Jmol": "$C_V(T)$ [J/mole]"},
+    "internal_energy": {"eV": "$U(T)$ (eV/cell)", "Jmol": "$U(T)$ (J/mole)"},
+    "free_energy": {"eV": "$F(T) + ZPE$ (eV/cell)", "Jmol": "$F(T) + ZPE$ (J/mole)"},
+    "entropy": {"eV": "$S(T)$ (eV/cell)", "Jmol": "$S(T)$ (J/mole)"},
+    "cv": {"eV": "$C_V(T)$ (eV/cell)", "Jmol": "$C_V(T)$ (J/mole)"},
 }
 
 

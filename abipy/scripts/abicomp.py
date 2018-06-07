@@ -55,7 +55,7 @@ def abiview_fields(options):
 
 def abicomp_structure(options):
     """
-    Compare crystalline structures. Use `--group` to compare for similarity."
+    Compare crystalline structures. Use `--group` to compare for similarity.
     """
     if options.group:
         return compare_structures(options)
@@ -574,7 +574,8 @@ def _invoke_robot(options):
             print("\nUse --verbose for more information")
 
         if options.expose and hasattr(robot, "expose"):
-            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                         verbose=options.verbose)
 
     #elif options.ipython:
     else:
@@ -680,7 +681,7 @@ Usage example:
 ############
 
   abicomp.py structure */*/outdata/out_GSR.nc   => Compare structures in multiple files.
-                                                   Use `--group` to compare for similarity
+                                                   Use `--group` to compare for similarity.
   abicomp.py hist FILE(s)                       => Compare final structures read from HIST.nc files.
   abicomp.py mp_structure FILE(s)               => Compare structure(s) read from FILE(s) with the one(s)
                                                    given in the materials project database.
@@ -792,7 +793,9 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare.")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='Verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings for plots.")
+    #copts_parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings for plots.")
+    copts_parser.add_argument('-sns', "--seaborn", const="talk", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: talk')
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -974,7 +977,7 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context='talk', style='darkgrid', palette='deep',
+        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     if options.verbose > 2:

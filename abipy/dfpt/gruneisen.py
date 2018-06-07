@@ -217,7 +217,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 other_ax.set_ylabel(_ALL_DOS_NAMES[name]["latex"].replace("DOS", "IDOS"))
 
             if i == len(dos_names) - 1:
-                ax.set_xlabel(r"$\omega$ [eV]")
+                ax.set_xlabel(r"$\omega$ (eV)")
             #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig

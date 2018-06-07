@@ -154,11 +154,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         app(marquee("Optic calculation", mark="="))
         # Show Optic variables.
-        app("broadening: %s [Ha], %.3f [eV]" % (self.broadening, self.broadening * abu.Ha_eV))
-        app("scissor: %s [Ha], %.3f [eV]" % (self.scissor, self.scissor * abu.Ha_eV))
-        app("tolerance: %s [Ha], %.3f [eV]" % (self.tolerance, self.tolerance * abu.Ha_eV))
-        app("maxomega: %s [Ha], %.3f [eV]" % (self.maxomega, self.maxomega * abu.Ha_eV))
-        app("domega: %s [Ha], %.3f [eV]" % (self.domega, self.domega * abu.Ha_eV))
+        app("broadening: %s [Ha], %.3f (eV)" % (self.broadening, self.broadening * abu.Ha_eV))
+        app("scissor: %s [Ha], %.3f (eV)" % (self.scissor, self.scissor * abu.Ha_eV))
+        app("tolerance: %s [Ha], %.3f (eV)" % (self.tolerance, self.tolerance * abu.Ha_eV))
+        app("maxomega: %s [Ha], %.3f (eV)" % (self.maxomega, self.maxomega * abu.Ha_eV))
+        app("domega: %s [Ha], %.3f (eV)" % (self.domega, self.domega * abu.Ha_eV))
         app("do_antiresonant %s, do_ep_renorm %s" % (self.do_antiresonant, self.do_ep_renorm))
         app("Number of temperatures: %d" % self.reader.ntemp)
 
@@ -272,7 +272,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                     label=self.get_linopt_latex_label(what, comp) if label is None else label)
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy [eV]')
+        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -342,7 +342,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                 )
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy [eV]')
+        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

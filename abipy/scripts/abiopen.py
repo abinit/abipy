@@ -113,7 +113,8 @@ def get_parser(with_epilog=False):
         help="Iterate over figures. Expose all figures at once if not given on the CLI.")
     parser.add_argument("-t", "--slide-timeout", type=int, default=None,
         help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings.")
+    parser.add_argument('-sns', "--seaborn", const="talk", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: talk')
     parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -158,7 +159,7 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context='talk', style='darkgrid', palette='deep',
+        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     if not os.path.exists(options.filepath):

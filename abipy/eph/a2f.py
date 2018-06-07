@@ -102,9 +102,9 @@ class A2f(object):
         app("Eliashberg Function" if not title else str(title))
         # TODO: Add ElectronDos
         #app("Isotropic lambda: %.3f" % (self.lambda_iso))
-        app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
+        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (self.lambda_iso, self.omega_log, self.omega_log * abu.eV_to_K))
         app("Q-mesh: %s" % str(self.ngqpt))
-        app("Mesh from %.4f to %.4f [eV] with %d points" % (
+        app("Mesh from %.4f to %.4f (eV) with %d points" % (
             self.mesh[0], self.mesh[-1], len(self.mesh)))
 
         if verbose:
@@ -516,13 +516,13 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
         a2f = self.a2f_qcoarse
         app("a2f(w) on the %s q-mesh (ddb_ngqpt|eph_ngqpt)" % str(a2f.ngqpt))
-        app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (
+        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
             a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
         #app(self.a2f_qcoarse.to_string(title=title, verbose=verbose))
         app("")
         a2f = self.a2f_qintp
         app("a2f(w) Fourier interpolated on the %s q-mesh (ph_ngqpt)" % str(a2f.ngqpt))
-        app("Isotropic lambda: %.2f, omega_log: %.3f [eV], %.3f [K]" % (
+        app("Isotropic lambda: %.2f, omega_log: %.3f (eV), %.3f (K)" % (
             a2f.lambda_iso, a2f.omega_log, a2f.omega_log * abu.eV_to_K))
         #app(self.a2f_qintp.to_string(title=title, verbose=verbose))
 
@@ -707,7 +707,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     ylabel = r"$\lambda(q,\nu)$"
                 elif what == "gamma":
                     yvals = self.reader.read_phgamma_qpath()
-                    ylabel = r"$\gamma(q,\nu)$ [eV]"
+                    ylabel = r"$\gamma(q,\nu)$ (eV)"
                 else:
                     raise ValueError("Invalid value for what: `%s`" % str(what))
 

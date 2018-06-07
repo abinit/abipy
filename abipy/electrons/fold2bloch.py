@@ -232,11 +232,18 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         ax.set_xticks(ticks, minor=False)
         ax.set_xticklabels(klabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
         ax.grid(True)
-        ax.set_ylabel('Energy [eV]')
+        ax.set_ylabel('Energy (eV)')
         set_axlims(ax, ylims, "y")
         if self.nss == 2: ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        print("TODO: Add call to plot_unfolded")
+        yield self.ebands.plot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
