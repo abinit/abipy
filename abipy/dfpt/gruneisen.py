@@ -3,6 +3,7 @@
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
+import os
 import abipy.core.abinit_units as abu
 import scipy.constants as const
 
@@ -13,9 +14,12 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property
 from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter, PhononDos
+from abipy.dfpt.ddb import DdbFile
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
+from abipy.flowtk import AnaddbTask
 #from abipy.tools import duck
 from abipy.core.func1d import Function1D
 from pymatgen.core.units import amu_to_kg, bohr_to_ang
@@ -360,7 +364,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             # TODO: units?
             y = np.linalg.norm(self.reader.read_value("gruns_dwdq_qibz"), axis=-1)
         else:
-            raise ValueError("Unsupported values: `%s`" % fill_with)
+            raise ValueError("Unsupported values: `%s`" % values)
 
         w = self.wvols_qibz[:, self.iv0, :] * abu.phfactor_ev2units(units)
 
@@ -378,7 +382,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
-    @property
+    @lazy_property
     def split_gruns(self):
         """
         Splits the values of the gruneisen along a path like for the phonon bands
@@ -395,7 +399,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             self._split_gruns = [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
             return self._split_gruns
 
-    @property
+    @lazy_property
     def split_dwdq(self):
         """
         Splits the values of the group velocities along a path like for the phonon bands
@@ -441,7 +445,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             # TODO: units?
             y = np.linalg.norm(self.split_dwdq, axis=-1)
         else:
-            raise ValueError("Unsupported values: `%s`" % fill_with)
+            raise ValueError("Unsupported values: `%s`" % values)
 
         phbands = self.phbands_qpath_vol[self.iv0]
 
@@ -621,6 +625,88 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             raise ValueError('Debye temperature requires the phonon dos!')
 
         return self.phdos.get_acoustic_debye_temp(len(self.structure))
+
+    @classmethod
+    def from_ddb_list(cls, ddb_list, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
+                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None,
+                     verbose=0, mpi_procs=1, workdir=None, manager=None):
+        """
+        Execute anaddb to compute generate the object from a list of ddbs.
+
+        Args:
+            ddb_list: A list with the paths to the ddb_files at different volumes. There should be an odd number of
+                DDB files and the volume increment must be constant. The DDB files will be ordered according to the
+                volume of the unit cell and the middle one will be considered as the DDB at the relaxed volume.
+            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
+                used to sample the smallest lattice vector. If 0, DOS is not computed and
+                (phbst, None) is returned.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+                Overrides nqsmall.
+            ndivsm: Number of division used for the smallest segment of the q-path.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+                Overrides ndivsm.
+            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
+                In the later case, the value 0.001 eV is used as gaussian broadening.
+            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
+                If True the LO-TO splitting will be calculated and the non_anal_directions
+                and the non_anal_phfreqs attributes will be addeded to the phonon band structure.
+                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
+            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
+            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
+                depending on the input structure.
+            anaddb_kwargs: additional kwargs for anaddb.
+            verbose: verbosity level. Set it to a value > 0 to get more information.
+            mpi_procs: Number of MPI processes to use.
+            workdir: Working directory. If None, a temporary directory is created.
+            manager: |TaskManager| object. If None, the object is initialized from the configuration file.
+
+        Returns:
+            A GrunsNcFile object.
+        """
+
+        if len(ddb_list) % 2 != 1:
+            raise ValueError("An odd number of ddb file paths should be provided")
+
+        ddbs = [DdbFile(d) for d in ddb_list]
+        ddbs = sorted(ddbs, key=lambda d: d.structure.volume)
+        iv0 = int((len(ddbs) - 1) / 2)
+        ddb0 = ddbs[iv0]
+        # update list of paths with absolute paths in the correct order
+        ddb_list = [d.filepath for d in ddbs]
+
+        if ngqpt is None: ngqpt = ddb0.guessed_ngqpt
+
+        if lo_to_splitting == "automatic":
+            lo_to_splitting = ddb0.has_lo_to_data() and dipdip != 0
+
+        if lo_to_splitting and not ddb0.has_lo_to_data():
+            cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % ddb0.filepath, "yellow")
+
+        inp = AnaddbInput.phbands_and_dos(
+            ddb0.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, qppa=qppa, line_density=line_density,
+            q1shft=(0, 0, 0), qptbounds=qptbounds, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
+            lo_to_splitting=lo_to_splitting, anaddb_kwargs=anaddb_kwargs)
+
+        inp["gruns_ddbs"] = ['"'+p+'"\n' for p in ddb_list]
+        inp["gruns_nddbs"] = len(ddb_list)
+
+        task = AnaddbTask.temp_shell_task(inp, ddb_node=ddb0.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+
+        if verbose:
+            print("ANADDB INPUT:\n", inp)
+            print("workdir:", task.workdir)
+
+        # Run the task here.
+        task.start_and_wait(autoparal=False)
+
+        report = task.get_event_report()
+        if not report.run_completed:
+            raise ddb0.AnaddbError(task=task, report=report)
+
+        gruns = cls.from_file(os.path.join(task.workdir, "run.abo_GRUNS.nc"))
+
+        return gruns
 
 
 class GrunsReader(ETSF_Reader):

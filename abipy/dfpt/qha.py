@@ -10,7 +10,7 @@ from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.electrons.gsr import GsrFile
-from abipy.dfpt.phonons import PhononDos, PhdosFile, PhononBandsPlotter
+from abipy.dfpt.phonons import PhdosFile, PhononBandsPlotter
 import abipy.core.abinit_units as abu
 
 
@@ -26,14 +26,12 @@ class QHA(object):
     Does not include electronic entropic contributions for metals.
     """
 
-    def __init__(self, structures, doses, energies, iv0=None, eos_name='vinet', pressure=0):
+    def __init__(self, structures, doses, energies, eos_name='vinet', pressure=0):
         """
         Args:
             structures: list of structures at different volumes.
             doses: list of |PhononDos| at volumes corresponding to the structures.
             energies: list of SCF energies for the structures in eV.
-            iv0: index corresponding to the relaxed volume. If None the index corresponding to the lower value
-                of the energies will be selected.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
@@ -41,15 +39,11 @@ class QHA(object):
         self.structures = structures
         self.doses = doses
         self.energies = np.array(energies)
-        if iv0 is None:
-            self.iv0 = np.argmin(energies)
-        else:
-            self.iv0 = iv0
         self.eos = EOS(eos_name)
         self.pressure = pressure
 
         self.volumes = np.array([s.volume for s in structures])
-
+        self.iv0 = np.argmin(energies)
 
     @property
     def nvols(self):

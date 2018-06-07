@@ -7,6 +7,7 @@ import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy import abilab
+from abipy.dfpt.gruneisen import GrunsNcFile
 
 
 class GrunsFileTest(AbipyTest):
@@ -62,3 +63,14 @@ class GrunsFileTest(AbipyTest):
 
             if self.has_nbformat():
                 assert ncfile.write_notebook(nbpath=self.get_tmpname(text=True))
+
+    def test_from_ddb_list(self):
+        """Testsing GrunsFile generation from ddblist."""
+
+        # shuffled list as the function should also sort the values
+        strains = [0, +4, -2, 2, -4]
+        path = os.path.join(abidata.dirpath, "refs", "si_qha")
+        ddb_list = [os.path.join(path, "mp-149_{:+d}_DDB".format(s)) for s in strains]
+
+        g = GrunsNcFile.from_ddb_list(ddb_list, ndivsm=3, nqsmall=3)
+

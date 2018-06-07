@@ -26,7 +26,6 @@ from abipy.iotools import ETSF_Reader
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter, InteratomicForceConstants
 from abipy.dfpt.tensors import DielectricTensor
-from abipy.dfpt.gruneisen import GrunsNcFile
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag #Ha_cmm1,
 from pymatgen.analysis.elasticity.elastic import ElasticTensor
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom
@@ -1035,78 +1034,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
-
-    def anaget_gruns(self, ddb_list, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
-                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None,
-                     verbose=0, mpi_procs=1, workdir=None, manager=None):
-        """
-        Execute anaddb to compute the Gruneisen parameters
-
-        Args:
-            ddb_list: A list with the paths to the ddb_files at different volumes. Also the current ddb should be
-                included. The DDB files must be ordered according to the volume of the unit cell (the DDB with
-                smallest volume comes first) and the volume increment must be constant.
-            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
-                used to sample the smallest lattice vector. If 0, DOS is not computed and
-                (phbst, None) is returned.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
-                Overrides nqsmall.
-            ndivsm: Number of division used for the smallest segment of the q-path.
-            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
-                Overrides ndivsm.
-            asr, chneut, dipdip: Anaddb input variable. See official documentation.
-            dos_method: Technique for DOS computation in  Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
-                In the later case, the value 0.001 eV is used as gaussian broadening.
-            lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
-                If True the LO-TO splitting will be calculated and the non_anal_directions
-                and the non_anal_phfreqs attributes will be addeded to the phonon band structure.
-                "automatic" activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.
-            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
-            qptbounds: Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            anaddb_kwargs: additional kwargs for anaddb.
-            verbose: verbosity level. Set it to a value > 0 to get more information.
-            mpi_procs: Number of MPI processes to use.
-            workdir: Working directory. If None, a temporary directory is created.
-            manager: |TaskManager| object. If None, the object is initialized from the configuration file.
-
-        Returns:
-            A GrunsNcFile object.
-        """
-        if ngqpt is None: ngqpt = self.guessed_ngqpt
-
-        if lo_to_splitting == "automatic":
-            lo_to_splitting = self.has_lo_to_data() and dipdip != 0
-
-        if lo_to_splitting and not self.has_lo_to_data():
-            cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
-
-        inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, qppa=qppa, line_density=line_density,
-            q1shft=(0, 0, 0), qptbounds=qptbounds, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
-            lo_to_splitting=lo_to_splitting, anaddb_kwargs=anaddb_kwargs)
-
-        ddb_list = [os.path.abspath(p) for p in ddb_list]
-
-        inp["gruns_ddbs"] = ['"'+p+'"' for p in ddb_list]
-        inp["gruns_nddbs"] = len(ddb_list)
-
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
-
-        if verbose:
-            print("ANADDB INPUT:\n", inp)
-            print("workdir:", task.workdir)
-
-        # Run the task here.
-        task.start_and_wait(autoparal=False)
-
-        report = task.get_event_report()
-        if not report.run_completed:
-            raise self.AnaddbError(task=task, report=report)
-
-        gruns = GrunsNcFile.from_file(os.path.join(task.workdir, "run.abo_GRUNS.nc"))
-
-        return gruns
 
     def write(self, filepath, filter_blocks=None):
         """

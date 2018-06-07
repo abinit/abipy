@@ -5,9 +5,8 @@ import os
 import abipy.data as abidata
 
 from abipy.dfpt.qha import QHA
-from abipy.dfpt.phonons import PhononBands, PhononDos
+from abipy.dfpt.phonons import PhononBands
 from abipy.core.testing import AbipyTest
-from pymatgen.analysis.eos import Vinet, Murnaghan
 
 
 class QhaTest(AbipyTest):
