@@ -259,6 +259,7 @@ class PhononBandsPlotterTest(AbipyTest):
 
         assert len(plotter.phbands_list) == 2
         assert len(plotter.phdoses_list) == 2
+        assert plotter.has_same_formula()
 
         # __add__ merges two plotters:
         p2 = plotter.add_plotter(plotter)
@@ -321,7 +322,7 @@ class PhononDosTest(AbipyTest):
         """Testing PHDOS from netcdf file."""
         ncfile = PhdosFile(abidata.ref_file("trf2_5.out_PHDOS.nc"))
         repr(ncfile); str(ncfile)
-        ncfile.to_string(verbose=1)
+        assert ncfile.to_string(verbose=1)
         assert hasattr(ncfile, "structure")
         nw = len(ncfile.wmesh)
         assert nw == 461
@@ -405,6 +406,7 @@ class PhononDosPlotterTest(AbipyTest):
         plotter.add_phdos("Same-AlAs", phdos_paths[1])
         repr(plotter); str(plotter)
         assert len(plotter.phdos_list) == 2
+        assert plotter.has_same_formula
 
         if self.has_matplotlib():
             assert plotter.combiplot(show=True)

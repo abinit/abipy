@@ -39,7 +39,7 @@ class QhaTest(AbipyTest):
         te = qha.get_thermal_expansion_coeff(num=4)
         self.assertAlmostEqual(te.values[1], 1.4676820862386381e-05)
 
-        self.assertAlmostEqual(qha.get_vol_at_t(200), 41.07441539803265)
+        self.assertAlmostEqual(qha.get_vol_at_t(200), 41.07441539803265, places=5)
         temps = qha.get_t_for_vols([40, 41.065, 41.1])
         self.assertEqual(len(temps[0]), 0)
         self.assertEqual(len(temps[1]), 2)

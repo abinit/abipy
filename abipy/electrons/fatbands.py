@@ -1071,9 +1071,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
-                            ax.set_xlabel('DOS [states/eV]')
+                            ax.set_xlabel('DOS (states/eV)')
                         else:
-                            ax.set_ylabel('DOS [states/eV]')
+                            ax.set_ylabel('DOS (states/eV)')
                 elif l == mylsize - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")
@@ -1226,9 +1226,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
-                            ax.set_xlabel('DOS [states/eV]')
+                            ax.set_xlabel('DOS (states/eV)')
                         else:
-                            ax.set_ylabel('DOS [states/eV]')
+                            ax.set_ylabel('DOS (states/eV)')
                 elif itype == self.ntypat - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")

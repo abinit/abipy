@@ -116,9 +116,9 @@ class QHA(object):
         energies = []
         structures = []
         for gp in gsr_files_paths:
-            g = GsrFile.from_file(gp)
-            energies.append(g.energy)
-            structures.append(g.structure)
+            with GsrFile.from_file(gp) as g:
+                energies.append(g.energy)
+                structures.append(g.structure)
 
         doses = [PhdosFile(dp).phdos for dp in phdos_files_paths]
 
@@ -135,8 +135,7 @@ class QHA(object):
             num: int, optional Number of samples to generate. Default is 10.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
 
         f = self.fit_energies(tstart, tstop, num)
@@ -166,8 +165,7 @@ class QHA(object):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
 
-        Returns:
-            |Function1D|
+        Returns: |Function1D|
         """
 
         f = self.fit_energies(tstart, tstop, num)
@@ -188,8 +186,7 @@ class QHA(object):
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
 
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -223,8 +220,7 @@ class QHA(object):
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         f = self.fit_energies(tstart, tstop, num)
@@ -258,8 +254,7 @@ class QHA(object):
             t_max: maximum temperature considered for plotting.
             colormap: matplotlib color map.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
 
         if temperatures is None:
@@ -343,7 +338,7 @@ class QHA(object):
         """
         Writes nvols thermal_properties-i.yaml files that can be used as inputs for phonopy-qha.
         Notice that phonopy apparently requires the value of the 300 K temperature to be present
-        in the list. Choose the values of tstart, tstop and num to satisfy this condtion.
+        in the list. Choose the values of tstart, tstop and num to satisfy this condition.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -406,7 +401,7 @@ class QHA(object):
         The object is returned right after the construction. The "run()" method should be executed
         before getting results and plots.
         Notice that phonopy apparently requires the value of the 300 K temperature to be present
-        in the list. Choose the values of tstart, tstop and num to satisfy this condtion.
+        in the list. Choose the values of tstart, tstop and num to satisfy this condition.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.

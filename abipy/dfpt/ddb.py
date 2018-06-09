@@ -1596,7 +1596,8 @@ class DdbRobot(Robot):
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies. Note lo_to_splitting set to False.
-            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip, lo_to_splitting=False)
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut,
+               dipdip=dipdip, lo_to_splitting=False)
             # [nq, nmodes] array
             freqs = phbands.phfreqs[0, :] * phfactor_ev2units(units)
 
@@ -1624,6 +1625,7 @@ class DdbRobot(Robot):
             phbands_plotter: |PhononBandsPlotter| object.
             phdos_plotter: |PhononDosPlotter| object.
         """
+	# TODO: Multiprocessing?
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
@@ -1647,6 +1649,15 @@ class DdbRobot(Robot):
                 phdos_file.close()
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        print("Invoking anaddb through anaget_phonon_plotters...")
+        r = self.anaget_phonon_plotters()
+        for fig in r.phbands_plotter.yield_figs(): yield fig
+        for fig in r.phdos_plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

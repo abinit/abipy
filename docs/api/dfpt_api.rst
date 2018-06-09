@@ -53,6 +53,15 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`qha` Module
+-----------------
+
+.. automodule:: abipy.dfpt.qha
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`tensors` Module
 ---------------------
 

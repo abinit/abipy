@@ -77,6 +77,7 @@ Usage example:
     abiopen.py FILE -nb    => Generate jupyter notebook.
     abiopen.py FILE -p     => Print info on object to terminal.
     abiopen.py FILE -e     => Generate matplotlib figures automatically.
+                              Use -sns to activate seaborn settings.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).

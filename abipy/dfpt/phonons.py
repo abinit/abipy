@@ -135,11 +135,22 @@ class PhononBands(object):
                         filepath, "red")
                 amu = None
 
+            non_anal_ph = None
+            # TODO: Reading NonAnalyticalPh here is not safe because
+            # it may happen that the netcdf file does not contain all the directions
+            # required by AbiPy. For the time being we read NonAnalyticalPh only
+            # if we know that calculation has been driven by AbiPy --> all directions are available.
+            #if "non_analytical_directions" in r.rootgrp.variables:
+            #    print("Found nonanal")
+            #    non_anal_ph = NonAnalyticalPh.from_file(filepath)
+
             return cls(structure=structure,
                        qpoints=qpoints,
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart(),
-                       amu=amu)
+                       amu=amu,
+                       non_anal_ph=non_anal_ph
+                       )
 
     @classmethod
     def as_phbands(cls, obj):
@@ -1169,7 +1180,7 @@ class PhononBands(object):
             if np.allclose(cart_direction, d):
                 return self.non_anal_phfreqs[i]
 
-        raise ValueError("Non analytical contribution has not been calcolated for reduced direction {0} ".format(frac_direction))
+        raise ValueError("Non analytical contribution has not been calculated for reduced direction {0} ".format(frac_direction))
 
     def _get_non_anal_phdispl(self, frac_direction):
         # directions for the qph2l in anaddb are given in cartesian coordinates
@@ -1555,7 +1566,7 @@ class PhononBands(object):
 
         ax.set_xticks(xticks)
         ax.set_xticklabels((xticklabels))
-        ax.legend(loc="best", fontsize=fontsize, shadow=False)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -1853,8 +1864,6 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
         # Initialize Phonon bands and add metadata from ncfile
         self._phbands = PhononBands.from_file(filepath)
-        #self._phbands.params.update(self.params)
-        #print(self.params)
 
     def __str__(self):
         return self.to_string()
@@ -2128,7 +2137,7 @@ class PhononDos(Function1D):
             ax.grid(True)
 
         ax2.set_xlabel('Energy %s' % abu.phunit_tag(units))
-        ax1.set_ylabel("IDOS [states]")
+        ax1.set_ylabel("IDOS (states)")
         ax2.set_ylabel("DOS %s" % abu.phdos_label_from_units(units))
 
         self.plot_dos_idos(ax1, what="i", units=units, **kwargs)
@@ -2232,20 +2241,21 @@ class PhononDos(Function1D):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                             quantities=None, **kwargs):
+                             quantities=None, fontsize=8, **kwargs):
         """
-        Plot thermodinamic properties from the phonon DOSes within the harmonic approximation.
+        Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 50.
-            quantities: List of strings specifying the thermodinamic quantities to plot.
+            quantities: List of strings specifying the thermodynamic quantities to plot.
                 Possible values: ["internal_energy", "free_energy", "entropy", "c_v"].
                 None means all.
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
+            fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -2265,7 +2275,7 @@ class PhononDos(Function1D):
         if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
         for iax, (qname, ax) in enumerate(zip(quantities, ax_mat.flat)):
-            # Compute thermodinamic quantity associated to qname.
+            # Compute thermodynamic quantity associated to qname.
             f1d = getattr(self, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
             ys = f1d.values
             if formula_units is not None: ys /= formula_units
@@ -2274,11 +2284,11 @@ class PhononDos(Function1D):
 
             ax.set_title(qname)
             ax.grid(True)
-            ax.set_xlabel("Temperature [K]")
-            ax.set_ylabel(_THERMO_YLABELS[qname][units])
-            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax.set_xlabel("Temperature (K)", fontsize=fontsize)
+            ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        fig.tight_layout()
+        #fig.tight_layout()
         return fig
 
     def to_pymatgen(self):
@@ -2870,6 +2880,14 @@ class PhononBandsPlotter(NotebookWriter):
 
         return "\n".join(lines)
 
+    def has_same_formula(self):
+        """
+        True of plotter contains structures with same chemical formula.
+        """
+        structures = [phbands.structure for phbands in self.phbands_dict.values()]
+        if structures and any(s.formula != structures[0].formula for s in structures): return False
+        return True
+
     def get_phbands_frame(self, with_spglib=True):
         """
         Build a |pandas-DataFrame| with the most important results available in the band structures.
@@ -3045,6 +3063,9 @@ class PhononBandsPlotter(NotebookWriter):
         """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.gridplot(show=False)
         yield self.boxplot(show=False)
+        if self.has_same_formula():
+            yield self.combiplot(show=False)
+            yield self.combiboxplot(show=False)
 
     @add_fig_kwargs
     def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
@@ -3439,8 +3460,16 @@ class PhononDosPlotter(NotebookWriter):
 
         self._phdoses_dict[label] = PhononDos.as_phdos(phdos, phdos_kwargs)
 
+    #def has_same_formula(self):
+    #    """
+    #    True of plotter contains structures with same chemical formula.
+    #    """
+    #    structures = [phdos.structure for phdos in self._phdoses_dict.values()]
+    #    if structures and any(s.formula != structures[0].formula for s in structures): return False
+    #    return True
+
     @add_fig_kwargs
-    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=12, **kwargs):
+    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
         """
         Plot DOSes on the same figure. Use ``gridplot`` to plot DOSes on different figures.
 
@@ -3477,7 +3506,7 @@ class PhononDosPlotter(NotebookWriter):
         return self.combiplot(**kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, units="eV", xlims=None, ylims=None, **kwargs):
+    def gridplot(self, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
         """
         Plot multiple DOSes on a grid.
 
@@ -3485,6 +3514,7 @@ class PhononDosPlotter(NotebookWriter):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
@@ -3510,9 +3540,9 @@ class PhononDosPlotter(NotebookWriter):
             ax = ax_list[i]
             phdos.plot_dos_idos(ax, units=units)
 
-            ax.set_xlabel('Energy %s' % abu.phunit_tag(units))
-            ax.set_ylabel("DOS %s" % abu.phdos_label_from_units(units))
-            ax.set_title(label)
+            ax.set_xlabel('Energy %s' % abu.phunit_tag(units), fontsize=fontsize)
+            ax.set_ylabel("DOS %s" % abu.phdos_label_from_units(units), fontsize=fontsize)
+            ax.set_title(label, fontsize=fontsize)
             ax.grid(True)
             set_axlims(ax, xlims, "x")
             set_axlims(ax, ylims, "y")
@@ -3523,9 +3553,9 @@ class PhononDosPlotter(NotebookWriter):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                             quantities="all", fontsize=12, **kwargs):
+                             quantities="all", fontsize=8, **kwargs):
         """
-        Plot thermodinamic properties from the phonon DOS within the harmonic approximation.
+        Plot thermodynamic properties from the phonon DOS within the harmonic approximation.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -3534,7 +3564,7 @@ class PhononDosPlotter(NotebookWriter):
             units: eV for energies in ev/unit_cell, Jmol for results in J/mole.
             formula_units: the number of formula units per unit cell. If unspecified, the
                 thermodynamic quantities will be given on a per-unit-cell basis.
-            quantities: List of strings specifying the thermodinamic quantities to plot.
+            quantities: List of strings specifying the thermodynamic quantities to plot.
                 Possible values in ["internal_energy", "free_energy", "entropy", "c_v"].
             fontsize: Legend and title fontsize.
 
@@ -3557,7 +3587,7 @@ class PhononDosPlotter(NotebookWriter):
 
         for iax, (qname, ax) in enumerate(zip(quantities, ax_mat.flat)):
             for i, (label, phdos) in enumerate(self._phdoses_dict.items()):
-                # Compute thermodinamic quantity associated to qname.
+                # Compute thermodynamic quantity associated to qname.
                 f1d = getattr(phdos, "get_" + qname)(tstart=tstart, tstop=tstop, num=num)
                 ys = f1d.values
                 if formula_units != 1: ys /= formula_units
@@ -3566,11 +3596,12 @@ class PhononDosPlotter(NotebookWriter):
 
             ax.set_title(qname, fontsize=fontsize)
             ax.grid(True)
-            ax.set_xlabel("Temperature [K]")
-            ax.set_ylabel(_THERMO_YLABELS[qname][units])
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax.set_ylabel(_THERMO_YLABELS[qname][units], fontsize=fontsize)
+            ax.set_xlabel("Temperature (K)", fontsize=fontsize)
+            if iax == 0:
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        fig.tight_layout()
+        #fig.tight_layout()
         return fig
 
     def ipw_select_plot(self):
@@ -3589,7 +3620,7 @@ class PhononDosPlotter(NotebookWriter):
 
     def ipw_harmonic_thermo(self):
         """
-        Return an ipython widget with controllers to plot thermodinamic properties
+        Return an ipython widget with controllers to plot thermodynamic properties
         from the phonon DOS within the harmonic approximation.
         """
         def plot_callback(tstart, tstop, num, units, formula_units):
@@ -3600,6 +3631,15 @@ class PhononDosPlotter(NotebookWriter):
         return ipw.interact_manual(
                 plot_callback,
                 tstart=5, tstop=300, num=50, units=["eV", "Jmol"], formula_units=1)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.gridplot(show=False)
+        yield self.plot_harmonic_thermo(show=False)
+        #if self.has_same_formula():
+        yield self.combiplot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -4267,7 +4307,7 @@ def open_file_phononwebsite(filename, port=8000,
           "     export BROWSER=firefox\n")
     print('Press Ctrl+C to terminate HTTP server')
     import webbrowser
-    webbrowser.get(browser).open_new(url)
+    webbrowser.get(browser).open_new_tab(url)
 
     # Quit application when SIGINT is received
     def signal_handler(signal, frame):

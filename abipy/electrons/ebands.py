@@ -3438,7 +3438,7 @@ class ElectronDosPlotter(NotebookWriter):
             ax.set_title(label, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
             if (irow, icol) == (0, 0):
-                ax.set_ylabel('DOS [states/eV]' if what == "dos" else "IDOS")
+                ax.set_ylabel('DOS (states/eV)' if what == "dos" else "IDOS")
             if irow == nrows - 1:
                 ax.set_xlabel("Energy (eV)")
 
@@ -3459,6 +3459,13 @@ class ElectronDosPlotter(NotebookWriter):
                 plot_type=["combiplot", "gridplot"],
                 e0=["fermie", "0.0"],
             )
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.combiplot(show=False)
+        yield self.gridplot(show=False)
 
     def write_notebook(self, nbpath=None):
         """

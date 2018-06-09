@@ -354,6 +354,8 @@ closest points in this particular structure. This is usually what you want in a 
     mp_rest_parser.add_argument("--mapi-key", default=None,
         help="Pymatgen MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
     mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
+    mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
+        help="Open materials-project webpages in browser")
 
     # Subparser for mp_id command.
     p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
@@ -726,6 +728,9 @@ def main():
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
 
+        if options.browser:
+            mp.open_browser(limit=None if options.verbose == 2 else 10)
+
     elif options.command == "mp_search":
         mp = abilab.mp_search(options.chemsys_formula_id)
         if not mp.structures:
@@ -737,6 +742,9 @@ def main():
             return mp.make_and_open_notebook(foreground=options.foreground)
         else:
             mp.print_results(fmt=options.format, verbose=options.verbose)
+
+        if options.browser:
+            mp.open_browser(limit=None if options.verbose == 2 else 10)
 
     elif options.command == "mp_pd":
         if os.path.exists(options.file_or_elements):
