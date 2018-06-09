@@ -9,10 +9,10 @@ Utilities for generating matplotlib plots.
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
-import collections
 import time
 import numpy as np
 
+from collections import OrderedDict, namedtuple
 from monty.string import list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
@@ -27,6 +27,7 @@ __all__ = [
     "data_from_cplx_mode",
     "Marker",
     "plot_unit_cell",
+    "GenericDataFilePlotter",
 ]
 
 def ax_append_title(ax, title, loc="center", fontsize=None):
@@ -226,7 +227,7 @@ class ArrayPlotter(object):
         Args:
             labels_and_arrays: List [("label1", arr1), ("label2", arr2")]
         """
-        self._arr_dict = collections.OrderedDict()
+        self._arr_dict = OrderedDict()
         for label, array in labels_and_arrays:
             self.add_array(label, array)
 
@@ -313,7 +314,7 @@ class ArrayPlotter(object):
         return fig
 
 
-class Marker(collections.namedtuple("Marker", "x y s")):
+class Marker(namedtuple("Marker", "x y s")):
     """
     Stores the position and the size of the marker.
     A marker is a list of tuple(x, y, s) where x, and y are the position
@@ -551,3 +552,91 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     ax.set_axis_off()
 
     return fig
+
+
+class GenericDataFilePlotter(object):
+    """
+    Extract data from a generic text file with results
+    in tabular format and plot data with matplotlib.
+    Multiple datasets are supported.
+    No attempt is made to handle metadata (e.g. column name)
+    Mainly used to handle text files written without any decent schema.
+    """
+    def __init__(self, filepath):
+        with open(filepath, "rt") as fh:
+            self._parse_fh(fh)
+
+    def _parse_fh(self, fh):
+        # Parse file with data in tabular format.
+        # Store results in OrderedDict title --> numpy array
+        arr_list = [None]
+        data = []
+        head_list = []
+        count = -1
+        last_header = None
+        for l in fh:
+            l = l.strip()
+            if not l or l.startswith("#"):
+                count = -1
+                last_header = l
+                if arr_list[-1] is not None: arr_list.append(None)
+                continue
+
+            count += 1
+            if count == 0: head_list.append(last_header)
+            if arr_list[-1] is None: arr_list[-1] = []
+            data = arr_list[-1]
+            data.append(list(map(float, l.split())))
+
+        if len(head_list) != len(arr_list):
+            raise RuntimeError("len(head_list) != len(arr_list), %d != %d" % (len(head_list), len(arr_list)))
+
+        self.od = OrderedDict()
+        for key, data in zip(head_list, arr_list):
+            key = " ".join(key.split())
+            if key in self.od:
+                print("Header %s already in dictionary. Using new key %s" % (key, 2 * key))
+                key = 2 * key
+            self.od[key] = np.array(data).T.copy()
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        lines = []
+        for key, arr in self.od.items():
+            lines.append("key: `%s` --> array shape: %s" % (key, str(arr.shape)))
+        return "\n".join(lines)
+
+    @add_fig_kwargs
+    def plot(self, fontsize=8, **kwargs):
+        """
+        Plot all arrays. Use multiple axes if datasets.
+
+        Args:
+            fontsize: Fontsize for title.
+            kwargs: options passed to ``ax.plot``.
+
+        Return: |matplotlib-Figure|
+        """
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(self.od), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # don't show the last ax if numeb is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        for ax, (key, arr) in zip(ax_list, self.od.items()):
+            ax.set_title(key, fontsize=fontsize)
+            ax.grid(True)
+            for ys in arr[1:]:
+                ax.plot(arr[0], ys)
+
+        return fig
