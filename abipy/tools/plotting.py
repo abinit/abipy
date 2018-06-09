@@ -63,7 +63,7 @@ def set_axlims(ax, lims, axname):
     try:
         len_lims = len(lims)
     except TypeError:
-        # Asumme Scalar
+        # Assume Scalar
         left = float(lims)
 
     if len_lims is not None:
@@ -562,6 +562,8 @@ class GenericDataFilePlotter(object):
     No attempt is made to handle metadata (e.g. column name)
     Mainly used to handle text files written without any decent schema.
     """
+    # TODO: Object to compare multiple files interfaced with abicomp.py
+
     def __init__(self, filepath):
         with open(filepath, "rt") as fh:
             self._parse_fh(fh)
@@ -630,7 +632,7 @@ class GenericDataFilePlotter(object):
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        # don't show the last ax if numeb is odd.
+        # don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for ax, (key, arr) in zip(ax_list, self.od.items()):

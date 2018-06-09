@@ -281,7 +281,7 @@ class A2f(object):
             self.plot(what=what, ax=this_ax, units=units, fontsize=fontsize, xlims=xlims, show=False, **kwargs)
             if i:
                 this_ax.yaxis.set_label_position("right")
-                this_ax.grid("off")
+                this_ax.grid(True)
 
         return fig
 

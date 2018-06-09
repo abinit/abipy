@@ -20,7 +20,6 @@ from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
-from monty.dev import deprecated
 try:
     from pymatgen.util.serialization import pmg_serialize
 except ImportError:
@@ -2373,15 +2372,6 @@ class ElectronBandsPlotter(NotebookWriter):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
-    @deprecated(message="add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands. It will be removed in 0.4")
-    def add_ebands_from_file(self, filepath, label=None):
-        """
-        Adds a band structure for plotting. Reads data from a Netcdfile
-        """
-        if label is None: label = os.path.abspath(filepath)
-        ebands = ElectronBands.as_ebands(filepath)
-        self.add_ebands(label, ebands)
-
     def add_ebands(self, label, bands, edos=None, dos=None, edos_kwargs=None):
         """
         Adds a band structure and optionally a edos to the plotter.
@@ -3278,16 +3268,6 @@ class ElectronDosPlotter(NotebookWriter):
     def edos_list(self):
         """List of DOSes"""
         return list(self.edoses_dict.values())
-
-    @deprecated(message="add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos. It will be removed in 0.4")
-    def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
-        """
-        Adds a dos for plotting. Reads data from a Netcdf file
-        """
-        ebands = ElectronBands.as_ebands(filepath)
-        edos = ebands.get_edos(method=method, step=step, width=width)
-        if label is None: label = filepath
-        self.add_edos(label, edos)
 
     def add_edos(self, label, edos, edos_kwargs=None):
         """

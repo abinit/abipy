@@ -15,7 +15,6 @@ from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from monty.dev import get_ncpus, deprecated
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -1208,11 +1207,6 @@ class Becs(Has_Structure):
             mat = becs_arr[i]
             if order.lower() == "f": mat = mat.T
             self.values[i] = mat
-
-    @property
-    @deprecated(message="becs  has been renamed values. Will be removed in abipy 0.4.")
-    def becs(self):
-        return self.values
 
     @property
     def structure(self):

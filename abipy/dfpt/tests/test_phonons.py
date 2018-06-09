@@ -406,7 +406,6 @@ class PhononDosPlotterTest(AbipyTest):
         plotter.add_phdos("Same-AlAs", phdos_paths[1])
         repr(plotter); str(plotter)
         assert len(plotter.phdos_list) == 2
-        assert plotter.has_same_formula
 
         if self.has_matplotlib():
             assert plotter.combiplot(show=True)

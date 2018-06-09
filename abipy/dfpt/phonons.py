@@ -17,7 +17,6 @@ from monty.string import is_string, list_strings, marquee
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from monty.dev import deprecated
 from pymatgen.core.units import eV_to_Ha, Energy
 from pymatgen.core.periodic_table import Element
 from abipy.core.func1d import Function1D
@@ -2922,16 +2921,6 @@ class PhononBandsPlotter(NotebookWriter):
         """Generates matplotlib linestyles."""
         for o in itertools.product(self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
-
-    @deprecated(message="add_phbands_from_file method of PhononBandsPlotter has been replaced by add_phbands. It will be removed in 0.4")
-    def add_phbands_from_file(self, filepath, label=None):
-        """
-        Adds a band structure for plotting. Reads data from a netcdf_ file
-        """
-        from abipy.abilab import abiopen
-        with abiopen(filepath) as ncfile:
-            if label is None: label = ncfile.filepath
-            self.add_phbands(label, ncfile.phbands)
 
     def add_phbands(self, label, bands, phdos=None, dos=None, phdos_kwargs=None):
         """

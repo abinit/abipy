@@ -44,7 +44,7 @@ from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, Electro
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.psps import PspsFile
 from abipy.electrons.ddk import DdkFile
-from abipy.electrons.gw import SigresFile, SigresPlotter, SigresRobot
+from abipy.electrons.gw import SigresFile, SigresRobot
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile

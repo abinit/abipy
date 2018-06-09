@@ -8,7 +8,6 @@ import abipy.data as abidata
 
 from abipy import abilab
 from abipy.electrons.gw import *
-from abipy.electrons.gw import SigresPlotter
 from abipy.core.testing import AbipyTest
 
 
@@ -221,29 +220,6 @@ class TestSigresFile(AbipyTest):
             assert plotter.gridplot(title="Silicon band structure", show=False)
 
         sigres.close()
-
-
-class TestSigresPlotter(AbipyTest):
-    def test_sigres_plotter(self):
-        """Testing SigresPlotter."""
-        filenames = [
-            "si_g0w0ppm_nband10_SIGRES.nc",
-            "si_g0w0ppm_nband20_SIGRES.nc",
-            "si_g0w0ppm_nband30_SIGRES.nc",
-        ]
-        filepaths = [abidata.ref_file(fname) for fname in filenames]
-
-        with SigresPlotter() as plotter:
-            plotter.add_files(filepaths)
-            repr(plotter); str(plotter)
-            assert len(plotter) == len(filepaths)
-
-            if self.has_matplotlib():
-                assert plotter.plot_qpgaps(title="QP gaps vs sigma_nband", hspan=0.05, show=False)
-                assert plotter.plot_qpenes(title="QP energies vs sigma_nband", hspan=0.05, show=False)
-                assert plotter.plot_qps_vs_e0(show=False)
-
-            plotter.close()
 
 
 class SigresRobotTest(AbipyTest):
