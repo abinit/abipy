@@ -15,6 +15,7 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
 
 
 # Not used but could be useful to analyze densities.
@@ -221,6 +222,15 @@ def abicomp_xrd(options):
                         annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
     return 0
 
+def abicomp_data(options):
+    """
+    Compare results stored in multiple files with data in tabular format.
+    """
+    plotter = GenericDataFilesPlotter.from_files(options.paths)
+    print(plotter.to_string(verbose=options.verbose))
+    plotter.plot()
+    return 0
+
 
 def abicomp_ebands(options):
     """
@@ -398,7 +408,7 @@ def abicomp_getattr(options):
 
     if options.plot and len(values) == len(options.paths[1:]):
         # Plot values.
-        from abipy.tools.plotting import get_ax_fig_plt
+
         ax, fig, plt = get_ax_fig_plt()
         xs = np.arange(len(options.paths[1:]))
         ax.plot(xs, values)
@@ -738,6 +748,8 @@ Usage example:
 # Miscelleanous
 ###############
 
+  abicomp.py data FILE1 FILE2 ...                 => Read data from files with results in tabular format and
+                                                     compare results. Mainly used for text files without any schema.
   abicomp.py getattr energy *_GSR.nc              => Extract the `energy` attribute from a list of GSR files
                                                      and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
@@ -879,6 +891,9 @@ def get_parser(with_epilog=False):
         "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
     p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
         help="Whether to annotate the peaks with plane information.")
+
+    # Subparser for data command.
+    p_data = subparsers.add_parser('data', parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)

@@ -1628,6 +1628,18 @@ class SigEPhRobot(Robot, RobotWithEbands):
         Args:
             field (str): String defining the attribute to plot.
             itemp (int): Temperature index.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function. If None, no sorting is performed.
+                If string and not empty it's assumed that the abifile has an attribute
+                with the same name and `getattr` is invoked.
+                If callable, the output of sortby(abifile) is used.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                Accepts callable or string
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If callable, the output of hue(abifile) is used.
+            colormap: matplotlib color map.
+            fontsize: legend and label fontsize.
+            e0: Option used to define the zero of energy in the band structure plot.
 
         .. note::
 

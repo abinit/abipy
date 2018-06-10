@@ -883,8 +883,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    Note that this is a very crude estimate of the charge density distribution.
 
     #    Args:
-    #        start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.
-    #        stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.
+    #        start_energy: PJDOS is integrated from this energy (eV). If None, the lower bound in used.
+    #        stop_energy: PJDOS is integrated up to this energy (eV). If None, the Fermi level is used.
     #        method: String defining the method for the computation of the DOS.
     #        step: Energy step (eV) of the linear mesh.
     #        width: Standard deviation (eV) of the gaussian.

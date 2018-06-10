@@ -143,4 +143,19 @@ class TestPlotting(AbipyTest):
         assert plotter.od[key].shape == (3, 30)
 
         if self.has_matplotlib():
-            plotter.plot(show=False)
+            assert plotter.plot(show=False)
+
+
+    def test_generic_data_files_plotter(self):
+        """Testing GenericDataFilesPlotter object."""
+        filepaths = [
+                os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
+                os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
+        ]
+
+        plotter = GenericDataFilesPlotter.from_files(filepaths)
+        assert plotter.to_string(verbose=2)
+        assert str(plotter)
+
+        if self.has_matplotlib():
+            assert plotter.plot(show=False)

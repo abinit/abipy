@@ -27,8 +27,6 @@ TODO list:
 
 * Almost DONE: Add support for https://mybinder.readthedocs.io/en/latest/sample_repos.html#conda-environment-with-environment-yml
 
-* DONE Rename EPH.nc (A2F.nc)
-
 * DONE Add https://github.com/mcmtroffaes/sphinxcontrib-bibtex
 
 * DONE Add support for DVDV, DDB in plot_networkx (but graphviz is much better)
@@ -87,7 +85,7 @@ TODO list:
 
 * Had to increase fermie again to get correct gap in diamond treated if FD smearing
 
-* Create git repo for Abipy webisite to facilitate integration with binder + sphinx-gallery?
+* Create git repo for Abipy website to facilitate integration with binder + sphinx-gallery?
 
 ## Low priority
 

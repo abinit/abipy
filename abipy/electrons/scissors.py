@@ -310,8 +310,8 @@ class ScissorsBuilder(object):
             ax.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
 
         ax.grid(True)
-        ax.set_xlabel('KS energy [eV]')
-        ax.set_ylabel('QP-KS [eV]')
+        ax.set_xlabel('KS energy (eV)')
+        ax.set_ylabel('QP-KS (eV)')
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig

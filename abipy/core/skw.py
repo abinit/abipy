@@ -589,8 +589,8 @@ class ElectronInterpolator(object):
                 ax.plot(edos.mesh, edos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
         ax.grid(True)
-        ax.set_xlabel("Energy [eV]")
-        ax.set_ylabel('DOS [states/eV]')
+        ax.set_xlabel("Energy (eV)")
+        ax.set_ylabel('DOS (states/eV)')
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -624,8 +624,8 @@ class ElectronInterpolator(object):
                ax.plot(jdos.mesh, jdos.values[spin] * spin_sign, label=str(kmesh) if spin == 0 else None)
 
         ax.grid(True)
-        ax.set_xlabel("Energy [eV]")
-        ax.set_ylabel('JDOS [states/eV]')
+        ax.set_xlabel("Energy (eV)")
+        ax.set_ylabel('JDOS (states/eV)')
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
