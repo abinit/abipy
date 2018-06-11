@@ -4,14 +4,9 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import numpy as np
 import pandas as pd
-#import pymatgen.core.units as units
 
 from collections import OrderedDict, defaultdict
-#from tabulate import tabulate
-from monty.string import marquee #is_string, list_strings,
-#from monty.termcolor import cprint
-#from monty.collections import AttrDict, dict2namedtuple
-#from monty.functools import lazy_property
+from monty.string import marquee
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
@@ -93,7 +88,7 @@ class WoutFile(_File, Has_Structure, NotebookWriter):
         Parse basic dimensions and get structure from the header of the file.
         """
         self.version, self._structure, self.grid_size = None, None, None
-        # Dictionary
+        # Init dictionary with parameters.
         self.params_section = OrderedDict([(s, OrderedDict()) for s in
             ("MAIN", "WANNIERISE", "PLOTTING", "DISENTANGLE")])
         params_done = False
@@ -207,7 +202,7 @@ class WoutFile(_File, Has_Structure, NotebookWriter):
 
             self.dis_df = pd.DataFrame.from_dict(data)
 
-        # Parse Wannierizatio cycles.
+        # Parse Wannierization cycles.
         for start, line in enumerate(self.lines):
             if "Initial State" in line: break
         else:
@@ -223,10 +218,8 @@ class WoutFile(_File, Has_Structure, NotebookWriter):
         lines = self.lines[start:][:]
         while lines:
             line = lines.pop(0).strip()
-            # TODO Final State
             if not line.startswith("Initial State") and not line.startswith("Cycle:"): continue
             step = int(line.split()[-1]) if line.startswith("Cycle:") else 0
-            #print(line)
             for iw in range(self.nwan + 1):
                 # WF centre and spread    1  (  0.042127,  0.071712, -0.424794 )    10.42287858
                 # Sum of centres and spreads (  0.933074, -0.071343, -0.800933 )    42.11245002
@@ -252,7 +245,6 @@ class WoutFile(_File, Has_Structure, NotebookWriter):
             # ------------------------------------------------------------------------------
             # Parse CONV and add values to data
             conv_toks = lines.pop(0).split()
-            #print(conv_toks)
             for i, k in enumerate(("iter", "delta_spread", "rms_gradient", "spread", "time")):
                 data[k].append(int(conv_toks[i]) if i == 0 else float(conv_toks[i]))
 
