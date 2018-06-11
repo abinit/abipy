@@ -468,8 +468,8 @@ class ElectronBands(Has_Structure):
             fermie: Fermi level in eV.
             occfacts: Occupation factors (same shape as eigens)
             nelect: Number of valence electrons in the unit cell.
-            nspinor: Number of spinorial components
-            nspden: Number of indipendent density components.
+            nspinor: Number of spinor components
+            nspden: Number of independent density components.
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
                       If not given, nband_sk is initialized from eigens.
             smearing: :class:`Smearing` object storing information on the smearing technique.
