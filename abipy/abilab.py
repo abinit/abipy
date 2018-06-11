@@ -62,6 +62,7 @@ from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
+from abipy.wannier90 import WoutFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -89,6 +90,7 @@ ext2file = collections.OrderedDict([
     (".pspnc", Pseudo),
     (".fhi", Pseudo),
     ("JTH.xml", Pseudo),
+    (".wout", WoutFile),
 ])
 
 # Abinit files require a special treatment.
