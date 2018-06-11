@@ -5,15 +5,14 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 import numpy as np
 import pandas as pd
 
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from monty.string import marquee
-from abipy.core.mixins import Has_Structure, NotebookWriter
+from abipy.core.mixins import BaseFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
-from abipy.core.mixins import _File, TextFile, NotebookWriter
 
 
-class WoutFile(_File, Has_Structure, NotebookWriter):
+class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath):
         super(WoutFile, self).__init__(filepath)

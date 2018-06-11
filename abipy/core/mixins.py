@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 @six.add_metaclass(abc.ABCMeta)
-class _File(object):
+class BaseFile(object):
     """
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
@@ -105,10 +105,10 @@ class _File(object):
     #    try:
     #        self.close()
     #    finally:
-    #        super(_File, self).__close__(self)
+    #        super(BaseFile, self).__close__(self)
 
 
-class TextFile(_File):
+class TextFile(BaseFile):
 
     #@classmethood
     #def from_string(cls, s):
@@ -155,7 +155,7 @@ class AbinitOutNcFile(NetcdfReader):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AbinitNcFile(_File):
+class AbinitNcFile(BaseFile):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
@@ -179,7 +179,7 @@ class AbinitNcFile(_File):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AbinitFortranFile(_File):
+class AbinitFortranFile(BaseFile):
     """
     Abstract class representing a fortran file containing output data from abinit.
     """
@@ -187,7 +187,7 @@ class AbinitFortranFile(_File):
         pass
 
 
-class CubeFile(_File):
+class CubeFile(BaseFile):
     """
 
     .. attribute:: structure
