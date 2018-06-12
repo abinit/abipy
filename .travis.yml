@@ -6,10 +6,10 @@ matrix:
   include:
     - os: linux
       python: 2.7
-      env: ABINIT_VERSION=8.7.6
+      env: ABINIT_VERSION=8.8.2
     - os: linux
       python: 3.6
-      env: ABINIT_VERSION=8.7.6
+      env: ABINIT_VERSION=8.8.2
 
 #dist: precise
 sudo: false

@@ -329,7 +329,7 @@ Variable(
     topics=['Hybrids_useful'],
     dimensions="scalar",
     defaultval=1,
-    mnemonics="AUXiliary XC functional, IXC number",
+    mnemonics="AUXiliary XC functional for hybrid functional, IXC number",
     text="""
 Specification of an auxiliary exchange-correlation functional, thanks to its
 [[ixc]] value, to possibly replace the heavy evaluation of an hybrid
@@ -349,7 +349,7 @@ Variable(
     topics=['Hybrids_useful'],
     dimensions="scalar",
     defaultval=1.0,
-    mnemonics="FOCK AUXiliary xc functional - SCALing factor",
+    mnemonics="AUXiliary xc functional for hybrid functional- SCALing factor",
     text="""
 Possible scaling factor for the auxiliary exchange-correlation functional
 defined by [[auxc_ixc]] that has the goal to replace the Fock operator or
@@ -1421,6 +1421,8 @@ Variable(
 If 0, will not stop the execution if the [[dilatmx]] threshold is exceeded,
 but simply issue a warning. There will be no rescaling. If 1, after tentative
 rescaling as described in [[dilatmx]], will stop the execution.
+Also, the use of [[chkdilatmx]]=0 allows one to set [[dilatmx]] to a larger value than 1.15 ,
+otherwise forbidden, as being a waste of CPU and memory.
 """,
 ),
 
@@ -2216,20 +2218,33 @@ Variable(
     defaultval=1.0,
     mnemonics="lattice DILATation: MaXimal value",
     text="""
-Gives the maximal permitted scaling of the lattice parameters when the cell
-shape and dimension is varied (see variable [[optcell]]). Accordingly defines
-the plane wave basis set for this purpose. The [[dilatmx]] threshold might be
-exceeded if [[chkdilatmx]]=0, otherwise ABINIT exits after three tentative
-rescalings, as described below.
+[[dilatmx]] is an auxiliary variable used to book additional memory (see detailed description later) for possible
+on-the-flight variations the plane wave basis set, due to cell optimization by ABINIT.
+Usefull only when [[ionmov]]==2 and [[optcell]]/=0, that is, cell optimization.
 
-[[dilatmx]] is used to define the sphere of plane waves and FFT box coherent
-with the possible modifications of the cell ([[ionmov]]==2 and [[optcell]]
-/=0). For these definitions, it is equivalent to changing [[ecut]] by
-multiplying it by [[dilatmx]]  2  (the result is an "effective ecut", called
-internally "ecut_eff", other uses of [[ecut]] being not modified when [[dilatmx]]>1.0.
+In the default mode ([[chkdilatmx]]=1), when the [[dilatmx]] threshold is exceeded, 
+ABINIT will rescale uniformly the
+tentative new primitive vectors to a value that leads at most to 90% of the
+maximal allowed [[dilatmx]] deviation from 1. It will do this three times (to
+prevent the geometry optimization algorithms to have taken a too large trial
+step), but afterwards will exit. Setting [[chkdilatmx]]==0 allows the
+booking of a larger planewave basis, but will not rescale the tentative new primitive vectors 
+nor lead to an exit when the [[dilatmx]] treshold is exceeded.
+The obtained optimized primitive vectors will not be exactly the ones corresponding to the planewave basis set
+determined using [[ecut]] at the latter primitive vectors. Still, as an intermediate step in a geometry search
+this might be sufficiently accurate. In such case, [[dilatmx]] might even be let at its default value 1.0 .
+
+Detailed explanation : The memory space for the planewave basis set is defined 
+by multiplying [[ecut]] by [[dilatmx]] squared (the result is an "effective ecut", called
+internally "ecut_eff". Other uses of [[ecut]] are not modified when [[dilatmx]]>1.0.
+Still, operations (like scalar products) are taking into account these fake non-used planewaves,
+thus slowing down the ABINIT execution.
 Using [[dilatmx]]<1.0 is equivalent to changing [[ecut]] in all its uses. This
 is allowed, although its meaning is no longer related to a maximal expected scaling.
+
 Setting [[dilatmx]] to a large value leads to waste of CPU time and memory.
+By default, ABINIT will not accept that you define [[dilatmx]] bigger than 1.15.
+This behaviour will be overcome by using [[chkdilatmx]]==0 .
 Supposing you think that the optimized [[acell]] values might be 10% larger
 than your input values, use simply [[dilatmx]] 1.1. This will already lead to
 an increase of the number of planewaves by a factor (1.1)  3  =1.331, and a
@@ -2237,13 +2252,6 @@ corresponding increase in CPU time and memory.
 It is possible to use [[dilatmx]] when [[optcell]] =0, but a value larger than
 1.0 will be a waste.
 
-When the [[dilatmx]] threshold is exceeded, ABINIT will rescale uniformly the
-tentative new primitive vectors to a value that leads at most to 90% of the
-maximal allowed [[dilatmx]] deviation from 1. It will do this three times (to
-forbid the geometry optimization algorithms to have take a too large trial
-step), but afterwards will exit. Setting [[chkdilatmx]]==0 allows the
-definition of an appropriate planewave basis, but will not lead to an exit
-when the threshold is exceeded.
 """,
 ),
 
@@ -3192,7 +3200,7 @@ Variable(
     text="""
 Turns on effective mass tensor calculations. Such calculations requires the
 non-self-consistent calculation of derivatives with respect to k, in the same
-dataset. It must therefore be used with [[rfelfd]]=2.
+dataset. It must therefore be used with [[rfelfd]]=2 (or 1).
 
   * 0 --> no effective mass tensor calculation
   * 1 --> effective mass tensor calculation
@@ -3260,8 +3268,8 @@ Variable(
     requires="[[efmas]] > 0",
     text="""
 Activate (==1) or not (==0) the treatment of degenerate bands (within a
-criterion [[efmas_deg_tol]]) using the transport equivalent effective mass
-idea (see [PRB 89 155131 (2014)](https://doi.org/10.1103/PhysRevB.89.155131)).
+criterion [[efmas_deg_tol]]). Also computed the transport equivalent effective mass
+(see [[cite:Mecholsky2014]]).
 """,
 ),
 
@@ -3351,7 +3359,9 @@ When a band is degenerate, the usual definition of effective mass becomes
 invalid. However, it is still possible to define a 'transport equivalent mass
 tensor' that reproduces the contribution of the band to the conductivity
 tensor. To obtain this tensor, an integration over the solid sphere is
-required. The default value gives a tensor accurate to the 4th decimal in Ge.
+required. The angular variables are sampled using [[efmas_ntheta]] points for the theta coordinate,
+and twice [[efmas_ntheta]] points for the phi coordinate. 
+The default value gives a tensor accurate to the 4th decimal in Ge.
 """,
 ),
 
@@ -3416,7 +3426,7 @@ Variable(
     abivarname="enunit",
     varset="gstate",
     vartype="integer",
-    topics=['Output_useful'],
+    topics=['Output_useful','ElecBandStructure_useful'],
     dimensions="scalar",
     defaultval=0,
     mnemonics="ENergy UNITs",
@@ -3578,7 +3588,7 @@ The choice is among:
     2 --> Compute electron-phonon matrix elements
     3 --> Compute phonon self-energy.
     4 --> Compute EPH self-energy (Fan-Migdal + Debye-Waller)
-    5 --> Interpolate the DFPT potentials.
+    5 --> Interpolate DFPT potentials.
 """,
 ),
 
@@ -5916,8 +5926,6 @@ Mixing coefficient for the unscreened Fock operator in case of hybrid
 functionals. Hartree-Fock corresponds to 1.0, PBE0 to 0.25.
 
 ABINIT knows the correct value from [[ixc]]. Experts might nevertheless tune this mixing coefficient.
-
-If [[gwcalctyp]]==5, 15 or 25, [[auxc_ixc]] refers to [[ixc_sigma]] instead of [[ixc]].
 """,
 ),
 
@@ -5937,8 +5945,6 @@ functionals. HSE has 0.25, B3LYP has 0.2.
 
 ABINIT knows the correct value from [[ixc]]. Experts might nevertheless tune
 this mixing coefficient.
-
-If [[gwcalctyp]]==5, 15 or 25, [[auxc_ixc]] refers to [[ixc_sigma]] instead of [[ixc]].
 """,
 ),
 
@@ -5964,8 +5970,6 @@ definitions from other codes. Usually, [[hyb_range_dft]] is the same as
 [[hyb_range_fock]], see the latter for the different values. However, there is
 a noticeable exception, the HSE03 from the original paper (not the HSE03 from VASP),
 for which [[hyb_range_dft]]=0.188988 while [[hyb_range_fock]]=0.106066.
-
-If [[gwcalctyp]]==5, 15 or 25, [[auxc_ixc]] refers to [[ixc_sigma]] instead of [[ixc]].
 """,
 ),
 
@@ -5993,8 +5997,6 @@ The HSE06 value from LibCX is 0.11, the one of Espresso is 0.106, the one of
 VASP is 0.105835 (=0.2 Angstrom$^-1$).
 The HSE03 value from LibCX is 0.106066 (=0.15/sqrt(2)), the one of VASP is
 0.1587531 (=0.3 Angstrom$^-1$).
-
-If [[gwcalctyp]]==5, 15 or 25, [[auxc_ixc]] refers to [[ixc_sigma]] instead of [[ixc]].
 """,
 ),
 
@@ -7631,10 +7633,10 @@ Variable(
     abivarname="ixcrot",
     varset="dfpt",
     vartype="integer",
-    topics=['DFPT_internal', 'xc_expert', 'DFPT_internal'],
+    topics=['DFPT_expert', 'xc_expert'],
     dimensions="scalar",
     defaultval=3,
-    mnemonics="Index of the XC ROTation method used to calculate first-order exchange-correltation potential in non-collinear DFPT calculations",
+    mnemonics="Index of the XC ROTation method used to calculate first-order exchange-correlation potential in non-collinear DFPT calculations",
     characteristics=['[[DEVELOP]]'],
     text="""
 Method of calculation of the 1st order XC potential in non-collinear DFPT
@@ -11306,19 +11308,20 @@ For each dataset, choose the task to be done, at the level of the "driver"
 routine.
 
 The choice is among:
-[[optdriver]]=0: ground-state calculation (GS), routine "gstate"
-[[optdriver]]=1: response-function calculation (RF), routine "respfn"
-[[optdriver]]=2: susceptibility calculation (SUS), routine "suscep"
-[[optdriver]]=3: susceptibility and dielectric matrix calculation (SCR), routine "screening"
-(see the input variables [[ecutwfn]], [[ecuteps]], [[ppmfrq]], [[getwfk]], as
-well as [[nbandkss]] and [[nband]])
-[[optdriver]]=4: self-energy calculation (SIG), routine "sigma"
-[[optdriver]]=5: non-linear response functions (NONLINEAR), using the 2n+1
-theorem, routine "nonlinear"
-[[optdriver]] =7: electron-phonon coupling (EPH)
-[[optdriver]] =66: GW using Lanczos-Sternheimer, see input variables whose
-name start with gwls_*.
-[[optdriver]]=99: Bethe-Salpeter calculation (BSE), routine "bethe_salpeter"
+
+  * [[optdriver]]=0: ground-state calculation (GS), routine "gstate"
+  * [[optdriver]]=1: response-function calculation (RF), routine "respfn"
+  * [[optdriver]]=2: susceptibility calculation (SUS), routine "suscep"
+  * [[optdriver]]=3: susceptibility and dielectric matrix calculation (SCR), routine "screening"
+    (see the input variables [[ecutwfn]], [[ecuteps]], [[ppmfrq]], [[getwfk]], as
+    well as [[nbandkss]] and [[nband]])
+  * [[optdriver]]=4: self-energy calculation (SIG), routine "sigma"
+  * [[optdriver]]=5: non-linear response functions (NONLINEAR), using the 2n+1
+    theorem, routine "nonlinear"
+  * [[optdriver]] =7: electron-phonon coupling (EPH)
+  * [[optdriver]] =66: GW using Lanczos-Sternheimer, see input variables whose
+    name start with gwls_*.
+  * [[optdriver]]=99: Bethe-Salpeter calculation (BSE), routine "bethe_salpeter"
 
 If one of [[rfphon]], [[rfddk]], [[rfelfd]], or [[rfstrs]] is non-zero, while
 [[optdriver]] is not defined in the input file, ABINIT will set [[optdriver]]
@@ -14919,7 +14922,9 @@ These values are only relevant to phonon response function calculations.
 May take values from 1 to [[natom]], with [[rfatpol]](1)<=[[rfatpol]](2).
 The atoms to be moved will be defined by the
 do-loop variable iatpol:
-do iatpol=[[rfatpol]](1),[[rfatpol]](2)
+
+  - do iatpol=[[rfatpol]](1),[[rfatpol]](2)
+
 For the calculation of a full dynamical matrix, use [[rfatpol]](1)=1 and
 [[rfatpol]](2)=[[natom]], together with [[rfdir]] 1 1 1. For selected
 elements of the dynamical matrix, use different values of [[rfatpol]] and/or
@@ -16194,12 +16199,14 @@ Variable(
     defaultval=0,
     mnemonics="TIMe 1st order REVersal",
     characteristics=['[[DEVELOP]]'],
-    commentdims="possible values are 0 and 1",
     text="""
+Allowed values are 0 or 1.
+
 If tim1rev is equal to 1, the Sternheimer equation is solved simultaneously at
 +q and -q perturbation wavevectors. The first order potential at -q is taken
 to be equal to the Hermitian conjugate of the first order potential at +q.
-Relevant in the case of magnetic field perturbation.
+The wavefunctions from both +q and -q are then combined to generate the first order density.
+Relevant in the case of magnetic field perturbation (but will be relevant also in case of non-zero frequency DFPT, when implemented).
 """,
 ),
 
@@ -16490,12 +16497,15 @@ vectors, or magnetization, to be considered equivalent, thanks to symmetry
 operations. This is used in the recognition of the set of symmetries of the
 system, or the application of the symmetry operations to generate from a
 reduced set of atoms, the full set of atoms. Note that a value larger than
-0.01 is considered to be unacceptable.
+0.01 is considered to be unacceptable, whatever the value of [[tolsym]]
+(so, it is not worth to set [[tolsym]] bigger than 0.01).
+
 Note: ABINIT needs the atomic positions to be symmmetric to each others
-within 1.e-8. If [[tolsym]] is set to a larger value than 1.e-8, then the
-input atomic coordinates will be automatically symmetrized by the symmetry
-operations that will have been found.
-""",
+within 1.e-8, irrespective of [[tolsym]]. 
+So, if [[tolsym]] is set to a larger value than 1.e-8, then the
+input atomic coordinates will be nevertheless automatically symmetrized by the symmetry
+operations that will have been found. 
+""" 
 ),
 
 Variable(
@@ -17100,7 +17110,7 @@ If LDA+U is activated ([[usepawu]]=1 or 2), the [[lpawu]], [[upawu]] and
 The implementation is done inside PAW augmentation regions only (cf Ref [4]).
 The initial density matrix can be given in the input file (see [[usedmatpu]]).
 The expression of the density matrix is chosen thanks to [[dmatpuopt]]. See
-also [How_to_use_LDA_plus_U.txt](../../users/How_to_use_LDA_plus_U.txt). for further information.
+also [How_to_use_LDA_plus_U.txt](../../guide/legacy/How_to_use_LDA_plus_U.txt). for further information.
 In the case of a GW calculation on top of a DFT+U, the absence of definition
 of a U value in the self-energy will LEAVE the underlying U from the DFT
 calculation. Thus, the code will actually do a GW+U @ DFT+U calculation. Note
