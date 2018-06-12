@@ -1,11 +1,13 @@
 # coding: utf-8
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import numpy as np
+import pymatgen.io.abinit.netcdf as ionc
+
+from monty.functools import lazy_property
 from .xsf import *
 from .visualizer import *
 
-from monty.functools import lazy_property
-import pymatgen.io.abinit.netcdf as ionc
 
 as_etsfreader = ionc.as_etsfreader
 
@@ -44,7 +46,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
             varname: Name of the variable
         """
         b = self.rootgrp.variables[varname][:]
-        print(type(b))
+        #print(type(b))
         import netCDF4
         try:
             #value = netCDF4.chartostring(sweep_mode['data'][0])[()].decode('utf-8')
@@ -63,3 +65,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
                     value = "".join(c.decode("utf-8") for c in self.read_value(varname))
 
         return value.strip()
+
+    def none_if_masked_array(self, arr):
+        """Retur None if arr is a MaskedArray else None."""
+        return arr if not isinstance(arr, np.ma.MaskedArray) else None
