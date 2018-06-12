@@ -2892,15 +2892,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     def read_smearing(self):
         """Returns a :class:`Smearing` instance with info on the smearing technique."""
         occopt = int(self.read_value("occopt"))
-
-        try:
-            scheme = "".join(c for c in self.read_value("smearing_scheme"))
-            scheme = scheme.strip()
-        except TypeError as exc:
-            #cprint("Error while trying to read `smearing_scheme`. Set scheme to None")
-            #scheme = None
-            scheme = "".join(c.decode("utf-8") for c in self.read_value("smearing_scheme"))
-            scheme = scheme.strip()
+        scheme = self.read_string("smearing_scheme")
 
         return Smearing(
             scheme=scheme,

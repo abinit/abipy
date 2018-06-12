@@ -37,3 +37,29 @@ class ETSF_Reader(ionc.ETSF_Reader):
             symbols.append(s.strip())
 
         return symbols
+
+    def read_string(self, varname):
+        """
+        Args:
+            varname: Name of the variable
+        """
+        b = self.rootgrp.variables[varname][:]
+        print(type(b))
+        import netCDF4
+        try:
+            #value = netCDF4.chartostring(sweep_mode['data'][0])[()].decode('utf-8')
+            value = netCDF4.chartostring(b)[()].decode('utf-8')
+            #value = netCDF4.chartostring(b).decode('utf-8')
+        except Exception:
+            try:
+                #value = netCDF4.chartostring(sweep_mode['data'][0])[()]
+                value = netCDF4.chartostring(b)[()]
+                #value = netCDF4.chartostring(b)
+            except Exception:
+                try:
+                    value = "".join(c for c in self.read_value(varname))
+                except TypeError as exc:
+                    #print("Error while trying to read `%s` string % str(varname))
+                    value = "".join(c.decode("utf-8") for c in self.read_value(varname))
+
+        return value.strip()
