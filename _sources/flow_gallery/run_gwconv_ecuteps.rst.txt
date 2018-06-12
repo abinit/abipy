@@ -156,7 +156,7 @@ G0W0 convergence study wrt ecuteps and the number of bands in W.
     if __name__=="__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.144 seconds)
+**Total running time of the script:** ( 0 minutes  0.189 seconds)
 
 
 

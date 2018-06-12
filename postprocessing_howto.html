@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Post-processing How-To &#8212; abipy 0.4.0 documentation</title>
+    <title>Post-processing How-To &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -105,6 +105,7 @@
 <li><a class="reference internal" href="#print-the-warnings-in-the-log-file">Print the warnings in the log file</a></li>
 <li><a class="reference internal" href="#get-a-quick-look-to-a-file">Get a quick look to a file</a></li>
 <li><a class="reference internal" href="#visualize-a-structure">Visualize a structure</a></li>
+<li><a class="reference internal" href="#get-a-high-symmetry-kpath-for-a-given-structure">Get a high-symmetry kpath for a given structure</a></li>
 <li><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius">Get neighbors for each atom in the unit cell out to a distance radius</a></li>
 <li><a class="reference internal" href="#search-on-the-materials-project-database-for-structures">Search on the Materials Project database for structures</a></li>
 <li><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database">Compare my structure with the Materials Project database</a></li>
@@ -180,17 +181,18 @@ Feel free to suggest new entries!</p>
 <li><a class="reference internal" href="#print-the-warnings-in-the-log-file" id="id6">Print the warnings in the log file</a></li>
 <li><a class="reference internal" href="#get-a-quick-look-to-a-file" id="id7">Get a quick look to a file</a></li>
 <li><a class="reference internal" href="#visualize-a-structure" id="id8">Visualize a structure</a></li>
-<li><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius" id="id9">Get neighbors for each atom in the unit cell out to a distance radius</a></li>
-<li><a class="reference internal" href="#search-on-the-materials-project-database-for-structures" id="id10">Search on the Materials Project database for structures</a></li>
-<li><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database" id="id11">Compare my structure with the Materials Project database</a></li>
-<li><a class="reference internal" href="#visualize-the-iterations-of-the-scf-cycle" id="id12">Visualize the iterations of the SCF cycle</a></li>
-<li><a class="reference internal" href="#export-bands-to-xmgrace-format" id="id13">Export bands to xmgrace format</a></li>
-<li><a class="reference internal" href="#visualize-the-fermi-surface" id="id14">Visualize the Fermi surface</a></li>
-<li><a class="reference internal" href="#visualize-phonon-displacements" id="id15">Visualize phonon displacements</a></li>
-<li><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation" id="id16">Visualize the results of a structural relaxation</a></li>
-<li><a class="reference internal" href="#compare-multiple-files" id="id17">Compare multiple files</a></li>
-<li><a class="reference internal" href="#profile-the-scripts" id="id18">Profile the scripts</a></li>
-<li><a class="reference internal" href="#get-the-description-of-a-variable" id="id19">Get the description of a variable</a></li>
+<li><a class="reference internal" href="#get-a-high-symmetry-kpath-for-a-given-structure" id="id9">Get a high-symmetry kpath for a given structure</a></li>
+<li><a class="reference internal" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius" id="id10">Get neighbors for each atom in the unit cell out to a distance radius</a></li>
+<li><a class="reference internal" href="#search-on-the-materials-project-database-for-structures" id="id11">Search on the Materials Project database for structures</a></li>
+<li><a class="reference internal" href="#compare-my-structure-with-the-materials-project-database" id="id12">Compare my structure with the Materials Project database</a></li>
+<li><a class="reference internal" href="#visualize-the-iterations-of-the-scf-cycle" id="id13">Visualize the iterations of the SCF cycle</a></li>
+<li><a class="reference internal" href="#export-bands-to-xmgrace-format" id="id14">Export bands to xmgrace format</a></li>
+<li><a class="reference internal" href="#visualize-the-fermi-surface" id="id15">Visualize the Fermi surface</a></li>
+<li><a class="reference internal" href="#visualize-phonon-displacements" id="id16">Visualize phonon displacements</a></li>
+<li><a class="reference internal" href="#visualize-the-results-of-a-structural-relaxation" id="id17">Visualize the results of a structural relaxation</a></li>
+<li><a class="reference internal" href="#compare-multiple-files" id="id18">Compare multiple files</a></li>
+<li><a class="reference internal" href="#profile-the-scripts" id="id19">Profile the scripts</a></li>
+<li><a class="reference internal" href="#get-the-description-of-a-variable" id="id20">Get the description of a variable</a></li>
 </ul>
 </li>
 </ul>
@@ -213,10 +215,13 @@ by just adding <code class="docutils literal"><span class="pre">--help</span></c
 <div class="section" id="get-information-about-a-generic-file">
 <h2><a class="toc-backref" href="#contents">Get information about a generic <code class="docutils literal"><span class="pre">FILE</span></code></a><a class="headerlink" href="#get-information-about-a-generic-file" title="Permalink to this headline">¶</a></h2>
 <p>Use:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">FILE</span> <span class="o">-</span><span class="n">p</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">FILE</span> <span class="o">--</span><span class="nb">print</span>
 </pre></div>
 </div>
-<p>to print information about a file inside the terminal.</p>
+<p>to print information about a file inside the terminal or</p>
+<blockquote>
+<div>abiopen.py FILE –expose</div></blockquote>
+<p>to generate multiple matplotlib figures depending on FILE.</p>
 <p>Use <code class="docutils literal"><span class="pre">--verbose</span></code> or <code class="docutils literal"><span class="pre">-v</span></code> to increase verbosity level.
 The option can be can be supplied multiple times e.g. <code class="docutils literal"><span class="pre">-vv</span></code>.</p>
 </div>
@@ -228,29 +233,49 @@ The option can be can be supplied multiple times e.g. <code class="docutils lite
 </div>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abiopen.py --help
 usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb] [--foreground]
-                  [-p]
+                  [-p] [-e] [-s] [-t SLIDE_TIMEOUT] [-sns [SEABORN]]
+                  [-mpl MPL_BACKEND]
                   filepath
 
 positional arguments:
-  filepath             File to open. See table below for the list of supported
-                       extensions.
+  filepath              File to open. See table below for the list of
+                        supported extensions.
 
 optional arguments:
-  -h, --help           show this help message and exit
-  --loglevel LOGLEVEL  Set the loglevel. Possible values: CRITICAL, ERROR
-                       (default), WARNING, INFO, DEBUG
-  -V, --version        show program&#39;s version number and exit
-  -v, --verbose        verbose, can be supplied multiple times to increase
-                       verbosity
-  -nb, --notebook      Open file in jupyter notebook
-  --foreground         Run jupyter notebook in the foreground.
-  -p, --print          Print python object and return.
+  -h, --help            show this help message and exit
+  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
+                        (default), WARNING, INFO, DEBUG
+  -V, --version         show program&#39;s version number and exit
+  -v, --verbose         verbose, can be supplied multiple times to increase
+                        verbosity
+  -nb, --notebook       Open file in jupyter notebook
+  --foreground          Run jupyter notebook in the foreground.
+  -p, --print           Print python object and return.
+  -e, --expose          Open file and generate matplotlib figures
+                        automatically by calling expose method.
+  -s, --slide-mode      Iterate over figures. Expose all figures at once if
+                        not given on the CLI.
+  -t SLIDE_TIMEOUT, --slide-timeout SLIDE_TIMEOUT
+                        Close figure after slide-timeout seconds (only if
+                        slide-mode). Block if not specified.
+  -sns [SEABORN], --seaborn [SEABORN]
+                        Use seaborn settings. Accept value defining context in
+                        (&quot;paper&quot;, &quot;notebook&quot;, &quot;talk&quot;, &quot;poster&quot;). Default:
+                        paper
+  -mpl MPL_BACKEND, --mpl-backend MPL_BACKEND
+                        Set matplotlib interactive backend. Possible values:
+                        GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX,
+                        TkAgg, Qt4Agg, Qt5Agg, macosx.See also:
+                        https://matplotlib.org/faq/usage_faq.html#what-is-a-
+                        backend.
 
 Usage example:
 
     abiopen.py FILE        =&gt; Open file in ipython shell.
     abiopen.py FILE -nb    =&gt; Generate jupyter notebook.
     abiopen.py FILE -p     =&gt; Print info on object to terminal.
+    abiopen.py FILE -e     =&gt; Generate matplotlib figures automatically.
+                              Use -sns to activate seaborn settings.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -273,6 +298,7 @@ DEN             &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt
 .pspnc          &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 .fhi            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 JTH.xml         &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.wout           &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
 GSR.nc          &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
 DEN.nc          &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
 OUT.nc          &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
@@ -419,6 +445,47 @@ Other applications can be specified with the <code class="docutils literal"><spa
 At present, AbiPy supports <a class="reference external" href="http://jp-minerals.org/vesta/en/">vesta</a>, <a class="reference external" href="https://ovito.org/">ovito</a>, <a class="reference external" href="http://www.xcrysden.org/">xcrysden</a>, <a class="reference external" href="https://avogadro.cc/">avogadro</a>, and <a class="reference external" href="http://inac.cea.fr/L_Sim/V_Sim/">v_sim</a>.</p>
 <p>To visualize the crystalline structure inside the <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook, you may want to
 try the <a class="reference external" href="https://github.com/gmatteo/nbjsmol">nbjsmol</a> jupyter extension.</p>
+</div>
+<div class="section" id="get-a-high-symmetry-kpath-for-a-given-structure">
+<h2><a class="toc-backref" href="#contents">Get a high-symmetry kpath for a given structure</a><a class="headerlink" href="#get-a-high-symmetry-kpath-for-a-given-structure" title="Permalink to this headline">¶</a></h2>
+<p>Use the <cite>kpath</cite> command and pass a FILE providing structural info:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">kpath</span> <span class="n">FILE</span>
+</pre></div>
+</div>
+<p>to generate a template with the input variables defining the k-path</p>
+<div class="highlight-shell"><div class="highlight"><pre><span></span><span class="c1"># Abinit Structure</span>
+natom <span class="m">2</span>
+ntypat <span class="m">1</span>
+typat <span class="m">1</span> <span class="m">1</span>
+znucl <span class="m">14</span>
+xred
+   <span class="m">0</span>.0000000000    <span class="m">0</span>.0000000000    <span class="m">0</span>.0000000000
+   <span class="m">0</span>.2500000000    <span class="m">0</span>.2500000000    <span class="m">0</span>.2500000000
+acell    <span class="m">1</span>.0    <span class="m">1</span>.0    <span class="m">1</span>.0
+rprim
+   <span class="m">0</span>.0000000000    <span class="m">5</span>.1085000000    <span class="m">5</span>.1085000000
+   <span class="m">5</span>.1085000000    <span class="m">0</span>.0000000000    <span class="m">5</span>.1085000000
+   <span class="m">5</span>.1085000000    <span class="m">5</span>.1085000000    <span class="m">0</span>.0000000000
+
+<span class="c1"># K-path in reduced coordinates:</span>
+<span class="c1"># tolwfr 1e-20 iscf -2 getden ??</span>
+ndivsm <span class="m">10</span>
+kptopt -11
+kptbounds
+   +0.00000  +0.00000  +0.00000 <span class="c1"># $\Gamma$</span>
+   +0.50000  +0.00000  +0.50000 <span class="c1"># X</span>
+   +0.50000  +0.25000  +0.75000 <span class="c1"># W</span>
+   +0.37500  +0.37500  +0.75000 <span class="c1"># K</span>
+   +0.00000  +0.00000  +0.00000 <span class="c1"># $\Gamma$</span>
+   +0.50000  +0.50000  +0.50000 <span class="c1"># L</span>
+   +0.62500  +0.25000  +0.62500 <span class="c1"># U</span>
+   +0.50000  +0.25000  +0.75000 <span class="c1"># W</span>
+   +0.50000  +0.50000  +0.50000 <span class="c1"># L</span>
+   +0.37500  +0.37500  +0.75000 <span class="c1"># K</span>
+   +0.62500  +0.25000  +0.62500 <span class="c1"># U</span>
+   +0.50000  +0.00000  +0.50000 <span class="c1"># X</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius">
 <h2><a class="toc-backref" href="#contents">Get neighbors for each atom in the unit cell out to a distance radius</a><a class="headerlink" href="#get-neighbors-for-each-atom-in-the-unit-cell-out-to-a-distance-radius" title="Permalink to this headline">¶</a></h2>
@@ -686,7 +753,7 @@ This option could be useful if the script seems to be slow and you need to under
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

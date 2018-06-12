@@ -34,7 +34,7 @@ stored in the WFK.nc file.
     Name: si_nscf_WFK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
     Size: 389.84 kb
-    Access Time: Mon Mar 19 21:46:56 2018
+    Access Time: Tue Jun 12 14:22:15 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -51,18 +51,18 @@ stored in the WFK.nc file.
 
     Abinit Spacegroup: spgid: 0, num_spatial_symmetries: 48, has_timerev: True, symmorphic: True
     ============================== Electronic Bands ==============================
-    Number of electrons: 8.0, Fermi level: 5.598 [eV]
+    Number of electrons: 8.0, Fermi level: 5.598 (eV)
     nsppol: 1, nkpt: 14, mband: 8, nspinor: 1, nspden: 1
     smearing scheme: none, tsmear_eV: 0.272, occopt: 1
     Direct gap:
-        Energy: 2.532 [eV]
+        Energy: 2.532 (eV)
         Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
         Final state:   spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=4, eig=8.130, occ=0.000
     Fundamental gap:
-        Energy: 0.524 [eV]
+        Energy: 0.524 (eV)
         Initial state: spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
         Final state:   spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
-    Bandwidth: 11.856 [eV]
+    Bandwidth: 11.856 (eV)
     Valence maximum located at:
         spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
 
@@ -119,7 +119,7 @@ stored in the WFK.nc file.
 
     ncfile.close()
 
-**Total running time of the script:** ( 0 minutes  1.540 seconds)
+**Total running time of the script:** ( 0 minutes  1.533 seconds)
 
 
 

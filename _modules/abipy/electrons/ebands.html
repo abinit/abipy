@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.ebands &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.electrons.ebands &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -151,7 +151,6 @@
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.bisect</span> <span class="k">import</span> <span class="n">find_le</span><span class="p">,</span> <span class="n">find_gt</span>
-<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">deprecated</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pymatgen.util.serialization</span> <span class="k">import</span> <span class="n">pmg_serialize</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -318,7 +317,7 @@
     <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Energy: </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Energy: </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Initial state: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_state</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Final state:   </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_state</span><span class="p">))</span>
 
@@ -416,7 +415,7 @@
 <span class="k">class</span> <span class="nc">StatParams</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;StatParams&quot;</span><span class="p">,</span> <span class="s2">&quot;mean stdev min max&quot;</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;Named tuple with statistical parameters.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;mean = </span><span class="si">%.3f</span><span class="s2">, stdev = </span><span class="si">%.3f</span><span class="s2">, min = </span><span class="si">%.3f</span><span class="s2">, max = </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">return</span> <span class="s2">&quot;mean = </span><span class="si">%.3f</span><span class="s2">, stdev = </span><span class="si">%.3f</span><span class="s2">, min = </span><span class="si">%.3f</span><span class="s2">, max = </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdev</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
 
 
@@ -600,8 +599,8 @@
 <span class="sd">            fermie: Fermi level in eV.</span>
 <span class="sd">            occfacts: Occupation factors (same shape as eigens)</span>
 <span class="sd">            nelect: Number of valence electrons in the unit cell.</span>
-<span class="sd">            nspinor: Number of spinorial components</span>
-<span class="sd">            nspden: Number of indipendent density components.</span>
+<span class="sd">            nspinor: Number of spinor components</span>
+<span class="sd">            nspden: Number of independent density components.</span>
 <span class="sd">            nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]</span>
 <span class="sd">                      If not given, nband_sk is initialized from eigens.</span>
 <span class="sd">            smearing: :class:`Smearing` object storing information on the smearing technique.</span>
@@ -1338,7 +1337,7 @@
             <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of electrons: </span><span class="si">%s</span><span class="s2">, Fermi level: </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of electrons: </span><span class="si">%s</span><span class="s2">, Fermi level: </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;nsppol: </span><span class="si">%d</span><span class="s2">, nkpt: </span><span class="si">%d</span><span class="s2">, mband: </span><span class="si">%d</span><span class="s2">, nspinor: </span><span class="si">%s</span><span class="s2">, nspden: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
            <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mband</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspden</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smearing</span><span class="p">))</span>
@@ -1360,7 +1359,7 @@
                         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;WARNING: Cannot compute direct and fundamental gap.&quot;</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Exception:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
 
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Bandwidth: </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Bandwidth: </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence minimum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lomos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence maximum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
@@ -1446,8 +1445,8 @@
         <span class="k">return</span> <span class="n">ipw</span><span class="o">.</span><span class="n">interact_manual</span><span class="p">(</span>
                 <span class="n">plot_dos</span><span class="p">,</span>
                 <span class="n">method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;tetra&quot;</span><span class="p">],</span>
-                <span class="n">step</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Step of linear mesh [eV]&quot;</span><span class="p">),</span>
-                <span class="n">width</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gaussian broadening [eV]&quot;</span><span class="p">),</span>
+                <span class="n">step</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Step of linear mesh (eV)&quot;</span><span class="p">),</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">ipw</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gaussian broadening (eV)&quot;</span><span class="p">),</span>
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronBands.get_edos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.get_edos">[docs]</a>    <span class="k">def</span> <span class="nf">get_edos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
@@ -1506,7 +1505,7 @@
         <span class="n">edos_plotter</span> <span class="o">=</span> <span class="n">ElectronDosPlotter</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">width</span> <span class="ow">in</span> <span class="n">widths</span><span class="p">:</span>
            <span class="n">edos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
-           <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\sigma = </span><span class="si">%s</span><span class="s2">$ [eV]&quot;</span> <span class="o">%</span> <span class="n">width</span>
+           <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\sigma = </span><span class="si">%s</span><span class="s2">$ (eV)&quot;</span> <span class="o">%</span> <span class="n">width</span>
            <span class="n">edos_plotter</span><span class="o">.</span><span class="n">add_edos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">edos</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">edos_plotter</span></div>
@@ -1673,7 +1672,7 @@
 
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">)</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span>
         <span class="n">lw</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;lw&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
@@ -1866,7 +1865,7 @@
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">)</span>
 
         <span class="c1"># Set ticks and labels.</span>
         <span class="n">klabels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;klabels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -2064,9 +2063,9 @@
         <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
         <span class="n">e0mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">e0mesh</span><span class="p">)</span> <span class="o">-</span> <span class="n">e0</span>
 
-        <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">\;[eV]$&quot;</span>
+        <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">\;(eV)$&quot;</span>
         <span class="c1">#if fermie is not None:</span>
-        <span class="c1">#    xlable = r&quot;$\epsilon_{KS}-\epsilon_F\;[eV]$&quot;</span>
+        <span class="c1">#    xlabel = r&quot;$\epsilon_{KS}-\epsilon_F\;(eV)$&quot;</span>
 
         <span class="n">kw_linestyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;linestyle&quot;</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="c1">#kw_lw = kwargs.pop(&quot;lw&quot;, 1)</span>
@@ -2116,7 +2115,7 @@
             <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# mband: </span><span class="si">%d</span><span class="s2">, nkpt: </span><span class="si">%d</span><span class="s2">, nsppol: </span><span class="si">%d</span><span class="s2">, nspinor: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mband</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nkpt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspinor</span><span class="p">))</span>
         <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# nelect: </span><span class="si">%8.2f</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smearing</span><span class="p">)))</span>
-        <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# Energies are in eV. Zero set to efermi, previously it was at: </span><span class="si">%s</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">)</span>
+        <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# Energies are in eV. Zero set to efermi, previously it was at: </span><span class="si">%s</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# List of k-points and their index (C notation i.e. count from 0)&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">kpt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">):</span>
             <span class="n">w</span><span class="p">(</span><span class="s2">&quot;# </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ik</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">kpt</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)))</span>
@@ -2146,7 +2145,7 @@
 
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@xaxis  ticklabel char size 1.500000&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  tick major 10&#39;</span><span class="p">)</span>
-        <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  label &quot;Band Energy [eV]&quot;&#39;</span><span class="p">)</span>
+        <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  label &quot;Band Energy (eV)&quot;&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  label char size 1.500000&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">(</span><span class="s1">&#39;@yaxis  ticklabel char size 1.500000&#39;</span><span class="p">)</span>
         <span class="n">ii</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -2375,7 +2374,7 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Effective masses for spin: </span><span class="si">%s</span><span class="s2">, band: </span><span class="si">%s</span><span class="s2">, accuracy: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-point: </span><span class="si">%s</span><span class="s2">, eigenvalue: </span><span class="si">%s</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eig</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-point: </span><span class="si">%s</span><span class="s2">, eigenvalue: </span><span class="si">%s</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eig</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;h_left: </span><span class="si">%s</span><span class="s2">, h_right </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h_left</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h_right</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;is_inside: </span><span class="si">%s</span><span class="s2">, vers_left: </span><span class="si">%s</span><span class="s2">, vers_right: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_inside</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vers_left</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vers_right</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;em_left: </span><span class="si">%s</span><span class="s2">, em_right: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">em_left</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">em_right</span><span class="p">))</span>
@@ -2504,15 +2503,6 @@
         <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LINE_WIDTHS</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_LINE_STYLES</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LINE_COLORS</span><span class="p">):</span>
             <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">o</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span></div>
 
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands. It will be removed in 0.4&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">add_ebands_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a band structure for plotting. Reads data from a Netcdfile</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">label</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-        <span class="n">ebands</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_ebands</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">ebands</span><span class="p">)</span>
-
 <div class="viewcode-block" id="ElectronBandsPlotter.add_ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.add_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">add_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">bands</span><span class="p">,</span> <span class="n">edos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a band structure and optionally a edos to the plotter.</span>
@@ -2556,6 +2546,13 @@
             <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">stat</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElectronBandsPlotter.yield_figs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">mname</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;gridplot&quot;</span><span class="p">,</span> <span class="s2">&quot;boxplot&quot;</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mname</span><span class="p">)(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronBandsPlotter.combiplot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.combiplot">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">combiplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e0</span><span class="o">=</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -3101,7 +3098,7 @@
         <span class="sd">&quot;&quot;&quot;String representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;nsppol: </span><span class="si">%d</span><span class="s2">, nelect: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Fermi energy: </span><span class="si">%s</span><span class="s2"> [eV] (recomputed from nelect):&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Fermi energy: </span><span class="si">%s</span><span class="s2"> (eV) (recomputed from nelect):&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fermie</span><span class="p">)</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronDos.as_edos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDos.as_edos">[docs]</a>    <span class="nd">@classmethod</span>
@@ -3282,8 +3279,8 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
@@ -3323,7 +3320,7 @@
 
             <span class="n">ax0</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;TOT IDOS&quot;</span><span class="p">)</span>
             <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;TOT DOS&quot;</span><span class="p">)</span>
-            <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">ax_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
 
@@ -3369,8 +3366,8 @@
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Dos_up - Dos_down [states/eV]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Dos_up - Dos_down (states/eV)&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div></div>
 
@@ -3402,16 +3399,6 @@
     <span class="k">def</span> <span class="nf">edos_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of DOSes&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edoses_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos. It will be removed in 0.4&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">add_edos_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a dos for plotting. Reads data from a Netcdf file</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ebands</span> <span class="o">=</span> <span class="n">ElectronBands</span><span class="o">.</span><span class="n">as_ebands</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-        <span class="n">edos</span> <span class="o">=</span> <span class="n">ebands</span><span class="o">.</span><span class="n">get_edos</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">label</span> <span class="o">=</span> <span class="n">filepath</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_edos</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">edos</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ElectronDosPlotter.add_edos"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.add_edos">[docs]</a>    <span class="k">def</span> <span class="nf">add_edos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">edos</span><span class="p">,</span> <span class="n">edos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -3482,8 +3469,8 @@
 
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">what_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [eV]&quot;</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span> <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;dos&quot;</span> <span class="k">else</span> <span class="s2">&quot;IDOS&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (eV)&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span> <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;dos&quot;</span> <span class="k">else</span> <span class="s2">&quot;IDOS&quot;</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
 
@@ -3562,9 +3549,9 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">irow</span><span class="p">,</span> <span class="n">icol</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span> <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;dos&quot;</span> <span class="k">else</span> <span class="s2">&quot;IDOS&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span> <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;dos&quot;</span> <span class="k">else</span> <span class="s2">&quot;IDOS&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">irow</span> <span class="o">==</span> <span class="n">nrows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [eV]&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (eV)&quot;</span><span class="p">)</span>
 
             <span class="c1">#ax.legend(loc=&quot;best&quot;, shadow=True, fontsize=fontsize)</span>
 
@@ -3583,6 +3570,13 @@
                 <span class="n">plot_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;combiplot&quot;</span><span class="p">,</span> <span class="s2">&quot;gridplot&quot;</span><span class="p">],</span>
                 <span class="n">e0</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0&quot;</span><span class="p">],</span>
             <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ElectronDosPlotter.yield_figs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">combiplot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ElectronDosPlotter.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -4269,7 +4263,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

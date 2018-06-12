@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.dfpt.gruneisen &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.dfpt.gruneisen &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -134,6 +134,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">abipy.core.abinit_units</span> <span class="k">as</span> <span class="nn">abu</span>
 <span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">const</span>
 
@@ -144,11 +145,15 @@
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpath</span><span class="p">,</span> <span class="n">IrredZone</span><span class="p">,</span> <span class="n">KSamplingInfo</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
-<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span>
+<span class="kn">from</span> <span class="nn">abipy.abio.inputs</span> <span class="k">import</span> <span class="n">AnaddbInput</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononBandsPlotter</span><span class="p">,</span> <span class="n">PhononDos</span>
+<span class="kn">from</span> <span class="nn">abipy.dfpt.ddb</span> <span class="k">import</span> <span class="n">DdbFile</span>
 <span class="kn">from</span> <span class="nn">abipy.iotools</span> <span class="k">import</span> <span class="n">ETSF_Reader</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span>
+<span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">AnaddbTask</span>
 <span class="c1">#from abipy.tools import duck</span>
 <span class="kn">from</span> <span class="nn">abipy.core.func1d</span> <span class="k">import</span> <span class="n">Function1D</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">amu_to_kg</span><span class="p">,</span> <span class="n">bohr_to_ang</span>
 
 
 <span class="c1"># DOS name --&gt; meta-data</span>
@@ -159,20 +164,6 @@
     <span class="p">(</span><span class="s2">&quot;gruns_vdos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS_v$&quot;</span><span class="p">)),</span>
     <span class="p">(</span><span class="s2">&quot;gruns_v2dos&quot;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">latex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$DOS_{v^2}$&quot;</span><span class="p">)),</span>
 <span class="p">])</span>
-
-
-<div class="viewcode-block" id="get_cv_per_mode"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.get_cv_per_mode">[docs]</a><span class="k">def</span> <span class="nf">get_cv_per_mode</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the contribution to the constant-volume specific heat, in eV/K at temperature t for a mode with</span>
-<span class="sd">    frequency w</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        t: temperature in K</span>
-<span class="sd">        w: frequency in eV</span>
-
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
 
 
 <div class="viewcode-block" id="GrunsNcFile"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile">[docs]</a><span class="k">class</span> <span class="nc">GrunsNcFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
@@ -348,7 +339,7 @@
                 <span class="n">other_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">_ALL_DOS_NAMES</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;latex&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;DOS&quot;</span><span class="p">,</span> <span class="s2">&quot;IDOS&quot;</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dos_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ [eV]&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\omega$ (eV)&quot;</span><span class="p">)</span>
             <span class="c1">#ax.legend(loc=&quot;best&quot;, fontsize=fontsize, shadow=True)</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
@@ -367,7 +358,7 @@
 
 <div class="viewcode-block" id="GrunsNcFile.plot_phbands_with_gruns"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_phbands_with_gruns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill_with</span><span class="o">=</span><span class="s2">&quot;gruns&quot;</span><span class="p">,</span> <span class="n">gamma_fact</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">with_doses</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span>
-                                <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                                <span class="n">ylims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot the phonon bands corresponding to ``V0`` (the central point) with markers</span>
 <span class="sd">        showing the value and the sign of the Grunesein parameters.</span>
@@ -384,6 +375,9 @@
 <span class="sd">            ylims: Set the data limits for the y-axis in eV. Accept tuple e.g. ``(left, right)``</span>
 <span class="sd">                or scalar e.g. ``left``. If left (right) is None, default values are used</span>
 <span class="sd">            match_bands: if True tries to follow the band along the path based on the scalar product of the eigenvectors.</span>
+<span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
+<span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``.</span>
+<span class="sd">            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -409,7 +403,8 @@
                 <span class="n">ax_doses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax_bands</span><span class="p">))</span>
 
         <span class="c1"># Plot phonon bands.</span>
-        <span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax_bands</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="n">match_bands</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">phbands</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax_bands</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="n">match_bands</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">,</span>
+                     <span class="n">branch_range</span><span class="o">=</span><span class="n">branch_range</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">fill_with</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
             <span class="n">max_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">grun_vals</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -425,7 +420,13 @@
         <span class="n">xvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">))</span>
         <span class="n">max_omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">phbands</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+        <span class="c1"># Select the band range.</span>
+        <span class="k">if</span> <span class="n">branch_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">branch_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">num_branches</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">branch_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">branch_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">branch_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">branch_range</span><span class="p">:</span>
             <span class="n">omegas</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">phfreqs</span><span class="p">[:,</span> <span class="n">nu</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="n">factor</span>
 
             <span class="k">if</span> <span class="n">fill_with</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
@@ -471,6 +472,153 @@
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_phbands_with_gruns</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_doses</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="GrunsNcFile.plot_gruns_scatter"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_scatter">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_gruns_scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;gruns&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A scatter plot of the values of the Gruneisen parameters or group velocities as a function</span>
+<span class="sd">        of the phonon frequencies.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            values:  Define the plotted quantity. &quot;gruns&quot; for Grunesein parameters,</span>
+<span class="sd">                &quot;groupv&quot; for phonon group velocities.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            units: Units for phonon frequencies. Possible values in (&quot;eV&quot;, &quot;meV&quot;, &quot;Ha&quot;, &quot;cm-1&quot;, &quot;Thz&quot;).</span>
+<span class="sd">                Case-insensitive.</span>
+<span class="sd">            **kwargs: kwargs passed to the matplotlib function &#39;scatter&#39;. Size defaults to 10.</span>
+
+<span class="sd">        Returns: |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvals_qibz</span>
+        <span class="k">elif</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;groupv&quot;</span><span class="p">:</span>
+            <span class="c1"># TODO: units?</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_dwdq_qibz&quot;</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported values: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">values</span><span class="p">)</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wvols_qibz</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">phfactor_ev2units</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;s&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">abu</span><span class="o">.</span><span class="n">phunit_tag</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Gruneisen&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;groupv&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;|v|&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.split_gruns"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.split_gruns">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">split_gruns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Splits the values of the gruneisen along a path like for the phonon bands</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_gruns</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># trigger the generation of the split in the phbands</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span><span class="o">.</span><span class="n">split_phfreqs</span>
+
+            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span><span class="o">.</span><span class="n">_split_indices</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span><span class="o">.</span><span class="n">grun_vals</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_split_gruns</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_gruns</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.split_dwdq"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.split_dwdq">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">split_dwdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Splits the values of the group velocities along a path like for the phonon bands</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_dwdq</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># trigger the generation of the split in the phbands</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span><span class="o">.</span><span class="n">split_phfreqs</span>
+
+            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span><span class="o">.</span><span class="n">_split_indices</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;gruns_dwdq_qpath&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_split_dwdq</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_dwdq</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.plot_gruns_bs"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_bs">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
+    <span class="k">def</span> <span class="nf">plot_gruns_bs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;gruns&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">branch_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_bands</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A plot of the values of the Gruneisen parameters or group velocities along the</span>
+<span class="sd">        high symmetry path.</span>
+<span class="sd">        By default only the calculated points will be displayed. If lines are required set a positive value for lw</span>
+<span class="sd">        and match_bands=True to obtained reasonable paths.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            values:  Define the plotted quantity. &quot;gruns&quot; for Grunesein parameters,</span>
+<span class="sd">                &quot;groupv&quot; for phonon group velocities.</span>
+<span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
+<span class="sd">            branch_range: Tuple specifying the minimum and maximum branch index to plot (default: all</span>
+<span class="sd">                branches are plotted).</span>
+<span class="sd">            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.</span>
+<span class="sd">                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): &quot;$\Gamma$&quot;, (0.5,0,0): &quot;L&quot;}``.</span>
+<span class="sd">            match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.</span>
+<span class="sd">            **kwargs: kwargs passed to the matplotlib function &#39;plot&#39;. Marker size defaults to 4, line width to 0,</span>
+<span class="sd">                marker to &#39;o&#39;, color to black.</span>
+
+<span class="sd">        Returns: |matplotlib-Figure|</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_gruns</span>
+        <span class="k">elif</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;groupv&quot;</span><span class="p">:</span>
+            <span class="c1"># TODO: units?</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">split_dwdq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported values: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="n">values</span><span class="p">)</span>
+
+        <span class="n">phbands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phbands_qpath_vol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">]</span>
+
+        <span class="c1"># Select the band range.</span>
+        <span class="k">if</span> <span class="n">branch_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">branch_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">phbands</span><span class="o">.</span><span class="n">num_branches</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">branch_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">branch_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">branch_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">phbands</span><span class="o">.</span><span class="n">decorate_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qlabels</span><span class="o">=</span><span class="n">qlabels</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;gruns&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Gruneisen&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">values</span> <span class="o">==</span> <span class="s2">&quot;groupv&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;|v|&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;marker&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;m&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;marker&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;o&#39;</span>
+
+        <span class="k">if</span> <span class="s1">&#39;markersize&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;ms&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;markersize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+
+        <span class="k">if</span> <span class="s1">&#39;linewidth&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;lw&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;linewidth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="s2">&quot;color&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;black&quot;</span>
+
+        <span class="n">first_xx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">yy</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">match_bands</span><span class="p">:</span>
+                <span class="n">ind</span> <span class="o">=</span> <span class="n">phbands</span><span class="o">.</span><span class="n">split_matched_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">yy</span> <span class="o">=</span> <span class="n">yy</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">yy</span><span class="p">))[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">ind</span><span class="p">]</span>
+            <span class="n">xx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">first_xx</span><span class="p">,</span> <span class="n">first_xx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">yy</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">branch_range</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">[:,</span> <span class="n">branch</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">first_xx</span> <span class="o">=</span> <span class="n">xx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
 <div class="viewcode-block" id="GrunsNcFile.write_notebook"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current</span>
@@ -497,7 +645,199 @@
 <span class="s2">#snsw.api_selector(gdata)&quot;&quot;&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_nb_nbpath</span><span class="p">(</span><span class="n">nb</span><span class="p">,</span> <span class="n">nbpath</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phdos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The |PhononDos| corresponsing to iv0, if present in the file, None otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">PhononDos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s1">&#39;wmesh&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s1">&#39;gruns_wdos&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+<div class="viewcode-block" id="GrunsNcFile.average_gruneisen"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.average_gruneisen">[docs]</a>    <span class="k">def</span> <span class="nf">average_gruneisen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">squared</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">limit_frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the average of the Gruneisen based on the values on the regular grid.</span>
+<span class="sd">        If squared is True the average will use the squared value of the Gruneisen and a squared root</span>
+<span class="sd">        is performed on the final result.</span>
+<span class="sd">        Values associated to negative frequencies will be ignored.</span>
+<span class="sd">        See Scripta Materialia 129, 88 for definitions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            t: the temperature at which the average Gruneisen will be evaluated. If None the acoustic Debye</span>
+<span class="sd">                temparature is used (see acoustic_debye_temp)</span>
+<span class="sd">            squared: if True the average is performed on the squared values of the Gruenisen</span>
+<span class="sd">            limit_frequencies: if None (default) no limit on the frequencies will be applied.</span>
+<span class="sd">                Possible values are &quot;debye&quot; (only modes with frequencies lower than the acoustic Debye</span>
+<span class="sd">                temperature) and &quot;acoustic&quot; (only the acoustic modes, i.e. the first three modes).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The average Gruneisen parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acoustic_debye_temp</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wvols_qibz</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">iv0</span><span class="p">,:]</span>
+        <span class="n">wdkt</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+
+        <span class="c1"># if w=0 set cv=0</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span> <span class="o">*</span> <span class="n">wdkt</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">wdkt</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">wdkt</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gvals_qibz</span>
+
+        <span class="k">if</span> <span class="n">squared</span><span class="p">:</span>
+            <span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">limit_frequencies</span> <span class="o">==</span> <span class="s2">&quot;debye&quot;</span><span class="p">:</span>
+            <span class="n">adt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acoustic_debye_temp</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="mi">0</span><span class="o">&lt;=</span><span class="n">w</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">w</span> <span class="o">&lt;=</span> <span class="n">adt</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">kb_eVK</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">limit_frequencies</span> <span class="o">==</span> <span class="s2">&quot;acoustic&quot;</span><span class="p">:</span>
+            <span class="n">w_acoustic</span> <span class="o">=</span> <span class="n">w</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w_acoustic</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">limit_frequencies</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">w</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not an accepted value for limit_frequencies&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">limit_frequencies</span><span class="p">))</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doses</span><span class="p">[</span><span class="s1">&#39;qpoints&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">weights</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">cv</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)[</span><span class="n">ind</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">cv</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">squared</span><span class="p">:</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">g</span></div>
+
+<div class="viewcode-block" id="GrunsNcFile.thermal_conductivity_slack"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.thermal_conductivity_slack">[docs]</a>    <span class="k">def</span> <span class="nf">thermal_conductivity_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">squared</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">limit_frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the thermal conductivity at the acoustic Debye temperature wit the Slack formula,</span>
+<span class="sd">        using the average Gruneisen.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            squared: if True the average is performed on the squared values of the Gruenisen</span>
+<span class="sd">            limit_frequencies: if None (default) no limit on the frequencies will be applied.</span>
+<span class="sd">                Possible values are &quot;debye&quot; (only modes with frequencies lower than the acoustic Debye</span>
+<span class="sd">                temperature) and &quot;acoustic&quot; (only the acoustic modes, i.e. the first three modes).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The value of the thermal conductivity in W/(m*K)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">average_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">specie</span><span class="o">.</span><span class="n">atomic_mass</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">])</span> <span class="o">*</span> <span class="n">amu_to_kg</span>
+        <span class="n">mean_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_gruneisen</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">squared</span><span class="o">=</span><span class="n">squared</span><span class="p">,</span> <span class="n">limit_frequencies</span><span class="o">=</span><span class="n">limit_frequencies</span><span class="p">)</span>
+        <span class="n">theta_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acoustic_debye_temp</span>
+        <span class="n">factor1</span> <span class="o">=</span> <span class="mf">0.849</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">**</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.514</span> <span class="o">*</span> <span class="n">mean_g</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.228</span> <span class="o">*</span> <span class="n">mean_g</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">factor2</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">theta_d</span> <span class="o">/</span> <span class="n">const</span><span class="o">.</span><span class="n">hbar</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">factor3</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">average_mass</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-10</span> <span class="o">/</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">hbar</span> <span class="o">*</span> <span class="n">mean_g</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">factor1</span> <span class="o">*</span> <span class="n">factor2</span> <span class="o">*</span> <span class="n">factor3</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">debye_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Debye temperature in K obtained from the phonon DOS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Debye temperature requires the phonon dos!&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="o">.</span><span class="n">debye_temp</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">acoustic_debye_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).</span>
+<span class="sd">        Obtained from the phonon DOS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Debye temperature requires the phonon dos!&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phdos</span><span class="o">.</span><span class="n">get_acoustic_debye_temp</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">))</span>
+
+<div class="viewcode-block" id="GrunsNcFile.from_ddb_list"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsNcFile.from_ddb_list">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_ddb_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ddb_list</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute anaddb to compute generate the object from a list of ddbs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ddb_list: A list with the paths to the ddb_files at different volumes. There should be an odd number of</span>
+<span class="sd">                DDB files and the volume increment must be constant. The DDB files will be ordered according to the</span>
+<span class="sd">                volume of the unit cell and the middle one will be considered as the DDB at the relaxed volume.</span>
+<span class="sd">            nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions</span>
+<span class="sd">                used to sample the smallest lattice vector. If 0, DOS is not computed and</span>
+<span class="sd">                (phbst, None) is returned.</span>
+<span class="sd">            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.</span>
+<span class="sd">                Overrides nqsmall.</span>
+<span class="sd">            ndivsm: Number of division used for the smallest segment of the q-path.</span>
+<span class="sd">            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.</span>
+<span class="sd">                Overrides ndivsm.</span>
+<span class="sd">            asr, chneut, dipdip: Anaddb input variable. See official documentation.</span>
+<span class="sd">            dos_method: Technique for DOS computation in  Possible choices: &quot;tetra&quot;, &quot;gaussian&quot; or &quot;gaussian:0.001 eV&quot;.</span>
+<span class="sd">                In the later case, the value 0.001 eV is used as gaussian broadening.</span>
+<span class="sd">            lo_to_splitting: Allowed values are [True, False, &quot;automatic&quot;]. Defaults to &quot;automatic&quot;</span>
+<span class="sd">                If True the LO-TO splitting will be calculated and the non_anal_directions</span>
+<span class="sd">                and the non_anal_phfreqs attributes will be addeded to the phonon band structure.</span>
+<span class="sd">                &quot;automatic&quot; activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.</span>
+<span class="sd">            ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).</span>
+<span class="sd">            qptbounds: Boundaries of the path. If None, the path is generated from an internal database</span>
+<span class="sd">                depending on the input structure.</span>
+<span class="sd">            anaddb_kwargs: additional kwargs for anaddb.</span>
+<span class="sd">            verbose: verbosity level. Set it to a value &gt; 0 to get more information.</span>
+<span class="sd">            mpi_procs: Number of MPI processes to use.</span>
+<span class="sd">            workdir: Working directory. If None, a temporary directory is created.</span>
+<span class="sd">            manager: |TaskManager| object. If None, the object is initialized from the configuration file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A GrunsNcFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ddb_list</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;An odd number of ddb file paths should be provided&quot;</span><span class="p">)</span>
+
+        <span class="n">ddbs</span> <span class="o">=</span> <span class="p">[</span><span class="n">DdbFile</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ddb_list</span><span class="p">]</span>
+        <span class="n">ddbs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ddbs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
+        <span class="n">iv0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">ddbs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">ddb0</span> <span class="o">=</span> <span class="n">ddbs</span><span class="p">[</span><span class="n">iv0</span><span class="p">]</span>
+        <span class="c1"># update list of paths with absolute paths in the correct order</span>
+        <span class="n">ddb_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">filepath</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ddbs</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ngqpt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">ngqpt</span> <span class="o">=</span> <span class="n">ddb0</span><span class="o">.</span><span class="n">guessed_ngqpt</span>
+
+        <span class="k">if</span> <span class="n">lo_to_splitting</span> <span class="o">==</span> <span class="s2">&quot;automatic&quot;</span><span class="p">:</span>
+            <span class="n">lo_to_splitting</span> <span class="o">=</span> <span class="n">ddb0</span><span class="o">.</span><span class="n">has_lo_to_data</span><span class="p">()</span> <span class="ow">and</span> <span class="n">dipdip</span> <span class="o">!=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">lo_to_splitting</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ddb0</span><span class="o">.</span><span class="n">has_lo_to_data</span><span class="p">():</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;lo_to_splitting is True but Emacro and Becs are not available in DDB: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ddb0</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">AnaddbInput</span><span class="o">.</span><span class="n">phbands_and_dos</span><span class="p">(</span>
+            <span class="n">ddb0</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="o">=</span><span class="n">ngqpt</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">nqsmall</span><span class="o">=</span><span class="n">nqsmall</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">,</span>
+            <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="n">asr</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="n">chneut</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="n">dipdip</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="n">dos_method</span><span class="p">,</span>
+            <span class="n">lo_to_splitting</span><span class="o">=</span><span class="n">lo_to_splitting</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
+
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;gruns_ddbs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">p</span><span class="o">+</span><span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ddb_list</span><span class="p">]</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;gruns_nddbs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ddb_list</span><span class="p">)</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">AnaddbTask</span><span class="o">.</span><span class="n">temp_shell_task</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">ddb_node</span><span class="o">=</span><span class="n">ddb0</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">manager</span><span class="o">=</span><span class="n">manager</span><span class="p">,</span> <span class="n">mpi_procs</span><span class="o">=</span><span class="n">mpi_procs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ANADDB INPUT:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;workdir:&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="c1"># Run the task here.</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start_and_wait</span><span class="p">(</span><span class="n">autoparal</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_event_report</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">run_completed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ddb0</span><span class="o">.</span><span class="n">AnaddbError</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="n">gruns</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;run.abo_GRUNS.nc&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">gruns</span></div></div>
 
 
 <div class="viewcode-block" id="GrunsReader"><a class="viewcode-back" href="../../../api/dfpt_api.html#abipy.dfpt.gruneisen.GrunsReader">[docs]</a><span class="k">class</span> <span class="nc">GrunsReader</span><span class="p">(</span><span class="n">ETSF_Reader</span><span class="p">):</span>
@@ -646,7 +986,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

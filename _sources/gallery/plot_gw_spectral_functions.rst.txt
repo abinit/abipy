@@ -45,7 +45,7 @@ See also lesson tgw2_4
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  0.820 seconds)
+**Total running time of the script:** ( 0 minutes  0.745 seconds)
 
 
 

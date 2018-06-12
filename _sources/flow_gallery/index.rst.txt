@@ -22,26 +22,6 @@ Use ``--help`` to further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This gallery contains python scripts to generate AbiPy flows from the command line. ">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr___init___thumb.png
-
-        :ref:`sphx_glr_flow_gallery___init__.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/__init__
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example show how to build a flow to compute the band structure and the DOS of silicon. Inp...">
 
 .. only:: html
@@ -142,26 +122,6 @@ Use ``--help`` to further information on the available options.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit). ">
-
-.. only:: html
-
-    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
-
-        :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /flow_gallery/run_nonlinear
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="Calculation of the BSE spectrum with the High-throuhput interface (factory functions). ">
 
 .. only:: html
@@ -179,6 +139,26 @@ Use ``--help`` to further information on the available options.
    :hidden:
 
    /flow_gallery/run_ht_si_bsemdf
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Flow to compute non-linear optical properties with DFPT (static limit). ">
+
+.. only:: html
+
+    .. figure:: /flow_gallery/images/thumb/sphx_glr_run_nonlinear_thumb.png
+
+        :ref:`sphx_glr_flow_gallery_run_nonlinear.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /flow_gallery/run_nonlinear
 
 .. raw:: html
 
@@ -548,6 +528,7 @@ Use ``--help`` to further information on the available options.
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-gallery
 
 
   .. container:: sphx-glr-download

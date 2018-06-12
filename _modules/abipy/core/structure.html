@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.structure &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.core.structure &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -148,11 +148,9 @@
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">monty.collections</span> <span class="k">import</span> <span class="n">AttrDict</span><span class="p">,</span> <span class="n">dict2namedtuple</span>
-<span class="kn">from</span> <span class="nn">monty.dev</span> <span class="k">import</span> <span class="n">deprecated</span>
 <span class="kn">from</span> <span class="nn">monty.functools</span> <span class="k">import</span> <span class="n">lazy_property</span>
 <span class="kn">from</span> <span class="nn">monty.string</span> <span class="k">import</span> <span class="n">is_string</span><span class="p">,</span> <span class="n">marquee</span>
 <span class="kn">from</span> <span class="nn">monty.termcolor</span> <span class="k">import</span> <span class="n">cprint</span>
-
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="k">import</span> <span class="n">PeriodicSite</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="k">import</span> <span class="n">Lattice</span>
 <span class="kn">from</span> <span class="nn">pymatgen.symmetry.analyzer</span> <span class="k">import</span> <span class="n">SpacegroupAnalyzer</span>
@@ -964,10 +962,6 @@
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span></div>
 
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;spglib_summary method has been replaced by spget_summary. It will be removed in 0.4&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">spglib_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spget_summary</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">abi_spacegroup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1231,11 +1225,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">plot_brillouin_zone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="c1"># To maintain backward compatibility.</span>
-    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;show_bz has been replaced by plot_bz and it will be removed in 0.4&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">show_bz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_bz</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
 <div class="viewcode-block" id="Structure.plot_xrd"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.plot_xrd">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_xrd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="o">=</span><span class="s2">&quot;CuKa&quot;</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">debye_waller_factors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">two_theta_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">),</span> <span class="n">annotate_peaks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1269,6 +1258,13 @@
         <span class="n">xrd</span> <span class="o">=</span> <span class="n">XRDCalculator</span><span class="p">(</span><span class="n">wavelength</span><span class="o">=</span><span class="n">wavelength</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="n">symprec</span><span class="p">,</span> <span class="n">debye_waller_factors</span><span class="o">=</span><span class="n">debye_waller_factors</span><span class="p">)</span>
         <span class="n">xrd</span><span class="o">.</span><span class="n">get_xrd_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">two_theta_range</span><span class="o">=</span><span class="n">two_theta_range</span><span class="p">,</span> <span class="n">annotate_peaks</span><span class="o">=</span><span class="n">annotate_peaks</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="Structure.yield_figs"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_bz</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Structure.export"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.structure.Structure.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">visu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2185,7 +2181,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

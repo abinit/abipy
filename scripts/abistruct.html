@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abistruct.py &#8212; abipy 0.4.0 documentation</title>
+    <title>abistruct.py &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1664,7 +1664,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <h3>mp_id<a class="headerlink" href="#mp_id" title="Permalink to this headline">¶</a></h3>
 <p>Get structure from the pymatgen database. Export to format. Requires internet connection and MAPI_KEY.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_id</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span>
-                   <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
                    <span class="n">mpid</span>
 </pre></div>
 </div>
@@ -1705,6 +1705,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
 </td></tr>
 <tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td><p class="first">Open materials-project webpages in browser</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group">
 <kbd>-f, --format</kbd></td>
 <td><p class="first">Output format. Default: cif. Accept: (abivars, cif, xsf, poscar, qe, cssr, json, None)</p>
 <p class="last">Default: “cif”</p>
@@ -1716,8 +1721,9 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <div class="section" id="mp_match">
 <h3>mp_match<a class="headerlink" href="#mp_match" title="Permalink to this headline">¶</a></h3>
 <p>Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_match</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_match</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
                       <span class="p">[</span><span class="n">filepath</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1746,6 +1752,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
 <p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td><p class="first">Open materials-project webpages in browser</p>
+<p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-v, --verbose</kbd></td>
@@ -1780,8 +1791,8 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <div class="section" id="mp_search">
 <h3>mp_search<a class="headerlink" href="#mp_search" title="Permalink to this headline">¶</a></h3>
 <p>Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_search</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_search</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SELECT_SPGNUM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FORMAT</span><span class="p">]</span>
                        <span class="n">chemsys_formula_id</span>
 </pre></div>
@@ -1812,6 +1823,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
 <p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td><p class="first">Open materials-project webpages in browser</p>
+<p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-v, --verbose</kbd></td>
@@ -1850,7 +1866,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <div class="section" id="mp_pd">
 <h3>mp_pd<a class="headerlink" href="#mp_pd" title="Permalink to this headline">¶</a></h3>
 <p>Generate phase diagram with entries from the Materials Project. Requires internet connection and PMG_MAPI_KEY</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_pd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abistruct</span><span class="o">.</span><span class="n">py</span> <span class="n">mp_pd</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mapi</span><span class="o">-</span><span class="n">key</span> <span class="n">MAPI_KEY</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">endpoint</span> <span class="n">ENDPOINT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
                    <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">SHOW_UNSTABLE</span><span class="p">]</span>
                    <span class="n">file_or_elements</span>
 </pre></div>
@@ -1881,6 +1897,11 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 <kbd>--endpoint</kbd></td>
 <td><p class="first">Pymatgen database.</p>
 <p class="last">Default: “<a class="reference external" href="https://www.materialsproject.org/rest/v2">https://www.materialsproject.org/rest/v2</a>”</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd>-b, --browser</kbd></td>
+<td><p class="first">Open materials-project webpages in browser</p>
+<p class="last">Default: False</p>
 </td></tr>
 <tr><td class="option-group">
 <kbd>-v, --verbose</kbd></td>
@@ -2072,7 +2093,7 @@ ehull &lt; show_unstable will be shown.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

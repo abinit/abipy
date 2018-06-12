@@ -187,7 +187,7 @@ to analyze the input/output structures including the atomic positions:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.482 seconds)
+**Total running time of the script:** ( 0 minutes  0.115 seconds)
 
 
 

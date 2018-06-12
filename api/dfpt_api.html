@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>dfpt Package &#8212; abipy 0.4.0 documentation</title>
+    <title>dfpt Package &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -104,6 +104,7 @@
 <li><a class="reference internal" href="#module-abipy.dfpt.frozen_phonons"><code class="docutils literal"><span class="pre">frozen_phonons</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.gruneisen"><code class="docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.phonons"><code class="docutils literal"><span class="pre">phonons</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.qha"><code class="docutils literal"><span class="pre">qha</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.tensors"><code class="docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 </ul>
 </li>
@@ -166,7 +167,8 @@
 <li><a class="reference internal" href="#module-abipy.dfpt.frozen_phonons" id="id7"><code class="xref py py-mod docutils literal"><span class="pre">frozen_phonons</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.gruneisen" id="id8"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a></li>
 <li><a class="reference internal" href="#module-abipy.dfpt.phonons" id="id9"><code class="xref py py-mod docutils literal"><span class="pre">phonons</span></code> Module</a></li>
-<li><a class="reference internal" href="#module-abipy.dfpt.tensors" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.qha" id="id10"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-abipy.dfpt.tensors" id="id11"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -210,12 +212,13 @@ None, if the netcdf file does not contain the IFCs.</p>
 </dd></dl>
 
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-b374e3d7bed78ad7a9c552ea6cb7965ffdff0aaf.png" alt="Inheritance diagram of AnaddbNcFile" usemap="#inheritance8defe6c584" class="inheritance"/>
+<img src="../_images/inheritance-68f2010a432b46342bd9c825f05d493bc96dbcaf.png" alt="Inheritance diagram of AnaddbNcFile" usemap="#inheritance8defe6c584" class="inheritance"/>
 <map id="inheritance8defe6c584" name="inheritance8defe6c584">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="16,5,214,29"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" target="_top" title="AnaddbNcFile provides a high&#45;level interface to the data stored in the anaddb.nc file." alt="" coords="273,53,501,77"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="9,53,221,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
+<area shape="rect" id="node5" href="#abipy.dfpt.anaddbnc.AnaddbNcFile" target="_top" title="AnaddbNcFile provides a high&#45;level interface to the data stored in the anaddb.nc file." alt="" coords="500,53,728,77"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,101,184,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="236,5,448,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
 </map>
 <dl class="classmethod">
 <dt id="abipy.dfpt.anaddbnc.AnaddbNcFile.from_file">
@@ -355,11 +358,12 @@ as well as methods to compute phonon band structures, phonon DOS, thermodinamica
 </li>
 </ul>
 <p class="rubric">Inheritance</p>
-<img src="../_images/inheritance-3308638c680b49bd33e751d25767e235e5ee5b29.png" alt="Inheritance diagram of DdbFile" usemap="#inheritancecb0cf3a7e1" class="inheritance"/>
+<img src="../_images/inheritance-17fe17d72c046448b60dad621debef5429decea5.png" alt="Inheritance diagram of DdbFile" usemap="#inheritancecb0cf3a7e1" class="inheritance"/>
 <map id="inheritancecb0cf3a7e1" name="inheritancecb0cf3a7e1">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="9,5,221,29"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="273,53,427,77"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,53,225,77"/>
+<area shape="rect" id="node1" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,5,184,29"/>
+<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="236,53,448,77"/>
+<area shape="rect" id="node5" href="#abipy.dfpt.ddb.DdbFile" target="_top" title="This object provides an interface to the DDB_ file produced by ABINIT" alt="" coords="500,53,653,77"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,101,452,125"/>
 </map>
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.DdbFile.Error">
@@ -440,7 +444,7 @@ Use e.g. <code class="docutils literal"><span class="pre">ddb.header.ecut</span>
 <dt id="abipy.dfpt.ddb.DdbFile.computed_dynmat">
 <code class="descname">computed_dynmat</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.computed_dynmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.computed_dynmat" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> mapping q-point object to –&gt; pandas Dataframe.
-The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
+The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
 and (idir1, ipert1, idir2, ipert2) as index.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -556,6 +560,12 @@ Produce <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.ddb.DdbFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint">
 <code class="descname">anaget_phmodes_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>workdir=None</em>, <em>mpi_procs=1</em>, <em>manager=None</em>, <em>verbose=0</em>, <em>lo_to_splitting=False</em>, <em>directions=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phmodes_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phmodes_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)</p>
@@ -568,7 +578,7 @@ Produce <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>lo_to_splitting</strong> – Allowed values are [True, False, “automatic”]. Defaults to False
 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -587,7 +597,7 @@ cartesian direction will be used.</li>
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files">
-<code class="descname">anaget_phbst_and_phdos_files</code><span class="sig-paren">(</span><em>nqsmall=10</em>, <em>ndivsm=20</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting='automatic'</em>, <em>ngqpt=None</em>, <em>qptbounds=None</em>, <em>anaddb_kwargs=None</em>, <em>verbose=0</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phbst_and_phdos_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files" title="Permalink to this definition">¶</a></dt>
+<code class="descname">anaget_phbst_and_phdos_files</code><span class="sig-paren">(</span><em>nqsmall=10</em>, <em>qppa=None</em>, <em>ndivsm=20</em>, <em>line_density=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting='automatic'</em>, <em>ngqpt=None</em>, <em>qptbounds=None</em>, <em>anaddb_kwargs=None</em>, <em>verbose=0</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.anaget_phbst_and_phdos_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.anaget_phbst_and_phdos_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute anaddb to compute the phonon band structure and the phonon DOS</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -597,7 +607,11 @@ cartesian direction will be used.</li>
 <li><strong>nqsmall</strong> – Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
 used to sample the smallest lattice vector. If 0, DOS is not computed and
 (phbst, None) is returned.</li>
+<li><strong>qppa</strong> – Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+Overrides nqsmall.</li>
 <li><strong>ndivsm</strong> – Number of division used for the smallest segment of the q-path.</li>
+<li><strong>line_density</strong> – Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+Overrides ndivsm.</li>
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>dos_method</strong> – Technique for DOS computation in  Possible choices: “tetra”, “gaussian” or “gaussian:0.001 eV”.
 In the later case, the value 0.001 eV is used as gaussian broadening.</li>
@@ -612,13 +626,27 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#abipy.dfpt.phonons.PhbstFile" title="abipy.dfpt.phonons.PhbstFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhbstFile</span></code></a> with the phonon band structure.
 <a class="reference internal" href="#abipy.dfpt.phonons.PhdosFile" title="abipy.dfpt.phonons.PhdosFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhdosFile</span></code></a> with the the phonon DOS.</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbFile.get_coarse">
+<code class="descname">get_coarse</code><span class="sig-paren">(</span><em>filepath</em>, <em>ngqpt_coarse</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.get_coarse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.get_coarse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a version of this file on a coarse mesh</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ngqpt</strong> – list of ngqpt indexes that must be a sub-mesh of the original ngqpt</td>
 </tr>
 </tbody>
 </table>
@@ -748,7 +776,7 @@ plotter: |PhononDosPlotter| object.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
@@ -775,7 +803,7 @@ plotter: |PhononDosPlotter| object.
 <li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -801,7 +829,7 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -814,7 +842,7 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 
 <dl class="method">
 <dt id="abipy.dfpt.ddb.DdbFile.write">
-<code class="descname">write</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.write" title="Permalink to this definition">¶</a></dt>
+<code class="descname">write</code><span class="sig-paren">(</span><em>filepath</em>, <em>filter_blocks=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the DDB file in filepath. Requires the blocks data.
 Only the information stored in self.header.lines and in self.blocks will be used to produce the file</p>
 </dd></dl>
@@ -856,11 +884,6 @@ working directory is created. Return path to the notebook.</p>
 <em class="property">class </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">Becs</code><span class="sig-paren">(</span><em>becs_arr</em>, <em>structure</em>, <em>chneut</em>, <em>order='c'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#Becs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.Becs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object stores the Born effective charges and provides simple tools for data analysis.</p>
-<dl class="attribute">
-<dt id="abipy.dfpt.ddb.Becs.becs">
-<code class="descname">becs</code><a class="headerlink" href="#abipy.dfpt.ddb.Becs.becs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="abipy.dfpt.ddb.Becs.structure">
 <code class="descname">structure</code><a class="headerlink" href="#abipy.dfpt.ddb.Becs.structure" title="Permalink to this definition">¶</a></dt>
@@ -1002,7 +1025,7 @@ elements, indicating the indices [i, j] of the desired component or a string amo
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1086,7 +1109,7 @@ Defaults to the standard Materials Project REST address</li>
 <code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
+Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1104,7 +1127,7 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1119,6 +1142,12 @@ Collect results and return <cite>namedtuple</cite> with the following attributes
 <blockquote>
 <div>phbands_plotter: <a class="reference internal" href="#abipy.dfpt.phonons.PhononBandsPlotter" title="abipy.dfpt.phonons.PhononBandsPlotter"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBandsPlotter</span></code></a> object.
 phdos_plotter: <a class="reference internal" href="#abipy.dfpt.phonons.PhononDosPlotter" title="abipy.dfpt.phonons.PhononDosPlotter"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononDosPlotter</span></code></a> object.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.ddb.DdbRobot.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1265,11 +1294,11 @@ of the quadratic term. If None a simple quadratic fit will be used.</li>
 <li><strong>max_fit_eta</strong> – if not None represents maximum value allowed for the (signed) eta to be used in the fit.</li>
 <li><strong>freq</strong> – if not None the quadratic function with this frequency as a coefficient will be added to the plot.
 freq in eV. Requires the 0 displacement to be present in the list of etas.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1320,11 +1349,11 @@ Requires the 0 displacement to be present in the list of etas.</p>
 <li><strong>freq</strong> – phonon frequncy in eV</li>
 <li><strong>relative</strong> – if True the plot will represent the relative difference with respect to the expected value
 obtained from the frequency, rather than the absolute difference.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1367,25 +1396,6 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <div class="section" id="module-abipy.dfpt.gruneisen">
 <span id="gruneisen-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">gruneisen</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.gruneisen" title="Permalink to this headline">¶</a></h2>
 <p>Objects to analyze the results stored in the GRUNS.nc file produced by anaddb.</p>
-<dl class="function">
-<dt id="abipy.dfpt.gruneisen.get_cv_per_mode">
-<code class="descclassname">abipy.dfpt.gruneisen.</code><code class="descname">get_cv_per_mode</code><span class="sig-paren">(</span><em>t</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#get_cv_per_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.get_cv_per_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the contribution to the constant-volume specific heat, in eV/K at temperature t for a mode with
-frequency w</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>t</strong> – temperature in K</li>
-<li><strong>w</strong> – frequency in eV</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="class">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.gruneisen.</code><code class="descname">GrunsNcFile</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile" title="Permalink to this definition">¶</a></dt>
@@ -1398,12 +1408,13 @@ This file contains Grunesein parameters computed via finite difference.</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-788afa0663b8feac06ddc695761a565bb50055a4.png" alt="Inheritance diagram of GrunsNcFile" usemap="#inheritance5d50b201b3" class="inheritance"/>
+<img src="../_images/inheritance-df25bf83b2bea0727efdcb174ac588142020054c.png" alt="Inheritance diagram of GrunsNcFile" usemap="#inheritance5d50b201b3" class="inheritance"/>
 <map id="inheritance5d50b201b3" name="inheritance5d50b201b3">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="16,5,214,29"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="273,53,491,77"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="9,53,221,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
+<area shape="rect" id="node5" href="#abipy.dfpt.gruneisen.GrunsNcFile" target="_top" title="This object provides an interface to the ``GRUNS.nc`` file produced by abinit." alt="" coords="500,53,718,77"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,101,184,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="236,5,448,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
 </map>
 <dl class="classmethod">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.from_file">
@@ -1473,7 +1484,7 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -1525,7 +1536,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1567,7 +1578,7 @@ multiple phonon bands or animate the bands</p>
 
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns">
-<code class="descname">plot_phbands_with_gruns</code><span class="sig-paren">(</span><em>fill_with='gruns'</em>, <em>gamma_fact=1</em>, <em>alpha=0.6</em>, <em>with_doses='all'</em>, <em>units='eV'</em>, <em>ylims=None</em>, <em>match_bands=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_phbands_with_gruns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_phbands_with_gruns</code><span class="sig-paren">(</span><em>fill_with='gruns'</em>, <em>gamma_fact=1</em>, <em>alpha=0.6</em>, <em>with_doses='all'</em>, <em>units='eV'</em>, <em>ylims=None</em>, <em>match_bands=False</em>, <em>qlabels=None</em>, <em>branch_range=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_phbands_with_gruns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_phbands_with_gruns" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the phonon bands corresponding to <code class="docutils literal"><span class="pre">V0</span></code> (the central point) with markers
 showing the value and the sign of the Grunesein parameters.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1586,12 +1597,15 @@ else list of strings with the name of the DOSes to plot.</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis in eV. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>match_bands</strong> – if True tries to follow the band along the path based on the scalar product of the eigenvectors.</li>
+<li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
+The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</li>
+<li><strong>branch_range</strong> – Tuple specifying the minimum and maximum branch index to plot (default: all branches are plotted).</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1632,10 +1646,253 @@ Used in abiview.py to get a quick look at the results.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_scatter">
+<code class="descname">plot_gruns_scatter</code><span class="sig-paren">(</span><em>values='gruns'</em>, <em>ax=None</em>, <em>units='eV'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_gruns_scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A scatter plot of the values of the Gruneisen parameters or group velocities as a function
+of the phonon frequencies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>values</strong> – Define the plotted quantity. “gruns” for Grunesein parameters,
+“groupv” for phonon group velocities.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>units</strong> – Units for phonon frequencies. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
+Case-insensitive.</li>
+<li><strong>**kwargs</strong> – kwargs passed to the matplotlib function ‘scatter’. Size defaults to 10.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.split_gruns">
+<code class="descname">split_gruns</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.split_gruns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.split_gruns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the values of the gruneisen along a path like for the phonon bands</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.split_dwdq">
+<code class="descname">split_dwdq</code><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.split_dwdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.split_dwdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the values of the group velocities along a path like for the phonon bands</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_bs">
+<code class="descname">plot_gruns_bs</code><span class="sig-paren">(</span><em>values='gruns'</em>, <em>ax=None</em>, <em>branch_range=None</em>, <em>qlabels=None</em>, <em>match_bands=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.plot_gruns_bs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.plot_gruns_bs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A plot of the values of the Gruneisen parameters or group velocities along the
+high symmetry path.
+By default only the calculated points will be displayed. If lines are required set a positive value for lw
+and match_bands=True to obtained reasonable paths.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>values</strong> – Define the plotted quantity. “gruns” for Grunesein parameters,
+“groupv” for phonon group velocities.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>branch_range</strong> – Tuple specifying the minimum and maximum branch index to plot (default: all
+branches are plotted).</li>
+<li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
+The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</li>
+<li><strong>match_bands</strong> – if True the bands will be matched based on the scalar product between the eigenvectors.</li>
+<li><strong>**kwargs</strong> – kwargs passed to the matplotlib function ‘plot’. Marker size defaults to 4, line width to 0,
+marker to ‘o’, color to black.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.write_notebook">
 <code class="descname">write_notebook</code><span class="sig-paren">(</span><em>nbpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.write_notebook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.write_notebook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook to nbpath. If nbpath is None, a temporay file in the current
 working directory is created. Return path to the notebook.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.phdos">
+<code class="descname">phdos</code><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.phdos" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#abipy.dfpt.phonons.PhononDos" title="abipy.dfpt.phonons.PhononDos"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononDos</span></code></a> corresponsing to iv0, if present in the file, None otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.average_gruneisen">
+<code class="descname">average_gruneisen</code><span class="sig-paren">(</span><em>t=None</em>, <em>squared=True</em>, <em>limit_frequencies=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.average_gruneisen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.average_gruneisen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the average of the Gruneisen based on the values on the regular grid.
+If squared is True the average will use the squared value of the Gruneisen and a squared root
+is performed on the final result.
+Values associated to negative frequencies will be ignored.
+See Scripta Materialia 129, 88 for definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> – the temperature at which the average Gruneisen will be evaluated. If None the acoustic Debye
+temparature is used (see acoustic_debye_temp)</li>
+<li><strong>squared</strong> – if True the average is performed on the squared values of the Gruenisen</li>
+<li><strong>limit_frequencies</strong> – if None (default) no limit on the frequencies will be applied.
+Possible values are “debye” (only modes with frequencies lower than the acoustic Debye
+temperature) and “acoustic” (only the acoustic modes, i.e. the first three modes).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The average Gruneisen parameter</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.thermal_conductivity_slack">
+<code class="descname">thermal_conductivity_slack</code><span class="sig-paren">(</span><em>squared=True</em>, <em>limit_frequencies=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.thermal_conductivity_slack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.thermal_conductivity_slack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the thermal conductivity at the acoustic Debye temperature wit the Slack formula,
+using the average Gruneisen.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>squared</strong> – if True the average is performed on the squared values of the Gruenisen</li>
+<li><strong>limit_frequencies</strong> – if None (default) no limit on the frequencies will be applied.
+Possible values are “debye” (only modes with frequencies lower than the acoustic Debye
+temperature) and “acoustic” (only the acoustic modes, i.e. the first three modes).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value of the thermal conductivity in W/(m*K)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.debye_temp">
+<code class="descname">debye_temp</code><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.debye_temp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Debye temperature in K obtained from the phonon DOS</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.acoustic_debye_temp">
+<code class="descname">acoustic_debye_temp</code><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.acoustic_debye_temp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).
+Obtained from the phonon DOS</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.gruneisen.GrunsNcFile.from_ddb_list">
+<em class="property">classmethod </em><code class="descname">from_ddb_list</code><span class="sig-paren">(</span><em>ddb_list</em>, <em>nqsmall=10</em>, <em>qppa=None</em>, <em>ndivsm=20</em>, <em>line_density=None</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting='automatic'</em>, <em>ngqpt=None</em>, <em>qptbounds=None</em>, <em>anaddb_kwargs=None</em>, <em>verbose=0</em>, <em>mpi_procs=1</em>, <em>workdir=None</em>, <em>manager=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.from_ddb_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.from_ddb_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute anaddb to compute generate the object from a list of ddbs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ddb_list</strong> – A list with the paths to the ddb_files at different volumes. There should be an odd number of
+DDB files and the volume increment must be constant. The DDB files will be ordered according to the
+volume of the unit cell and the middle one will be considered as the DDB at the relaxed volume.</li>
+<li><strong>nqsmall</strong> – Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
+used to sample the smallest lattice vector. If 0, DOS is not computed and
+(phbst, None) is returned.</li>
+<li><strong>qppa</strong> – Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+Overrides nqsmall.</li>
+<li><strong>ndivsm</strong> – Number of division used for the smallest segment of the q-path.</li>
+<li><strong>line_density</strong> – Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+Overrides ndivsm.</li>
+<li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
+<li><strong>dos_method</strong> – Technique for DOS computation in  Possible choices: “tetra”, “gaussian” or “gaussian:0.001 eV”.
+In the later case, the value 0.001 eV is used as gaussian broadening.</li>
+<li><strong>lo_to_splitting</strong> – Allowed values are [True, False, “automatic”]. Defaults to “automatic”
+If True the LO-TO splitting will be calculated and the non_anal_directions
+and the non_anal_phfreqs attributes will be addeded to the phonon band structure.
+“automatic” activates LO-TO if the DDB file contains the dielectric tensor and Born effective charges.</li>
+<li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).</li>
+<li><strong>qptbounds</strong> – Boundaries of the path. If None, the path is generated from an internal database
+depending on the input structure.</li>
+<li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb.</li>
+<li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
+<li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
+<li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A GrunsNcFile object.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -1657,7 +1914,7 @@ It provides helper functions to access the most important quantities.</p>
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsReader.read_doses">
 <code class="descname">read_doses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsReader.read_doses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsReader.read_doses" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pythonhosted.org/monty/monty.html#monty.collections.AttrDict" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.collections.AttrDict</span></code></a> with the DOSes available in the file. Empty dict if
+<dd><p>Return a <a class="reference external" href="https://pythonhosted.org/monty/monty.html#monty.collections.AttrDict" title="(in monty v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">monty.collections.AttrDict</span></code></a> with the DOSes available in the file. Empty dict if
 DOSes are not available.</p>
 </dd></dl>
 
@@ -2050,7 +2307,7 @@ Use units = “” to add k-labels without adding unit name.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
 The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</li>
@@ -2061,7 +2318,7 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2111,7 +2368,7 @@ If <code class="docutils literal"><span class="pre">branch</span></code> is None
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>qlabels</strong> – dictionary whose keys are tuples with the reduced coordinates of the q-points.
 The values are the labels. e.g. <code class="docutils literal"><span class="pre">qlabels</span> <span class="pre">=</span> <span class="pre">{(0.0,0.0,0.0):</span> <span class="pre">&quot;$\Gamma$&quot;,</span> <span class="pre">(0.5,0,0):</span> <span class="pre">&quot;L&quot;}</span></code>.</li>
@@ -2127,7 +2384,7 @@ It useful to better distinguish close bands when the number of branch is large.<
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2217,7 +2474,7 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2272,7 +2529,7 @@ Used if <code class="docutils literal"><span class="pre">ax_list</span></code> i
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2307,20 +2564,21 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.plot_phdispl">
-<code class="descname">plot_phdispl</code><span class="sig-paren">(</span><em>qpoint</em>, <em>cart_dir=None</em>, <em>ax=None</em>, <em>units='eV'</em>, <em>is_non_analytical_direction=False</em>, <em>use_eigvec=False</em>, <em>colormap='viridis'</em>, <em>hatches='default'</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_phdispl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_phdispl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot vertical bars with the contribution of the different atomic types to all the phonon modes
+<code class="descname">plot_phdispl</code><span class="sig-paren">(</span><em>qpoint</em>, <em>cart_dir=None</em>, <em>use_reduced_coords=False</em>, <em>ax=None</em>, <em>units='eV'</em>, <em>is_non_analytical_direction=False</em>, <em>use_eigvec=False</em>, <em>colormap='viridis'</em>, <em>hatches='default'</em>, <em>atoms_index=None</em>, <em>labels_groups=None</em>, <em>normalize=True</em>, <em>use_sqrt=False</em>, <em>fontsize=12</em>, <em>branches=None</em>, <em>format_w='%.3f'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_phdispl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_phdispl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot vertical bars with the contribution of the different atoms or atomic types to all the phonon modes
 at a given <code class="docutils literal"><span class="pre">qpoint</span></code>. The contribution is given by ||v_{type}||
 where v is the (complex) phonon displacement (eigenvector) in cartesian coordinates and
-v_{type} selects only the terms associated to the atomic type.</p>
+v_{type} selects only the terms associated to the atomic type.
+Options allow to specify which atoms should be taken into account and how should be reparted.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>qpoint</strong> – integer, vector of reduced coordinates or <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.Kpoint</span></code></a> object.</li>
-<li><strong>cart_dir</strong> – “x”, “y”, or “z” to select a particular Cartesian directions.
-None if no projection is wanted.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>cart_dir</strong> – “x”, “y”, or “z” to select a particular Cartesian directions. or combinations separated by “+”.
+Example: “x+y”. None if no projection is wanted.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon frequencies. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
 Case-insensitive.</li>
 <li><strong>is_non_analytical_direction</strong> – If True, the <code class="docutils literal"><span class="pre">qpoint</span></code> is interpreted as a direction in q-space
@@ -2331,12 +2589,22 @@ are orthonormal, unlike diplacements)</li>
 <li><strong>colormap</strong> – Matplotlib colormap used for atom type.</li>
 <li><strong>hatches</strong> – List of strings with matplotlib hatching patterns. None or empty list to disable hatching.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
+<li><strong>normalize</strong> – if True divides by the square norm of the total eigenvector</li>
+<li><strong>use_sqrt</strong> – if True the square root of the sum of the components will be taken</li>
+<li><strong>use_reduced_coords</strong> – if True coordinates will be converted to reduced coordinates. So the values will be
+fraction of a,b,c rather than x,y,z.</li>
+<li><strong>atoms_index</strong> – list of lists. Each list contains the indices of atoms in the structure that will be
+summed on a separate group. if None all the atoms will be considered and grouped by type.</li>
+<li><strong>labels_groups</strong> – If atoms_index is not None will provide the labels for each of the group in atoms_index.
+Should have the same length of atoms_index or be None. If None automatic labelling will be used.</li>
+<li><strong>branches</strong> – list of indices for the modes that shoul be represented. If None all the modes will be shown.</li>
+<li><strong>format_w</strong> – string used to format the values of the frequency. Default “%.3f”.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2371,7 +2639,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.plot_phdispl_cartdirs">
-<code class="descname">plot_phdispl_cartdirs</code><span class="sig-paren">(</span><em>qpoint</em>, <em>cart_dirs=('x'</em>, <em>'y'</em>, <em>'z')</em>, <em>units='eV'</em>, <em>is_non_analytical_direction=False</em>, <em>use_eigvec=False</em>, <em>colormap='viridis'</em>, <em>hatches='default'</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_phdispl_cartdirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_phdispl_cartdirs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_phdispl_cartdirs</code><span class="sig-paren">(</span><em>qpoint</em>, <em>cart_dirs=('x'</em>, <em>'y'</em>, <em>'z')</em>, <em>units='eV'</em>, <em>is_non_analytical_direction=False</em>, <em>use_eigvec=False</em>, <em>colormap='viridis'</em>, <em>hatches='default'</em>, <em>atoms_index=None</em>, <em>labels_groups=None</em>, <em>normalize=True</em>, <em>use_sqrt=False</em>, <em>fontsize=8</em>, <em>branches=None</em>, <em>format_w='%.3f'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.plot_phdispl_cartdirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.plot_phdispl_cartdirs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
 to all the phonon displacements at the given <code class="docutils literal"><span class="pre">qpoint</span></code> along on the Cartesian directions in <code class="docutils literal"><span class="pre">cart_dirs</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2380,7 +2648,27 @@ to all the phonon displacements at the given <code class="docutils literal"><spa
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>qpoint</strong> – integer, vector of reduced coordinates or <a class="reference internal" href="core_api.html#abipy.core.kpoints.Kpoint" title="abipy.core.kpoints.Kpoint"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.kpoints.Kpoint</span></code></a> object.</li>
-<li><strong>cart_dirs</strong> – List of strings defining the Cartesian directions.</li>
+<li><strong>cart_dirs</strong> – List of strings defining the Cartesian directions. “x”, “y”, or “z” to select a particular
+Cartesian directions. or combinations separated by “+”. Example: “x+y”.</li>
+<li><strong>units</strong> – Units for phonon frequencies. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”).
+Case-insensitive.</li>
+<li><strong>is_non_analytical_direction</strong> – If True, the <code class="docutils literal"><span class="pre">qpoint</span></code> is interpreted as a direction in q-space
+and the phonon (displacements/eigenvectors) for q –&gt; 0 along this direction are used.
+Requires band structure with <code class="xref py py-class docutils literal"><span class="pre">NonAnalyticalPh</span></code> object.</li>
+<li><strong>use_eigvec</strong> – True if eigenvectors should be used instead of displacements (eigenvectors
+are orthonormal, unlike diplacements)</li>
+<li><strong>colormap</strong> – Matplotlib colormap used for atom type.</li>
+<li><strong>hatches</strong> – List of strings with matplotlib hatching patterns. None or empty list to disable hatching.</li>
+<li><strong>fontsize</strong> – Legend and title fontsize.</li>
+<li><strong>normalize</strong> – if True divides by the square norm of the total eigenvector</li>
+<li><strong>use_sqrt</strong> – if True the square root of the sum of the components will be taken
+fraction of a,b,c rather than x,y,z.</li>
+<li><strong>atoms_index</strong> – list of lists. Each list contains the indices of atoms in the structure that will be
+summed on a separate group. if None all the atoms will be considered and grouped by type.</li>
+<li><strong>labels_groups</strong> – If atoms_index is not None will provide the labels for each of the group in atoms_index.
+Should have the same length of atoms_index or be None. If None automatic labelling will be used.</li>
+<li><strong>branches</strong> – list of indices for the modes that shoul be represented. If None all the modes will be shown.</li>
+<li><strong>format_w</strong> – string used to format the values of the frequency. Default “%.3f”.</li>
 </ul>
 </td>
 </tr>
@@ -2422,7 +2710,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -2462,7 +2750,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>mode_range</strong> – Only modes such as <cite>mode_range[0] &lt;= mode_index &lt; mode_range[1]</cite> are included in the plot.</li>
 <li><strong>swarm</strong> – True to show the datapoints on top of the boxes</li>
@@ -2606,13 +2894,14 @@ displacements applied to each atom and the scale matrix used to generate the sup
 <dd><p>Bases: <a class="reference internal" href="core_api.html#abipy.core.mixins.AbinitNcFile" title="abipy.core.mixins.AbinitNcFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.AbinitNcFile</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_PhononBands" title="abipy.core.mixins.Has_PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_PhononBands</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.NotebookWriter" title="abipy.core.mixins.NotebookWriter"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.NotebookWriter</span></code></a></p>
 <p>Object used to access data stored in the PHBST.nc file produced by ABINIT.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-e9bb91df985ceb0c58f23594d7e88601a2a3e453.png" alt="Inheritance diagram of PhbstFile" usemap="#inheritancee7492c30a8" class="inheritance"/>
+<img src="../_images/inheritance-0f5e156f6dd004eb41654fcecda025c70723552b.png" alt="Inheritance diagram of PhbstFile" usemap="#inheritancee7492c30a8" class="inheritance"/>
 <map id="inheritancee7492c30a8" name="inheritancee7492c30a8">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="27,5,225,29"/>
-<area shape="rect" id="node5" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="295,77,488,101"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing phonon data." alt="" coords="5,53,247,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="20,101,232,125"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="17,149,236,173"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="254,149,452,173"/>
+<area shape="rect" id="node6" href="#abipy.dfpt.phonons.PhbstFile" target="_top" title="Object used to access data stored in the PHBST.nc file produced by ABINIT." alt="" coords="522,77,715,101"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,149,184,173"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_PhononBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing phonon data." alt="" coords="232,5,474,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="247,53,459,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="244,101,463,125"/>
 </map>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.to_string">
@@ -2675,7 +2964,7 @@ Accepts integer, vector with reduced coordinates or <a class="reference internal
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.get_phframe">
 <code class="descname">get_phframe</code><span class="sig-paren">(</span><em>qpoint</em>, <em>with_structure=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.get_phframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.get_phframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
 information on the crystal structure (used for convergence studies).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2711,6 +3000,12 @@ or an integer giving the sequential index (C-convention).</li>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhbstFile.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2784,7 +3079,7 @@ and another numpy array, <code class="docutils literal"><span class="pre">values
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a></li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a></li>
 <li><strong>what</strong> – string selecting the quantity to plot:
 “d” for DOS, “i” for IDOS. chars can be concatenated
 hence what=”id” plots both IDOS and DOS. (default “d”).</li>
@@ -2817,7 +3112,7 @@ hence what=”id” plots both IDOS and DOS. (default “d”).</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2935,8 +3230,8 @@ for different temperatures</p>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo">
-<code class="descname">plot_harmonic_thermo</code><span class="sig-paren">(</span><em>tstart=5</em>, <em>tstop=300</em>, <em>num=50</em>, <em>units='eV'</em>, <em>formula_units=None</em>, <em>quantities=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.plot_harmonic_thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot thermodinamic properties from the phonon DOSes within the harmonic approximation.</p>
+<code class="descname">plot_harmonic_thermo</code><span class="sig-paren">(</span><em>tstart=5</em>, <em>tstop=300</em>, <em>num=50</em>, <em>units='eV'</em>, <em>formula_units=None</em>, <em>quantities=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.plot_harmonic_thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.plot_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2945,18 +3240,19 @@ for different temperatures</p>
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
 <li><strong>num</strong> – int, optional Number of samples to generate. Default is 50.</li>
-<li><strong>quantities</strong> – List of strings specifying the thermodinamic quantities to plot.
+<li><strong>quantities</strong> – List of strings specifying the thermodynamic quantities to plot.
 Possible values: [“internal_energy”, “free_energy”, “entropy”, “c_v”].
 None means all.</li>
 <li><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</li>
 <li><strong>formula_units</strong> – the number of formula units per unit cell. If unspecified, the
 thermodynamic quantities will be given on a per-unit-cell basis.</li>
+<li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -2993,6 +3289,26 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dt id="abipy.dfpt.phonons.PhononDos.to_pymatgen">
 <code class="descname">to_pymatgen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.to_pymatgen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.to_pymatgen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a pymatgen <code class="xref py py-class docutils literal"><span class="pre">PmgPhononDos</span></code> object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.phonons.PhononDos.debye_temp">
+<code class="descname">debye_temp</code><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.debye_temp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Debye temperature in K.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhononDos.get_acoustic_debye_temp">
+<code class="descname">get_acoustic_debye_temp</code><span class="sig-paren">(</span><em>nsites</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDos.get_acoustic_debye_temp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDos.get_acoustic_debye_temp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acoustic Debye temperature in K, i.e. the Debye temperature divided by nsites**(1/3).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nsites</strong> – the number of sites in the cell.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -3062,12 +3378,13 @@ with chemical symbol <code class="docutils literal"><span class="pre">symbol</sp
 PHDOS.nc file produced by anaddb.
 Provides helper function to visualize/extract data.</p>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-dada176e574950230a30d768df86ee7d316adc33.png" alt="Inheritance diagram of PhdosFile" usemap="#inheritance39e463df1c" class="inheritance"/>
+<img src="../_images/inheritance-7d795687c7f517978c48914b2b60a1cba0ff857f.png" alt="Inheritance diagram of PhdosFile" usemap="#inheritance39e463df1c" class="inheritance"/>
 <map id="inheritance39e463df1c" name="inheritance39e463df1c">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="16,5,214,29"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="273,53,469,77"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="9,53,221,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="243,101,441,125"/>
+<area shape="rect" id="node5" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="500,53,696,77"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,101,184,125"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="236,5,448,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="232,53,452,77"/>
 </map>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhdosFile.close">
@@ -3079,7 +3396,7 @@ Provides helper function to visualize/extract data.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3125,7 +3442,7 @@ with chemical symbol <cite>symbol</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>stacked</strong> – True if DOS partial contributions should be stacked on top of each other.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>colormap</strong> – Have a look at the colormaps
@@ -3141,7 +3458,7 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3194,14 +3511,14 @@ and decide which one you’d like:</p>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
 <li><strong>ylims</strong> – y-axis limits.</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and label fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a>.</p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3252,14 +3569,14 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used.</li>
 <li><strong>ylims</strong> – Set the data limits for the y-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
-<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax_list</strong> – List of <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3340,9 +3657,15 @@ Supports plots on the same graph or separated plots.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.phonons.PhononBandsPlotter.has_same_formula">
+<code class="descname">has_same_formula</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.has_same_formula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.has_same_formula" title="Permalink to this definition">¶</a></dt>
+<dd><p>True of plotter contains structures with same chemical formula.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">
 <code class="descname">get_phbands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.get_phbands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.0.dev0+653.g7273ea0.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3380,11 +3703,6 @@ Supports plots on the same graph or separated plots.</p>
 <code class="descname">iter_lineopt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.iter_lineopt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.iter_lineopt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates matplotlib linestyles.</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="abipy.dfpt.phonons.PhononBandsPlotter.add_phbands_from_file">
-<code class="descname">add_phbands_from_file</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.add_phbands_from_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.add_phbands">
@@ -3429,7 +3747,7 @@ Used if plotter has DOSes.</li>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3469,6 +3787,12 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="abipy.dfpt.phonons.PhononBandsPlotter.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.gridplot">
 <code class="descname">gridplot</code><span class="sig-paren">(</span><em>with_dos=True</em>, <em>units='eV'</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.gridplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot multiple phonon bandstructures and optionally DOSes on a grid.</p>
@@ -3485,7 +3809,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3547,7 +3871,7 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3644,7 +3968,7 @@ Phonon Band structures are drawn on the same plot.</p>
 <li><strong>mode_range</strong> – Only bands such as <code class="docutils literal"><span class="pre">mode_range[0]</span> <span class="pre">&lt;=</span> <span class="pre">nu_index</span> <span class="pre">&lt;</span> <span class="pre">mode_range[1]</span></code> are included in the plot.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>swarm</strong> – True to show the datapoints on top of the boxes</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>kwargs</strong> – Keyword arguments passed to <a class="reference external" href="https://seaborn.pydata.org/">seaborn</a> boxplot.</li>
 </ul>
 </td>
@@ -3700,7 +4024,7 @@ at a given q-point. One panel for all phbands stored in the plotter.</p>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3822,14 +4146,14 @@ Used when phdos is not already an instance of <cite>cls</cite> or when we have t
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononDosPlotter.combiplot">
-<code class="descname">combiplot</code><span class="sig-paren">(</span><em>ax=None</em>, <em>units='eV'</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.combiplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">combiplot</code><span class="sig-paren">(</span><em>ax=None</em>, <em>units='eV'</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.combiplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.combiplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot DOSes on the same figure. Use <code class="docutils literal"><span class="pre">gridplot</span></code> to plot DOSes on different figures.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>units</strong> – Units for phonon plots. Possible values in (“eV”, “meV”, “Ha”, “cm-1”, “Thz”). Case-insensitive.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <cite>(left, right)</cite>
 or scalar e.g. <cite>left</cite>. If left (right) is None, default values are used</li>
@@ -3840,7 +4164,7 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3881,7 +4205,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononDosPlotter.gridplot">
-<code class="descname">gridplot</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.gridplot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gridplot</code><span class="sig-paren">(</span><em>units='eV'</em>, <em>xlims=None</em>, <em>ylims=None</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.gridplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.gridplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot multiple DOSes on a grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3891,12 +4215,13 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <li><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</li>
 <li><strong>xlims</strong> – Set the data limits for the x-axis. Accept tuple e.g. <code class="docutils literal"><span class="pre">(left,</span> <span class="pre">right)</span></code>
 or scalar e.g. <code class="docutils literal"><span class="pre">left</span></code>. If left (right) is None, default values are used</li>
+<li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3931,8 +4256,8 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononDosPlotter.plot_harmonic_thermo">
-<code class="descname">plot_harmonic_thermo</code><span class="sig-paren">(</span><em>tstart=5</em>, <em>tstop=300</em>, <em>num=50</em>, <em>units='eV'</em>, <em>formula_units=1</em>, <em>quantities='all'</em>, <em>fontsize=12</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.plot_harmonic_thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.plot_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot thermodinamic properties from the phonon DOS within the harmonic approximation.</p>
+<code class="descname">plot_harmonic_thermo</code><span class="sig-paren">(</span><em>tstart=5</em>, <em>tstop=300</em>, <em>num=50</em>, <em>units='eV'</em>, <em>formula_units=1</em>, <em>quantities='all'</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.plot_harmonic_thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.plot_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot thermodynamic properties from the phonon DOS within the harmonic approximation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3944,7 +4269,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <li><strong>units</strong> – eV for energies in ev/unit_cell, Jmol for results in J/mole.</li>
 <li><strong>formula_units</strong> – the number of formula units per unit cell. If unspecified, the
 thermodynamic quantities will be given on a per-unit-cell basis.</li>
-<li><strong>quantities</strong> – List of strings specifying the thermodinamic quantities to plot.
+<li><strong>quantities</strong> – List of strings specifying the thermodynamic quantities to plot.
 Possible values in [“internal_energy”, “free_energy”, “entropy”, “c_v”].</li>
 <li><strong>fontsize</strong> – Legend and title fontsize.</li>
 </ul>
@@ -3952,7 +4277,7 @@ Possible values in [“internal_energy”, “free_energy”, “entropy”, “
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -3994,8 +4319,14 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononDosPlotter.ipw_harmonic_thermo">
 <code class="descname">ipw_harmonic_thermo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.ipw_harmonic_thermo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.ipw_harmonic_thermo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an ipython widget with controllers to plot thermodinamic properties
+<dd><p>Return an ipython widget with controllers to plot thermodynamic properties
 from the phonon DOS within the harmonic approximation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.phonons.PhononDosPlotter.yield_figs">
+<code class="descname">yield_figs</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononDosPlotter.yield_figs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononDosPlotter.yield_figs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function <em>generates</em> a predefined list of matplotlib figures with minimal input from the user.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4008,14 +4339,427 @@ working directory is created. Return path to the notebook.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-abipy.dfpt.qha">
+<span id="qha-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">qha</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.qha" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abipy.dfpt.qha.QHA">
+<em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">QHA</code><span class="sig-paren">(</span><em>structures</em>, <em>doses</em>, <em>energies</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations
+at different volumes.
+Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
+generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
+Does not include electronic entropic contributions for metals.</p>
+<dl class="attribute">
+<dt id="abipy.dfpt.qha.QHA.nvols">
+<code class="descname">nvols</code><a class="headerlink" href="#abipy.dfpt.qha.QHA.nvols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abipy.dfpt.qha.QHA.natoms">
+<code class="descname">natoms</code><a class="headerlink" href="#abipy.dfpt.qha.QHA.natoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.fit_energies">
+<code class="descname">fit_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.fit_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.fit_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a fit of the energies as a function of the volume at different temperatures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p><cite>namedtuple</cite> with the following attributes:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tot_en</span><span class="p">:</span> <span class="n">numpy</span> <span class="n">array</span> <span class="k">with</span> <span class="n">shape</span> <span class="p">(</span><span class="n">nvols</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="k">with</span> <span class="n">the</span> <span class="n">energies</span> <span class="n">used</span> <span class="k">for</span> <span class="n">the</span> <span class="n">fit</span>
+<span class="n">fits</span><span class="p">:</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">subclasses</span> <span class="n">of</span> <span class="n">pymatgen</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">eos</span><span class="o">.</span><span class="n">EOSBase</span><span class="p">,</span> <span class="n">depending</span> <span class="n">on</span> <span class="n">the</span> <span class="nb">type</span> <span class="n">of</span>
+    <span class="n">eos</span> <span class="n">chosen</span><span class="o">.</span> <span class="n">Contains</span> <span class="n">the</span> <span class="n">fit</span> <span class="k">for</span> <span class="n">the</span> <span class="n">energies</span> <span class="n">at</span> <span class="n">the</span> <span class="n">different</span> <span class="n">temperatures</span><span class="o">.</span>
+<span class="n">min_en</span><span class="p">:</span> <span class="n">numpy</span> <span class="n">array</span> <span class="k">with</span> <span class="n">the</span> <span class="n">minimum</span> <span class="n">energies</span> <span class="k">for</span> <span class="n">the</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">temperatures</span>
+<span class="n">min_vol</span><span class="p">:</span> <span class="n">numpy</span> <span class="n">array</span> <span class="k">with</span> <span class="n">the</span> <span class="n">minimum</span> <span class="n">volumes</span> <span class="k">for</span> <span class="n">the</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">temperatures</span>
+<span class="n">temp</span><span class="p">:</span> <span class="n">numpy</span> <span class="n">array</span> <span class="k">with</span> <span class="n">the</span> <span class="n">temperatures</span> <span class="n">considered</span>
+</pre></div>
+</div>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.set_eos">
+<code class="descname">set_eos</code><span class="sig-paren">(</span><em>eos_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.set_eos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.set_eos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the EOS used for the fit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>eos_name</strong> – string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="abipy.dfpt.qha.QHA.from_files">
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>gsr_files_paths</em>, <em>phdos_files_paths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance of QHA from a list og GSR files and a list PHDOS.nc files.
+The list should have the same size and the volumes should match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>gsr_files_paths</strong> – list of paths to GSR files</li>
+<li><strong>phdos_files_paths</strong> – list of paths to PHDOS.nc files</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A new instance of QHA</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.plot_energies">
+<code class="descname">plot_energies</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=10</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the energies as a function of volume at different temperatures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 10.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.get_thermal_expansion_coeff">
+<code class="descname">get_thermal_expansion_coeff</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_thermal_expansion_coeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_thermal_expansion_coeff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the thermal expansion coefficient as a function of temperature, using
+finite difference on the fitted values of the volume as a function of temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference internal" href="core_api.html#abipy.core.func1d.Function1D" title="abipy.core.func1d.Function1D"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.func1d.Function1D</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.plot_thermal_expansion_coeff">
+<code class="descname">plot_thermal_expansion_coeff</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_thermal_expansion_coeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_thermal_expansion_coeff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the thermal expansion coefficient as a function of the temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.plot_vol_vs_t">
+<code class="descname">plot_vol_vs_t</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=800</em>, <em>num=100</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_vol_vs_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_vol_vs_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the volume as a function of the temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 100.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.plot_phbs">
+<code class="descname">plot_phbs</code><span class="sig-paren">(</span><em>phbands</em>, <em>temperatures=None</em>, <em>t_max=1000</em>, <em>colormap='plasma'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.plot_phbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.plot_phbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> plots the band structures with a color depending on
+the temperature using a <a class="reference internal" href="#abipy.dfpt.phonons.PhononBandsPlotter" title="abipy.dfpt.phonons.PhononBandsPlotter"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBandsPlotter</span></code></a>.
+If temperatures are not given they will be deduced inverting the dependence of volume
+with respect to the temperature. If a unique volume could not be identified an error will
+be raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>phbands</strong> – list of <a class="reference internal" href="#abipy.dfpt.phonons.PhononBands" title="abipy.dfpt.phonons.PhononBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.dfpt.phonons.PhononBands</span></code></a> objects.</li>
+<li><strong>temperatures</strong> – list of temperatures.</li>
+<li><strong>t_max</strong> – maximum temperature considered for plotting.</li>
+<li><strong>colormap</strong> – matplotlib color map.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.get_vol_at_t">
+<code class="descname">get_vol_at_t</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_vol_at_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_vol_at_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the volume corresponding to a specific temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – a temperature in K</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The volume</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.get_t_for_vols">
+<code class="descname">get_t_for_vols</code><span class="sig-paren">(</span><em>vols</em>, <em>t_max=1000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_t_for_vols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_t_for_vols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the temperatures corresponding to a specific volume.
+The search is performed interpolating the V(T) dependence with a spline and
+finding the roots with of V(t) - v.
+It may return more than one temperature for a volume in case of non monotonic behavior.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vols</strong> – list of volumes</li>
+<li><strong>t_max</strong> – maximum temperature considered for the fit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of lists of temperatures. For each volume more than one temperature can
+be identified.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.write_phonopy_qha_inputs">
+<code class="descname">write_phonopy_qha_inputs</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=2100</em>, <em>num=211</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.write_phonopy_qha_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.write_phonopy_qha_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes nvols thermal_properties-i.yaml files that can be used as inputs for phonopy-qha.
+Notice that phonopy apparently requires the value of the 300 K temperature to be present
+in the list. Choose the values of tstart, tstop and num to satisfy this condition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 211.</li>
+<li><strong>path</strong> – a path to a folder where the files will be stored</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.dfpt.qha.QHA.get_phonopy_qha">
+<code class="descname">get_phonopy_qha</code><span class="sig-paren">(</span><em>tstart=0</em>, <em>tstop=2100</em>, <em>num=211</em>, <em>eos='vinet'</em>, <em>t_max=None</em>, <em>energy_plot_factor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA.get_phonopy_qha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA.get_phonopy_qha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance of phonopy.qha.QHA that can be used generate further plots and output data.
+The object is returned right after the construction. The “run()” method should be executed
+before getting results and plots.
+Notice that phonopy apparently requires the value of the 300 K temperature to be present
+in the list. Choose the values of tstart, tstop and num to satisfy this condition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
+<li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
+<li><strong>num</strong> – int, optional Number of samples to generate. Default is 211.</li>
+<li><strong>eos</strong> – the expression used to fit the energies in phonopy. Possible values are “vinet”,
+“murnaghan” and “birch_murnaghan”. Passed to phonopy’s QHA.</li>
+<li><strong>t_max</strong> – maximum temperature. Passed to phonopy’s QHA.</li>
+<li><strong>energy_plot_factor</strong> – factor multiplying the energies. Passed to phonopy’s QHA.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An instance of phonopy.qha.QHA</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-abipy.dfpt.tensors">
 <span id="tensors-module"></span><h2><a class="toc-backref" href="#contents"><code class="xref py py-mod docutils literal"><span class="pre">tensors</span></code> Module</a><a class="headerlink" href="#module-abipy.dfpt.tensors" title="Permalink to this headline">¶</a></h2>
 <p>This modules provides tensors objects extracted from dfpt calculations.</p>
 <dl class="class">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
 non-linear optical susceptibility tensor.</p>
 <dl class="classmethod">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">
@@ -4029,8 +4773,8 @@ This requires to run anaddb with <code class="docutils literal"><span class="pre
 <dl class="class">
 <dt id="abipy.dfpt.tensors.DielectricTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
 describing a dielectric tensor.</p>
 <dl class="method">
 <dt id="abipy.dfpt.tensors.DielectricTensor.reflectivity">
@@ -4057,7 +4801,7 @@ returns the three components of the reflectivity.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

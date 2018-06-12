@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.bse &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.electrons.bse &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -245,7 +245,7 @@
         <span class="n">red_coords</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;red_coords&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency (eV)&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Dielectric tensor&#39;</span><span class="p">)</span>
 
         <span class="c1">#if not kwargs:</span>
@@ -392,7 +392,7 @@
 
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency (eV)&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Macroscopic DF&#39;</span><span class="p">)</span>
 
         <span class="c1">#if not kwargs:</span>
@@ -598,7 +598,9 @@
 <span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
 <span class="sd">        Used in abiview.py to get a quick look at the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="c1">#yield self.ebands.plot(show=False)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Re&quot;</span><span class="p">,</span> <span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_mdfs</span><span class="p">(</span><span class="n">cplx_mode</span><span class="o">=</span><span class="s2">&quot;Im&quot;</span><span class="p">,</span> <span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">qpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MdfFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -655,9 +657,10 @@
 <div class="viewcode-block" id="MdfReader.read_params"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MdfReader.read_params">[docs]</a>    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dictionary with the parameters of the run.&quot;&quot;&quot;</span>
         <span class="c1"># TODO: Add more info.</span>
+        <span class="c1"># soenergy replaced by mbpt_sciss</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;nsppol&quot;</span><span class="p">,</span> <span class="s2">&quot;ecutwfn&quot;</span><span class="p">,</span> <span class="s2">&quot;ecuteps&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;eps_inf&quot;</span><span class="p">,</span> <span class="s2">&quot;soenergy&quot;</span><span class="p">,</span> <span class="s2">&quot;broad&quot;</span><span class="p">,</span> <span class="s2">&quot;nkibz&quot;</span><span class="p">,</span> <span class="s2">&quot;nkbz&quot;</span><span class="p">,</span> <span class="s2">&quot;nkibz_interp&quot;</span><span class="p">,</span> <span class="s2">&quot;nkbz_interp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;eps_inf&quot;</span><span class="p">,</span> <span class="s2">&quot;mbpt_sciss&quot;</span><span class="p">,</span> <span class="s2">&quot;broad&quot;</span><span class="p">,</span> <span class="s2">&quot;nkibz&quot;</span><span class="p">,</span> <span class="s2">&quot;nkbz&quot;</span><span class="p">,</span> <span class="s2">&quot;nkibz_interp&quot;</span><span class="p">,</span> <span class="s2">&quot;nkbz_interp&quot;</span><span class="p">,</span>
             <span class="s2">&quot;wtype&quot;</span><span class="p">,</span> <span class="s2">&quot;interp_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;nreh&quot;</span><span class="p">,</span> <span class="s2">&quot;lomo_spin&quot;</span><span class="p">,</span> <span class="s2">&quot;humo_spin&quot;</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_keys</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span></div>
@@ -734,7 +737,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency [eV]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency (eV)&#39;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Macroscopic DF&#39;</span><span class="p">)</span>
 
         <span class="n">cmodes</span> <span class="o">=</span> <span class="n">cplx_mode</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
@@ -891,10 +894,9 @@
                     <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">with_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_xlabel</span><span class="o">=</span><span class="n">islast</span><span class="p">,</span> <span class="n">with_ylabel</span><span class="o">=</span><span class="n">islast</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value of qview: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">qview</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value of qview: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">qview</span><span class="p">))</span>
 
         <span class="c1">#ax_mat[0, 0].legend(loc=&quot;best&quot;, fontsize=fontsize, shadow=True)</span>
-        <span class="c1">#fig.tight_layout()</span>
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
@@ -965,7 +967,7 @@
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\omega [eV]$&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Frequency (eV)&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">with_ylabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MDF_TYPECPLX2TEX</span><span class="p">[</span><span class="n">mdf_type</span><span class="p">][</span><span class="n">cplx_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()])</span>
 
         <span class="n">can_use_basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_use_basenames_as_labels</span><span class="p">()</span>
@@ -1057,6 +1059,13 @@
         <span class="sd">&quot;&quot;&quot;Wraps plot method of :class:`MultipleMdfPlotter`. kwargs are passed to plot.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_multimdf_plotter</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_multimdf_plotter</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mdf_type</span><span class="o">=</span><span class="s2">&quot;exc&quot;</span><span class="p">,</span> <span class="n">qview</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">get_multimdf_plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an instance of :class:`MultipleMdfPlotter` to compare multiple dielectric functions.</span>
@@ -1069,10 +1078,10 @@
 
     <span class="k">def</span> <span class="nf">get_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_geo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Build and return |pandas-DataFrame| with the most import BSE results. and the filenames as index.</span>
+<span class="sd">        Build and return |pandas-DataFrame| with the most import BSE results and the filenames as index.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            with_geo: True if structure info should be added to the dataframe</span>
+<span class="sd">            with_geo: True if structure parameters should be added to the DataFrame</span>
 <span class="sd">            abspath: True if paths in index should be absolute. Default: Relative to getcwd().</span>
 <span class="sd">            funcs: Function or list of functions to execute to add more data to the DataFrame.</span>
 <span class="sd">                Each function receives a :class:`MdfFile` object and returns a tuple (key, value)</span>
@@ -1159,7 +1168,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

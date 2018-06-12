@@ -136,7 +136,7 @@ Run the script with:
     :alt: Convergence of phonon dispersion of MgB2 wrt k-point sampling and electronic smearing.
 
 
-**Total running time of the script:** ( 0 minutes  3.473 seconds)
+**Total running time of the script:** ( 0 minutes  3.646 seconds)
 
 
 

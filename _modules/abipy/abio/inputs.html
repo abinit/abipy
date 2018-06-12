@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.inputs &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.abio.inputs &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -165,6 +165,8 @@
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">PseudoTable</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">,</span> <span class="n">AbinitTask</span><span class="p">,</span> <span class="n">AnaddbTask</span><span class="p">,</span> <span class="n">ParalHintsParser</span><span class="p">,</span> <span class="n">NetcdfReader</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk.abiinspect</span> <span class="k">import</span> <span class="n">yaml_read_irred_perts</span>
 <span class="kn">from</span> <span class="nn">abipy.flowtk</span> <span class="k">import</span> <span class="n">abiobjects</span> <span class="k">as</span> <span class="n">aobj</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.bandstructure</span> <span class="k">import</span> <span class="n">HighSymmKpath</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.abinit.abiobjects</span> <span class="k">import</span> <span class="n">KSampling</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
@@ -270,7 +272,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write the input file to file to ``filepath``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
 
         <span class="c1"># Write the input file.</span>
@@ -2547,7 +2549,7 @@
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="AnaddbInput.phbands_and_dos"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.inputs.AnaddbInput.phbands_and_dos">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="k">def</span> <span class="nf">phbands_and_dos</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">ngqpt</span><span class="p">,</span> <span class="n">nqsmall</span><span class="p">,</span> <span class="n">qppa</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndivsm</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">line_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q1shft</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                         <span class="n">qptbounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">chneut</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dipdip</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dos_method</span><span class="o">=</span><span class="s2">&quot;tetra&quot;</span><span class="p">,</span> <span class="n">lo_to_splitting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">anaddb_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2558,6 +2560,10 @@
 <span class="sd">            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)</span>
 <span class="sd">            nqsmall: Used to generate the (dense) mesh for the DOS.</span>
 <span class="sd">                It defines the number of q-points used to sample the smallest lattice vector.</span>
+<span class="sd">            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.</span>
+<span class="sd">                Overrides nqsmall.</span>
+<span class="sd">            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.</span>
+<span class="sd">                Overrides ndivsm.</span>
 <span class="sd">            ndivsm: Used to generate a normalized path for the phonon bands.</span>
 <span class="sd">                If gives the number of divisions for the smallest segment of the path.</span>
 <span class="sd">            q1shft: Shifts used for the coarse Q-mesh</span>
@@ -2586,18 +2592,36 @@
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;ANADB input for phonon bands and DOS&quot;</span><span class="p">,</span>
                   <span class="n">anaddb_args</span><span class="o">=</span><span class="n">anaddb_args</span><span class="p">,</span> <span class="n">anaddb_kwargs</span><span class="o">=</span><span class="n">anaddb_kwargs</span><span class="p">)</span>
 
-        <span class="c1"># Parameters for the dos.</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">set_autoqmesh</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">prtdos</span><span class="o">=</span><span class="n">prtdos</span><span class="p">,</span> <span class="n">dosdeltae</span><span class="o">=</span><span class="n">dosdeltae</span><span class="p">,</span> <span class="n">dossmear</span><span class="o">=</span><span class="n">dossmear</span><span class="p">)</span>
+        <span class="c1"># Parameters for the DOS</span>
+        <span class="k">if</span> <span class="n">qppa</span><span class="p">:</span>
+            <span class="n">ng2qpt</span> <span class="o">=</span> <span class="n">KSampling</span><span class="o">.</span><span class="n">automatic_density</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">kppa</span><span class="o">=</span><span class="n">qppa</span><span class="p">)</span><span class="o">.</span><span class="n">kpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1">#set new variables</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">ng2qpt</span><span class="o">=</span><span class="n">ng2qpt</span><span class="p">,</span><span class="n">prtdos</span><span class="o">=</span><span class="n">prtdos</span><span class="p">,</span><span class="n">dossmear</span><span class="o">=</span><span class="n">dossmear</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_autoqmesh</span><span class="p">(</span><span class="n">nqsmall</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span><span class="n">prtdos</span><span class="o">=</span><span class="n">prtdos</span><span class="p">,</span> <span class="n">dosdeltae</span><span class="o">=</span><span class="n">dosdeltae</span><span class="p">,</span> <span class="n">dossmear</span><span class="o">=</span><span class="n">dossmear</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nqsmall</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new</span><span class="p">[</span><span class="s2">&quot;prtdos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="c1"># Disable DOS computation.</span>
-        <span class="k">if</span> <span class="n">nqsmall</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">new</span><span class="p">[</span><span class="s2">&quot;prtdos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Parameters for the BS</span>
+        <span class="k">if</span> <span class="n">line_density</span><span class="p">:</span>
+            <span class="n">hs</span> <span class="o">=</span> <span class="n">HighSymmKpath</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">)</span>
+            <span class="n">qpts</span><span class="p">,</span> <span class="n">labels_list</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">get_kpoints</span><span class="p">(</span><span class="n">line_density</span><span class="o">=</span><span class="n">line_density</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="c1"># remove repeated q-points since those do</span>
+            <span class="c1"># interfere with _set_split_vals in the phonon plotter</span>
+            <span class="n">qph1l</span> <span class="o">=</span> <span class="p">[</span><span class="n">qpts</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">qpt</span> <span class="ow">in</span> <span class="n">qpts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">qpt</span><span class="p">,</span><span class="n">qph1l</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">qph1l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qpt</span><span class="p">)</span>
+            <span class="c1">#set new variables</span>
+            <span class="n">new</span><span class="p">[</span><span class="s1">&#39;qph1l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">+</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qph1l</span><span class="p">]</span>
+            <span class="n">new</span><span class="p">[</span><span class="s1">&#39;nph1l&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qph1l</span><span class="p">)</span>
+            <span class="n">qptbounds</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">calc_kptbounds</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">set_qpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">)</span>
+            <span class="n">qptbounds</span> <span class="o">=</span> <span class="n">new</span><span class="p">[</span><span class="s1">&#39;qpath&#39;</span><span class="p">]</span>
 
-        <span class="n">new</span><span class="o">.</span><span class="n">set_qpath</span><span class="p">(</span><span class="n">ndivsm</span><span class="p">,</span> <span class="n">qptbounds</span><span class="o">=</span><span class="n">qptbounds</span><span class="p">)</span>
-        <span class="n">qptbounds</span> <span class="o">=</span> <span class="n">new</span><span class="p">[</span><span class="s1">&#39;qpath&#39;</span><span class="p">]</span>
         <span class="n">q1shft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q1shft</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-
         <span class="n">new</span><span class="o">.</span><span class="n">set_vars</span><span class="p">(</span>
             <span class="n">ifcflag</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">ngqpt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ngqpt</span><span class="p">),</span>
@@ -3396,7 +3420,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

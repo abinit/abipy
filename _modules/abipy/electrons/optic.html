@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.optic &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.electrons.optic &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -285,11 +285,11 @@
 
         <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;Optic calculation&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="c1"># Show Optic variables.</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;broadening: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">broadening</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadening</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;scissor: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scissor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scissor</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;tolerance: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;maxomega: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxomega</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxomega</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;domega: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domega</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">domega</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;broadening: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">broadening</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadening</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;scissor: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scissor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scissor</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;tolerance: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;maxomega: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxomega</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxomega</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;domega: </span><span class="si">%s</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domega</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">domega</span> <span class="o">*</span> <span class="n">abu</span><span class="o">.</span><span class="n">Ha_eV</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;do_antiresonant </span><span class="si">%s</span><span class="s2">, do_ep_renorm </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do_antiresonant</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_ep_renorm</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">ntemp</span><span class="p">)</span>
 
@@ -403,7 +403,7 @@
                     <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_linopt_latex_label</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">label</span><span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Photon Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Photon Energy (eV)&#39;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -473,7 +473,7 @@
                 <span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Photon Energy [eV]&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">with_xlabel</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Photon Energy (eV)&#39;</span><span class="p">)</span>
         <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -789,7 +789,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

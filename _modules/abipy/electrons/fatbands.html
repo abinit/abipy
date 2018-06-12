@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.fatbands &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.electrons.fatbands &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1014,8 +1014,8 @@
     <span class="c1">#    Note that this is a very crude estimate of the charge density distribution.</span>
 
     <span class="c1">#    Args:</span>
-    <span class="c1">#        start_energy: PJDOS is integrated from this energy [eV]. If None, the lower bound in used.</span>
-    <span class="c1">#        stop_energy: PJDOS is integrated up to this energy [eV]. If None, the Fermi level is used.</span>
+    <span class="c1">#        start_energy: PJDOS is integrated from this energy (eV). If None, the lower bound in used.</span>
+    <span class="c1">#        stop_energy: PJDOS is integrated up to this energy (eV). If None, the Fermi level is used.</span>
     <span class="c1">#        method: String defining the method for the computation of the DOS.</span>
     <span class="c1">#        step: Energy step (eV) of the linear mesh.</span>
     <span class="c1">#        width: Standard deviation (eV) of the gaussian.</span>
@@ -1197,14 +1197,14 @@
 
                 <span class="c1"># Display yticklabels on the first plot and last plot only.</span>
                 <span class="c1"># and display the legend only on the first plot.</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [eV]&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (eV)&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">with_info</span><span class="p">:</span>
                         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">exchange_xy</span><span class="p">:</span>
-                            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
+                            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
+                            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">l</span> <span class="o">==</span> <span class="n">mylsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
@@ -1352,14 +1352,14 @@
 
                 <span class="c1"># Display yticklabels on the first plot and last plot only.</span>
                 <span class="c1"># and display the legend only on the first plot.</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [eV]&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy (eV)&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">itype</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">with_info</span><span class="p">:</span>
                         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">exchange_xy</span><span class="p">:</span>
-                            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
+                            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS [states/eV]&#39;</span><span class="p">)</span>
+                            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;DOS (states/eV)&#39;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">itype</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntypat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
@@ -1571,7 +1571,7 @@
                             <span class="n">label</span><span class="o">=</span><span class="s2">&quot;PS-onsite&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">irow</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">spin</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_mat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]:</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy [eV]&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Energy (eV)&#39;</span><span class="p">)</span>
             <span class="n">set_axlims</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xlims</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span></div>
 
     <span class="c1"># TODO: THIS CODE IS STILL UNDER DEVELOPMENT</span>
@@ -1650,7 +1650,7 @@
     <span class="c1">#        ax.plot(mesh, yvals, color=self.spinors2color[term], label=self.spinors2tex[term])</span>
 
     <span class="c1">#    ax.grid(True)</span>
-    <span class="c1">#    ax.set_xlabel(&quot;Energy [eV]&quot;)</span>
+    <span class="c1">#    ax.set_xlabel(&quot;Energy (eV)&quot;)</span>
     <span class="c1">#    set_axlims(ax, xlims, &quot;x&quot;)</span>
     <span class="c1">#    ax.legend(loc=&quot;best&quot;, fontsize=fontsize, shadow=True)</span>
 
@@ -1824,7 +1824,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

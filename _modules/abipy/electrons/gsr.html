@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.gsr &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.electrons.gsr &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -146,7 +146,7 @@
 <span class="kn">from</span> <span class="nn">pymatgen.core.units</span> <span class="k">import</span> <span class="n">EnergyArray</span><span class="p">,</span> <span class="n">ArrayWithUnit</span>
 <span class="kn">from</span> <span class="nn">pymatgen.entries.computed_entries</span> <span class="k">import</span> <span class="n">ComputedEntry</span><span class="p">,</span> <span class="n">ComputedStructureEntry</span>
 <span class="kn">from</span> <span class="nn">abipy.core.mixins</span> <span class="k">import</span> <span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span>
-<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
+<span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronsReader</span><span class="p">,</span> <span class="n">RobotWithEbands</span>
 
@@ -206,8 +206,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scf_run</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Stress tensor (Cartesian coordinates in Ha/Bohr**3):</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Pressure: </span><span class="si">%.3f</span><span class="s2"> [GPa]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
-            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Energy: </span><span class="si">%.8f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Pressure: </span><span class="si">%.3f</span><span class="s2"> (GPa)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
+            <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Energy: </span><span class="si">%.8f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Electronic Bands&quot;</span><span class="p">))</span>
 
@@ -737,7 +737,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_lattice_convergence</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_gsr_convergence</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1">#for fig in self.get_ebands_plotter.yield_figs(): yield fig</span>
+        <span class="k">for</span> <span class="n">fig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ebands_plotter</span><span class="p">()</span><span class="o">.</span><span class="n">yield_figs</span><span class="p">():</span> <span class="k">yield</span> <span class="n">fig</span>
 
     <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -778,7 +778,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

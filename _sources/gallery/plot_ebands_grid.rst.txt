@@ -87,7 +87,7 @@ We use two GSR files:
     plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))
     plotter.gridplot()
 
-**Total running time of the script:** ( 0 minutes  5.964 seconds)
+**Total running time of the script:** ( 0 minutes  4.863 seconds)
 
 
 

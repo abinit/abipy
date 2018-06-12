@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>tools Package &#8212; abipy 0.4.0 documentation</title>
+    <title>tools Package &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -873,7 +873,7 @@ values: numpy array of shape [ndt, num] with interpolated values.</dd>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <blockquote>
 <div><p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
@@ -962,7 +962,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
 </tbody>
 </table>
-<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Returns: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1021,7 +1021,7 @@ Used for plotting purpose e.g. QP data, energy derivatives…</p>
 <dt id="abipy.tools.plotting.Marker.posneg_marker">
 <code class="descname">posneg_marker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#Marker.posneg_marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.Marker.posneg_marker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split data into two sets: the first one contains all the points with positive size.
-the first set contains all the points with negative size.</p>
+The first set contains all the points with negative size.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1042,11 +1042,150 @@ and linewidth to 3.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">matplotlib figure and matplotlib ax</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">matplotlib figure and ax</p>
 </td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.plotting.GenericDataFilePlotter">
+<em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">GenericDataFilePlotter</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilePlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilePlotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Extract data from a generic text file with results
+in tabular format and plot data with matplotlib.
+Multiple datasets are supported.
+No attempt is made to handle metadata (e.g. column name)
+Mainly used to handle text files written without any schema.</p>
+<dl class="method">
+<dt id="abipy.tools.plotting.GenericDataFilePlotter.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilePlotter.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilePlotter.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String representation with verbosity level <cite>verbose</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.GenericDataFilePlotter.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilePlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilePlotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all arrays. Use multiple axes if datasets.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fontsize</strong> – fontsize for title.</li>
+<li><strong>kwargs</strong> – options passed to <code class="docutils literal"><span class="pre">ax.plot</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abipy.tools.plotting.GenericDataFilesPlotter">
+<em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">GenericDataFilesPlotter</code><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="classmethod">
+<dt id="abipy.tools.plotting.GenericDataFilesPlotter.from_files">
+<em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build object from a list of <cite>filenames</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.GenericDataFilesPlotter.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.GenericDataFilesPlotter.add_file">
+<code class="descname">add_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.add_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.add_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add data from <cite>filepath</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abipy.tools.plotting.GenericDataFilesPlotter.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>fontsize=8</em>, <em>colormap='viridis'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all arrays. Use multiple axes if datasets.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fontsize</strong> – fontsize for title.</li>
+<li><strong>colormap</strong> – matplotlib color map.</li>
+<li><strong>kwargs</strong> – options passed to <code class="docutils literal"><span class="pre">ax.plot</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Keyword arguments controlling the display of the figure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">kwargs</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>title</td>
+<td>Title of the plot (Default: None).</td>
+</tr>
+<tr class="row-odd"><td>show</td>
+<td>True to show the figure (default: True).</td>
+</tr>
+<tr class="row-even"><td>savefig</td>
+<td>“abc.png” or “abc.eps” to save the figure to a file.</td>
+</tr>
+<tr class="row-odd"><td>size_kwargs</td>
+<td>Dictionary with options passed to fig.set_size_inches
+e.g. size_kwargs=dict(w=3, h=4)</td>
+</tr>
+<tr class="row-even"><td>tight_layout</td>
+<td>True to call fig.tight_layout (default: False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -1121,7 +1260,7 @@ plt: matplotlib pyplot module.</td>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

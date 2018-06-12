@@ -1,6 +1,0 @@
-<map id="inheritance39e463df1c" name="inheritance39e463df1c">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="16,5,214,29"/>
-<area shape="rect" id="node4" href="#abipy.dfpt.phonons.PhdosFile" target="_top" title="Container object storing the different DOSes stored in the" alt="" coords="273,53,469,77"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="9,53,221,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="5,101,225,125"/>
-</map>

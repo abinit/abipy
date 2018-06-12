@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.outputs &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.abio.outputs &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -740,7 +740,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">D2DEScfCycle</span><span class="o">.</span><span class="n">from_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
-    <span class="c1"># TODO: Use header and vars to understand if we have SCF/DFFT/Relaxation</span>
 <div class="viewcode-block" id="AbinitOutputFile.plot"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_timer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot GS/DFPT SCF cycles and timer data found in the output file.</span>
@@ -748,13 +747,25 @@
 <span class="sd">        Args:</span>
 <span class="sd">            with_timer: True if timer section should be plotted</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="n">MplExpose</span>
+        <span class="k">with</span> <span class="n">MplExpose</span><span class="p">(</span><span class="n">slide_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">slide_timeout</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">e</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yield_figs</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">with_timer</span><span class="o">=</span><span class="n">with_timer</span><span class="p">))</span></div>
+
+    <span class="c1"># TODO: Use header and vars to understand if we have SCF/DFPT/Relaxation</span>
+<div class="viewcode-block" id="AbinitOutputFile.yield_figs"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tight_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;tight_layout&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">with_timer</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;with_timer&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">icycle</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">gs_cycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_gs_scf_cycle</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">gs_cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
             <span class="n">icycle</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">gs_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;SCF cycle no </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">icycle</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">gs_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;SCF cycle #</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">icycle</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">icycle</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -762,11 +773,11 @@
             <span class="n">d2de_cycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_d2de_scf_cycle</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">d2de_cycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">break</span>
             <span class="n">icycle</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">d2de_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;DFPT cycle no </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">icycle</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">d2de_cycle</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;DFPT cycle #</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">icycle</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">with_timer</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_timer</span><span class="p">()</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">)</span></div>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timer</span><span class="p">()</span><span class="o">.</span><span class="n">plot_all</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="n">tight_layout</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbinitOutputFile.compare_gs_scf_cycles"><a class="viewcode-back" href="../../../api/abio_api.html#abipy.abio.outputs.AbinitOutputFile.compare_gs_scf_cycles">[docs]</a>    <span class="k">def</span> <span class="nf">compare_gs_scf_cycles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">others</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1107,7 +1118,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

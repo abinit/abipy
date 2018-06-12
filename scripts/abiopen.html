@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abiopen.py &#8212; abipy 0.4.0 documentation</title>
+    <title>abiopen.py &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -178,29 +178,49 @@ of python object that should be instantiated.
 The list of supported file extensions is obtained with:</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abiopen.py --help
 usage: abiopen.py [-h] [--loglevel LOGLEVEL] [-V] [-v] [-nb] [--foreground]
-                  [-p]
+                  [-p] [-e] [-s] [-t SLIDE_TIMEOUT] [-sns [SEABORN]]
+                  [-mpl MPL_BACKEND]
                   filepath
 
 positional arguments:
-  filepath             File to open. See table below for the list of supported
-                       extensions.
+  filepath              File to open. See table below for the list of
+                        supported extensions.
 
 optional arguments:
-  -h, --help           show this help message and exit
-  --loglevel LOGLEVEL  Set the loglevel. Possible values: CRITICAL, ERROR
-                       (default), WARNING, INFO, DEBUG
-  -V, --version        show program&#39;s version number and exit
-  -v, --verbose        verbose, can be supplied multiple times to increase
-                       verbosity
-  -nb, --notebook      Open file in jupyter notebook
-  --foreground         Run jupyter notebook in the foreground.
-  -p, --print          Print python object and return.
+  -h, --help            show this help message and exit
+  --loglevel LOGLEVEL   Set the loglevel. Possible values: CRITICAL, ERROR
+                        (default), WARNING, INFO, DEBUG
+  -V, --version         show program&#39;s version number and exit
+  -v, --verbose         verbose, can be supplied multiple times to increase
+                        verbosity
+  -nb, --notebook       Open file in jupyter notebook
+  --foreground          Run jupyter notebook in the foreground.
+  -p, --print           Print python object and return.
+  -e, --expose          Open file and generate matplotlib figures
+                        automatically by calling expose method.
+  -s, --slide-mode      Iterate over figures. Expose all figures at once if
+                        not given on the CLI.
+  -t SLIDE_TIMEOUT, --slide-timeout SLIDE_TIMEOUT
+                        Close figure after slide-timeout seconds (only if
+                        slide-mode). Block if not specified.
+  -sns [SEABORN], --seaborn [SEABORN]
+                        Use seaborn settings. Accept value defining context in
+                        (&quot;paper&quot;, &quot;notebook&quot;, &quot;talk&quot;, &quot;poster&quot;). Default:
+                        paper
+  -mpl MPL_BACKEND, --mpl-backend MPL_BACKEND
+                        Set matplotlib interactive backend. Possible values:
+                        GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX,
+                        TkAgg, Qt4Agg, Qt5Agg, macosx.See also:
+                        https://matplotlib.org/faq/usage_faq.html#what-is-a-
+                        backend.
 
 Usage example:
 
     abiopen.py FILE        =&gt; Open file in ipython shell.
     abiopen.py FILE -nb    =&gt; Generate jupyter notebook.
     abiopen.py FILE -p     =&gt; Print info on object to terminal.
+    abiopen.py FILE -e     =&gt; Generate matplotlib figures automatically.
+                              Use -sns to activate seaborn settings.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -223,6 +243,7 @@ DEN             &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt
 .pspnc          &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 .fhi            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
 JTH.xml         &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.wout           &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
 GSR.nc          &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
 DEN.nc          &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
 OUT.nc          &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
@@ -256,7 +277,8 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
 </div>
 <p>Complete command line reference</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">nb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">foreground</span><span class="p">]</span>
-                  <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
                   <span class="n">filepath</span>
 </pre></div>
 </div>
@@ -307,6 +329,29 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
 <td><p class="first">Print python object and return.</p>
 <p class="last">Default: False</p>
 </td></tr>
+<tr><td class="option-group">
+<kbd>-e, --expose</kbd></td>
+<td><p class="first">Open file and generate matplotlib figures automatically by calling expose method.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-s, --slide-mode</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Iterate over figures. Expose all figures at once if not given on the CLI.</p>
+<p class="last">Default: False</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-t, --slide-timeout</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-sns, --seaborn</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Use seaborn settings. Accept value defining context in (“paper”, “notebook”, “talk”, “poster”). Default: paper</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mpl, --mpl-backend</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set matplotlib interactive backend. Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx.See also: <a class="reference external" href="https://matplotlib.org/faq/usage_faq.html#what-is-a-backend">https://matplotlib.org/faq/usage_faq.html#what-is-a-backend</a>.</td></tr>
 </tbody>
 </table>
 </div>
@@ -325,7 +370,7 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

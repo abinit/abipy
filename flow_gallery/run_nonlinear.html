@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Flow for Non-linear optic with DFPT &#8212; abipy 0.4.0 documentation</title>
+    <title>Flow for Non-linear optic with DFPT &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -28,8 +28,8 @@
     <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Bethe-Salpeter Flow with factory functions" href="run_ht_si_bsemdf.html" />
-    <link rel="prev" title="G0W0 Flow with factory functions" href="run_ht_si_g0w0ppm.html" />
+    <link rel="next" title="Band structure Flow" href="run_si_ebands.html" />
+    <link rel="prev" title="Bethe-Salpeter Flow with factory functions" href="run_ht_si_bsemdf.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -107,11 +107,11 @@
               
                 
   <li>
-    <a href="run_ht_si_g0w0ppm.html" title="Previous Chapter: G0W0 Flow with factory functions"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; G0W0 Flow wit...</span>
+    <a href="run_ht_si_bsemdf.html" title="Previous Chapter: Bethe-Salpeter Flow with factory functions"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Bethe-Salpete...</span>
     </a>
   </li>
   <li>
-    <a href="run_ht_si_bsemdf.html" title="Next Chapter: Bethe-Salpeter Flow with factory functions"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Bethe-Salpete... &raquo;</span>
+    <a href="run_si_ebands.html" title="Next Chapter: Band structure Flow"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Band structure Flow &raquo;</span>
     </a>
   </li>
               
@@ -148,7 +148,6 @@
   <div class="section" id="flow-for-non-linear-optic-with-dfpt">
 <span id="sphx-glr-flow-gallery-run-nonlinear-py"></span><h1>Flow for Non-linear optic with DFPT<a class="headerlink" href="#flow-for-non-linear-optic-with-dfpt" title="Permalink to this headline">¶</a></h1>
 <p>Flow to compute non-linear optical properties with DFPT (static limit).</p>
-<img alt="../_images/sphx_glr_run_nonlinear_001.png" class="align-center" src="../_images/sphx_glr_run_nonlinear_001.png" />
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -211,8 +210,9 @@
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;READTHEDOCS&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
     <span class="vm">__name__</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="kn">import</span> <span class="nn">tempfile</span>
+    <span class="c1"># Temporarily disabled in v8.8.2</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">flowtk</span><span class="o">.</span><span class="n">build_flow_main_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">([</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()])</span>
-    <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span><span class="o">.</span><span class="n">plot_networkx</span><span class="p">(</span><span class="n">with_edge_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c1">#build_flow(options).plot_networkx(with_edge_labels=False, tight_layout=True)</span>
 
 
 
@@ -223,6 +223,8 @@
 <span class="sd">    flow_main is a decorator implementing the command line interface.</span>
 <span class="sd">    Command line args are stored in `options`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Temporarily disabled in v8.8.2</span>
+    <span class="k">return</span> <span class="mi">0</span>
     <span class="k">return</span> <span class="n">build_flow</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
 
 
@@ -230,7 +232,7 @@
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.923 seconds)</p>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.007 seconds)</p>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/run_nonlinear.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">run_nonlinear.py</span></code></a></div>
@@ -253,7 +255,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

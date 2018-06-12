@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.eph.sigeph &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.eph.sigeph &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -474,10 +474,10 @@
         <span class="c1"># Get QpTempList and sort it.</span>
         <span class="n">qps</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_e0sorted</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_by_e0</span><span class="p">()</span>
         <span class="n">e0mesh</span> <span class="o">=</span> <span class="n">qps</span><span class="o">.</span><span class="n">get_e0mesh</span><span class="p">()</span>
-        <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">\;[eV]$&quot;</span>
+        <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">\;(eV)$&quot;</span>
         <span class="k">if</span> <span class="n">fermie</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">e0mesh</span> <span class="o">-=</span> <span class="n">fermie</span>
-            <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">-\epsilon_F\;[eV]$&quot;</span>
+            <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">-\epsilon_F\;(eV)$&quot;</span>
 
         <span class="n">kw_linestyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;linestyle&quot;</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">)</span>
         <span class="n">kw_color</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -562,8 +562,8 @@
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-point: </span><span class="si">%s</span><span class="s2">, band: </span><span class="si">%d</span><span class="s2">, spin: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoint</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spin</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> [K]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of frequencies: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> (K)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of frequencies: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qp</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;QP data&quot;</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
@@ -572,14 +572,14 @@
         <span class="sd">&quot;&quot;&quot;Return (wmesh, xlabel) from zero_energy input argument.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">zero_energy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span>
-            <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\omega\;[eV]$&quot;</span>
+            <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\omega\;(eV)$&quot;</span>
         <span class="k">elif</span> <span class="n">zero_energy</span> <span class="o">==</span> <span class="s2">&quot;e0&quot;</span><span class="p">:</span>
             <span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wmesh</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">qp</span><span class="o">.</span><span class="n">e0</span>
-            <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\omega - \epsilon_</span><span class="si">{nk}</span><span class="s2">\;[eV]$&quot;</span>
+            <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\omega - \epsilon_</span><span class="si">{nk}</span><span class="s2">\;(eV)$&quot;</span>
         <span class="c1"># TODO: chemical potential? but then I have mu(T) to handle in plots!</span>
         <span class="c1">#elif zero_energy == &quot;fermie&quot;:</span>
         <span class="c1">#    xx = self.wmesh - self.fermie</span>
-        <span class="c1">#    xlabel = r&quot;$\omega\;[eV]$&quot;</span>
+        <span class="c1">#    xlabel = r&quot;$\omega\;(eV)$&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid value of zero_energy: `</span><span class="si">%s</span><span class="s2">`&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">zero_energy</span><span class="p">))</span>
 
@@ -758,8 +758,8 @@
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-mesh for electrons:&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">ksampling</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of bands included in self-energy: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbsum</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;zcut: </span><span class="si">%.3f</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zcut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zcut</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span><span class="p">))</span>
-        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> [K]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;zcut: </span><span class="si">%.3f</span><span class="s2"> [Ha], </span><span class="si">%.3f</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zcut</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zcut</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Number of temperatures: </span><span class="si">%d</span><span class="s2">, from </span><span class="si">%.1f</span><span class="s2"> to </span><span class="si">%.1f</span><span class="s2"> (K)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntemp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tmesh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;symsigma: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symsigma</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Has Spectral function: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_spectral_function</span><span class="p">))</span>
 
@@ -1178,11 +1178,11 @@
 
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ix</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpkinds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Temperature [K]&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Temperature (K)&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">plot_qpmks</span><span class="p">:</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;QP-KS gap [eV]&quot;</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;QP-KS gap (eV)&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;QP direct gap [eV]&quot;</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;QP direct gap (eV)&quot;</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;k:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">kpt</span><span class="p">)),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1658,7 +1658,7 @@
 
             <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ix</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qpkinds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [eV]&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (eV)&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_label</span><span class="p">(</span><span class="n">sortby</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">sortby</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">rotate_ticklabels</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">hue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1759,6 +1759,18 @@
 <span class="sd">        Args:</span>
 <span class="sd">            field (str): String defining the attribute to plot.</span>
 <span class="sd">            itemp (int): Temperature index.</span>
+<span class="sd">            sortby: Define the convergence parameter, sort files and produce plot labels.</span>
+<span class="sd">                Can be None, string or function. If None, no sorting is performed.</span>
+<span class="sd">                If string and not empty it&#39;s assumed that the abifile has an attribute</span>
+<span class="sd">                with the same name and `getattr` is invoked.</span>
+<span class="sd">                If callable, the output of sortby(abifile) is used.</span>
+<span class="sd">            hue: Variable that define subsets of the data, which will be drawn on separate lines.</span>
+<span class="sd">                Accepts callable or string</span>
+<span class="sd">                If string, it&#39;s assumed that the abifile has an attribute with the same name and getattr is invoked.</span>
+<span class="sd">                If callable, the output of hue(abifile) is used.</span>
+<span class="sd">            colormap: matplotlib color map.</span>
+<span class="sd">            fontsize: legend and label fontsize.</span>
+<span class="sd">            e0: Option used to define the zero of energy in the band structure plot.</span>
 
 <span class="sd">        .. note::</span>
 
@@ -2261,7 +2273,7 @@
         <span class="c1"># nctkarr_t(&quot;vals_e0ks&quot;, &quot;dp&quot;, &quot;two, ntemp, max_nbcalc, nkcalc, nsppol&quot;)</span>
         <span class="c1"># TODO: Add Fan0 instead of computing Sigma - DW?</span>
         <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_variable</span><span class="p">(</span><span class="s2">&quot;vals_e0ks&quot;</span><span class="p">)</span>
-        <span class="n">sigc</span> <span class="o">=</span> <span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
+        <span class="n">sigc</span> <span class="o">=</span> <span class="p">(</span><span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">var</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">ibc</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Ha_to_eV</span>
         <span class="n">fan0</span> <span class="o">=</span> <span class="n">sigc</span> <span class="o">-</span> <span class="n">dw</span>
 
         <span class="c1"># nctkarr_t(&quot;ks_enes&quot;, &quot;dp&quot;, &quot;max_nbcalc, nkcalc, nsppol&quot;)</span>
@@ -2314,7 +2326,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -179,7 +179,7 @@ to plot the electronic DOS obtained with different number of k-points in the IBZ
 
 
 
-**Total running time of the script:** ( 0 minutes  0.398 seconds)
+**Total running time of the script:** ( 0 minutes  0.137 seconds)
 
 
 

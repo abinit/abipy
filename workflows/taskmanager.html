@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>TaskManager &#8212; abipy 0.4.0 documentation</title>
+    <title>TaskManager &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -212,7 +212,7 @@ If no file is found, the code aborts immediately.</p>
 <p>An important piece of information for the <code class="docutils literal"><span class="pre">TaskManager</span></code> is the type of queueing system available on the cluster,
 the list of queues and their specifications.
 In AbiPy queueing systems or resource managers are supported via <code class="docutils literal"><span class="pre">quadapters</span></code>.
-At the time of writing (Mar 19, 2018), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
+At the time of writing (Jun 12, 2018), AbiPy provides <code class="docutils literal"><span class="pre">qadapters</span></code> for the following resource managers:</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">shell</span></code></li>
 <li><a class="reference external" href="http://pbspro.org/">pbspro</a></li>
@@ -307,12 +307,12 @@ Qadapter selected: 0
 
 Abinitbuild:
 Abinit Build Information:
-    Abinit version: 8.7.6
+    Abinit version: 8.9.2
     MPI: True, MPI-IO: True, OpenMP: False
     Netcdf: True
 
 Abipy Scheduler:
-PyFlowScheduler, Pid: 13682
+PyFlowScheduler, Pid: 25256
 Scheduler options: {&#39;weeks&#39;: 0, &#39;days&#39;: 0, &#39;hours&#39;: 0, &#39;minutes&#39;: 0, &#39;seconds&#39;: 5}
 
 Installed packages:
@@ -496,7 +496,7 @@ job submission and job execution. The scenario is completely different if you ar
 jobs to a resource manager because the task will get a priority value and will enter the queue.</p>
 </div>
 <p>If you execute <code class="docutils literal"><span class="pre">status</span></code> again, you should see that the first task is completed.
-We can thus run <code class="docutils literal"><span class="pre">rapid</span></code> again to launch the <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.NscfTask" title="(in pymatgen v2018.3.14)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.NscfTask</span></code></a>.
+We can thus run <code class="docutils literal"><span class="pre">rapid</span></code> again to launch the <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.NscfTask" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.NscfTask</span></code></a>.
 The second task won’t take long and if you issue <code class="docutils literal"><span class="pre">status</span></code> again, you should see that the entire flow
 completed successfully.</p>
 <p>To understand what happened in more detail, use the <code class="docutils literal"><span class="pre">history</span></code> command to get
@@ -1286,7 +1286,7 @@ Other values of autoparal are not supported.</dd>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

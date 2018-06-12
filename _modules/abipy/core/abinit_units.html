@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.abinit_units &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.core.abinit_units &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -209,8 +209,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return latex string from ``units`` (used for phonons)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;[eV]&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;[meV]&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;[Ha]&#39;</span><span class="p">,</span>
-         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;[cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;[cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;[Thz]&#39;</span><span class="p">,</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;(eV)&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;(meV)&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;(Ha)&#39;</span><span class="p">,</span>
+         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;(cm$^{-1}$)&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;(cm$^{-1}$)&quot;</span><span class="p">,</span> <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;(Thz)&#39;</span><span class="p">,</span>
          <span class="p">}</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
@@ -222,10 +222,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return latex string for phonon frequencies in ``units``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ev&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy [eV]&#39;</span><span class="p">,</span> <span class="s1">&#39;mev&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy [meV]&#39;</span><span class="p">,</span> <span class="s1">&#39;ha&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy [Ha]&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;cm-1&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency [cm$^{-1}$]&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency [cm$^{-1}$]&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;thz&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency [Thz]&#39;</span><span class="p">,</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ev&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy (eV)&#39;</span><span class="p">,</span> <span class="s1">&#39;mev&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy (meV)&#39;</span><span class="p">,</span> <span class="s1">&#39;ha&#39;</span><span class="p">:</span> <span class="s1">&#39;Energy (Ha)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cm-1&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency (cm$^{-1}$)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency (cm$^{-1}$)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;thz&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;Frequency (Thz)&#39;</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
@@ -237,9 +237,9 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return latex string for phonon DOS values in ``units``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/eV]&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/meV]&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;[states/Ha]&#39;</span><span class="p">,</span>
-         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;[states/cm$^{-1}$]&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;[states/cm$^{-1}$]&quot;</span><span class="p">,</span>
-         <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;[states/Thz]&#39;</span><span class="p">,</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ev&quot;</span><span class="p">:</span> <span class="s2">&quot;(states/eV)&quot;</span><span class="p">,</span> <span class="s2">&quot;mev&quot;</span><span class="p">:</span> <span class="s2">&quot;(states/meV)&quot;</span><span class="p">,</span> <span class="s2">&quot;ha&quot;</span><span class="p">:</span> <span class="s1">&#39;(states/Ha)&#39;</span><span class="p">,</span>
+         <span class="s2">&quot;cm-1&quot;</span><span class="p">:</span> <span class="s2">&quot;(states/cm$^{-1}$)&quot;</span><span class="p">,</span> <span class="s1">&#39;cm^-1&#39;</span><span class="p">:</span> <span class="s2">&quot;(states/cm$^{-1}$)&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;thz&quot;</span><span class="p">:</span> <span class="s1">&#39;(states/Thz)&#39;</span><span class="p">,</span>
          <span class="p">}</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
@@ -291,7 +291,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.abio.robots &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.abio.robots &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -954,6 +954,7 @@
 <span class="sd">                If callable, the output of hue(abifile) is used.</span>
 <span class="sd">            ax: |matplotlib-Axes| or None if a new figure should be created.</span>
 <span class="sd">            fontsize: legend and label fontsize.</span>
+<span class="sd">            kwargs: keyword arguments passed to matplotlib plot method.</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
 
@@ -966,6 +967,8 @@
 <span class="sd">             robot.plot_convergence(&quot;pressure&quot;, sortby=&quot;nkpt&quot;, hue=&quot;tsmear&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">plt</span> <span class="o">=</span> <span class="n">get_ax_fig_plt</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;marker&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;o&quot;</span>
 
         <span class="k">def</span> <span class="nf">get_yvalues</span><span class="p">(</span><span class="n">abifiles</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
@@ -1221,7 +1224,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

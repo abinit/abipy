@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Manager Examples &#8212; abipy 0.4.0 documentation</title>
+    <title>Manager Examples &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -105,6 +105,7 @@
 <li><a class="reference internal" href="#juqueen">Juqueen</a></li>
 <li><a class="reference internal" href="#jureca">Jureca</a></li>
 <li><a class="reference internal" href="#lemaitre2">Lemaitre2</a></li>
+<li><a class="reference internal" href="#lemaitre3">Lemaitre3</a></li>
 <li><a class="reference internal" href="#manneback">Manneback</a></li>
 <li><a class="reference internal" href="#nic4">Nic4</a></li>
 <li><a class="reference internal" href="#shell">Shell</a></li>
@@ -176,15 +177,16 @@
 <li><a class="reference internal" href="#juqueen" id="id7">Juqueen</a></li>
 <li><a class="reference internal" href="#jureca" id="id8">Jureca</a></li>
 <li><a class="reference internal" href="#lemaitre2" id="id9">Lemaitre2</a></li>
-<li><a class="reference internal" href="#manneback" id="id10">Manneback</a></li>
-<li><a class="reference internal" href="#nic4" id="id11">Nic4</a></li>
-<li><a class="reference internal" href="#shell" id="id12">Shell</a></li>
-<li><a class="reference internal" href="#shell-nompi" id="id13">Shell_nompi</a></li>
-<li><a class="reference internal" href="#travis" id="id14">Travis</a></li>
-<li><a class="reference internal" href="#ubu" id="id15">Ubu</a></li>
-<li><a class="reference internal" href="#vega" id="id16">Vega</a></li>
-<li><a class="reference internal" href="#viper" id="id17">Viper</a></li>
-<li><a class="reference internal" href="#zenobe" id="id18">Zenobe</a></li>
+<li><a class="reference internal" href="#lemaitre3" id="id10">Lemaitre3</a></li>
+<li><a class="reference internal" href="#manneback" id="id11">Manneback</a></li>
+<li><a class="reference internal" href="#nic4" id="id12">Nic4</a></li>
+<li><a class="reference internal" href="#shell" id="id13">Shell</a></li>
+<li><a class="reference internal" href="#shell-nompi" id="id14">Shell_nompi</a></li>
+<li><a class="reference internal" href="#travis" id="id15">Travis</a></li>
+<li><a class="reference internal" href="#ubu" id="id16">Ubu</a></li>
+<li><a class="reference internal" href="#vega" id="id17">Vega</a></li>
+<li><a class="reference internal" href="#viper" id="id18">Viper</a></li>
+<li><a class="reference internal" href="#zenobe" id="id19">Zenobe</a></li>
 </ul>
 </li>
 </ul>
@@ -489,6 +491,44 @@
     <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
        <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
        <span class="l l-Scalar l-Scalar-Plain">qname</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Def</span>
+    <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
+       <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:00</span>
+       <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+       <span class="l l-Scalar l-Scalar-Plain">max_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+       <span class="l l-Scalar l-Scalar-Plain">min_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
+       <span class="l l-Scalar l-Scalar-Plain">max_mem_per_proc</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2000</span>
+       <span class="l l-Scalar l-Scalar-Plain">max_num_launches</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">10</span>
+    <span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nv">*hardware</span>
+    <span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nv">*job</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lemaitre3">
+<h2><a class="toc-backref" href="#contents">Lemaitre3</a><a class="headerlink" href="#lemaitre3" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="c1"># lemaitre3 hardware: http://www.ceci-hpc.be/clusters.html#lemaitre3</span>
+<span class="c1"># For the configuration file see:</span>
+<span class="c1">#       https://github.com/abinit/abiconfig/blob/master/abiconfig/clusters/lemaitre3-intel-easybuild.ac</span>
+<span class="l l-Scalar l-Scalar-Plain">hardware</span><span class="p p-Indicator">:</span> <span class="nl">&amp;hardware</span>
+   <span class="l l-Scalar l-Scalar-Plain">num_nodes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+   <span class="l l-Scalar l-Scalar-Plain">sockets_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+   <span class="l l-Scalar l-Scalar-Plain">cores_per_socket</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">12</span>
+   <span class="l l-Scalar l-Scalar-Plain">mem_per_node</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">95Gb</span>
+
+<span class="l l-Scalar l-Scalar-Plain">job</span><span class="p p-Indicator">:</span> <span class="nl">&amp;job</span>
+    <span class="l l-Scalar l-Scalar-Plain">mpi_runner</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">mpirun</span>
+    <span class="l l-Scalar l-Scalar-Plain">shell_env</span><span class="p p-Indicator">:</span>  <span class="c1"># Use your abinit exec</span>
+        <span class="l l-Scalar l-Scalar-Plain">PATH</span><span class="p p-Indicator">:</span> <span class="s">&quot;$HOME/git_repos/abinit/_build_lemaitre3-intel-easybuild.ac/src/98_main/:$PATH&quot;</span>
+    <span class="l l-Scalar l-Scalar-Plain">modules</span><span class="p p-Indicator">:</span> <span class="c1"># Abinit compiled with abiconfig settings</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">intel/2017b</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">netCDF-Fortran/4.4.4-intel-2017b</span>
+    <span class="l l-Scalar l-Scalar-Plain">pre_run</span><span class="p p-Indicator">:</span> <span class="s">&quot;ulimit</span><span class="nv"> </span><span class="s">-s</span><span class="nv"> </span><span class="s">unlimited&quot;</span>
+
+<span class="c1"># queues</span>
+<span class="l l-Scalar l-Scalar-Plain">qadapters</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">priority</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="l l-Scalar l-Scalar-Plain">queue</span><span class="p p-Indicator">:</span>
+       <span class="l l-Scalar l-Scalar-Plain">qtype</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">slurm</span>
+       <span class="c1">#qname: Def</span>
     <span class="l l-Scalar l-Scalar-Plain">limits</span><span class="p p-Indicator">:</span>
        <span class="l l-Scalar l-Scalar-Plain">timelimit</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">0-0:30:00</span>
        <span class="l l-Scalar l-Scalar-Plain">min_cores</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
@@ -843,7 +883,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

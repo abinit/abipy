@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.mixins &#8212; abipy 0.4.0 documentation</title>
+    <title>abipy.core.mixins &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -159,7 +159,7 @@
 <span class="p">]</span>
 
 <span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">_File</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">BaseFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract base class defining the methods that must be implemented</span>
 <span class="sd">    by the concrete classes representing the different files produced by ABINIT.</span>
@@ -236,10 +236,10 @@
     <span class="c1">#    try:</span>
     <span class="c1">#        self.close()</span>
     <span class="c1">#    finally:</span>
-    <span class="c1">#        super(_File, self).__close__(self)</span>
+    <span class="c1">#        super(BaseFile, self).__close__(self)</span>
 
 
-<span class="k">class</span> <span class="nc">TextFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TextFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
 
     <span class="c1">#@classmethood</span>
     <span class="c1">#def from_string(cls, s):</span>
@@ -286,7 +286,7 @@
 
 
 <div class="viewcode-block" id="AbinitNcFile"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.mixins.AbinitNcFile">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">AbinitNcFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">AbinitNcFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class representing a Netcdf file with data saved</span>
 <span class="sd">    according to the ETSF-IO specifications (when available).</span>
@@ -310,7 +310,7 @@
 
 
 <span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">AbinitFortranFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">AbinitFortranFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class representing a fortran file containing output data from abinit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -318,7 +318,7 @@
         <span class="k">pass</span>
 
 
-<span class="k">class</span> <span class="nc">CubeFile</span><span class="p">(</span><span class="n">_File</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">CubeFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    .. attribute:: structure</span>
@@ -776,7 +776,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

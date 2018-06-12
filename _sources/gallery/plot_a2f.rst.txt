@@ -39,9 +39,9 @@ and the e-ph coupling strenght in metals.
     Name: al_888k_161616q_A2F.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/al_eph
     Size: 252.30 kb
-    Access Time: Mon Mar 19 21:45:15 2018
-    Modification Time: Fri Mar 16 11:08:07 2018
-    Change Time: Fri Mar 16 11:08:07 2018
+    Access Time: Tue Jun 12 14:20:33 2018
+    Modification Time: Mon Mar 19 21:58:20 2018
+    Change Time: Mon Mar 19 21:58:20 2018
 
     ================================= Structure =================================
     Full Formula (Al1)
@@ -56,7 +56,7 @@ and the e-ph coupling strenght in metals.
     Abinit Spacegroup: spgid: 0, num_spatial_symmetries: 48, has_timerev: True, symmorphic: False
 
     ============================== Electronic Bands ==============================
-    Number of electrons: 3.0, Fermi level: 7.129 [eV]
+    Number of electrons: 3.0, Fermi level: 7.129 (eV)
     nsppol: 1, nkpt: 72, mband: 5, nspinor: 1, nspden: 1
     smearing scheme: gaussian, tsmear_eV: 1.088, occopt: 7
 
@@ -70,10 +70,10 @@ and the e-ph coupling strenght in metals.
     mpdivs: [12 12 12] with shifts [[0. 0. 0.]] and kptopt: 1
 
     a2f(w) on the [4 4 4] q-mesh (ddb_ngqpt|eph_ngqpt)
-    Isotropic lambda: 0.22, omega_log: 0.030 [eV], 348.241 [K]
+    Isotropic lambda: 0.22, omega_log: 0.030 (eV), 348.241 (K)
 
     a2f(w) Fourier interpolated on the [16 16 16] q-mesh (ph_ngqpt)
-    Isotropic lambda: 0.24, omega_log: 0.030 [eV], 343.427 [K]
+    Isotropic lambda: 0.24, omega_log: 0.030 (eV), 343.427 (K)
 
 
 
@@ -107,7 +107,7 @@ and the e-ph coupling strenght in metals.
         # Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.
         #ncfile.a2f_qintp.plot_a2(phdos_path)
 
-**Total running time of the script:** ( 0 minutes  16.940 seconds)
+**Total running time of the script:** ( 0 minutes  10.975 seconds)
 
 
 

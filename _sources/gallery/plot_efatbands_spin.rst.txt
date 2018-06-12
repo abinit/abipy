@@ -54,7 +54,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
     Name: ni_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/ni_ebands
     Size: 619.35 kb
-    Access Time: Mon Mar 19 21:47:17 2018
+    Access Time: Tue Jun 12 14:22:35 2018
     Modification Time: Thu Feb 22 21:38:00 2018
     Change Time: Thu Feb 22 21:38:00 2018
 
@@ -83,7 +83,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
 
     Abinit Spacegroup: spgid: 225, num_spatial_symmetries: 48, has_timerev: True, symmorphic: False
 
-    Number of electrons: 18.0, Fermi level: 11.296 [eV]
+    Number of electrons: 18.0, Fermi level: 11.296 (eV)
     nsppol: 2, nkpt: 101, mband: 12, nspinor: 1, nspden: 2
     smearing scheme: gaussian, tsmear_eV: 0.204, occopt: 7
 
@@ -154,7 +154,7 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
     fbnc_kpath.close()
     fbnc_kmesh.close()
 
-**Total running time of the script:** ( 0 minutes  8.093 seconds)
+**Total running time of the script:** ( 0 minutes  7.304 seconds)
 
 
 

@@ -60,7 +60,7 @@ See also PhysRevLett.86.4656
     Name: mgb2_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 149.01 kb
-    Access Time: Mon Mar 19 21:47:07 2018
+    Access Time: Tue Jun 12 14:22:26 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -93,18 +93,18 @@ See also PhysRevLett.86.4656
 
     Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
 
-    Number of electrons: 8.0, Fermi level: 6.851 [eV]
+    Number of electrons: 8.0, Fermi level: 6.851 (eV)
     nsppol: 1, nkpt: 78, mband: 8, nspinor: 1, nspden: 1
     smearing scheme: none, tsmear_eV: 0.272, occopt: 1
     Direct gap:
-        Energy: 0.312 [eV]
+        Energy: 0.312 (eV)
         Initial state: spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=2, eig=6.621, occ=2.000
         Final state:   spin=0, kpt=[+0.050, +0.050, +0.000], weight: 0.000, band=3, eig=6.933, occ=2.000
     Fundamental gap:
-        Energy: 0.038 [eV]
+        Energy: 0.038 (eV)
         Initial state: spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
         Final state:   spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
-    Bandwidth: 12.435 [eV]
+    Bandwidth: 12.435 (eV)
     Valence maximum located at:
         spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
 
@@ -122,7 +122,7 @@ See also PhysRevLett.86.4656
     Name: mgb2_kmesh181818_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 480.70 kb
-    Access Time: Mon Mar 19 21:47:09 2018
+    Access Time: Tue Jun 12 14:22:27 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -155,7 +155,7 @@ See also PhysRevLett.86.4656
 
     Abinit Spacegroup: spgid: 191, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
 
-    Number of electrons: 8.0, Fermi level: 6.851 [eV]
+    Number of electrons: 8.0, Fermi level: 6.851 (eV)
     nsppol: 1, nkpt: 370, mband: 8, nspinor: 1, nspden: 1
     smearing scheme: cold smearing of N. Marzari with minimization of the bump, tsmear_eV: 0.816, occopt: 4
 
@@ -229,7 +229,7 @@ See also PhysRevLett.86.4656
     fbnc_kpath.close()
     fbnc_kmesh.close()
 
-**Total running time of the script:** ( 0 minutes  5.984 seconds)
+**Total running time of the script:** ( 0 minutes  5.981 seconds)
 
 
 

@@ -225,7 +225,7 @@ we can also plot the QP data as function of the initial KS energy with ipython:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.151 seconds)
+**Total running time of the script:** ( 0 minutes  0.109 seconds)
 
 
 

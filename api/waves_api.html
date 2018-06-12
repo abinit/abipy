@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>waves Package &#8212; abipy 0.4.0 documentation</title>
+    <title>waves Package &#8212; abipy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.4.0',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -238,14 +238,14 @@ e.g. <code class="docutils literal"><span class="pre">point1=0,</span> <span cla
 <li><strong>with_krphase</strong> – True to include the <span class="math">\(e^{ikr}\)</span> phase-factor.</li>
 <li><strong>cartesian</strong> – By default, <code class="docutils literal"><span class="pre">point1</span></code> and <code class="docutils literal"><span class="pre">point1</span></code> are interpreted as points in fractional
 coordinates (if not integers). Use True to pass points in cartesian coordinates.</li>
-<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
+<li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 <li><strong>fontsize</strong> – legend and title fontsize.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -299,7 +299,7 @@ an atom specified by <code class="docutils literal"><span class="pre">site_index
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.0)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<p>Return: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 <p>Keyword arguments controlling the display of the figure:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -394,14 +394,15 @@ the data stored in the WFK file produced by ABINIT.</p>
 </pre></div>
 </div>
 <p class="rubric">Inheritance Diagram</p>
-<img src="../_images/inheritance-023f09a072c7ca038c5853d48f163837a7d225a1.png" alt="Inheritance diagram of WfkFile" usemap="#inheritance79fbd83d4b" class="inheritance"/>
+<img src="../_images/inheritance-ec26581ca65a777f926fcf736717fe12599432c1.png" alt="Inheritance diagram of WfkFile" usemap="#inheritance79fbd83d4b" class="inheritance"/>
 <map id="inheritance79fbd83d4b" name="inheritance79fbd83d4b">
-<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="29,5,227,29"/>
-<area shape="rect" id="node6" href="#abipy.waves.wfkfile.WfkFile" target="_top" title="This object provides a simple interface to access and analyze" alt="" coords="298,101,481,125"/>
-<area shape="rect" id="node2" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing electron data." alt="" coords="5,53,250,77"/>
-<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf_ files containing the Abinit header." alt="" coords="27,101,229,125"/>
-<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="22,149,234,173"/>
-<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="18,197,238,221"/>
+<area shape="rect" id="node1" href="core_api.html#abipy.core.mixins.AbinitNcFile" target="_top" title="Abstract class representing a Netcdf file with data saved" alt="" coords="256,197,454,221"/>
+<area shape="rect" id="node7" href="#abipy.waves.wfkfile.WfkFile" target="_top" title="This object provides a simple interface to access and analyze" alt="" coords="525,101,708,125"/>
+<area shape="rect" id="node2" title="Abstract base class defining the methods that must be implemented" alt="" coords="5,197,184,221"/>
+<area shape="rect" id="node3" href="core_api.html#abipy.core.mixins.Has_ElectronBands" target="_top" title="Mixin class for :class:`AbinitNcFile` containing electron data." alt="" coords="232,5,477,29"/>
+<area shape="rect" id="node4" href="core_api.html#abipy.core.mixins.Has_Header" target="_top" title="Mixin class for netcdf_ files containing the Abinit header." alt="" coords="254,53,456,77"/>
+<area shape="rect" id="node5" href="core_api.html#abipy.core.mixins.Has_Structure" target="_top" title="Mixin class for :class:`AbinitNcFile` containing crystallographic data." alt="" coords="249,101,461,125"/>
+<area shape="rect" id="node6" href="core_api.html#abipy.core.mixins.NotebookWriter" target="_top" title="Mixin class for objects that are able to generate jupyter_ notebooks." alt="" coords="245,149,464,173"/>
 </map>
 <dl class="method">
 <dt id="abipy.waves.wfkfile.WfkFile.close">
@@ -535,7 +536,7 @@ working directory is created. Return path to the notebook.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Mar 19, 2018.<br/>
+      Last updated on Jun 12, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

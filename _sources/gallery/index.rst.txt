@@ -19,26 +19,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="There are a variety of ways to use AbiPy, and most of them are illustrated in the examples in t...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr___init___thumb.png
-
-        :ref:`sphx_glr_gallery___init__.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/__init__
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a particular &quot;band&quot; in 3D with matplotlib scatter3D. The color o...">
 
 .. only:: html
@@ -985,6 +965,7 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-gallery
 
 
   .. container:: sphx-glr-download
