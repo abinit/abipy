@@ -3370,7 +3370,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return anim
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3593,7 +3593,7 @@ class PhononDosPlotter(NotebookWriter):
         #fig.tight_layout()
         return fig
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3607,7 +3607,7 @@ class PhononDosPlotter(NotebookWriter):
                 units=["eV", "meV", "cm-1", "Thz", "Ha"],
             )
 
-    def ipw_harmonic_thermo(self):
+    def ipw_harmonic_thermo(self): # pragma: no cover
         """
         Return an ipython widget with controllers to plot thermodynamic properties
         from the phonon DOS within the harmonic approximation.

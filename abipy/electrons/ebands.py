@@ -1302,7 +1302,7 @@ class ElectronBands(Has_Structure):
         return StatParams(mean=ediff.mean(axis=axis), stdev=ediff.std(axis=axis),
                           min=ediff.min(axis=axis), max=ediff.max(axis=axis))
 
-    def ipw_edos_widget(self):
+    def ipw_edos_widget(self): # pragma: no cover
         """
         Return an ipython widget with controllers to compute the electron DOS.
         """
@@ -2779,7 +2779,7 @@ class ElectronBandsPlotter(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3418,7 +3418,7 @@ class ElectronDosPlotter(NotebookWriter):
 
         return fig
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3700,7 +3700,8 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            from skimage import measure
+            #from skimage import measure
+            from skimage.measure import marching_cubes
         except ImportError:
             raise ImportError("scikit-image not installed.\n"
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
@@ -3729,7 +3730,8 @@ class Bands3D(Has_Structure):
                 #   Gives a measure for the maximum value of the data in the local region near each vertex.
                 #   This can be used by visualization tools to apply a colormap to the mesh
                 voldata = np.reshape(self.ucdata_sbk[spin, band], self.kdivs)
-                verts, faces, normals, values = measure.marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
+                verts, faces, normals, values = marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
+                #verts, faces, normals, values = marching_cubes_lewiner(voldata, level=e0, spacing=tuple(self.spacing))
                 verts = self.reciprocal_lattice.get_cartesian_coords(verts)
                 ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
                 # mayavi package:
@@ -4022,7 +4024,13 @@ class RobotWithEbands(object):
                 if hue is None:
                     # Extract data.
                     xvals, yvals = get_xy(item, spin, params, self.abifiles)
-                    ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                    if not is_string(xvals[0]):
+                        ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                    else:
+                        # Must handle list of strings in a different way.
+                        xn = range(len(xvals))
+                        ax.plot(xn, yvals, marker=marker_spin[spin], **kwargs)
+                        ax.set_xticks(xn, xvals)
                 else:
                     for g in groups:
                         # Extract data.

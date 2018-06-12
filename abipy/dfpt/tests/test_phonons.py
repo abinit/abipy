@@ -211,7 +211,7 @@ class PhbstFileTest(AbipyTest):
         nana = phbands.non_anal_ph
         assert nana.structure == phbands.structure
         str(nana.structure.reciprocal_lattice)
-        self.assert_almost_equal(nana.directions.flat,
+        self.assert_almost_equal(nana.directions.ravel(),
                 [0.1234510847, -0.071274517, 0, 0.1646014463, 0, 0, 0, 0, 0.0751616546])
 
         for i, cart_direc in enumerate(nana.directions):

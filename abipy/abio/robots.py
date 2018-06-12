@@ -913,7 +913,14 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     yvals = [float(item(gsr)) for gsr in self.abifiles]
                 else:
                     yvals = [getattrd(gsr, item) for gsr in self.abifiles]
-                ax.plot(params, yvals, marker=marker, **kwargs)
+
+                if not is_string(params[0]):
+                    ax.plot(params, yvals, marker=marker, **kwargs)
+                else:
+                    # Must handle list of strings in a different way.
+                    xn = range(len(params))
+                    ax.plot(xn, yvals, marker=marker, **kwargs)
+                    ax.set_xticks(xn, params)
             else:
                 for g in groups:
                     # Extract data.

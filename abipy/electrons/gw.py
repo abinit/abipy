@@ -1842,7 +1842,14 @@ class SigresRobot(Robot, RobotWithEbands):
                     qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
                         for ncfile in ncfiles]))
                     yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
-                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+
+                    if not is_string(params[0]):
+                        ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                    else:
+                        # Must handle list of strings in a different way.
+                        xn = range(len(params))
+                        ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
+                        ax.set_xticks(xn, params)
                 else:
                     for g in groups:
                         qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
@@ -1925,7 +1932,13 @@ class SigresRobot(Robot, RobotWithEbands):
             if hue is None:
                 # Extract QP data.
                 yvals = [getattr(qp, what) for qp in qplist]
-                ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                if not is_string(params[0]):
+                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                else:
+                    # Must handle list of strings in a different way.
+                    xn = range(len(params))
+                    ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
+                    ax.set_xticks(xn, params)
             else:
                 for g, qplist in zip(groups, qplist_group):
                     # Extract QP data.

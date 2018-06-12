@@ -627,7 +627,7 @@ class MdfPlotter(object):
 
         return fig
 
-    #def ipw_plot(self)
+    #def ipw_plot(self) # pragma: no cover
     #    """
     #    Return an ipython widget with controllers to select the plot.
     #    """
@@ -891,7 +891,7 @@ class MultipleMdfPlotter(object):
 
         return qpoints
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
