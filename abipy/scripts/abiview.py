@@ -387,7 +387,7 @@ def get_parser(with_epilog=False):
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument('--seaborn', action="store_true", help="Use seaborn settings.")
+    copts_parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings.")
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -549,7 +549,7 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context='article', style='darkgrid', palette='deep',
+        sns.set(context='talk', style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     # Dispatch

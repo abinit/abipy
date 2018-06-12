@@ -76,6 +76,7 @@ Usage example:
     abiopen.py FILE        => Open file in ipython shell.
     abiopen.py FILE -nb    => Generate jupyter notebook.
     abiopen.py FILE -p     => Print info on object to terminal.
+    abiopen.py FILE -e     => Generate matplotlib figures automatically.
 
 `FILE` is any file supported by abipy/pymatgen e.g Netcdf files, Abinit input, POSCAR, xsf ...
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -95,11 +96,28 @@ def get_parser(with_epilog=False):
     parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='verbose, can be supplied multiple times to increase verbosity')
 
+    parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
+
+    # notebook option
     parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
     parser.add_argument('--foreground', action='store_true', default=False,
         help="Run jupyter notebook in the foreground.")
+
+    # print option
     parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
-    parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
+
+    # expose option.
+    parser.add_argument('-e', '--expose', action='store_true', default=False,
+        help="Open file and generate matplotlib figures automatically by calling expose method.")
+    parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+        help="Iterate over figures. Expose all figures at once if not given on the CLI.")
+    parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings.")
+    parser.add_argument('-mpl', "--mpl-backend", default=None,
+        help=("Set matplotlib interactive backend. "
+              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
+              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
     return parser
 
@@ -132,21 +150,46 @@ def main():
     if options.verbose > 2:
         print(options)
 
+    if options.mpl_backend is not None:
+        # Set matplotlib backend
+        import matplotlib
+        matplotlib.use(options.mpl_backend)
+
+    if options.seaborn:
+        # Use seaborn settings.
+        import seaborn as sns
+        sns.set(context='talk', style='darkgrid', palette='deep',
+                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
 
     if not options.notebook:
-        # Start ipython shell with namespace
         abifile = abilab.abiopen(options.filepath)
+
         if options.print:
+            # Print object to terminal.
             if hasattr(abifile, "to_string"):
                 print(abifile.to_string(verbose=options.verbose))
             else:
                 print(abifile)
             return 0
 
-        import IPython
+        elif options.expose:
+            # Generate matplotlib plots automatically.
+            if hasattr(abifile, "to_string"):
+                print(abifile.to_string(verbose=options.verbose))
+            else:
+                print(abifile)
+            if not hasattr(abifile, "expose"):
+                raise TypeError("Object of type `%s` does not implement expose method" % type(abifile))
+            abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                           verbose=options.verbose)
+            return 0
+
+        # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
+        import IPython
         IPython.embed(header="The Abinit file is bound to the `abifile` variable.\nTry `print(abifile)`")
 
     else:
