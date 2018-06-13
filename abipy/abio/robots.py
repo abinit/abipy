@@ -920,7 +920,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     # Must handle list of strings in a different way.
                     xn = range(len(params))
                     ax.plot(xn, yvals, marker=marker, **kwargs)
-                    ax.set_xticks(xn, params)
+                    ax.set_xticks(xn)
+                    ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g in groups:
                     # Extract data.

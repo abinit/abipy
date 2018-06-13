@@ -681,23 +681,25 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.ebands.to_string(title="Kohn-Sham bands", with_structure=False))
+        app("")
 
         # TODO: Finalize the implementation: add GW metadata.
-        app(marquee("QP direct gaps in eV", mark="="))
+        app(marquee("QP direct gaps", mark="="))
         for kgw in self.gwkpoints:
             for spin in range(self.nsppol):
                 qp_dirgap = self.get_qpgap(spin, kgw)
+                app("QP_dirgap: %.3f (eV) for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
                 #ks_dirgap =
-                app("QP_dirgap: %.3f for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
+        app("")
 
-        #if verbose > 1
-        #    strio = cStringIO()
-        #    self.print_qps(file=strio)
-        #    strio.seek(0)
-        #    app("")
-        #    app(marquee("QP results for each k-point and spin (All in eV)", mark="="))
-        #    app("".join(strio))
-        #    app("")
+        # Show QP results
+        strio = cStringIO()
+        self.print_qps(precision=3, ignore_imag=verbose==0, file=strio)
+        strio.seek(0)
+        app("")
+        app(marquee("QP results for each k-point and spin (all in eV)", mark="="))
+        app("".join(strio))
+        app("")
 
         # TODO: Fix header.
         #if verbose > 1:
@@ -1715,7 +1717,7 @@ class SigresRobot(Robot, RobotWithEbands):
     def _check_dims_and_params(self):
         """Test that nsppol, sigma_kpoints, tlist are consistent."""
         if not len(self.abifiles) > 1:
-            return
+            return 0
 
         nc0 = self.abifiles[0]
         errors = []
@@ -1849,7 +1851,8 @@ class SigresRobot(Robot, RobotWithEbands):
                         # Must handle list of strings in a different way.
                         xn = range(len(params))
                         ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
-                        ax.set_xticks(xn, params)
+                        ax.set_xticks(xn)
+                        ax.set_xticklabels(params, fontsize=fontsize)
                 else:
                     for g in groups:
                         qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
@@ -1938,7 +1941,8 @@ class SigresRobot(Robot, RobotWithEbands):
                     # Must handle list of strings in a different way.
                     xn = range(len(params))
                     ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
-                    ax.set_xticks(xn, params)
+                    ax.set_xticks(xn)
+                    ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g, qplist in zip(groups, qplist_group):
                     # Extract QP data.
@@ -2074,6 +2078,15 @@ class SigresRobot(Robot, RobotWithEbands):
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_qpgaps_convergence(plot_qpmks=True, show=False)
+        #yield self.plot_qpdata_conv_skb(spin, kpoint, band, show=False)
+        #yield self.plot_qpfield_vs_e0(field, show=False)
+        #yield self.plot_selfenergy_conv(spin, kpoint, band, sortby=None, hue=None, show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
@@ -2084,9 +2097,13 @@ class SigresRobot(Robot, RobotWithEbands):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)"),
             #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False)"),
+            nbv.new_code_cell("robot.plot_qpgaps_convergence(plot_qpmks=True, sortby=None, hue=None);"),
+            nbv.new_code_cell("#robot.plot_qpdata_conv_skb(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
+            nbv.new_code_cell("robot.plot_qpfield_vs_e0(field='qpeme0', sortby=None, hue=None);"),
+            nbv.new_code_cell("#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
         ])
 
         # Mixins

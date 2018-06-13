@@ -322,10 +322,14 @@ closest points in this particular structure. This is usually what you want in a 
     p_abikmesh = subparsers.add_parser('abikmesh', parents=[copts_parser, path_selector],
         help=("Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt. "
               "Print k-points in the IBZ with weights."))
-    p_abikmesh.add_argument("--ngkpt", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
+    p_abikmesh.add_argument("--kppa", default=None, type=int,
+            help="Number of k-points per reciprocal atom. Mutually exclusive with ngkpt.")
+    p_abikmesh.add_argument("--ngkpt", nargs=3, default=None, type=int,
+            help="Mesh divisions e.g. 2 3 4")
     p_abikmesh.add_argument("--shiftk", nargs="+", default=(0.5, 0.5, 0.5), type=float,
        help="Kmesh shifts. Default: 0.5 0.5 0.5")
-    p_abikmesh.add_argument("--kptopt", default=1, type=int, help="Kptopt input variable. Default: 1")
+    p_abikmesh.add_argument("--kptopt", default=1, type=int,
+            help="Kptopt input variable. Default: 1")
 
     # Subparser for kmesh_jhu.
     #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector], help="Foobar ")
@@ -666,8 +670,17 @@ def main():
     elif options.command == "abikmesh":
         structure = abilab.Structure.from_file(options.filepath)
         from abipy.data.hgh_pseudos import HGH_TABLE
-        gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized", kppa=options.kppa)
+        if options.kppa is not None:
+            print("Calling Abinit to compute the IBZ with kppa:", options.kppa, "and shift ", options.shiftk)
+            options.ngkpt = None
+        else:
+            print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shift ", options.shiftk)
         ibz = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
+        if options.verbose:
+            print(gsinp)
+
+        print("Found %d points in the IBZ:" % len(ibz.points))
         for i, (k, w) in enumerate(zip(ibz.points, ibz.weights)):
             print("%6d) [%+.3f, %+.3f, %+.3f]  weight=%.3f" % (i, k[0], k[1], k[2], w))
 

@@ -1232,7 +1232,12 @@ class ElectronBands(Has_Structure):
                 if verbose:
                     app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
-                app("")
+                try:
+                    # Cannot assume enough states for this!
+                    app("Conduction minimum located at:\n%s" % indent(str(self.lumos[spin])))
+                    app("")
+                except Exception:
+                    pass
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))
@@ -4030,7 +4035,8 @@ class RobotWithEbands(object):
                         # Must handle list of strings in a different way.
                         xn = range(len(xvals))
                         ax.plot(xn, yvals, marker=marker_spin[spin], **kwargs)
-                        ax.set_xticks(xn, xvals)
+                        ax.set_xticks(xn)
+                        ax.set_xticklabels(xvals, fontsize=fontsize)
                 else:
                     for g in groups:
                         # Extract data.
