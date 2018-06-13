@@ -228,7 +228,7 @@ def abicomp_data(options):
     """
     plotter = GenericDataFilesPlotter.from_files(options.paths)
     print(plotter.to_string(verbose=options.verbose))
-    plotter.plot()
+    plotter.plot(use_index=options.use_index)
     return 0
 
 
@@ -894,6 +894,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for data command.
     p_data = subparsers.add_parser('data', parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
+    p_data.add_argument("-i", "--use-index", default=False, action="store_true",
+        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)

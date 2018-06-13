@@ -87,6 +87,7 @@ class TestSigresFile(AbipyTest):
         assert sigres.nsppol == 1
         sigres.print_qps(precision=5, ignore_imag=False)
         assert sigres.params["nsppol"] == sigres.nsppol
+        assert not sigres.has_spectral_function
 
         # In this run IBZ = kptgw
         assert len(sigres.ibz) == 6

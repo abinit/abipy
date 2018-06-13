@@ -672,10 +672,10 @@ def main():
         from abipy.data.hgh_pseudos import HGH_TABLE
         gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized", kppa=options.kppa)
         if options.kppa is not None:
-            print("Calling Abinit to compute the IBZ with kppa:", options.kppa, "and shift ", options.shiftk)
+            print("Calling Abinit to compute the IBZ with kppa:", options.kppa, "and shiftk:", options.shiftk)
             options.ngkpt = None
         else:
-            print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shift ", options.shiftk)
+            print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shiftk", options.shiftk)
         ibz = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
         if options.verbose:
             print(gsinp)

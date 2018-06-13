@@ -520,6 +520,7 @@ class SelfEnergy(object):
         else:
             raise ValueError("Don't know how to handle what option %s" % str(what))
 
+        #ax.set_xlabel(r"$\omega - \espilon_{KS} (eV)")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return lines
@@ -719,6 +720,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """|ElectronBands| with the KS energies."""
         return self._ebands
 
+    @property
+    def has_spectral_function(self):
+        """True if file contains spectral function data."""
+        return self.reader.has_spfunc
+
     @lazy_property
     def qplist_spin(self):
         """Tuple of :class:`QPList` objects indexed by spin."""
@@ -862,7 +868,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Plot the spectral function for all k-points, bands and spins available in the SIGRES file.
 
         Args:
-            include_bands: List of bands to include. Note means all.
+            include_bands: List of bands to include. Nonee means all.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1231,6 +1237,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         yield self.plot_qps_vs_e0(show=False)
         yield self.plot_qpbands_ibz(show=False)
         yield self.plot_ksbands_with_qpmarkers(show=False)
+        if self.has_spectral_function:
+            yield self.plot_spectral_functions(include_bands=None, show=False)
 
     def write_notebook(self, nbpath=None):
         """

@@ -622,11 +622,13 @@ class GenericDataFilePlotter(object):
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot(self, fontsize=8, **kwargs):
+    def plot(self, use_index=False, fontsize=8, **kwargs):
         """
         Plot all arrays. Use multiple axes if datasets.
 
         Args:
+            use_index: By default, the x-values are taken from the first column.
+                If use_index is False, the x-values are the row index.
             fontsize: fontsize for title.
             kwargs: options passed to ``ax.plot``.
 
@@ -642,14 +644,15 @@ class GenericDataFilePlotter(object):
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        # don't show the last ax if num_plots is odd.
+        # Don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for ax, (key, arr) in zip(ax_list, self.od.items()):
             ax.set_title(key, fontsize=fontsize)
             ax.grid(True)
-            for ys in arr[1:]:
-                ax.plot(arr[0], ys)
+            xs = arr[0] if not use_index else list(range(len(arr[0])))
+            for ys in arr[1:] if not use_index else arr:
+                ax.plot(xs, ys)
 
         return fig
 
@@ -690,11 +693,13 @@ class GenericDataFilesPlotter(object):
             self.filepaths.append(filepath)
 
     @add_fig_kwargs
-    def plot(self, fontsize=8, colormap="viridis", **kwargs):
+    def plot(self, use_index=False, fontsize=8, colormap="viridis", **kwargs):
         """
         Plot all arrays. Use multiple axes if datasets.
 
         Args:
+            use_index: By default, the x-values are taken from the first column.
+                If use_index is False, the x-values are the row index.
             fontsize: fontsize for title.
             colormap: matplotlib color map.
             kwargs: options passed to ``ax.plot``.
@@ -740,8 +745,10 @@ class GenericDataFilesPlotter(object):
                 if key not in od: continue
                 arr = od[key]
                 color = cmap(iod / len(self.odlist))
-                for iarr, (ys, linestyle) in enumerate(zip(arr[1:], line_cycle)):
-                    ax.plot(arr[0], ys, color=color, linestyle=linestyle,
+                xvals = arr[0] if not use_index else list(range(len(arr[0])))
+                arr_list = arr[1:] if not use_index else arr
+                for iarr, (ys, linestyle) in enumerate(zip(arr_list, line_cycle)):
+                    ax.plot(xvals, ys, color=color, linestyle=linestyle,
                             label=os.path.relpath(filepath) if iarr == 0 else None)
 
             ax.legend(loc="best", fontsize=fontsize, shadow=True)

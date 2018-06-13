@@ -67,7 +67,7 @@ def abiview_data(options):
     """
     plotter = GenericDataFilePlotter(options.filepath)
     print(plotter.to_string(verbose=options.verbose))
-    plotter.plot()
+    plotter.plot(use_index=options.use_index)
 
     return 0
 
@@ -464,6 +464,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for data command.
     p_data = subparsers.add_parser('data', parents=[copts_parser], help=abiview_data.__doc__)
+    p_data.add_argument("-i", "--use-index", default=False, action="store_true",
+        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for abo command.
     p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
