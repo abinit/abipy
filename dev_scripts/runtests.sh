@@ -9,13 +9,17 @@ abicheck.py --with-flow
 
 # Run unit tests with nose.
 #nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO --doctest-tests
-#nosetests -v --with-coverage --cover-package=abipy --doctest-tests
 
-#./dev_scripts/pyclean.py .
-
-pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
-    --ignore=abipy/gui --ignore=abipy/data/refs --ignore=abipy/examples/plot --ignore=abipy/examples/flows
-#cd ..
+# Run unit tests with pytest. No doctests if 2.7
+if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then 
+    pytest -n 2 --cov-config=.coveragerc --cov=abipy -v abipy \
+	--ignore=abipy/integration_tests --ignore=abipy/data/refs \
+	--ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui 
+else
+    pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
+	--ignore=abipy/integration_tests --ignore=abipy/data/refs \
+	--ignore=abipy/examples/plot --ignore=abipy/examples/flows --ignore=abipy/gui 
+fi
 
 # This is to run the integration tests (append results)
 # integration_tests are excluded in setup.cfg

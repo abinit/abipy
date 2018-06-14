@@ -1565,8 +1565,8 @@ class KpointsReaderMixin(object):
 
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
-        return self.read_value("monkhorst_pack_folding")
-        #return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
+        #return self.read_value("monkhorst_pack_folding")
+        return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
 
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""

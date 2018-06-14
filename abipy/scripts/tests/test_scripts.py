@@ -14,7 +14,7 @@ from abipy.core.testing import AbipyTest
 from abipy import abilab
 
 
-script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "abipy", "scripts"))
+script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_if_all_scripts_are_tested():

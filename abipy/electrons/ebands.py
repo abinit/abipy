@@ -3705,11 +3705,15 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            #from skimage import measure
-            from skimage.measure import marching_cubes
+            import skimage
         except ImportError:
             raise ImportError("scikit-image not installed.\n"
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
+
+        try:
+            from skimage.measure import marching_cubes_lewiner
+        except ImportError:
+            from skimage.measure import marching_cubes as marching_cubes_lewiner
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)

@@ -63,4 +63,4 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
     def none_if_masked_array(self, arr):
         """Return None if arr is a MaskedArray else None."""
-        return arr if not isinstance(arr, np.ma.MaskedArray) else None
+        return None if np.ma.is_masked(arr) else arr
