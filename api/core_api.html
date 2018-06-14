@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>core Package &#8212; abipy 0.5.0 documentation</title>
+    <title>core Package &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1966,7 +1966,7 @@ An AbinitNcFile has a netcdf reader to read data from file and build objects.</p
 <dt id="abipy.core.mixins.AbinitNcFile.params">
 <code class="descname">params</code><a class="headerlink" href="#abipy.core.mixins.AbinitNcFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2508,7 +2508,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="attribute">
 <dt id="abipy.core.restapi.CodStructures.dataframe">
 <code class="descname">dataframe</code><a class="reference internal" href="../_modules/abipy/core/restapi.html#CodStructures.dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.core.restapi.CodStructures.dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> constructed. Essentially geometrical info and space groups found by <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a>
+<dd><p><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> constructed. Essentially geometrical info and space groups found by <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a>
 as COD API is rather limited.</p>
 </dd></dl>
 
@@ -4489,14 +4489,14 @@ a list of structures or a list of objects that can be converted into structures.
 <li><strong>struct_objects</strong> – List of objects that can be converted to structure.
 Support filenames, structure objects, Abinit input files, dicts and many more types.
 See <code class="docutils literal"><span class="pre">Structure.as_structure</span></code> for the complete list.</li>
-<li><strong>index</strong> – Index of the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</li>
+<li><strong>index</strong> – Index of the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</li>
 <li><strong>with_spglib</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – If True, <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a> is invoked to get the spacegroup symbol and number.</li>
 <li><strong>cart_coords</strong> – True if the <code class="docutils literal"><span class="pre">coords</span></code> dataframe should contain Cartesian cordinates
 instead of Reduced coordinates.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">namedtuple with two <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> named <code class="docutils literal"><span class="pre">lattice</span></code> and <code class="docutils literal"><span class="pre">coords</span></code>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">namedtuple with two <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> named <code class="docutils literal"><span class="pre">lattice</span></code> and <code class="docutils literal"><span class="pre">coords</span></code>
 <code class="docutils literal"><span class="pre">lattice</span></code> contains the lattice parameters. <code class="docutils literal"><span class="pre">coords</span></code> the atomic positions..
 The list of structures is available in the <code class="docutils literal"><span class="pre">structures</span></code> entry.</p>
 </td>
@@ -5074,7 +5074,7 @@ wyckoff positions computed from the sympy expressions and the input frac_coords<
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>dynamics Package &#8212; abipy 0.5.0 documentation</title>
+    <title>dynamics Package &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -484,7 +484,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.dynamics.hist.HistRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>index=None</em>, <em>abspath=False</em>, <em>with_spglib=True</em>, <em>funcs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dynamics/hist.html#HistRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dynamics.hist.HistRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important final results and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important final results and the filenames as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -503,7 +503,7 @@ working directory is created. Return path to the notebook.</p>
 <dt>kwargs:</dt>
 <dd><dl class="first last docutils">
 <dt>attrs:</dt>
-<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</dd>
+<dd>List of additional attributes of the <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> to add to the <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</dd>
 <dt>funcs: Function or list of functions to execute to add more data to the DataFrame.</dt>
 <dd>Each function receives a <a class="reference internal" href="electrons_api.html#abipy.electrons.gsr.GsrFile" title="abipy.electrons.gsr.GsrFile"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.gsr.GsrFile</span></code></a> object and returns a tuple (key, value)
 where key is a string with the name of column and value is the value to be inserted.</dd>
@@ -711,7 +711,7 @@ and the list of pressures in GPa unit.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

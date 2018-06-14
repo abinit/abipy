@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abiopen.py &#8212; abipy 0.5.0 documentation</title>
+    <title>abiopen.py &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -163,8 +163,9 @@ The syntax of the script is:</p>
 </div>
 <p>where <code class="docutils literal"><span class="pre">FILE</span></code> is one of the files supported by AbiPy (usually in <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> format but other
 files are supported as well e.g. Abinit input and output files in text format).
-By default <code class="docutils literal"><span class="pre">abiopen</span></code> starts the <code class="docutils literal"><span class="pre">ipython</span></code> terminal.
-Alternatively, it is possible to generate automatically a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
+By default <code class="docutils literal"><span class="pre">abiopen</span></code> starts an <code class="docutils literal"><span class="pre">ipython</span></code> session and the user can interact with the <code class="docutils literal"><span class="pre">abifile</span></code>
+and invoke its methods.</p>
+<p>Alternatively, it is possible to generate automatically a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">out_FATBANDS</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">nb</span>
 </pre></div>
 </div>
@@ -173,6 +174,11 @@ Alternatively, it is possible to generate automatically a <a class="reference ex
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">out_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">p</span>
 </pre></div>
 </div>
+<p>or the <code class="docutils literal"><span class="pre">-e</span></code> (<code class="docutils literal"><span class="pre">--expose</span></code>) to generate matplotlib plots automatically:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abiopen</span><span class="o">.</span><span class="n">py</span> <span class="n">out_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">e</span> <span class="o">-</span><span class="n">sns</span><span class="o">=</span><span class="n">talk</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://seaborn.pydata.org/">seaborn</a> plot style and settings can be changed from the command line interface with the <cite>-sns</cite> option</p>
 <p>The script uses the file extension to decide what to do with the file and the type
 of python object that should be instantiated.
 The list of supported file extensions is obtained with:</p>
@@ -370,7 +376,7 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

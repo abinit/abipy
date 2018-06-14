@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_sic_relax.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_sic_relax.py:
 
@@ -96,7 +100,7 @@ One could use a similar logic to perform multiple relaxations with different inp
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_sic_relax_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -142,13 +146,17 @@ and then inside the ipython terminal, type:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.114 seconds)
+**Total running time of the script:** ( 0 minutes  0.082 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_sic_relax.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

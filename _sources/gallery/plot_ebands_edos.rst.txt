@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_ebands_edos.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_ebands_edos.py:
 
@@ -13,12 +17,14 @@ band structure with DOS using two GSR files.
 
 
 .. image:: /gallery/images/sphx_glr_plot_ebands_edos_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     nscf_ebands.efermi 5.5984532787385985
     gs_ebands.efermi 5.5984532787385985
@@ -54,13 +60,17 @@ band structure with DOS using two GSR files.
     print("nscf_ebands.efermi", nscf_ebands.fermie)
     print("gs_ebands.efermi", gs_ebands.fermie)
 
-**Total running time of the script:** ( 0 minutes  1.744 seconds)
+**Total running time of the script:** ( 0 minutes  1.240 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_ebands_edos.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

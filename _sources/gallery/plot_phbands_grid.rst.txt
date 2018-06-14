@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_phbands_grid.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_phbands_grid.py:
 
@@ -24,27 +28,29 @@ See also tutorial/lesson_rf2.html
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phbands_grid_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phbands_grid_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phbands_grid_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phbands_grid_004.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     [31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
     Particular methods need them![0m
@@ -93,13 +99,17 @@ See also tutorial/lesson_rf2.html
     #plotter.combiplot(title="Bands + DOS in eV with combiplot")
     plotter.gridplot(units="cm-1", tight_layout=True, title="Bands + DOS in cm-1 with gridplot")
 
-**Total running time of the script:** ( 0 minutes  7.896 seconds)
+**Total running time of the script:** ( 0 minutes  6.804 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_phbands_grid.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

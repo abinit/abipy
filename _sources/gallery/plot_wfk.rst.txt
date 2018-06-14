@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_wfk.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_wfk.py:
 
@@ -18,23 +22,25 @@ stored in the WFK.nc file.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_wfk_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_wfk_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     ================================= File Info =================================
     Name: si_nscf_WFK.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
     Size: 389.84 kb
-    Access Time: Tue Jun 12 14:22:15 2018
+    Access Time: Fri Jun 15 00:33:38 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -65,6 +71,8 @@ stored in the WFK.nc file.
     Bandwidth: 11.856 (eV)
     Valence maximum located at:
         spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
+    Conduction minimum located at:
+        spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
 
     PWWaveFunction: nspinor: 1, spin: 0, band: 0 
     <class 'abipy.core.gsphere.GSphere'>: kpoint: [+0.500, +0.000, +0.000], name: L, weight: 0.000, ecut: 6.000000, npw: 180, istwfk: 1
@@ -119,13 +127,17 @@ stored in the WFK.nc file.
 
     ncfile.close()
 
-**Total running time of the script:** ( 0 minutes  1.533 seconds)
+**Total running time of the script:** ( 0 minutes  1.306 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_wfk.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

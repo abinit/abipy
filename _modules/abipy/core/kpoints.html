@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.kpoints &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.core.kpoints &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1570,13 +1570,14 @@
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt_orig</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">):</span>
                     <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kptrlatt</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="kn">import</span> <span class="nn">warnings</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">monkhorst_pack_folding variables has not been written to netcdf file.</span>
-<span class="s2">Received </span><span class="si">{mpdivs}</span><span class="s2"></span>
-<span class="s2">Setting mpdivs to None, this may create problems in post-processing tools.</span>
-<span class="s2">If needed, use python netcdf to change the value of `monkhorst_pack_folding`&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mpdivs</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]))</span>
                     <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;mpdivs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="c1">#                    import warnings</span>
+<span class="c1">#                    warnings.warn(&quot;&quot;&quot;</span>
+<span class="c1">#monkhorst_pack_folding variables has not been written to netcdf file.</span>
+<span class="c1">#Received {mpdivs}</span>
+<span class="c1">#Setting mpdivs to None, this may create problems in post-processing tools.</span>
+<span class="c1">#If needed, use python netcdf to change the value of `monkhorst_pack_folding`&quot;&quot;&quot;.format(mpdivs=self[&quot;mpdivs&quot;]))</span>
+
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
@@ -1695,7 +1696,8 @@
 
     <span class="k">def</span> <span class="nf">read_kmpdivs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the Monkhorst-Pack divisions defining the mesh. None if not found.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;monkhorst_pack_folding&quot;</span><span class="p">)</span>
+        <span class="c1">#return self.read_value(&quot;monkhorst_pack_folding&quot;)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_if_masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;monkhorst_pack_folding&quot;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">read_kptrlatt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns ABINIT variable kptrlatt. None if not found.&quot;&quot;&quot;</span>
@@ -1865,7 +1867,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

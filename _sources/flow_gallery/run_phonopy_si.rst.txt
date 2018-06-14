@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_phonopy_si.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_phonopy_si.py:
 
@@ -84,12 +88,14 @@ This approach could be useful to obtain vibrational properties with XC functiona
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_phonopy_si_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     self['nband'] 4 new['nband'] 32
     new ngkpt: [2 2 2]
@@ -128,13 +134,17 @@ will produce:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.281 seconds)
+**Total running time of the script:** ( 0 minutes  0.365 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_phonopy_si.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

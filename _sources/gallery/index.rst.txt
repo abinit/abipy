@@ -59,26 +59,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen ">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_xrd_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_xrd.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_xrd
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to display the unit cell with matplotlib. ">
 
 .. only:: html
@@ -136,6 +116,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_gw_spectral_functions
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the X-ray diffraction pattern with pymatgen ">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_xrd_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_xrd.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_xrd
 
 .. raw:: html
 

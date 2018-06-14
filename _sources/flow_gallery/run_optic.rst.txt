@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_optic.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_optic.py:
 
@@ -121,7 +125,7 @@ a convergence study with respect to the k-point sampling.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_optic_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -146,13 +150,17 @@ to create a robot for OPTIC.nc files. Then inside the ipytho shell type:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.204 seconds)
+**Total running time of the script:** ( 0 minutes  0.259 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_optic.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abicomp.py &#8212; abipy 0.5.0 documentation</title>
+    <title>abicomp.py &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -274,19 +274,33 @@
       
   <div class="section" id="abicomp-py">
 <span id="id1"></span><h1><code class="docutils literal"><span class="pre">abicomp.py</span></code><a class="headerlink" href="#abicomp-py" title="Permalink to this headline">¶</a></h1>
-<p>This script compares results stored in multiple <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files.
+<p>This script compares output results stored in multiple <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files.
 For example, one can compare the crystalline structure used in different calculations
-or compare the electronic bands stored in two or more <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files (e.g. <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/gsr.ipynb">GSR.nc</a> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).
-By default the script displays the results/plots directly within the shell.
-Use the command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">struct</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span>
+or compare the electronic bands stored in two or more <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/docs/faq.html#whatisit">netcdf</a> files (e.g. <a class="reference external" href="https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/gsr.ipynb">GSR.nc</a> or <code class="docutils literal"><span class="pre">WFK.nc</span></code>).</p>
+<p>Depending on COMMAND, <code class="docutils literal"><span class="pre">abicomp</span></code> either starts an <code class="docutils literal"><span class="pre">ipython</span></code> session so that the user can interact
+with the <code class="docutils literal"><span class="pre">robot</span></code> or print the results to screen.</p>
+<p>For instance, the command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">structure</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
-<p>to compare the structures reported in two <code class="docutils literal"><span class="pre">GSR.nc</span></code> files and print the result to screen.
-Use <code class="docutils literal"><span class="pre">--ipython</span></code> to start an <a class="reference external" href="https://ipython.org/index.html">ipython</a> terminal or <code class="docutils literal"><span class="pre">-nb</span></code> to generate a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook, e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">ebands</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">nb</span>
+<p>compares the crystalline structures reported in two <code class="docutils literal"><span class="pre">GSR.nc</span></code> files and print the result to screen while:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="n">out</span><span class="o">*</span><span class="n">_GSR</span><span class="o">.</span><span class="n">nc</span>
 </pre></div>
 </div>
+<p>starts an ipython session.</p>
+<p>Use the <code class="docutils literal"><span class="pre">-p</span></code> option if you just want to get information on the file without opening it, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">p</span>
+</pre></div>
+</div>
+<p>It is possible to generate automatically a <a class="reference external" href="http://jupyter.org/">jupyter</a> notebook with the <code class="docutils literal"><span class="pre">-nb</span></code> option e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">nb</span>
+</pre></div>
+</div>
+<p>Finally, use <code class="docutils literal"><span class="pre">-e</span></code> (<code class="docutils literal"><span class="pre">--expose</span></code>) to generate matplotlib plots automatically:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">gsr</span> <span class="n">out1_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="n">out2_GSR</span><span class="o">.</span><span class="n">nc</span> <span class="o">-</span><span class="n">e</span> <span class="o">-</span><span class="n">sns</span><span class="o">=</span><span class="n">poster</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://seaborn.pydata.org/">seaborn</a> plot style and settings can be changed from the command line interface with the <cite>-sns</cite> option</p>
 <div class="highlight-text"><div class="highlight"><pre><span></span>$ abicomp.py --help
 usage: abicomp.py [-h] [-V]
                   {structure,mp_structure,cod_structure,xrd,data,ebands,edos,phbands,phdos,getattr,gsr,hist,ddb,phbst,sigres,mdf,optic,a2f,sigeph,pseudos,time,gs_scf,dfpt2_scf,text}
@@ -771,7 +785,7 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <blockquote>
 <div>Compare results stored in multiple files with data in tabular format.</div></blockquote>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">abicomp</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">sns</span> <span class="p">[</span><span class="n">SEABORN</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">mpl</span> <span class="n">MPL_BACKEND</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">--</span><span class="n">loglevel</span> <span class="n">LOGLEVEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">SLIDE_TIMEOUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -826,6 +840,12 @@ given in the COD database (<a class="reference external" href="http://www.crysta
 <kbd>-t, --slide-timeout</kbd></td>
 </tr>
 <tr><td>&#160;</td><td>Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-i, --use-index</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Use the row index as x-value in the plot. By default the plotter uses the first column as x-values</p>
+<p class="last">Default: False</p>
+</td></tr>
 </tbody>
 </table>
 </div>
@@ -2308,7 +2328,7 @@ corresponding to homogeneous sampling i.e. files that have been merged with mrgd
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Wavefunction file &#8212; abipy 0.5.0 documentation</title>
+    <title>Wavefunction file &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -145,22 +145,26 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="wavefunction-file">
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-wfk-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="wavefunction-file">
 <span id="sphx-glr-gallery-plot-wfk-py"></span><h1>Wavefunction file<a class="headerlink" href="#wavefunction-file" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to analyze the wavefunctions
 stored in the WFK.nc file.</p>
 <ul class="sphx-glr-horizontal">
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_wfk_001.png"><img alt="../_images/sphx_glr_plot_wfk_001.png" src="../_images/sphx_glr_plot_wfk_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_wfk_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_wfk_001.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_wfk_002.png"><img alt="../_images/sphx_glr_plot_wfk_002.png" src="../_images/sphx_glr_plot_wfk_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_wfk_002.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_wfk_002.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span>================================= File Info =================================
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>================================= File Info =================================
 Name: si_nscf_WFK.nc
 Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/si_ebands
 Size: 389.84 kb
-Access Time: Tue Jun 12 14:22:15 2018
+Access Time: Fri Jun 15 00:33:38 2018
 Modification Time: Wed Nov  8 01:06:20 2017
 Change Time: Wed Nov  8 01:06:20 2017
 
@@ -191,6 +195,8 @@ Fundamental gap:
 Bandwidth: 11.856 (eV)
 Valence maximum located at:
     spin=0, kpt=[+0.000, +0.000, +0.000], name: $\Gamma$, weight: 0.000, band=3, eig=5.598, occ=2.000
+Conduction minimum located at:
+    spin=0, kpt=[+0.000, +0.429, +0.429], weight: 0.000, band=4, eig=6.123, occ=0.000
 
 PWWaveFunction: nspinor: 1, spin: 0, band: 0
 &lt;class &#39;abipy.core.gsphere.GSphere&#39;&gt;: kpoint: [+0.500, +0.000, +0.000], name: L, weight: 0.000, ecut: 6.000000, npw: 180, istwfk: 1
@@ -242,8 +248,8 @@ Mesh3D: nx=18, ny=18, nz=18
 <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  1.533 seconds)</p>
-<div class="sphx-glr-footer docutils container">
+<p><strong>Total running time of the script:</strong> ( 0 minutes  1.306 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-wfk-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_wfk.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_wfk.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
@@ -265,7 +271,7 @@ Mesh3D: nx=18, ny=18, nz=18
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

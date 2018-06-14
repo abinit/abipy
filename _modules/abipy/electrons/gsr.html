@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.gsr &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.electrons.gsr &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -158,6 +158,8 @@
     <span class="s2">&quot;GsrFile&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
+<span class="n">_INVALID_STRESS_TENSOR</span> <span class="o">=</span> <span class="mf">9999999999e+99</span>
+
 
 <div class="viewcode-block" id="GsrFile"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile">[docs]</a><span class="k">class</span> <span class="nc">GsrFile</span><span class="p">(</span><span class="n">AbinitNcFile</span><span class="p">,</span> <span class="n">Has_Header</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">Has_ElectronBands</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -228,7 +230,7 @@
         <span class="c1"># NOTE: We use kptopt to understand if we have a SCF/NSCF run</span>
         <span class="c1"># In principle one should use iscf but it&#39;s not available in the GSR.</span>
         <span class="c1">#return int(self.reader.read_value(&quot;kptopt&quot;)) &gt;= 0</span>
-        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">9.9999999999e+99</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.1</span></div>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_stress_tensor</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">_INVALID_STRESS_TENSOR</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.1</span></div>
 
 <div class="viewcode-block" id="GsrFile.ecut"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gsr.GsrFile.ecut">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">ecut</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -504,15 +506,21 @@
     <span class="k">def</span> <span class="nf">read_cart_stress_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the stress tensor (3x3 matrix) in cartesian coordinates (Hartree/Bohr^3)</span>
+<span class="sd">        If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Abinit stores 6 unique components of this symmetric 3x3 tensor:</span>
         <span class="c1"># Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;cartesian_stress_tensor&quot;</span><span class="p">)</span>
         <span class="n">tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))):</span>
-            <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
-            <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">is_masked</span><span class="p">(</span><span class="n">c</span><span class="p">[()]):</span>
+            <span class="c1"># NSCF</span>
+            <span class="n">tensor</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">_INVALID_STRESS_TENSOR</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))):</span>
+                <span class="n">tensor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
+                <span class="n">tensor</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">3</span> <span class="o">+</span> <span class="n">p</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">tensor</span>
 
@@ -778,7 +786,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

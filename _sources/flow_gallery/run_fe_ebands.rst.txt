@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_fe_ebands.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_fe_ebands.py:
 
@@ -101,7 +105,7 @@ See also <~abinit/tutorial/Input/tspin_1.in>
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_fe_ebands_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -121,13 +125,17 @@ to analyze all the band structures produced by the Flow and plot the data
 
 
 
-**Total running time of the script:** ( 0 minutes  0.159 seconds)
+**Total running time of the script:** ( 0 minutes  0.250 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_fe_ebands.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

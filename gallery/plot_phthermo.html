@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Thermodinamic properties &#8212; abipy 0.5.0 documentation</title>
+    <title>Thermodinamic properties &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -145,24 +145,28 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="thermodinamic-properties">
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phthermo-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="thermodinamic-properties">
 <span id="sphx-glr-gallery-plot-phthermo-py"></span><h1>Thermodinamic properties<a class="headerlink" href="#thermodinamic-properties" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to compute and plot thermodinamic properties within
 the harmonic approximation using the phonon DOS produced by anaddb.</p>
-<img alt="../_images/sphx_glr_plot_phthermo_001.png" class="align-center" src="../_images/sphx_glr_plot_phthermo_001.png" />
+<img alt="../_images/sphx_glr_plot_phthermo_001.png" class="sphx-glr-single-img" src="../_images/sphx_glr_plot_phthermo_001.png" />
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">Full</span> <span class="n">Formula</span> <span class="p">(</span><span class="n">Al1</span> <span class="n">As1</span><span class="p">)</span>
-<span class="n">Reduced</span> <span class="n">Formula</span><span class="p">:</span> <span class="n">AlAs</span>
-<span class="n">abc</span>   <span class="p">:</span>   <span class="mf">3.970101</span>   <span class="mf">3.970101</span>   <span class="mf">3.970101</span>
-<span class="n">angles</span><span class="p">:</span>  <span class="mf">60.000000</span>  <span class="mf">60.000000</span>  <span class="mf">60.000000</span>
-<span class="n">Sites</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-  <span class="c1">#  SP       a     b     c</span>
-<span class="o">---</span>  <span class="o">----</span>  <span class="o">----</span>  <span class="o">----</span>  <span class="o">----</span>
-  <span class="mi">0</span>  <span class="n">Al</span>    <span class="mi">0</span>     <span class="mi">0</span>     <span class="mi">0</span>
-  <span class="mi">1</span>  <span class="n">As</span>    <span class="mf">0.25</span>  <span class="mf">0.25</span>  <span class="mf">0.25</span>
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>Full Formula (Al1 As1)
+Reduced Formula: AlAs
+abc   :   3.970101   3.970101   3.970101
+angles:  60.000000  60.000000  60.000000
+Sites (2)
+  #  SP       a     b     c
+---  ----  ----  ----  ----
+  0  Al    0     0     0
+  1  As    0.25  0.25  0.25
 
-<span class="n">Abinit</span> <span class="n">Spacegroup</span><span class="p">:</span> <span class="n">spgid</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num_spatial_symmetries</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> <span class="n">has_timerev</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">symmorphic</span><span class="p">:</span> <span class="kc">False</span>
-<span class="n">Zero</span> <span class="n">point</span> <span class="n">energy</span><span class="p">:</span> <span class="mf">0.08400926480898568</span> <span class="n">eV</span> <span class="mf">1.3459768000755305e-20</span> <span class="n">J</span> <span class="mf">0.0030872835637731303</span> <span class="n">Ha</span>
+Abinit Spacegroup: spgid: 0, num_spatial_symmetries: 24, has_timerev: True, symmorphic: False
+Zero point energy: 0.08400926480898568 eV 1.3459768000755305e-20 J 0.0030872835637731303 Ha
 </pre></div>
 </div>
 <div class="line-block">
@@ -195,8 +199,8 @@ the harmonic approximation using the phonon DOS produced by anaddb.</p>
 <span class="n">ncfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.208 seconds)</p>
-<div class="sphx-glr-footer docutils container">
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.112 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-phthermo-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_phthermo.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_phthermo.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
@@ -218,7 +222,7 @@ the harmonic approximation using the phonon DOS produced by anaddb.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

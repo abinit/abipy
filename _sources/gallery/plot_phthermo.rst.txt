@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_phthermo.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_phthermo.py:
 
@@ -13,12 +17,14 @@ the harmonic approximation using the phonon DOS produced by anaddb.
 
 
 .. image:: /gallery/images/sphx_glr_plot_phthermo_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     Full Formula (Al1 As1)
     Reduced Formula: AlAs
@@ -67,13 +73,17 @@ the harmonic approximation using the phonon DOS produced by anaddb.
 
     ncfile.close()
 
-**Total running time of the script:** ( 0 minutes  0.208 seconds)
+**Total running time of the script:** ( 0 minutes  0.112 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_phthermo.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

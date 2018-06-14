@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_fold2bloch.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_fold2bloch.py:
 
@@ -18,23 +22,25 @@ This example shows how to plot the results produced by fold2bloch.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_fold2bloch_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_fold2bloch_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     ================================= File Info =================================
     Name: h6_FOLD2BLOCH.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs
     Size: 35.26 kb
-    Access Time: Tue Jun 12 14:20:15 2018
+    Access Time: Fri Jun 15 00:32:00 2018
     Modification Time: Thu Feb 22 21:38:00 2018
     Change Time: Thu Feb 22 21:38:00 2018
 
@@ -63,7 +69,6 @@ This example shows how to plot the results produced by fold2bloch.
     Bandwidth: 12.642 (eV)
     Valence maximum located at:
         spin=0, kpt=[+0.000, +0.000, -0.500], weight: 0.000, band=3, eig=0.466, occ=0.000
-
     Direct lattice of the primitive cell:
     abc   :   1.587532   1.587532   1.587532
     angles:  90.000000  90.000000  90.000000
@@ -94,13 +99,17 @@ This example shows how to plot the results produced by fold2bloch.
         # sphinx_gallery_thumbnail_number = 2
         ncfile.plot_unfolded(kbounds, klabels, title="Unfolded bands")
 
-**Total running time of the script:** ( 0 minutes  0.546 seconds)
+**Total running time of the script:** ( 0 minutes  0.471 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_fold2bloch.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

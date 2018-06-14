@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_ebands_grid.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_ebands_grid.py:
 
@@ -22,17 +26,19 @@ We use two GSR files:
     *
 
       .. image:: /gallery/images/sphx_glr_plot_ebands_grid_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_ebands_grid_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     nsppol  nspinor  nspden  nkpt  nband  nelect    fermie formula  \
     BZ sampling       1        1       1    29      8     8.0  5.598453     Si2   
@@ -87,13 +93,17 @@ We use two GSR files:
     plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), dos=ref_file("si_scf_GSR.nc"))
     plotter.gridplot()
 
-**Total running time of the script:** ( 0 minutes  4.863 seconds)
+**Total running time of the script:** ( 0 minutes  4.901 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_ebands_grid.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Multiple Structural relaxations &#8212; abipy 0.5.0 documentation</title>
+    <title>Multiple Structural relaxations &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -145,38 +145,42 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="multiple-structural-relaxations">
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-multiple-hist-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="multiple-structural-relaxations">
 <span id="sphx-glr-gallery-plot-multiple-hist-py"></span><h1>Multiple Structural relaxations<a class="headerlink" href="#multiple-structural-relaxations" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to analyze the results of multiple
 structure relaxations with the HIST robot.</p>
 <ul class="sphx-glr-horizontal">
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_multiple_hist_001.png"><img alt="../_images/sphx_glr_plot_multiple_hist_001.png" src="../_images/sphx_glr_plot_multiple_hist_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_multiple_hist_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_multiple_hist_001.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_multiple_hist_002.png"><img alt="../_images/sphx_glr_plot_multiple_hist_002.png" src="../_images/sphx_glr_plot_multiple_hist_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_multiple_hist_002.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_multiple_hist_002.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="n">formula</span>  <span class="n">natom</span>  <span class="n">alpha</span>  <span class="n">beta</span>  <span class="n">gamma</span>         <span class="n">a</span>         <span class="n">b</span>  \
-<span class="n">sic_relaxation</span>  <span class="n">Si1</span> <span class="n">C1</span>      <span class="mi">2</span>   <span class="mf">60.0</span>  <span class="mf">60.0</span>   <span class="mf">60.0</span>  <span class="mf">3.064763</span>  <span class="mf">3.064763</span>
-<span class="n">same_hist</span>       <span class="n">Si1</span> <span class="n">C1</span>      <span class="mi">2</span>   <span class="mf">60.0</span>  <span class="mf">60.0</span>   <span class="mf">60.0</span>  <span class="mf">3.064763</span>  <span class="mf">3.064763</span>
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>formula  natom  alpha  beta  gamma         a         b  \
+sic_relaxation  Si1 C1      2   60.0  60.0   60.0  3.064763  3.064763
+same_hist       Si1 C1      2   60.0  60.0   60.0  3.064763  3.064763
 
-                       <span class="n">c</span>     <span class="n">volume</span> <span class="n">abispg_num</span>      <span class="o">...</span>       <span class="n">final_fmin</span>  \
-<span class="n">sic_relaxation</span>  <span class="mf">3.064763</span>  <span class="mf">20.355222</span>       <span class="kc">None</span>      <span class="o">...</span>              <span class="mf">0.0</span>
-<span class="n">same_hist</span>       <span class="mf">3.064763</span>  <span class="mf">20.355222</span>       <span class="kc">None</span>      <span class="o">...</span>              <span class="mf">0.0</span>
+                       c     volume abispg_num      ...       final_fmin  \
+sic_relaxation  3.064763  20.355222       None      ...              0.0
+same_hist       3.064763  20.355222       None      ...              0.0
 
-                <span class="n">final_fmax</span>  <span class="n">final_fmean</span>  <span class="n">final_fstd</span>  <span class="n">final_drift</span>  \
-<span class="n">sic_relaxation</span>         <span class="mf">0.0</span>          <span class="mf">0.0</span>         <span class="mf">0.0</span>          <span class="mf">0.0</span>
-<span class="n">same_hist</span>              <span class="mf">0.0</span>          <span class="mf">0.0</span>         <span class="mf">0.0</span>          <span class="mf">0.0</span>
+                final_fmax  final_fmean  final_fstd  final_drift  \
+sic_relaxation         0.0          0.0         0.0          0.0
+same_hist              0.0          0.0         0.0          0.0
 
-                <span class="n">initial_fmin</span>  <span class="n">initial_fmax</span>  <span class="n">initial_fmean</span>  <span class="n">initial_fstd</span>  \
-<span class="n">sic_relaxation</span>  <span class="mf">1.095144e-29</span>  <span class="mf">1.095144e-29</span>   <span class="mf">1.095144e-29</span>           <span class="mf">0.0</span>
-<span class="n">same_hist</span>       <span class="mf">1.095144e-29</span>  <span class="mf">1.095144e-29</span>   <span class="mf">1.095144e-29</span>           <span class="mf">0.0</span>
+                initial_fmin  initial_fmax  initial_fmean  initial_fstd  \
+sic_relaxation  1.095144e-29  1.095144e-29   1.095144e-29           0.0
+same_hist       1.095144e-29  1.095144e-29   1.095144e-29           0.0
 
-                <span class="n">initial_drift</span>
-<span class="n">sic_relaxation</span>            <span class="mf">0.0</span>
-<span class="n">same_hist</span>                 <span class="mf">0.0</span>
+                initial_drift
+sic_relaxation            0.0
+same_hist                 0.0
 
-<span class="p">[</span><span class="mi">2</span> <span class="n">rows</span> <span class="n">x</span> <span class="mi">25</span> <span class="n">columns</span><span class="p">]</span>
+[2 rows x 25 columns]
 </pre></div>
 </div>
 <div class="line-block">
@@ -203,8 +207,8 @@ structure relaxations with the HIST robot.</p>
 <span class="n">robot</span><span class="o">.</span><span class="n">combiplot</span><span class="p">()</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  0.601 seconds)</p>
-<div class="sphx-glr-footer docutils container">
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.531 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-multiple-hist-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_multiple_hist.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_multiple_hist.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
@@ -226,7 +230,7 @@ structure relaxations with the HIST robot.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

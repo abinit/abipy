@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_multiple_hist.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_multiple_hist.py:
 
@@ -18,17 +22,19 @@ structure relaxations with the HIST robot.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_multiple_hist_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_multiple_hist_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     formula  natom  alpha  beta  gamma         a         b  \
     sic_relaxation  Si1 C1      2   60.0  60.0   60.0  3.064763  3.064763   
@@ -80,13 +86,17 @@ structure relaxations with the HIST robot.
     # (meaningless in this case as we are using the same HIST file).
     robot.combiplot()
 
-**Total running time of the script:** ( 0 minutes  0.601 seconds)
+**Total running time of the script:** ( 0 minutes  0.531 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_multiple_hist.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

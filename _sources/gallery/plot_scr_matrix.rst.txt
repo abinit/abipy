@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_scr_matrix.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_scr_matrix.py:
 
@@ -19,22 +23,24 @@ See also `plot_scr.py` for the optical spectrum.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_scr_matrix_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_scr_matrix_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_scr_matrix_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     ======================== inverse_dielectric_function ========================
       K-point: [+0.500, +0.000, +0.000], weight: 0.000
@@ -79,13 +85,17 @@ See also `plot_scr.py` for the optical spectrum.
         # Plot e^{-1}_{G1, G2} along the imaginary axis.
         em1.plot_gg(wpos="imag")
 
-**Total running time of the script:** ( 0 minutes  3.288 seconds)
+**Total running time of the script:** ( 0 minutes  0.945 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_scr_matrix.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

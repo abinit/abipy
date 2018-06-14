@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_multiple_mdf.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_multiple_mdf.py:
 
@@ -17,12 +21,12 @@ This example shows how to analyze multiple MDF files.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_multiple_mdf_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_multiple_mdf_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 
@@ -51,13 +55,17 @@ This example shows how to analyze multiple MDF files.
 
     robot.close()
 
-**Total running time of the script:** ( 0 minutes  1.364 seconds)
+**Total running time of the script:** ( 0 minutes  1.015 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_multiple_mdf.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

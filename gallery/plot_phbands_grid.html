@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Multiple phonon bands &#8212; abipy 0.5.0 documentation</title>
+    <title>Multiple phonon bands &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -145,7 +145,11 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="multiple-phonon-bands">
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-phbands-grid-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="multiple-phonon-bands">
 <span id="sphx-glr-gallery-plot-phbands-grid-py"></span><h1>Multiple phonon bands<a class="headerlink" href="#multiple-phonon-bands" title="Permalink to this headline">¶</a></h1>
 <p>This example shows how to plot several phonon band structures on a grid.</p>
 <p>We use two files produced by anaddb:</p>
@@ -154,17 +158,17 @@
 trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.</div></blockquote>
 <p>See also tutorial/lesson_rf2.html</p>
 <ul class="sphx-glr-horizontal">
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phbands_grid_001.png"><img alt="../_images/sphx_glr_plot_phbands_grid_001.png" src="../_images/sphx_glr_plot_phbands_grid_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_phbands_grid_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_phbands_grid_001.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phbands_grid_002.png"><img alt="../_images/sphx_glr_plot_phbands_grid_002.png" src="../_images/sphx_glr_plot_phbands_grid_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_phbands_grid_002.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_phbands_grid_002.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phbands_grid_003.png"><img alt="../_images/sphx_glr_plot_phbands_grid_003.png" src="../_images/sphx_glr_plot_phbands_grid_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_phbands_grid_003.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_phbands_grid_003.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_phbands_grid_004.png"><img alt="../_images/sphx_glr_plot_phbands_grid_004.png" src="../_images/sphx_glr_plot_phbands_grid_004.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_phbands_grid_004.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_phbands_grid_004.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span>[31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>[31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
 Particular methods need them![0m
 [31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
 Particular methods need them![0m
@@ -208,8 +212,8 @@ Particular methods need them![0m
 <span class="n">plotter</span><span class="o">.</span><span class="n">gridplot</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="s2">&quot;cm-1&quot;</span><span class="p">,</span> <span class="n">tight_layout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Bands + DOS in cm-1 with gridplot&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  7.896 seconds)</p>
-<div class="sphx-glr-footer docutils container">
+<p><strong>Total running time of the script:</strong> ( 0 minutes  6.804 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-phbands-grid-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_phbands_grid.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_phbands_grid.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
@@ -231,7 +235,7 @@ Particular methods need them![0m
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

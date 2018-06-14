@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_gaas_ebands_soc.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_gaas_ebands_soc.py:
 
@@ -115,7 +119,7 @@ The SOC term can be deactivated with the input variable `so_psp`.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_gaas_ebands_soc_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -148,13 +152,17 @@ and then plot the two band structure on the same figure with:
    :alt: Band structure of GaAs without/with SOC on the same graph
 
 
-**Total running time of the script:** ( 0 minutes  0.467 seconds)
+**Total running time of the script:** ( 0 minutes  0.117 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_gaas_ebands_soc.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_phonon_fatbands.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_phonon_fatbands.py:
 
@@ -18,32 +22,34 @@ See tutorial/lesson_rf2.html
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_fatbands_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_fatbands_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_fatbands_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_fatbands_004.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_fatbands_005.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     [31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
     Particular methods need them![0m
@@ -80,13 +86,17 @@ See tutorial/lesson_rf2.html
     # Decompose contributions along the three Cartesian directions.
     phbands.plot_phdispl_cartdirs(qpoint=(0, 0, 0), units="cm-1")
 
-**Total running time of the script:** ( 0 minutes  2.840 seconds)
+**Total running time of the script:** ( 0 minutes  1.881 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_phonon_fatbands.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_phbands_nkpt_tsmear.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_phbands_nkpt_tsmear.py:
 
@@ -22,12 +26,12 @@ We use two files produced by anaddb:
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phbands_nkpt_tsmear_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phbands_nkpt_tsmear_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 
@@ -68,13 +72,17 @@ We use two files produced by anaddb:
 
     #r.phbands_plotter.gridplot_with_hue("nkpt")
 
-**Total running time of the script:** ( 0 minutes  14.897 seconds)
+**Total running time of the script:** ( 0 minutes  11.453 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_phbands_nkpt_tsmear.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_gwconv_ecuteps.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_gwconv_ecuteps.py:
 
@@ -12,7 +16,7 @@ G0W0 convergence study wrt ecuteps and the number of bands in W.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_gwconv_ecuteps_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -156,13 +160,17 @@ G0W0 convergence study wrt ecuteps and the number of bands in W.
     if __name__=="__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.189 seconds)
+**Total running time of the script:** ( 0 minutes  0.150 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_gwconv_ecuteps.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

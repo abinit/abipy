@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.bse &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.electrons.bse &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -758,7 +758,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div></div>
 
-    <span class="c1">#def ipw_plot(self)</span>
+    <span class="c1">#def ipw_plot(self) # pragma: no cover</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
     <span class="c1">#    Return an ipython widget with controllers to select the plot.</span>
     <span class="c1">#    &quot;&quot;&quot;</span>
@@ -1022,7 +1022,7 @@
 
         <span class="k">return</span> <span class="n">qpoints</span>
 
-<div class="viewcode-block" id="MultipleMdfPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="MultipleMdfPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.bse.MultipleMdfPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an ipython widget with controllers to select the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1168,7 +1168,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

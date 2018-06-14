@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_den.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_den.py:
 
@@ -18,22 +22,24 @@ stored in the DEN.nc file.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_den_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_den_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_den_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     Full Formula (Si2)
     Reduced Formula: Si
@@ -87,13 +93,17 @@ stored in the DEN.nc file.
     # and all the neighbors within a sphere of radius 3 Angstrom:
     density.plot_line_neighbors(site_index=0, radius=3)
 
-**Total running time of the script:** ( 0 minutes  0.262 seconds)
+**Total running time of the script:** ( 0 minutes  0.206 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_den.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

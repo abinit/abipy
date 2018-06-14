@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>tools Package &#8212; abipy 0.5.0 documentation</title>
+    <title>tools Package &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1066,13 +1066,15 @@ Mainly used to handle text files written without any schema.</p>
 
 <dl class="method">
 <dt id="abipy.tools.plotting.GenericDataFilePlotter.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilePlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilePlotter.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>use_index=False</em>, <em>fontsize=8</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilePlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilePlotter.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot all arrays. Use multiple axes if datasets.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>use_index</strong> – By default, the x-values are taken from the first column.
+If use_index is False, the x-values are the row index.</li>
 <li><strong>fontsize</strong> – fontsize for title.</li>
 <li><strong>kwargs</strong> – options passed to <code class="docutils literal"><span class="pre">ax.plot</span></code>.</li>
 </ul>
@@ -1138,13 +1140,15 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 
 <dl class="method">
 <dt id="abipy.tools.plotting.GenericDataFilesPlotter.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>fontsize=8</em>, <em>colormap='viridis'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>use_index=False</em>, <em>fontsize=8</em>, <em>colormap='viridis'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot all arrays. Use multiple axes if datasets.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>use_index</strong> – By default, the x-values are taken from the first column.
+If use_index is False, the x-values are the row index.</li>
 <li><strong>fontsize</strong> – fontsize for title.</li>
 <li><strong>colormap</strong> – matplotlib color map.</li>
 <li><strong>kwargs</strong> – options passed to <code class="docutils literal"><span class="pre">ax.plot</span></code>.</li>
@@ -1260,7 +1264,7 @@ plt: matplotlib pyplot module.</td>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.core.testing &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.core.testing &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -519,6 +519,9 @@
 <div class="viewcode-block" id="AbipyTest.has_ipywidgets"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.testing.AbipyTest.has_ipywidgets">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">has_ipywidgets</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;Return True if ipywidgets_ package is available.&quot;&quot;&quot;</span>
+        <span class="c1"># Disabled due to:</span>
+        <span class="c1"># AttributeError: &#39;NoneType&#39; object has no attribute &#39;session&#39;</span>
+        <span class="k">return</span> <span class="kc">False</span>
         <span class="c1"># Disable widget tests on TRAVIS</span>
         <span class="c1">#if os.environ.get(&quot;TRAVIS&quot;): return False</span>
         <span class="k">try</span><span class="p">:</span>
@@ -678,7 +681,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

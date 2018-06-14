@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_qpbands_with_scissor.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_qpbands_with_scissor.py:
 
@@ -21,17 +25,19 @@ structure are plotted with matplotlib.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qpbands_with_scissor_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qpbands_with_scissor_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     KS fermie 5.5984532787385985 --> QP fermie 5.407251265724052 Delta(QP-KS)= -0.19120201301454642
     KS fermie 5.5984532787385985 --> QP fermie 5.407251265724052 Delta(QP-KS)= -0.19120201301454642
@@ -88,13 +94,17 @@ structure are plotted with matplotlib.
     plotter.gridplot(title="Silicon band structure")
     sigma_file.close()
 
-**Total running time of the script:** ( 0 minutes  2.244 seconds)
+**Total running time of the script:** ( 0 minutes  2.250 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_qpbands_with_scissor.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

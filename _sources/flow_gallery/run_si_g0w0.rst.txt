@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_si_g0w0.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_si_g0w0.py:
 
@@ -154,7 +158,7 @@ can be implemented on the basis of this example.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_si_g0w0_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -222,13 +226,17 @@ and then, inside the ipython terminal, type:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.124 seconds)
+**Total running time of the script:** ( 0 minutes  0.115 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_si_g0w0.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

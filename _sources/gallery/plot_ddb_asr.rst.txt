@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_ddb_asr.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_ddb_asr.py:
 
@@ -18,12 +22,12 @@ with and without imposing the acoustic sum rule at the Gamma point.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_ddb_asr_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_ddb_asr_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 
@@ -47,13 +51,17 @@ with and without imposing the acoustic sum rule at the Gamma point.
     plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10)
     plotter.gridplot()
 
-**Total running time of the script:** ( 1 minutes  7.190 seconds)
+**Total running time of the script:** ( 0 minutes  56.822 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_ddb_asr.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

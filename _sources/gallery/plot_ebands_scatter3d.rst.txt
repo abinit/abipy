@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_ebands_scatter3d.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_ebands_scatter3d.py:
 
@@ -14,7 +18,7 @@ The color of the point gives the energy of the state wrt to the Fermi level.
 
 
 .. image:: /gallery/images/sphx_glr_plot_ebands_scatter3d_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -29,13 +33,17 @@ The color of the point gives the energy of the state wrt to the Fermi level.
     with abilab.abiopen(abidata.ref_file("ni_kpath_GSR.nc")) as ncfile:
         ncfile.ebands.plot_scatter3d(band=9, spin=0)
 
-**Total running time of the script:** ( 0 minutes  2.482 seconds)
+**Total running time of the script:** ( 0 minutes  1.817 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_ebands_scatter3d.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

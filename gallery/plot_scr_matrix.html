@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>SCR matrix &#8212; abipy 0.5.0 documentation</title>
+    <title>SCR matrix &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -145,26 +145,30 @@
   <div class="row">
     <div class="col-md-12 content">
       
-  <div class="section" id="scr-matrix">
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-gallery-plot-scr-matrix-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="scr-matrix">
 <span id="sphx-glr-gallery-plot-scr-matrix-py"></span><h1>SCR matrix<a class="headerlink" href="#scr-matrix" title="Permalink to this headline">¶</a></h1>
 <p>This examples shows how to plot the matrix elements of the
 inverse dielectric function stored in the SCR file (optdriver 3)
 See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
 <ul class="sphx-glr-horizontal">
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_scr_matrix_001.png"><img alt="../_images/sphx_glr_plot_scr_matrix_001.png" src="../_images/sphx_glr_plot_scr_matrix_001.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_scr_matrix_001.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_scr_matrix_001.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_scr_matrix_002.png"><img alt="../_images/sphx_glr_plot_scr_matrix_002.png" src="../_images/sphx_glr_plot_scr_matrix_002.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_scr_matrix_002.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_scr_matrix_002.png" />
 </li>
-<li><a class="first reference internal image-reference" href="../_images/sphx_glr_plot_scr_matrix_003.png"><img alt="../_images/sphx_glr_plot_scr_matrix_003.png" src="../_images/sphx_glr_plot_scr_matrix_003.png" style="width: 300.79999999999995px; height: 225.6px;" /></a>
+<li><img alt="../_images/sphx_glr_plot_scr_matrix_003.png" class="sphx-glr-multi-img first" src="../_images/sphx_glr_plot_scr_matrix_003.png" />
 </li>
 </ul>
 <p class="sphx-glr-script-out">Out:</p>
-<div class="sphx-glr-script-out highlight-default"><div class="highlight"><pre><span></span><span class="o">========================</span> <span class="n">inverse_dielectric_function</span> <span class="o">========================</span>
-  <span class="n">K</span><span class="o">-</span><span class="n">point</span><span class="p">:</span> <span class="p">[</span><span class="o">+</span><span class="mf">0.500</span><span class="p">,</span> <span class="o">+</span><span class="mf">0.000</span><span class="p">,</span> <span class="o">+</span><span class="mf">0.000</span><span class="p">],</span> <span class="n">weight</span><span class="p">:</span> <span class="mf">0.000</span>
-  <span class="n">Number</span> <span class="n">of</span> <span class="n">G</span><span class="o">-</span><span class="n">vectors</span><span class="p">:</span> <span class="mi">9</span>
-  <span class="n">Total</span> <span class="n">number</span> <span class="n">of</span> <span class="n">frequencies</span><span class="p">:</span> <span class="mi">35</span> <span class="p">(</span><span class="n">real</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="n">imaginary</span><span class="p">:</span> <span class="mi">5</span><span class="p">)</span>
-  <span class="n">Real</span> <span class="n">frequencies</span> <span class="n">up</span> <span class="n">to</span> <span class="mf">0.73</span> <span class="p">(</span><span class="n">eV</span><span class="p">)</span>
-  <span class="n">Imaginary</span> <span class="n">frequencies</span> <span class="n">up</span> <span class="n">to</span> <span class="mf">2.69</span> <span class="p">(</span><span class="n">eV</span><span class="p">)</span>
+<div class="sphx-glr-script-out highlight-none"><div class="highlight"><pre><span></span>======================== inverse_dielectric_function ========================
+  K-point: [+0.500, +0.000, +0.000], weight: 0.000
+  Number of G-vectors: 9
+  Total number of frequencies: 35 (real: 30, imaginary: 5)
+  Real frequencies up to 0.73 (eV)
+  Imaginary frequencies up to 2.69 (eV)
 </pre></div>
 </div>
 <div class="line-block">
@@ -199,8 +203,8 @@ See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
     <span class="n">em1</span><span class="o">.</span><span class="n">plot_gg</span><span class="p">(</span><span class="n">wpos</span><span class="o">=</span><span class="s2">&quot;imag&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Total running time of the script:</strong> ( 0 minutes  3.288 seconds)</p>
-<div class="sphx-glr-footer docutils container">
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.945 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-gallery-plot-scr-matrix-py">
 <div class="sphx-glr-download docutils container">
 <a class="reference download internal" href="../_downloads/plot_scr_matrix.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_scr_matrix.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
@@ -222,7 +226,7 @@ See also <cite>plot_scr.py</cite> for the optical spectrum.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

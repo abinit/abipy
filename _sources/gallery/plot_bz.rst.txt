@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_bz.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_bz.py:
 
@@ -13,7 +17,7 @@ with pymatgen and matplotlib.
 
 
 .. image:: /gallery/images/sphx_glr_plot_bz_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -36,13 +40,17 @@ with pymatgen and matplotlib.
     # Close the wfk file
     wfk_file.close()
 
-**Total running time of the script:** ( 0 minutes  0.704 seconds)
+**Total running time of the script:** ( 0 minutes  0.485 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_bz.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

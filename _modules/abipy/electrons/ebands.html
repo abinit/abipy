@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.ebands &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.electrons.ebands &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1363,7 +1363,12 @@
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                     <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence minimum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lomos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
                 <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Valence maximum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Cannot assume enough states for this!</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;Conduction minimum located at:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">indent</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lumos</span><span class="p">[</span><span class="n">spin</span><span class="p">])))</span>
+                    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
 
         <span class="k">if</span> <span class="n">with_kpoints</span><span class="p">:</span>
             <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;K-points&quot;</span><span class="p">))</span>
@@ -1433,7 +1438,7 @@
         <span class="k">return</span> <span class="n">StatParams</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="n">ediff</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">),</span> <span class="n">stdev</span><span class="o">=</span><span class="n">ediff</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">),</span>
                           <span class="nb">min</span><span class="o">=</span><span class="n">ediff</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">),</span> <span class="nb">max</span><span class="o">=</span><span class="n">ediff</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="ElectronBands.ipw_edos_widget"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.ipw_edos_widget">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_edos_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBands.ipw_edos_widget"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBands.ipw_edos_widget">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_edos_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an ipython widget with controllers to compute the electron DOS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2910,7 +2915,7 @@
         <span class="sd">&quot;&quot;&quot;Integration with jupyter_ notebooks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ipw_select_plot</span><span class="p">()</span>
 
-<div class="viewcode-block" id="ElectronBandsPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronBandsPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronBandsPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an ipython widget with controllers to select the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3023,15 +3028,7 @@
     <span class="k">def</span> <span class="nf">read_smearing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a :class:`Smearing` instance with info on the smearing technique.&quot;&quot;&quot;</span>
         <span class="n">occopt</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;occopt&quot;</span><span class="p">))</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">scheme</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;smearing_scheme&quot;</span><span class="p">))</span>
-            <span class="n">scheme</span> <span class="o">=</span> <span class="n">scheme</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="c1">#cprint(&quot;Error while trying to read `smearing_scheme`. Set scheme to None&quot;)</span>
-            <span class="c1">#scheme = None</span>
-            <span class="n">scheme</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;smearing_scheme&quot;</span><span class="p">))</span>
-            <span class="n">scheme</span> <span class="o">=</span> <span class="n">scheme</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_string</span><span class="p">(</span><span class="s2">&quot;smearing_scheme&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Smearing</span><span class="p">(</span>
             <span class="n">scheme</span><span class="o">=</span><span class="n">scheme</span><span class="p">,</span>
@@ -3557,7 +3554,7 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
-<div class="viewcode-block" id="ElectronDosPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronDosPlotter.ipw_select_plot"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.ebands.ElectronDosPlotter.ipw_select_plot">[docs]</a>    <span class="k">def</span> <span class="nf">ipw_select_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an ipython widget with controllers to select the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3839,10 +3836,15 @@
 <span class="sd">        Return: |matplotlib-Figure|</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">measure</span>
+            <span class="kn">import</span> <span class="nn">skimage</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;scikit-image not installed.</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="s2">&quot;Please install with it with `conda install scikit-image` or `pip install scikit-image`&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="k">import</span> <span class="n">marching_cubes_lewiner</span> <span class="k">as</span> <span class="n">marching_cubes</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="k">import</span> <span class="n">marching_cubes</span>
 
         <span class="n">e0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
         <span class="n">isobands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_isobands</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
@@ -3868,7 +3870,8 @@
                 <span class="c1">#   Gives a measure for the maximum value of the data in the local region near each vertex.</span>
                 <span class="c1">#   This can be used by visualization tools to apply a colormap to the mesh</span>
                 <span class="n">voldata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ucdata_sbk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">band</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kdivs</span><span class="p">)</span>
-                <span class="n">verts</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">measure</span><span class="o">.</span><span class="n">marching_cubes</span><span class="p">(</span><span class="n">voldata</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spacing</span><span class="p">))</span>
+                <span class="n">verts</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">marching_cubes</span><span class="p">(</span><span class="n">voldata</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">e0</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spacing</span><span class="p">))</span>
+                <span class="c1">#verts, faces, normals, values = marching_cubes_lewiner(voldata, level=e0, spacing=tuple(self.spacing))</span>
                 <span class="n">verts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">plot_trisurf</span><span class="p">(</span><span class="n">verts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">verts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">faces</span><span class="p">,</span> <span class="n">verts</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span> <span class="c1">#, cmap=&#39;Spectral&#39;, lw=1, antialiased=True)</span>
                 <span class="c1"># mayavi package:</span>
@@ -4161,7 +4164,14 @@
                 <span class="k">if</span> <span class="n">hue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># Extract data.</span>
                     <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span> <span class="o">=</span> <span class="n">get_xy</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">)</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_string</span><span class="p">(</span><span class="n">xvals</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Must handle list of strings in a different way.</span>
+                        <span class="n">xn</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xvals</span><span class="p">))</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xn</span><span class="p">)</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
                         <span class="c1"># Extract data.</span>
@@ -4263,7 +4273,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

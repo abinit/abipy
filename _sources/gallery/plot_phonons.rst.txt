@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_phonons.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_phonons.py:
 
@@ -13,12 +17,14 @@ See tutorial/lesson_rf2.html
 
 
 .. image:: /gallery/images/sphx_glr_plot_phonons_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     [31mWarning: file /Users/gmatteo/git_repos/abipy/abipy/data/refs/alas_phonons/trf2_5.out_PHBST.nc does not contain atomic_numbers.
     Particular methods need them![0m
@@ -58,13 +64,17 @@ See tutorial/lesson_rf2.html
     # and pass it to the plot method:
     #phbands.plot(title="AlAs without LO-TO splitting", qlabels=qlabels)
 
-**Total running time of the script:** ( 0 minutes  1.401 seconds)
+**Total running time of the script:** ( 0 minutes  1.311 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_phonons.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

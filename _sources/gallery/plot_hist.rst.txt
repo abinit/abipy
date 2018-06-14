@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_hist.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_hist.py:
 
@@ -18,17 +22,19 @@ structure relaxation run using the HIST.nc file.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_hist_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_hist_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     Full Formula (Si1 C1)
     Reduced Formula: SiC
@@ -67,13 +73,17 @@ structure relaxation run using the HIST.nc file.
 
     hist.close()
 
-**Total running time of the script:** ( 0 minutes  1.383 seconds)
+**Total running time of the script:** ( 0 minutes  0.680 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_hist.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

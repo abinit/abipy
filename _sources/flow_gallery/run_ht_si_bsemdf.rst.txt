@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_ht_si_bsemdf.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_ht_si_bsemdf.py:
 
@@ -86,7 +90,7 @@ Calculation of the BSE spectrum with the High-throuhput interface (factory funct
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_ht_si_bsemdf_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -145,13 +149,17 @@ to produce:
 
 
 
-**Total running time of the script:** ( 0 minutes  0.108 seconds)
+**Total running time of the script:** ( 0 minutes  0.097 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_ht_si_bsemdf.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

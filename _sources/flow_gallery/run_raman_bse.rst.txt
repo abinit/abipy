@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_raman_bse.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_raman_bse.py:
 
@@ -147,7 +151,7 @@ excitonic effects included with the BSE formalism.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_raman_bse_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -175,13 +179,17 @@ to compare the real and imaginary part of the macroscopic dielectric function fo
 
 
 
-**Total running time of the script:** ( 0 minutes  0.132 seconds)
+**Total running time of the script:** ( 0 minutes  0.114 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_raman_bse.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abio Package &#8212; abipy 0.5.0 documentation</title>
+    <title>abio Package &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -49,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -2070,7 +2070,7 @@ is constructed from the dataset index e.g. run0.abi</p>
 
 <dl class="class">
 <dt id="abipy.abio.inputs.AnaddbInput">
-<em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">AnaddbInput</code><span class="sig-paren">(</span><em>structure</em>, <em>comment=''</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">abipy.abio.inputs.</code><code class="descname">AnaddbInput</code><span class="sig-paren">(</span><em>structure</em>, <em>comment=''</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em>, <em>spell_check=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abipy.abio.inputs.AbstractInput" title="abipy.abio.inputs.AbstractInput"><code class="xref py py-class docutils literal"><span class="pre">abipy.abio.inputs.AbstractInput</span></code></a>, <a class="reference internal" href="core_api.html#abipy.core.mixins.Has_Structure" title="abipy.core.mixins.Has_Structure"><code class="xref py py-class docutils literal"><span class="pre">abipy.core.mixins.Has_Structure</span></code></a></p>
 <p>This object stores the anaddb variables.</p>
 <p class="rubric">Inheritance Diagram</p>
@@ -2105,7 +2105,7 @@ is constructed from the dataset index e.g. run0.abi</p>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.AnaddbInput.modes_at_qpoint">
-<em class="property">classmethod </em><code class="descname">modes_at_qpoint</code><span class="sig-paren">(</span><em>structure</em>, <em>qpoint</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>ifcflag=0</em>, <em>lo_to_splitting=False</em>, <em>directions=None</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.modes_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.modes_at_qpoint" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">modes_at_qpoint</code><span class="sig-paren">(</span><em>structure</em>, <em>qpoint</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>ifcflag=0</em>, <em>lo_to_splitting=False</em>, <em>directions=None</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em>, <em>spell_check=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.modes_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.modes_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input file for the calculation of the phonon frequencies at a given q-point.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2120,6 +2120,7 @@ is constructed from the dataset index e.g. run0.abi</p>
 cartesian direction will be used</li>
 <li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
 <li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>spell_check</strong> – False to disable spell checking for input variables.</li>
 </ul>
 </td>
 </tr>
@@ -2135,7 +2136,7 @@ cartesian direction will be used</li>
 
 <dl class="classmethod">
 <dt id="abipy.abio.inputs.AnaddbInput.phbands_and_dos">
-<em class="property">classmethod </em><code class="descname">phbands_and_dos</code><span class="sig-paren">(</span><em>structure</em>, <em>ngqpt</em>, <em>nqsmall</em>, <em>qppa=None</em>, <em>ndivsm=20</em>, <em>line_density=None</em>, <em>q1shft=(0</em>, <em>0</em>, <em>0)</em>, <em>qptbounds=None</em>, <em>asr=2</em>, <em>chneut=0</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting=False</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.phbands_and_dos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.phbands_and_dos" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">phbands_and_dos</code><span class="sig-paren">(</span><em>structure</em>, <em>ngqpt</em>, <em>nqsmall</em>, <em>qppa=None</em>, <em>ndivsm=20</em>, <em>line_density=None</em>, <em>q1shft=(0</em>, <em>0</em>, <em>0)</em>, <em>qptbounds=None</em>, <em>asr=2</em>, <em>chneut=0</em>, <em>dipdip=1</em>, <em>dos_method='tetra'</em>, <em>lo_to_splitting=False</em>, <em>anaddb_args=None</em>, <em>anaddb_kwargs=None</em>, <em>spell_check=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/inputs.html#AnaddbInput.phbands_and_dos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.inputs.AnaddbInput.phbands_and_dos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build an anaddb input file for the computation of phonon bands and phonon DOS.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2160,6 +2161,7 @@ In the later case, the value 0.001 eV is used as gaussian broadening</li>
 <li><strong>lo_to_splitting</strong> – if True calculation of the LO-TO splitting will be included</li>
 <li><strong>anaddb_args</strong> – List of tuples (key, value) with Anaddb input variables (default: empty)</li>
 <li><strong>anaddb_kwargs</strong> – Dictionary with Anaddb input variables (default: empty)</li>
+<li><strong>spell_check</strong> – False to disable spell checking for input variables.</li>
 </ul>
 </td>
 </tr>
@@ -2993,7 +2995,7 @@ Can compare dimensions, SCF cycles, analyze timers.</p>
 <dl class="method">
 <dt id="abipy.abio.outputs.AboRobot.get_dims_dataframe">
 <code class="descname">get_dims_dataframe</code><span class="sig-paren">(</span><em>with_time=True</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_dims_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_dims_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the dimensions of the calculation.</p>
+<dd><p>Build and return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the dimensions of the calculation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3011,7 +3013,7 @@ Can compare dimensions, SCF cycles, analyze timers.</p>
 <dl class="method">
 <dt id="abipy.abio.outputs.AboRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_geo=True</em>, <em>with_dims=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results and the filenames as index.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3033,7 +3035,7 @@ where key is a string with the name of column and value is the value to be inser
 <dl class="method">
 <dt id="abipy.abio.outputs.AboRobot.get_time_dataframe">
 <code class="descname">get_time_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/outputs.html#AboRobot.get_time_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.outputs.AboRobot.get_time_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the wall-time, cpu time in seconds and the filenames as index.</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the wall-time, cpu time in seconds and the filenames as index.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3498,19 +3500,19 @@ True if the file should be added to the plotter.</li>
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.get_lattice_dataframe">
 <code class="descname">get_lattice_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_lattice_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_lattice_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with lattice parameters.</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with lattice parameters.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.get_coords_dataframe">
 <code class="descname">get_coords_dataframe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_coords_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_coords_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with atomic positions.</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with atomic positions.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="abipy.abio.robots.Robot.get_params_dataframe">
 <code class="descname">get_params_dataframe</code><span class="sig-paren">(</span><em>abspath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/abio/robots.html#Robot.get_params_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.abio.robots.Robot.get_params_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important parameters.
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important parameters.
 that are usually subject to convergence studies.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3532,7 +3534,7 @@ Useful for convergence tests done wrt to two parameters.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>data</strong> – <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+92.ge77dc7e.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> containing columns <cite>x</cite>, <cite>y</cite>, and <cite>hue</cite>.</li>
+<li><strong>data</strong> – <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> containing columns <cite>x</cite>, <cite>y</cite>, and <cite>hue</cite>.</li>
 <li><strong>x</strong> – Name of the column used as x-value</li>
 <li><strong>y</strong> – Name of the column used as y-value</li>
 <li><strong>hue</strong> – Variable that define subsets of the data, which will be drawn on separate lines</li>
@@ -3890,7 +3892,7 @@ The result might be spread among several lines.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

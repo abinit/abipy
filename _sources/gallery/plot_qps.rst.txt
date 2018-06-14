@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_qps.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_qps.py:
 
@@ -18,27 +22,27 @@ stored in the SIGRES produced by the GW code (sigma run)
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qps_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qps_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qps_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qps_004.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_qps_005.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 
@@ -66,13 +70,17 @@ stored in the SIGRES produced by the GW code (sigma run)
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  2.331 seconds)
+**Total running time of the script:** ( 0 minutes  1.681 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_qps.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_phonon_pjdos.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_phonon_pjdos.py:
 
@@ -18,22 +22,24 @@ See tutorial/lesson_rf2.html
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_pjdos_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_pjdos_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_phonon_pjdos_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     Calling spglib to find inequivalent sites.
     Note that `symafm` magnetic symmetries (if any) are not taken into account.
@@ -67,13 +73,17 @@ See tutorial/lesson_rf2.html
         # To plot the PJDOS for all the inequivalent sites.
         phdos_file.plot_pjdos_cartdirs_site(view="inequivalent", stacked=True)
 
-**Total running time of the script:** ( 0 minutes  0.377 seconds)
+**Total running time of the script:** ( 0 minutes  0.233 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_phonon_pjdos.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

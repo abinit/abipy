@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_gscycle.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_gscycle.py:
 
@@ -13,7 +17,7 @@ GS self-consistent cycle reported in the main output file.
 
 
 .. image:: /gallery/images/sphx_glr_plot_gscycle_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -41,13 +45,17 @@ GS self-consistent cycle reported in the main output file.
 
     abo.close()
 
-**Total running time of the script:** ( 0 minutes  0.129 seconds)
+**Total running time of the script:** ( 0 minutes  0.121 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_gscycle.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

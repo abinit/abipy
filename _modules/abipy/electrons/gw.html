@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.gw &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.electrons.gw &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -651,6 +651,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle what option </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">what</span><span class="p">))</span>
 
+        <span class="c1">#ax.set_xlabel(r&quot;$\omega - \espilon_{KS} (eV)&quot;)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">lines</span>
@@ -812,23 +813,25 @@
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Structure&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Kohn-Sham bands&quot;</span><span class="p">,</span> <span class="n">with_structure</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="c1"># TODO: Finalize the implementation: add GW metadata.</span>
-        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;QP direct gaps in eV&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;QP direct gaps&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">kgw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwkpoints</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
                 <span class="n">qp_dirgap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kgw</span><span class="p">)</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;QP_dirgap: </span><span class="si">%.3f</span><span class="s2"> (eV) for K-point: </span><span class="si">%s</span><span class="s2">, spin: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qp_dirgap</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">kgw</span><span class="p">),</span> <span class="n">spin</span><span class="p">))</span>
                 <span class="c1">#ks_dirgap =</span>
-                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;QP_dirgap: </span><span class="si">%.3f</span><span class="s2"> for K-point: </span><span class="si">%s</span><span class="s2">, spin: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qp_dirgap</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">kgw</span><span class="p">),</span> <span class="n">spin</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="c1">#if verbose &gt; 1</span>
-        <span class="c1">#    strio = cStringIO()</span>
-        <span class="c1">#    self.print_qps(file=strio)</span>
-        <span class="c1">#    strio.seek(0)</span>
-        <span class="c1">#    app(&quot;&quot;)</span>
-        <span class="c1">#    app(marquee(&quot;QP results for each k-point and spin (All in eV)&quot;, mark=&quot;=&quot;))</span>
-        <span class="c1">#    app(&quot;&quot;.join(strio))</span>
-        <span class="c1">#    app(&quot;&quot;)</span>
+        <span class="c1"># Show QP results</span>
+        <span class="n">strio</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_qps</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ignore_imag</span><span class="o">=</span><span class="n">verbose</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">strio</span><span class="p">)</span>
+        <span class="n">strio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="s2">&quot;QP results for each k-point and spin (all in eV)&quot;</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strio</span><span class="p">))</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="c1"># TODO: Fix header.</span>
         <span class="c1">#if verbose &gt; 1:</span>
@@ -847,6 +850,11 @@
     <span class="k">def</span> <span class="nf">ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;|ElectronBands| with the KS energies.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebands</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_spectral_function</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if file contains spectral function data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">has_spfunc</span>
 
 <div class="viewcode-block" id="SigresFile.qplist_spin"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.qplist_spin">[docs]</a>    <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">qplist_spin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -991,7 +999,7 @@
 <span class="sd">        Plot the spectral function for all k-points, bands and spins available in the SIGRES file.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            include_bands: List of bands to include. Note means all.</span>
+<span class="sd">            include_bands: List of bands to include. Nonee means all.</span>
 <span class="sd">            fontsize: Legend and title fontsize.</span>
 
 <span class="sd">        Returns: |matplotlib-Figure|</span>
@@ -1326,7 +1334,8 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not enough bands in ks_ebands_kmesh, found </span><span class="si">%s</span><span class="s2">, minimum expected </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">ks_ebands_kmesh</span><span class="o">%</span><span class="n">nband</span><span class="p">,</span> <span class="n">bstop</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">ks_ebands_kpath</span><span class="o">.</span><span class="n">structure</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sigres.structure and ks_ebands_kmesh.structures differ. Check your files!&quot;</span><span class="p">)</span>
+                <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;sigres.structure and ks_ebands_kpath.structures differ. Check your files!&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="c1">#raise ValueError(&quot;sigres.structure and ks_ebands_kmesh.structures differ. Check your files!&quot;)</span>
 
             <span class="c1"># K-points and weight for DOS are taken from ks_ebands_kmesh</span>
             <span class="n">dos_kcoords</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks_ebands_kmesh</span><span class="o">.</span><span class="n">kpoints</span><span class="p">]</span>
@@ -1359,7 +1368,9 @@
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpbands_ibz</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ksbands_with_qpmarkers</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_ksbands_with_qpmarkers</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_spectral_function</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_spectral_functions</span><span class="p">(</span><span class="n">include_bands</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SigresFile.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1846,7 +1857,7 @@
     <span class="k">def</span> <span class="nf">_check_dims_and_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test that nsppol, sigma_kpoints, tlist are consistent.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span>
+            <span class="k">return</span> <span class="mi">0</span>
 
         <span class="n">nc0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abifiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1973,7 +1984,15 @@
                     <span class="n">qp_gaps</span><span class="p">,</span> <span class="n">ks_gaps</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kgw</span><span class="p">,</span> <span class="n">with_ksgap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">ncfiles</span><span class="p">]))</span>
                     <span class="n">yvals</span> <span class="o">=</span> <span class="n">qp_gaps</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_qpmks</span> <span class="k">else</span> <span class="n">qp_gaps</span> <span class="o">-</span> <span class="n">ks_gaps</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_string</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Must handle list of strings in a different way.</span>
+                        <span class="n">xn</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xn</span><span class="p">)</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
                         <span class="n">qp_gaps</span><span class="p">,</span> <span class="n">ks_gaps</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">get_qpgap</span><span class="p">(</span><span class="n">spin</span><span class="p">,</span> <span class="n">kgw</span><span class="p">,</span> <span class="n">with_ksgap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2056,7 +2075,14 @@
             <span class="k">if</span> <span class="n">hue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Extract QP data.</span>
                 <span class="n">yvals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">qp</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span> <span class="k">for</span> <span class="n">qp</span> <span class="ow">in</span> <span class="n">qplist</span><span class="p">]</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_string</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Must handle list of strings in a different way.</span>
+                    <span class="n">xn</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xn</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">qplist</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">qplist_group</span><span class="p">):</span>
                     <span class="c1"># Extract QP data.</span>
@@ -2192,6 +2218,15 @@
 
         <span class="k">return</span> <span class="n">fig</span></div>
 
+<div class="viewcode-block" id="SigresRobot.yield_figs"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresRobot.yield_figs">[docs]</a>    <span class="k">def</span> <span class="nf">yield_figs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function *generates* a predefined list of matplotlib figures with minimal input from the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_qpgaps_convergence</span><span class="p">(</span><span class="n">plot_qpmks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="c1">#yield self.plot_qpdata_conv_skb(spin, kpoint, band, show=False)</span>
+        <span class="c1">#yield self.plot_qpfield_vs_e0(field, show=False)</span>
+        <span class="c1">#yield self.plot_selfenergy_conv(spin, kpoint, band, sortby=None, hue=None, show=False)</span>
+
 <div class="viewcode-block" id="SigresRobot.write_notebook"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresRobot.write_notebook">[docs]</a>    <span class="k">def</span> <span class="nf">write_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current</span>
@@ -2202,9 +2237,13 @@
         <span class="n">args</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
         <span class="n">nb</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
             <span class="c1">#nbv.new_markdown_cell(&quot;# This is a markdown cell&quot;),</span>
-            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.SigresRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">robot&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
-            <span class="c1">#nbv.new_code_cell(&quot;robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)&quot;),</span>
             <span class="c1">#nbv.new_code_cell(&quot;plotter = robot.get_ebands_plotter()&quot;),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot = abilab.SigresRobot(*</span><span class="si">%s</span><span class="s2">)</span><span class="se">\n</span><span class="s2">robot.trim_paths()</span><span class="se">\n</span><span class="s2">robot&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">)),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False)&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.plot_qpgaps_convergence(plot_qpmks=True, sortby=None, hue=None);&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#robot.plot_qpdata_conv_skb(spin=0, kpoint=0, band=0, sortby=None, hue=None);&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;robot.plot_qpfield_vs_e0(field=&#39;qpeme0&#39;, sortby=None, hue=None);&quot;</span><span class="p">),</span>
+            <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby=None, hue=None);&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
         <span class="c1"># Mixins</span>
@@ -2226,7 +2265,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

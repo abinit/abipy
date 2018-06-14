@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>abipy.electrons.fold2bloch &#8212; abipy 0.5.0 documentation</title>
+    <title>abipy.electrons.fold2bloch &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/gallery.css" type="text/css" />
@@ -11,7 +11,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -47,7 +47,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -337,7 +337,9 @@
         <span class="n">uf_cart</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span><span class="o">.</span><span class="n">get_cart_coords</span><span class="p">()</span>
 
         <span class="n">klines</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ticks</span> <span class="o">=</span> <span class="n">find_points_along_path</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">,</span> <span class="n">uf_cart</span><span class="p">,</span> <span class="n">dist_tol</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">klines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">klines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: find_points_along_path returned None. Try to increase dist_tol.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="n">uf_frac_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">uf_kpoints</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
             <span class="n">fcoords</span> <span class="o">=</span> <span class="n">uf_frac_coords</span><span class="p">[</span><span class="n">klines</span><span class="p">]</span>
@@ -390,7 +392,7 @@
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="s2">&quot;#f2b.unfolded_kpoints.plot();&quot;</span><span class="p">),</span>
             <span class="n">nbv</span><span class="o">.</span><span class="n">new_code_cell</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&quot;&quot;\</span>
 <span class="s2"># kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]</span>
-<span class="s2"># klabels = [&quot;Y&quot;, &quot;$Gamma$&quot;, &quot;X&quot;]</span>
+<span class="s2"># klabels = [&quot;Y&quot;, &quot;$\Gamma$&quot;, &quot;X&quot;]</span>
 <span class="s2"># f2b.plot_unfolded(kbounds, klabels);&quot;&quot;&quot;</span><span class="p">),</span>
         <span class="p">])</span>
 
@@ -409,7 +411,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

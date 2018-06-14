@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_si_ebands.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_si_ebands.py:
 
@@ -98,7 +102,7 @@ Flow to compute the band structure of silicon.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_si_ebands_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -137,13 +141,17 @@ to analyze (and plot) the electronic bands produced by the Flow.
 
 
 
-**Total running time of the script:** ( 0 minutes  0.094 seconds)
+**Total running time of the script:** ( 0 minutes  0.107 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_si_ebands.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

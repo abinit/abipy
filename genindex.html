@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Index &#8212; abipy 0.5.0 documentation</title>
+    <title>Index &#8212; abipy 0.6.0.dev documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
@@ -12,7 +12,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.0',
+        VERSION:     '0.6.0.dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -48,7 +48,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           abipy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.6.0.dev</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -1992,8 +1992,12 @@
 </li>
       <li><a href="api/core_api.html#abipy.core.testing.AbipyTest.has_skimage">has_skimage() (abipy.core.testing.AbipyTest static method)</a>
 </li>
-      <li><a href="api/eph_api.html#abipy.eph.sigeph.SigEPhFile.has_spectral_function">has_spectral_function (abipy.eph.sigeph.SigEPhFile attribute)</a>
+      <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.has_spectral_function">has_spectral_function (abipy.electrons.gw.SigresFile attribute)</a>
+
+      <ul>
+        <li><a href="api/eph_api.html#abipy.eph.sigeph.SigEPhFile.has_spectral_function">(abipy.eph.sigeph.SigEPhFile attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_Structure">Has_Structure (class in abipy.core.mixins)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.symmetries.AbinitSpaceGroup.has_timerev">has_timerev (abipy.core.symmetries.AbinitSpaceGroup attribute)</a>
@@ -2596,10 +2600,10 @@
 </li>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.ng">ng (abipy.electrons.scr.ScrFile attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/core_api.html#abipy.core.kpoints.Ktables.nibz">nibz (abipy.core.kpoints.Ktables attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.nimw">nimw (abipy.electrons.scr.ScrFile attribute)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.mixins.Has_ElectronBands.nkpt">nkpt (abipy.core.mixins.Has_ElectronBands attribute)</a>
@@ -2619,6 +2623,8 @@
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.non_anal_phdispl_cart">non_anal_phdispl_cart (abipy.dfpt.phonons.PhononBands attribute)</a>
 </li>
       <li><a href="api/dfpt_api.html#abipy.dfpt.phonons.PhononBands.non_anal_phfreqs">non_anal_phfreqs (abipy.dfpt.phonons.PhononBands attribute)</a>
+</li>
+      <li><a href="api/iotools_api.html#abipy.iotools.ETSF_Reader.none_if_masked_array">none_if_masked_array() (abipy.iotools.ETSF_Reader method)</a>
 </li>
       <li><a href="api/core_api.html#abipy.core.kpoints.Kpoint.norm">norm (abipy.core.kpoints.Kpoint attribute)</a>
 </li>
@@ -3451,6 +3457,8 @@
       <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.read_sigee_skb">read_sigee_skb() (abipy.electrons.gw.SigresFile method)</a>
 </li>
       <li><a href="api/eph_api.html#abipy.eph.sigeph.SigmaPhReader.read_sigeph_skb">read_sigeph_skb() (abipy.eph.sigeph.SigmaPhReader method)</a>
+</li>
+      <li><a href="api/iotools_api.html#abipy.iotools.ETSF_Reader.read_string">read_string() (abipy.iotools.ETSF_Reader method)</a>
 </li>
       <li><a href="api/iotools_api.html#abipy.iotools.ETSF_Reader.read_structure">read_structure() (abipy.iotools.ETSF_Reader method)</a>
 </li>
@@ -4423,6 +4431,8 @@
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresFile.yield_figs">(abipy.electrons.gw.SigresFile method)</a>
 </li>
+        <li><a href="api/electrons_api.html#abipy.electrons.gw.SigresRobot.yield_figs">(abipy.electrons.gw.SigresRobot method)</a>
+</li>
         <li><a href="api/electrons_api.html#abipy.electrons.optic.OpticNcFile.yield_figs">(abipy.electrons.optic.OpticNcFile method)</a>
 </li>
         <li><a href="api/electrons_api.html#abipy.electrons.scr.ScrFile.yield_figs">(abipy.electrons.scr.ScrFile method)</a>
@@ -4481,7 +4491,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 12, 2018.<br/>
+      Last updated on Jun 15, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

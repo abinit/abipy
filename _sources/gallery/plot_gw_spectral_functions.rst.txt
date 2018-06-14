@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_gw_spectral_functions.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_gw_spectral_functions.py:
 
@@ -18,12 +22,12 @@ See also lesson tgw2_4
     *
 
       .. image:: /gallery/images/sphx_glr_plot_gw_spectral_functions_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_gw_spectral_functions_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 
@@ -45,13 +49,17 @@ See also lesson tgw2_4
 
     sigres.close()
 
-**Total running time of the script:** ( 0 minutes  0.745 seconds)
+**Total running time of the script:** ( 0 minutes  0.665 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_gw_spectral_functions.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

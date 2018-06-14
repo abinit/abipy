@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_efatbands.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_efatbands.py:
 
@@ -19,48 +23,50 @@ See also PhysRevLett.86.4656
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_004.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_005.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_006.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_efatbands_007.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     ================================= File Info =================================
     Name: mgb2_kpath_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 149.01 kb
-    Access Time: Tue Jun 12 14:22:26 2018
+    Access Time: Fri Jun 15 00:33:48 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -107,6 +113,8 @@ See also PhysRevLett.86.4656
     Bandwidth: 12.435 (eV)
     Valence maximum located at:
         spin=0, kpt=[+0.441, +0.000, +0.000], weight: 0.000, band=3, eig=6.822, occ=2.000
+    Conduction minimum located at:
+        spin=0, kpt=[+0.147, +0.000, +0.500], weight: 0.000, band=3, eig=6.860, occ=2.000
 
 
     =============================== Fatbands Info ===============================
@@ -122,7 +130,7 @@ See also PhysRevLett.86.4656
     Name: mgb2_kmesh181818_FATBANDS.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_fatbands
     Size: 480.70 kb
-    Access Time: Tue Jun 12 14:22:27 2018
+    Access Time: Fri Jun 15 00:33:49 2018
     Modification Time: Wed Nov  8 01:06:20 2017
     Change Time: Wed Nov  8 01:06:20 2017
 
@@ -229,13 +237,17 @@ See also PhysRevLett.86.4656
     fbnc_kpath.close()
     fbnc_kmesh.close()
 
-**Total running time of the script:** ( 0 minutes  5.981 seconds)
+**Total running time of the script:** ( 0 minutes  5.830 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_efatbands.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

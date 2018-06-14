@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_gallery_plot_a2f.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_gallery_plot_a2f.py:
 
@@ -18,28 +22,30 @@ and the e-ph coupling strenght in metals.
     *
 
       .. image:: /gallery/images/sphx_glr_plot_a2f_001.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_a2f_002.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
     *
 
       .. image:: /gallery/images/sphx_glr_plot_a2f_003.png
-            :scale: 47
+            :class: sphx-glr-multi-img
 
 
 .. rst-class:: sphx-glr-script-out
 
- Out::
+ Out:
+
+ .. code-block:: none
 
     ================================= File Info =================================
     Name: al_888k_161616q_A2F.nc
     Directory: /Users/gmatteo/git_repos/abipy/abipy/data/refs/al_eph
     Size: 252.30 kb
-    Access Time: Tue Jun 12 14:20:33 2018
+    Access Time: Fri Jun 15 00:32:15 2018
     Modification Time: Mon Mar 19 21:58:20 2018
     Change Time: Mon Mar 19 21:58:20 2018
 
@@ -107,13 +113,17 @@ and the e-ph coupling strenght in metals.
         # Grid with 3 plots (a2F, F, a2F) with F taken from PHDOS file.
         #ncfile.a2f_qintp.plot_a2(phdos_path)
 
-**Total running time of the script:** ( 0 minutes  10.975 seconds)
+**Total running time of the script:** ( 0 minutes  10.087 seconds)
 
+
+.. _sphx_glr_download_gallery_plot_a2f.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download

@@ -1,4 +1,8 @@
+.. note::
+    :class: sphx-glr-download-link-note
 
+    Click :ref:`here <sphx_glr_download_flow_gallery_run_from_files.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
 
 .. _sphx_glr_flow_gallery_run_from_files.py:
 
@@ -13,7 +17,7 @@ in which the dependency is given by an external density file.
 
 
 .. image:: /flow_gallery/images/sphx_glr_run_from_files_001.png
-    :align: center
+    :class: sphx-glr-single-img
 
 
 
@@ -114,13 +118,17 @@ in which the dependency is given by an external density file.
     if __name__ == "__main__":
         sys.exit(main())
 
-**Total running time of the script:** ( 0 minutes  0.094 seconds)
+**Total running time of the script:** ( 0 minutes  0.131 seconds)
 
+
+.. _sphx_glr_download_flow_gallery_run_from_files.py:
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
 
 
   .. container:: sphx-glr-download
