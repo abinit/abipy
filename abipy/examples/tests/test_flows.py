@@ -3,6 +3,7 @@ This script runs all the flows in the `flow` directory.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import sys
 import os
 import tempfile
 import warnings
@@ -58,12 +59,11 @@ class TestScripts(AbipyTest):
                 errors.append("file %s\n %s" % (s, self.straceback()))
 
         print("Tested ", count, "scripts")
-        #assert 0
         assert count > 0
         if errors:
             for i, e in enumerate(errors):
-                print(80 * "*")
-                print(i, e)
-                print(80 * "*")
+                print(80 * "*", file=sys.stderr)
+                print(i, e, file=sys.stderr)
+                print(80 * "*", file=sys.stderr)
 
         assert not errors
