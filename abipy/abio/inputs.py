@@ -2294,7 +2294,8 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     Error = AnaddbInputError
 
-    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None):
+    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None, spell_check=True):
+
         """
         Args:
             structure: |Structure| object
@@ -2302,7 +2303,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-        self._spell_check = True
+        self._spell_check = spell_check
         self._structure = structure
         self.comment = comment
 
@@ -2420,7 +2421,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
-                        anaddb_args=None, anaddb_kwargs=None):
+                        anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -2459,7 +2460,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         # Parameters for the DOS
         if qppa:
