@@ -13,8 +13,8 @@ abicheck.py --with-flow
 
 #./dev_scripts/pyclean.py .
 
-pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy
-#    --ignore=abipy/gui --ignore=abipy/data/refs
+pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
+    --ignore=abipy/gui --ignore=abipy/data/refs --ignore=abipy/examples/plot --ignore=abipy/examples/flows
 #cd ..
 
 # This is to run the integration tests (append results)
