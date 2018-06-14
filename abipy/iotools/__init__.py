@@ -1,11 +1,13 @@
 # coding: utf-8
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import numpy as np
+import pymatgen.io.abinit.netcdf as ionc
+
+from monty.functools import lazy_property
 from .xsf import *
 from .visualizer import *
 
-from monty.functools import lazy_property
-import pymatgen.io.abinit.netcdf as ionc
 
 as_etsfreader = ionc.as_etsfreader
 
@@ -37,3 +39,33 @@ class ETSF_Reader(ionc.ETSF_Reader):
             symbols.append(s.strip())
 
         return symbols
+
+    def read_string(self, varname):
+        """
+        Args:
+            varname: Name of the variable
+        """
+        b = self.rootgrp.variables[varname][:]
+        #print(type(b))
+        import netCDF4
+        try:
+            #value = netCDF4.chartostring(sweep_mode['data'][0])[()].decode('utf-8')
+            value = netCDF4.chartostring(b)[()].decode('utf-8')
+            #value = netCDF4.chartostring(b).decode('utf-8')
+        except Exception:
+            try:
+                #value = netCDF4.chartostring(sweep_mode['data'][0])[()]
+                value = netCDF4.chartostring(b)[()]
+                #value = netCDF4.chartostring(b)
+            except Exception:
+                try:
+                    value = "".join(c for c in self.read_value(varname))
+                except TypeError as exc:
+                    #print("Error while trying to read `%s` string % str(varname))
+                    value = "".join(c.decode("utf-8") for c in self.read_value(varname))
+
+        return value.strip()
+
+    def none_if_masked_array(self, arr):
+        """Retur None if arr is a MaskedArray else None."""
+        return arr if not isinstance(arr, np.ma.MaskedArray) else None

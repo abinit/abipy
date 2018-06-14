@@ -14,7 +14,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose
+from abipy.tools.plotting import MplExpose, GenericDataFilePlotter
 
 
 def handle_overwrite(path, options):
@@ -56,6 +56,20 @@ def abiview_hist(options):
             hist.plot()
 
         return 0
+
+
+def abiview_data(options):
+    """
+    Extract data from a generic text file with results
+    in tabular format and plot data with matplotlib.
+    Multiple datasets are supported.
+    No attempt is made to handle metadata (e.g. column name)
+    """
+    plotter = GenericDataFilePlotter(options.filepath)
+    print(plotter.to_string(verbose=options.verbose))
+    plotter.plot(use_index=options.use_index)
+
+    return 0
 
 
 def abiview_abo(options):
@@ -329,6 +343,7 @@ Usage example:
 
     abiview.py abo run.abo   ==> Plot SCF iterations extracted from Abinit output file.
     abiview.py log run.log   ==> Print warnings/comments/errors found in Abinit log file.
+    abiview.py data FILE     ==> Parse text FILE with data in tabular format and plot arrays.
 
 ###########
 # Electrons
@@ -387,7 +402,8 @@ def get_parser(with_epilog=False):
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings.")
+    copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -445,6 +461,11 @@ def get_parser(with_epilog=False):
               "Possible options: `%s`, `mpl` (matplotlib) `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
     p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
     add_args(p_hist, "force")
+
+    # Subparser for data command.
+    p_data = subparsers.add_parser('data', parents=[copts_parser], help=abiview_data.__doc__)
+    p_data.add_argument("-i", "--use-index", default=False, action="store_true",
+        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for abo command.
     p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
@@ -549,7 +570,7 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context='talk', style='darkgrid', palette='deep',
+        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     # Dispatch

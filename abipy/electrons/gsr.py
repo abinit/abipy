@@ -15,7 +15,7 @@ from monty.functools import lazy_property
 from pymatgen.core.units import EnergyArray, ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 
@@ -75,8 +75,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if self.is_scf_run:
             app("")
             app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor)
-            app("Pressure: %.3f [GPa]" % self.pressure)
-            app("Energy: %.8f [eV]" % self.energy)
+            app("Pressure: %.3f (GPa)" % self.pressure)
+            app("Energy: %.8f (eV)" % self.energy)
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
 
@@ -606,7 +606,7 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         yield self.plot_lattice_convergence(show=False)
         yield self.plot_gsr_convergence(show=False)
-        #for fig in self.get_ebands_plotter.yield_figs(): yield fig
+        for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

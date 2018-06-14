@@ -2,9 +2,11 @@
 """Tests for derivatives module."""
 from __future__ import division, print_function, absolute_import, unicode_literals
 
+import os
 import numpy as np
 
 from abipy import abilab
+import abipy.data as abidata
 from abipy.tools.plotting import *
 from abipy.core.testing import AbipyTest
 
@@ -128,3 +130,33 @@ class TestPlotting(AbipyTest):
         if self.has_matplotlib():
             fig, ax = plot_unit_cell(lattice, ax=None, linestyle="-")
             assert hasattr(fig, "show")
+
+    def test_generic_data_file_plotter(self):
+        """Testing GenericDataFilePlotter object."""
+        filepath = os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF")
+        plotter = GenericDataFilePlotter(filepath)
+        assert plotter.to_string(verbose=2)
+        assert str(plotter)
+        assert len(plotter.od) == 1
+        key = "# Omega [eV] Re epsilon_M IM eps_M"
+        assert key in plotter.od
+        assert plotter.od[key].shape == (3, 30)
+
+        if self.has_matplotlib():
+            assert plotter.plot(show=False)
+            assert plotter.plot(use_index=True, show=False)
+
+    def test_generic_data_files_plotter(self):
+        """Testing GenericDataFilesPlotter object."""
+        filepaths = [
+                os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
+                os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
+        ]
+
+        plotter = GenericDataFilesPlotter.from_files(filepaths)
+        assert plotter.to_string(verbose=2)
+        assert str(plotter)
+
+        if self.has_matplotlib():
+            assert plotter.plot(show=False)
+            assert plotter.plot(use_index=True, show=False)

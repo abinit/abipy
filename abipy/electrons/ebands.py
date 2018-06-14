@@ -20,7 +20,6 @@ from monty.json import MSONable, MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
-from monty.dev import deprecated
 try:
     from pymatgen.util.serialization import pmg_serialize
 except ImportError:
@@ -187,7 +186,7 @@ class ElectronTransition(object):
     def to_string(self, verbose=0):
         """String representation."""
         lines = []; app = lines.append
-        app("Energy: %.3f [eV]" % self.energy)
+        app("Energy: %.3f (eV)" % self.energy)
         app("Initial state: %s" % str(self.in_state))
         app("Final state:   %s" % str(self.out_state))
 
@@ -285,7 +284,7 @@ class Smearing(AttrDict):
 class StatParams(namedtuple("StatParams", "mean stdev min max")):
     """Named tuple with statistical parameters."""
     def __str__(self):
-        return "mean = %.3f, stdev = %.3f, min = %.3f, max = %.3f [eV]" % (
+        return "mean = %.3f, stdev = %.3f, min = %.3f, max = %.3f (eV)" % (
             self.mean, self.stdev, self.min, self.max)
 
 
@@ -469,8 +468,8 @@ class ElectronBands(Has_Structure):
             fermie: Fermi level in eV.
             occfacts: Occupation factors (same shape as eigens)
             nelect: Number of valence electrons in the unit cell.
-            nspinor: Number of spinorial components
-            nspden: Number of indipendent density components.
+            nspinor: Number of spinor components
+            nspden: Number of independent density components.
             nband_sk: Array-like object with the number of bands treated at each [spin,kpoint]
                       If not given, nband_sk is initialized from eigens.
             smearing: :class:`Smearing` object storing information on the smearing technique.
@@ -1207,7 +1206,7 @@ class ElectronBands(Has_Structure):
             app(self.structure.to_string(verbose=verbose, title="Structure"))
             app("")
 
-        app("Number of electrons: %s, Fermi level: %.3f [eV]" % (self.nelect, self.fermie))
+        app("Number of electrons: %s, Fermi level: %.3f (eV)" % (self.nelect, self.fermie))
         app("nsppol: %d, nkpt: %d, mband: %d, nspinor: %s, nspden: %s" % (
            self.nsppol, self.nkpt, self.mband, self.nspinor, self.nspden))
         app(str(self.smearing))
@@ -1229,11 +1228,16 @@ class ElectronBands(Has_Structure):
                         app("WARNING: Cannot compute direct and fundamental gap.")
                         if verbose: app("Exception:\n%s" % str(exc))
 
-                app("Bandwidth: %.3f [eV]" % self.bandwidths[spin])
+                app("Bandwidth: %.3f (eV)" % self.bandwidths[spin])
                 if verbose:
                     app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
-                app("")
+                try:
+                    # Cannot assume enough states for this!
+                    app("Conduction minimum located at:\n%s" % indent(str(self.lumos[spin])))
+                    app("")
+                except Exception:
+                    pass
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))
@@ -1303,7 +1307,7 @@ class ElectronBands(Has_Structure):
         return StatParams(mean=ediff.mean(axis=axis), stdev=ediff.std(axis=axis),
                           min=ediff.min(axis=axis), max=ediff.max(axis=axis))
 
-    def ipw_edos_widget(self):
+    def ipw_edos_widget(self): # pragma: no cover
         """
         Return an ipython widget with controllers to compute the electron DOS.
         """
@@ -1315,8 +1319,8 @@ class ElectronBands(Has_Structure):
         return ipw.interact_manual(
                 plot_dos,
                 method=["gaussian", "tetra"],
-                step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh [eV]"),
-                width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening [eV]"),
+                step=ipw.FloatSlider(value=0.1, min=1e-6, max=1, step=0.05, description="Step of linear mesh (eV)"),
+                width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening (eV)"),
             )
 
     def get_edos(self, method="gaussian", step=0.1, width=0.2):
@@ -1375,7 +1379,7 @@ class ElectronBands(Has_Structure):
         edos_plotter = ElectronDosPlotter()
         for width in widths:
            edos = self.get_edos(method="gaussian", step=0.1, width=width)
-           label=r"$\sigma = %s$ [eV]" % width
+           label=r"$\sigma = %s$ (eV)" % width
            edos_plotter.add_edos(label, edos)
 
         return edos_plotter
@@ -1542,7 +1546,7 @@ class ElectronBands(Has_Structure):
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Energy [eV]')
+        ax.set_xlabel('Energy (eV)')
         cmap = plt.get_cmap(colormap)
         lw = kwargs.pop("lw", 1.0)
 
@@ -1735,7 +1739,7 @@ class ElectronBands(Has_Structure):
         if title is not None: ax.set_title(title, fontsize=fontsize)
 
         ax.grid(True)
-        ax.set_ylabel('Energy [eV]')
+        ax.set_ylabel('Energy (eV)')
 
         # Set ticks and labels.
         klabels = kwargs.pop("klabels", None)
@@ -1933,9 +1937,9 @@ class ElectronBands(Has_Structure):
         e0 = self.get_e0(e0)
         e0mesh = np.array(e0mesh) - e0
 
-        xlabel = r"$\epsilon_{KS}\;[eV]$"
+        xlabel = r"$\epsilon_{KS}\;(eV)$"
         #if fermie is not None:
-        #    xlable = r"$\epsilon_{KS}-\epsilon_F\;[eV]$"
+        #    xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         #kw_lw = kwargs.pop("lw", 1)
@@ -1985,7 +1989,7 @@ class ElectronBands(Has_Structure):
             w("# %s" % s)
         w("# mband: %d, nkpt: %d, nsppol: %d, nspinor: %d" % (self.mband, self.nkpt, self.nsppol, self.nspinor))
         w("# nelect: %8.2f, %s" % (self.nelect, str(self.smearing)))
-        w("# Energies are in eV. Zero set to efermi, previously it was at: %s [eV]" % self.fermie)
+        w("# Energies are in eV. Zero set to efermi, previously it was at: %s (eV)" % self.fermie)
         w("# List of k-points and their index (C notation i.e. count from 0)")
         for ik, kpt in enumerate(self.kpoints):
             w("# %d %s" % (ik, str(kpt.frac_coords)))
@@ -2015,7 +2019,7 @@ class ElectronBands(Has_Structure):
 
         w('@xaxis  ticklabel char size 1.500000')
         w('@yaxis  tick major 10')
-        w('@yaxis  label "Band Energy [eV]"')
+        w('@yaxis  label "Band Energy (eV)"')
         w('@yaxis  label char size 1.500000')
         w('@yaxis  ticklabel char size 1.500000')
         ii = -1
@@ -2244,7 +2248,7 @@ class EffectiveMassAlongLine(object):
     def __str__(self):
         lines = []; app = lines.append
         app("Effective masses for spin: %s, band: %s, accuracy: %s" % (self.spin, self.band, self.acc))
-        app("K-point: %s, eigenvalue: %s [eV]" % (self.kpoint, self.eig))
+        app("K-point: %s, eigenvalue: %s (eV)" % (self.kpoint, self.eig))
         app("h_left: %s, h_right %s" % (self.h_left, self.h_right))
         app("is_inside: %s, vers_left: %s, vers_right: %s" % (self.is_inside, self.vers_left, self.vers_right))
         app("em_left: %s, em_right: %s" % (self.em_left, self.em_right))
@@ -2373,15 +2377,6 @@ class ElectronBandsPlotter(NotebookWriter):
         for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
-    @deprecated(message="add_ebands_from_file method of ElectronBandsPlotter has been replaced by add_ebands. It will be removed in 0.4")
-    def add_ebands_from_file(self, filepath, label=None):
-        """
-        Adds a band structure for plotting. Reads data from a Netcdfile
-        """
-        if label is None: label = os.path.abspath(filepath)
-        ebands = ElectronBands.as_ebands(filepath)
-        self.add_ebands(label, ebands)
-
     def add_ebands(self, label, bands, edos=None, dos=None, edos_kwargs=None):
         """
         Adds a band structure and optionally a edos to the plotter.
@@ -2425,6 +2420,13 @@ class ElectronBandsPlotter(NotebookWriter):
             text.append(str(stat))
 
         return "\n\n".join(text)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        for mname in ("gridplot", "boxplot"):
+            yield getattr(self, mname)(show=False)
 
     @add_fig_kwargs
     def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8, **kwargs):
@@ -2782,7 +2784,7 @@ class ElectronBandsPlotter(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -2895,15 +2897,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     def read_smearing(self):
         """Returns a :class:`Smearing` instance with info on the smearing technique."""
         occopt = int(self.read_value("occopt"))
-
-        try:
-            scheme = "".join(c for c in self.read_value("smearing_scheme"))
-            scheme = scheme.strip()
-        except TypeError as exc:
-            #cprint("Error while trying to read `smearing_scheme`. Set scheme to None")
-            #scheme = None
-            scheme = "".join(c.decode("utf-8") for c in self.read_value("smearing_scheme"))
-            scheme = scheme.strip()
+        scheme = self.read_string("smearing_scheme")
 
         return Smearing(
             scheme=scheme,
@@ -2970,7 +2964,7 @@ class ElectronDos(object):
         """String representation."""
         lines = []; app = lines.append
         app("nsppol: %d, nelect: %s" % (self.nsppol, self.nelect))
-        app("Fermi energy: %s [eV] (recomputed from nelect):" % self.fermie)
+        app("Fermi energy: %s (eV) (recomputed from nelect):" % self.fermie)
         return "\n".join(lines)
 
     @classmethod
@@ -3151,8 +3145,8 @@ class ElectronDos(object):
             ax.plot(x, y, **opts)
 
         ax.grid(True)
-        ax.set_xlabel('Energy [eV]')
-        ax.set_ylabel('DOS [states/eV]')
+        ax.set_xlabel('Energy (eV)')
+        ax.set_ylabel('DOS (states/eV)')
         set_axlims(ax, xlims, "x")
 
         return fig
@@ -3192,7 +3186,7 @@ class ElectronDos(object):
 
             ax0.set_ylabel("TOT IDOS")
             ax1.set_ylabel("TOT DOS")
-            ax1.set_xlabel('Energy [eV]')
+            ax1.set_xlabel('Energy (eV)')
         else:
             fig = ax_list[0].get_figure()
 
@@ -3238,8 +3232,8 @@ class ElectronDos(object):
 
         ax.grid(True)
         set_axlims(ax, xlims, "x")
-        ax.set_ylabel('Dos_up - Dos_down [states/eV]')
-        ax.set_xlabel('Energy [eV]')
+        ax.set_ylabel('Dos_up - Dos_down (states/eV)')
+        ax.set_xlabel('Energy (eV)')
 
         return fig
 
@@ -3271,16 +3265,6 @@ class ElectronDosPlotter(NotebookWriter):
     def edos_list(self):
         """List of DOSes"""
         return list(self.edoses_dict.values())
-
-    @deprecated(message="add_edos_from_file method of ElectronDosPlotter has been replaced by add_edos. It will be removed in 0.4")
-    def add_edos_from_file(self, filepath, label=None, method="gaussian", step=0.1, width=0.2):
-        """
-        Adds a dos for plotting. Reads data from a Netcdf file
-        """
-        ebands = ElectronBands.as_ebands(filepath)
-        edos = ebands.get_edos(method=method, step=step, width=width)
-        if label is None: label = filepath
-        self.add_edos(label, edos)
 
     def add_edos(self, label, edos, edos_kwargs=None):
         """
@@ -3351,8 +3335,8 @@ class ElectronDosPlotter(NotebookWriter):
 
             ax.grid(True)
             if i == len(what_list) - 1:
-                ax.set_xlabel("Energy [eV]")
-            ax.set_ylabel('DOS [states/eV]' if what == "dos" else "IDOS")
+                ax.set_xlabel("Energy (eV)")
+            ax.set_ylabel('DOS (states/eV)' if what == "dos" else "IDOS")
             set_axlims(ax, xlims, "x")
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -3431,15 +3415,15 @@ class ElectronDosPlotter(NotebookWriter):
             ax.set_title(label, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
             if (irow, icol) == (0, 0):
-                ax.set_ylabel('DOS [states/eV]' if what == "dos" else "IDOS")
+                ax.set_ylabel('DOS (states/eV)' if what == "dos" else "IDOS")
             if irow == nrows - 1:
-                ax.set_xlabel("Energy [eV]")
+                ax.set_xlabel("Energy (eV)")
 
             #ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3452,6 +3436,13 @@ class ElectronDosPlotter(NotebookWriter):
                 plot_type=["combiplot", "gridplot"],
                 e0=["fermie", "0.0"],
             )
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.combiplot(show=False)
+        yield self.gridplot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -3714,7 +3705,8 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            from skimage import measure
+            #from skimage import measure
+            from skimage.measure import marching_cubes
         except ImportError:
             raise ImportError("scikit-image not installed.\n"
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
@@ -3743,7 +3735,8 @@ class Bands3D(Has_Structure):
                 #   Gives a measure for the maximum value of the data in the local region near each vertex.
                 #   This can be used by visualization tools to apply a colormap to the mesh
                 voldata = np.reshape(self.ucdata_sbk[spin, band], self.kdivs)
-                verts, faces, normals, values = measure.marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
+                verts, faces, normals, values = marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
+                #verts, faces, normals, values = marching_cubes_lewiner(voldata, level=e0, spacing=tuple(self.spacing))
                 verts = self.reciprocal_lattice.get_cartesian_coords(verts)
                 ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
                 # mayavi package:
@@ -4036,7 +4029,14 @@ class RobotWithEbands(object):
                 if hue is None:
                     # Extract data.
                     xvals, yvals = get_xy(item, spin, params, self.abifiles)
-                    ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                    if not is_string(xvals[0]):
+                        ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                    else:
+                        # Must handle list of strings in a different way.
+                        xn = range(len(xvals))
+                        ax.plot(xn, yvals, marker=marker_spin[spin], **kwargs)
+                        ax.set_xticks(xn)
+                        ax.set_xticklabels(xvals, fontsize=fontsize)
                 else:
                     for g in groups:
                         # Extract data.

@@ -15,7 +15,6 @@ from monty.string import marquee, list_strings
 from monty.collections import AttrDict, dict2namedtuple, tree
 from monty.functools import lazy_property
 from monty.termcolor import cprint
-from monty.dev import get_ncpus, deprecated
 from abipy.flowtk import NetcdfReader, AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -555,6 +554,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbands.view_phononwebsite(browser=browser, verbose=verbose, dryrun=dryrun)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.structure.plot(show=False)
+        yield self.qpoints.plot(show=False)
+        yield self.structure.plot_bz(show=False)
+
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
                                  manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
                                  directions=None, anaddb_kwargs=None):
@@ -666,7 +673,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
-            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density, 
+            self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
             nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
             anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
@@ -706,7 +713,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         #check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
-        if all([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
+        if any([a%b for a,b in zip(ngqpt_fine,ngqpt_coarse)]):
             raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
 
         #get the points in the fine mesh
@@ -715,9 +722,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         #generate the points of the coarse mesh
         map_fine_to_coarse = []
         nx,ny,nz = ngqpt_coarse
-        for i,j,k in itertools.product(range(nx),range(ny),range(nz)):
+        for i,j,k in itertools.product(range(-int(nx/2), int(nx/2) + 1),
+                                       range(-int(ny/2), int(ny/2) + 1),
+                                       range(-int(nz/2), int(nz/2) + 1)):
+            coarse_qpt = np.array([i, j, k]) / np.array(ngqpt_coarse)
             for n,fine_qpt in enumerate(fine_qpoints):
-                coarse_qpt = np.array([i,j,k])/np.array(ngqpt_coarse)
                 if np.allclose(coarse_qpt,fine_qpt):
                     map_fine_to_coarse.append(n)
 
@@ -1034,7 +1043,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return DielectricTensorGenerator.from_files(os.path.join(task.workdir, "run.abo_PHBST.nc"),
                                                     os.path.join(task.workdir, "anaddb.nc"))
 
-
     def write(self, filepath, filter_blocks=None):
         """
         Writes the DDB file in filepath. Requires the blocks data.
@@ -1200,11 +1208,6 @@ class Becs(Has_Structure):
             mat = becs_arr[i]
             if order.lower() == "f": mat = mat.T
             self.values[i] = mat
-
-    @property
-    @deprecated(message="becs  has been renamed values. Will be removed in abipy 0.4.")
-    def becs(self):
-        return self.values
 
     @property
     def structure(self):
@@ -1588,7 +1591,8 @@ class DdbRobot(Robot):
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies. Note lo_to_splitting set to False.
-            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip, lo_to_splitting=False)
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut,
+               dipdip=dipdip, lo_to_splitting=False)
             # [nq, nmodes] array
             freqs = phbands.phfreqs[0, :] * phfactor_ev2units(units)
 
@@ -1616,6 +1620,7 @@ class DdbRobot(Robot):
             phbands_plotter: |PhononBandsPlotter| object.
             phdos_plotter: |PhononDosPlotter| object.
         """
+	# TODO: Multiprocessing?
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
@@ -1639,6 +1644,15 @@ class DdbRobot(Robot):
                 phdos_file.close()
 
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        print("Invoking anaddb through anaget_phonon_plotters...")
+        r = self.anaget_phonon_plotters()
+        for fig in r.phbands_plotter.yield_figs(): yield fig
+        for fig in r.phdos_plotter.yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None):
         """

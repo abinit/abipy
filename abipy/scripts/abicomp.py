@@ -15,6 +15,7 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
 
 
 # Not used but could be useful to analyze densities.
@@ -55,7 +56,7 @@ def abiview_fields(options):
 
 def abicomp_structure(options):
     """
-    Compare crystalline structures. Use `--group` to compare for similarity."
+    Compare crystalline structures. Use `--group` to compare for similarity.
     """
     if options.group:
         return compare_structures(options)
@@ -221,6 +222,15 @@ def abicomp_xrd(options):
                         annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
     return 0
 
+def abicomp_data(options):
+    """
+    Compare results stored in multiple files with data in tabular format.
+    """
+    plotter = GenericDataFilesPlotter.from_files(options.paths)
+    print(plotter.to_string(verbose=options.verbose))
+    plotter.plot(use_index=options.use_index)
+    return 0
+
 
 def abicomp_ebands(options):
     """
@@ -274,6 +284,10 @@ def abicomp_edos(options):
     elif options.notebook:
         plotter.make_and_open_notebook(foreground=options.foreground)
 
+    elif options.expose:
+        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                       verbose=options.verbose)
+
     else:
         # Optionally, print info on gaps and their location
         if not options.verbose:
@@ -307,6 +321,9 @@ def abicomp_phbands(options):
     elif options.notebook:
         plotter.make_and_open_notebook(foreground=options.foreground)
 
+    elif options.expose:
+        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                       verbose=options.verbose)
     else:
         # Print pandas Dataframe.
         frame = plotter.get_phbands_frame()
@@ -340,6 +357,10 @@ def abicomp_phdos(options):
         import IPython
         IPython.embed(header=str(plotter) + "\n\nType `plotter` in the terminal and use <TAB> to list its methods",
                       plotter=plotter)
+
+    elif options.expose:
+        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                       verbose=options.verbose)
 
     elif options.notebook:
         plotter.make_and_open_notebook(foreground=options.foreground)
@@ -387,7 +408,7 @@ def abicomp_getattr(options):
 
     if options.plot and len(values) == len(options.paths[1:]):
         # Plot values.
-        from abipy.tools.plotting import get_ax_fig_plt
+
         ax, fig, plt = get_ax_fig_plt()
         xs = np.arange(len(options.paths[1:]))
         ax.plot(xs, values)
@@ -574,7 +595,8 @@ def _invoke_robot(options):
             print("\nUse --verbose for more information")
 
         if options.expose and hasattr(robot, "expose"):
-            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                         verbose=options.verbose)
 
     #elif options.ipython:
     else:
@@ -680,7 +702,7 @@ Usage example:
 ############
 
   abicomp.py structure */*/outdata/out_GSR.nc   => Compare structures in multiple files.
-                                                   Use `--group` to compare for similarity
+                                                   Use `--group` to compare for similarity.
   abicomp.py hist FILE(s)                       => Compare final structures read from HIST.nc files.
   abicomp.py mp_structure FILE(s)               => Compare structure(s) read from FILE(s) with the one(s)
                                                    given in the materials project database.
@@ -726,6 +748,8 @@ Usage example:
 # Miscelleanous
 ###############
 
+  abicomp.py data FILE1 FILE2 ...                 => Read data from files with results in tabular format and
+                                                     compare results. Mainly used for text files without any schema.
   abicomp.py getattr energy *_GSR.nc              => Extract the `energy` attribute from a list of GSR files
                                                      and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
@@ -792,7 +816,8 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('paths', nargs="+", help="List of files to compare.")
     copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
         help='Verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument("-sns", '--seaborn', action="store_true", help="Use seaborn settings for plots.")
+    copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -816,6 +841,15 @@ def get_parser(with_epilog=False):
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
+
+    # Parent parser for commands supporting expose
+    expose_parser = argparse.ArgumentParser(add_help=False)
+    expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
+            help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
+    expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+            help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
+    expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -858,6 +892,11 @@ def get_parser(with_epilog=False):
     p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
         help="Whether to annotate the peaks with plane information.")
 
+    # Subparser for data command.
+    p_data = subparsers.add_parser('data', parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
+    p_data.add_argument("-i", "--use-index", default=False, action="store_true",
+        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
+
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser], help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
@@ -867,7 +906,8 @@ def get_parser(with_epilog=False):
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
 
     # Subparser for edos command.
-    p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser], help=abicomp_edos.__doc__)
+    p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser, expose_parser],
+        help=abicomp_edos.__doc__)
     p_edos.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "None"],
         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
@@ -875,18 +915,20 @@ def get_parser(with_epilog=False):
         help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser], help=abicomp_phbands.__doc__)
+    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser, expose_parser],
+        help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "None"],
         help="Plot mode e.g. `-p combiplot` to plot bands on the same figure. Default is `gridplot`.")
 
     # Subparser for phdos command.
-    p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser], help=abicomp_phdos.__doc__)
+    p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser, expose_parser],
+        help=abicomp_phdos.__doc__)
     p_phdos.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "None"],
         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
 
-    # Subparser for phdos command.
+    # Subparser for getattr command.
     p_getattr = subparsers.add_parser('getattr', parents=[copts_parser], help=abicomp_getattr.__doc__)
     p_getattr.add_argument('--plot', default=False, action="store_true", help="Plot data with matplotlib (requires floats).")
     p_getattr.add_argument('--list', default=False, action="store_true", help="Print attributes available in file")
@@ -899,15 +941,8 @@ def get_parser(with_epilog=False):
         help="Run jupyter notebook in the foreground.")
     #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
     robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
-    robot_ipy_parser.add_argument("-e", '--expose', default=False, action="store_true",
-            help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
-    robot_ipy_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
-            help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
-    robot_ipy_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
-            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
 
-    #robot_parents = [copts_parser, ipy_parser, robot_parser]
-    robot_parents = [copts_parser, robot_ipy_parser, robot_parser]
+    robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
     p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
     p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
@@ -974,7 +1009,7 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context='talk', style='darkgrid', palette='deep',
+        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
     if options.verbose > 2:

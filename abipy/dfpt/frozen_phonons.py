@@ -256,8 +256,8 @@ class FrozenPhonon(object):
             en_freq = quadratic_fit_function(etas_plot, self._freq_to_quad_coeff(freq), e0)
             ax.plot(etas_plot, en_freq, **kwargs)
 
-        ax.set_xlabel("Displacements [Ang]")
-        ax.set_ylabel("Energy [eV]")
+        ax.set_xlabel("Displacements (Ang)")
+        ax.set_ylabel("Energy (eV)")
 
         return fig
 
@@ -300,10 +300,10 @@ class FrozenPhonon(object):
 
         ax.plot(self.etas, diff, **kwargs)
 
-        ax.set_xlabel("Displacements [Ang]")
+        ax.set_xlabel("Displacements (Ang)")
         if relative:
-            ax.set_ylabel("Relative energy difference [%]")
+            ax.set_ylabel("Relative energy difference (%)")
         else:
-            ax.set_ylabel("Energy difference [eV]")
+            ax.set_ylabel("Energy difference (eV)")
 
         return fig

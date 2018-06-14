@@ -293,6 +293,22 @@ class MpStructures(DatabaseStructures):
 
         return pd.DataFrame(rows, index=self.ids, columns=list(rows[0].keys()))
 
+    def open_browser(self, browser=None, limit=10):
+        """
+        Args:
+            browser: Open webpage in ``browser``. Use default if $BROWSER if None.
+            limit: Max number of tabs opened in browser. None for no limit.
+        """
+        import webbrowser
+        import cgi
+        for i, mpid in enumerate(self.ids):
+            if limit is not None and i >= limit:
+                print("Found %d structures found. Won't open more than %d tabs" % (len(self.ids), limit))
+                break
+            # https://materialsproject.org/materials/mp-2172/
+            url = "https://materialsproject.org/materials/%s/" % mpid
+            webbrowser.get(browser).open_new_tab(cgi.escape(url))
+
 
 class CodStructures(DatabaseStructures):
     """

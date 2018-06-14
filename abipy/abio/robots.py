@@ -823,6 +823,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 If callable, the output of hue(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
+            kwargs: keyword arguments passed to matplotlib plot method.
 
         Returns: |matplotlib-Figure|
 
@@ -835,6 +836,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+        if "marker" not in kwargs:
+            kwargs["marker"] = "o"
 
         def get_yvalues(abifiles):
             if callable(item):
@@ -910,7 +913,15 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     yvals = [float(item(gsr)) for gsr in self.abifiles]
                 else:
                     yvals = [getattrd(gsr, item) for gsr in self.abifiles]
-                ax.plot(params, yvals, marker=marker, **kwargs)
+
+                if not is_string(params[0]):
+                    ax.plot(params, yvals, marker=marker, **kwargs)
+                else:
+                    # Must handle list of strings in a different way.
+                    xn = range(len(params))
+                    ax.plot(xn, yvals, marker=marker, **kwargs)
+                    ax.set_xticks(xn)
+                    ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g in groups:
                     # Extract data.

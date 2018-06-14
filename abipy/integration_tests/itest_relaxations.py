@@ -211,3 +211,31 @@ def itest_dilatmx_error_handler(fwp, tvars):
      print(t0.corrections)
      assert t0.num_corrections > 0
      assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
+
+
+def itest_relaxation_with_target_dilatmx(fwp, tvars):
+    """Test structural relaxations with automatic restart from DEN files."""
+    # Build the flow
+    flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
+
+    # Use small value for ntime to trigger restart, then disable the output of the WFK file.
+    ion_input, ioncell_input = make_ion_ioncell_inputs(tvars, dilatmx=1.05)
+
+    relax_work = flowtk.RelaxWork(ion_input, ioncell_input, target_dilatmx=1.03)
+    flow.register_work(relax_work)
+
+    assert flow.make_scheduler().start() == 0
+    flow.show_status()
+
+    assert all(work.finalized for work in flow)
+    assert flow.all_ok
+
+    # we should have (0, 1) restarts
+    for i, task in enumerate(relax_work):
+        assert task.status == task.S_OK
+        assert task.num_restarts == i
+        assert task.num_corrections == 0
+
+    assert relax_work[1].input["dilatmx"] == 1.03
+
+    flow.rmtree()

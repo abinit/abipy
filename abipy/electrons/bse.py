@@ -114,7 +114,7 @@ class DielectricTensor(object):
         red_coords = kwargs.pop("red_coords", True)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Frequency [eV]')
+        ax.set_xlabel('Frequency (eV)')
         ax.set_ylabel('Dielectric tensor')
 
         #if not kwargs:
@@ -261,7 +261,7 @@ class DielectricFunction(object):
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Frequency [eV]')
+        ax.set_xlabel('Frequency (eV)')
         ax.set_ylabel('Macroscopic DF')
 
         #if not kwargs:
@@ -467,7 +467,9 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        yield self.plot_mdfs(show=False)
+        #yield self.ebands.plot(show=False)
+        yield self.plot_mdfs(cplx_mode="Re", mdf_type="all", qpoint=None, show=False)
+        yield self.plot_mdfs(cplx_mode="Im", mdf_type="all", qpoint=None, show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -524,9 +526,10 @@ class MdfReader(ETSF_Reader): #ElectronsReader
     def read_params(self):
         """Dictionary with the parameters of the run."""
         # TODO: Add more info.
+        # soenergy replaced by mbpt_sciss
         keys = [
             "nsppol", "ecutwfn", "ecuteps",
-            "eps_inf", "soenergy", "broad", "nkibz", "nkbz", "nkibz_interp", "nkbz_interp",
+            "eps_inf", "mbpt_sciss", "broad", "nkibz", "nkbz", "nkibz_interp", "nkbz_interp",
             "wtype", "interp_mode", "nreh", "lomo_spin", "humo_spin"
         ]
         return self.read_keys(keys)
@@ -603,7 +606,7 @@ class MdfPlotter(object):
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Frequency [eV]')
+        ax.set_xlabel('Frequency (eV)')
         ax.set_ylabel('Macroscopic DF')
 
         cmodes = cplx_mode.split("-")
@@ -624,7 +627,7 @@ class MdfPlotter(object):
 
         return fig
 
-    #def ipw_plot(self)
+    #def ipw_plot(self) # pragma: no cover
     #    """
     #    Return an ipython widget with controllers to select the plot.
     #    """
@@ -760,10 +763,9 @@ class MultipleMdfPlotter(object):
                     fontsize=fontsize, with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
         else:
-            raise ValueError("Invalid value of qview: %s" % str(qview))
+            raise ValueError("Invalid value of qview: `%s`" % str(qview))
 
         #ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
-        #fig.tight_layout()
 
         return fig
 
@@ -834,7 +836,7 @@ class MultipleMdfPlotter(object):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        if with_xlabel: ax.set_xlabel(r'$\omega [eV]$')
+        if with_xlabel: ax.set_xlabel("Frequency (eV)")
         if with_ylabel: ax.set_ylabel(self.MDF_TYPECPLX2TEX[mdf_type][cplx_mode.lower()])
 
         can_use_basename = self._can_use_basenames_as_labels()
@@ -889,7 +891,7 @@ class MultipleMdfPlotter(object):
 
         return qpoints
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -926,6 +928,13 @@ class MdfRobot(Robot, RobotWithEbands):
         """Wraps plot method of :class:`MultipleMdfPlotter`. kwargs are passed to plot."""
         return self.get_multimdf_plotter().plot(**kwargs)
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        plotter = self.get_multimdf_plotter()
+        yield plotter.plot(mdf_type="exc", qview="avg", show=False)
+
     def get_multimdf_plotter(self, cls=None):
         """
         Return an instance of :class:`MultipleMdfPlotter` to compare multiple dielectric functions.
@@ -938,10 +947,10 @@ class MdfRobot(Robot, RobotWithEbands):
 
     def get_dataframe(self, with_geo=False, abspath=False, funcs=None, **kwargs):
         """
-        Build and return |pandas-DataFrame| with the most import BSE results. and the filenames as index.
+        Build and return |pandas-DataFrame| with the most import BSE results and the filenames as index.
 
         Args:
-            with_geo: True if structure info should be added to the dataframe
+            with_geo: True if structure parameters should be added to the DataFrame
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a :class:`MdfFile` object and returns a tuple (key, value)

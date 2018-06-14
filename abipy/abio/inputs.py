@@ -141,7 +141,7 @@ class AbstractInput(six.with_metaclass(abc.ABCMeta, MutableMapping, object)):
         """
         Write the input file to file to ``filepath``.
         """
-        dirname = os.path.dirname(filepath)
+        dirname = os.path.dirname(os.path.abspath(filepath))
         if not os.path.exists(dirname): os.makedirs(dirname)
 
         # Write the input file.

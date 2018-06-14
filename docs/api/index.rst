@@ -25,3 +25,4 @@ API documentation
    iotools_api.rst
    tools_api.rst
    waves_api.rst
+   wannier90_api.rst

@@ -609,7 +609,6 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         return D2DEScfCycle.from_stream(self)
 
-    # TODO: Use header and vars to understand if we have SCF/DFFT/Relaxation
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
         Plot GS/DFPT SCF cycles and timer data found in the output file.
@@ -617,13 +616,25 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
+        from abipy.tools.plotting import MplExpose
+        with MplExpose(slide_mode=False, slide_timeout=5.0) as e:
+            e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
+
+    # TODO: Use header and vars to understand if we have SCF/DFPT/Relaxation
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        tight_layout = kwargs.pop("tight_layout", True)
+        with_timer = kwargs.pop("with_timer", False)
+
         self.seek(0)
         icycle = -1
         while True:
             gs_cycle = self.next_gs_scf_cycle()
             if gs_cycle is None: break
             icycle += 1
-            gs_cycle.plot(title="SCF cycle no %d" % icycle, tight_layout=tight_layout, show=show)
+            yield gs_cycle.plot(title="SCF cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
         self.seek(0)
         icycle = -1
@@ -631,11 +642,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             d2de_cycle = self.next_d2de_scf_cycle()
             if d2de_cycle is None: break
             icycle += 1
-            d2de_cycle.plot(title="DFPT cycle no %d" % icycle, tight_layout=tight_layout, show=show)
+            yield d2de_cycle.plot(title="DFPT cycle #%d" % icycle, tight_layout=tight_layout, show=False)
 
         if with_timer:
             self.seek(0)
-            self.get_timer().plot_all(tight_layout=tight_layout, show=show)
+            yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
 
     def compare_gs_scf_cycles(self, others, show=True):
         """

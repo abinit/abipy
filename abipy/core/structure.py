@@ -17,11 +17,9 @@ from pprint import pprint, pformat
 from warnings import warn
 from collections import OrderedDict
 from monty.collections import AttrDict, dict2namedtuple
-from monty.dev import deprecated
 from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
-
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -833,10 +831,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         return "\n".join(outs)
 
-    @deprecated(message="spglib_summary method has been replaced by spget_summary. It will be removed in 0.4")
-    def spglib_summary(self, verbose=0):
-        return self.spget_summary(verbose=verbose)
-
     @property
     def abi_spacegroup(self):
         """
@@ -1100,11 +1094,6 @@ class Structure(pymatgen.Structure, NotebookWriter):
         else:
             return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
 
-    # To maintain backward compatibility.
-    @deprecated(message="show_bz has been replaced by plot_bz and it will be removed in 0.4")
-    def show_bz(self, **kwargs):
-        return self.plot_bz(**kwargs)
-
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
                  two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs):
@@ -1136,8 +1125,16 @@ class Structure(pymatgen.Structure, NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         from pymatgen.analysis.diffraction.xrd import XRDCalculator
         xrd = XRDCalculator(wavelength=wavelength, symprec=symprec, debye_waller_factors=debye_waller_factors)
-        xrd.get_xrd_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
+        xrd.get_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
+
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+        yield self.plot_bz(show=False)
 
     def export(self, filename, visu=None, verbose=1):
         """

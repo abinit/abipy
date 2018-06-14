@@ -9,10 +9,10 @@ Utilities for generating matplotlib plots.
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
-import collections
 import time
 import numpy as np
 
+from collections import OrderedDict, namedtuple
 from monty.string import list_strings
 from monty.functools import lazy_property
 from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
@@ -27,6 +27,8 @@ __all__ = [
     "data_from_cplx_mode",
     "Marker",
     "plot_unit_cell",
+    "GenericDataFilePlotter",
+    "GenericDataFilesPlotter",
 ]
 
 def ax_append_title(ax, title, loc="center", fontsize=None):
@@ -62,7 +64,7 @@ def set_axlims(ax, lims, axname):
     try:
         len_lims = len(lims)
     except TypeError:
-        # Asumme Scalar
+        # Assume Scalar
         left = float(lims)
 
     if len_lims is not None:
@@ -153,7 +155,6 @@ def plot_xy_with_hue(data, x, y, hue, decimals=None, ax=None,
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
     for key, grp in data.groupby(hue):
-        #xvals, yvals = grp[x], grp[y]
         # Sort xs and rearrange ys
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xvals, yvals = xy[:, 0], xy[:, 1]
@@ -226,7 +227,7 @@ class ArrayPlotter(object):
         Args:
             labels_and_arrays: List [("label1", arr1), ("label2", arr2")]
         """
-        self._arr_dict = collections.OrderedDict()
+        self._arr_dict = OrderedDict()
         for label, array in labels_and_arrays:
             self.add_array(label, array)
 
@@ -313,7 +314,7 @@ class ArrayPlotter(object):
         return fig
 
 
-class Marker(collections.namedtuple("Marker", "x y s")):
+class Marker(namedtuple("Marker", "x y s")):
     """
     Stores the position and the size of the marker.
     A marker is a list of tuple(x, y, s) where x, and y are the position
@@ -370,7 +371,7 @@ class Marker(collections.namedtuple("Marker", "x y s")):
     def posneg_marker(self):
         """
         Split data into two sets: the first one contains all the points with positive size.
-        the first set contains all the points with negative size.
+        The first set contains all the points with negative size.
         """
         pos_x, pos_y, pos_s = [], [], []
         neg_x, neg_y, neg_s = [], [], []
@@ -415,14 +416,14 @@ class MplExpose(object): # pragma: no cover
             if self.slide_mode:
                 print("\nSliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
             else:
-                print("\nLoading all mpl figures before showing them. Could take some time...")
+                print("\nLoading all matplotlib figures before showing them. It may take some time...")
 
         self.start_time = time.time()
 
     def __call__(self, obj):
         """
         Add an object to MplExpose. Support mpl figure, list of figures or
-        generator yelding figures.
+        generator yielding figures.
         """
         import types
         if isinstance(obj, (types.GeneratorType, list, tuple)):
@@ -478,7 +479,7 @@ def plot_unit_cell(lattice, ax=None, **kwargs):
             and linewidth to 3.
 
     Returns:
-        matplotlib figure and matplotlib ax
+        matplotlib figure and ax
     """
     ax, fig, plt = get_ax3d_fig_plt(ax)
 
@@ -551,3 +552,205 @@ def plot_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
     ax.set_axis_off()
 
     return fig
+
+
+def _generic_parser_fh(fh):
+    """
+    Parse file with data in tabular format. Supports multi datasets a la gnuplot.
+    Mainly used for files without any schema, not even CSV
+
+    Args:
+        fh: File object
+
+    Returns:
+        OrderedDict title --> numpy array
+        where title is taken from the first (non-empty) line preceding the dataset
+    """
+    arr_list = [None]
+    data = []
+    head_list = []
+    count = -1
+    last_header = None
+    for l in fh:
+        l = l.strip()
+        if not l or l.startswith("#"):
+            count = -1
+            last_header = l
+            if arr_list[-1] is not None: arr_list.append(None)
+            continue
+
+        count += 1
+        if count == 0: head_list.append(last_header)
+        if arr_list[-1] is None: arr_list[-1] = []
+        data = arr_list[-1]
+        data.append(list(map(float, l.split())))
+
+    if len(head_list) != len(arr_list):
+        raise RuntimeError("len(head_list) != len(arr_list), %d != %d" % (len(head_list), len(arr_list)))
+
+    od = OrderedDict()
+    for key, data in zip(head_list, arr_list):
+        key = " ".join(key.split())
+        if key in od:
+            print("Header %s already in dictionary. Using new key %s" % (key, 2 * key))
+            key = 2 * key
+        od[key] = np.array(data).T.copy()
+
+    return od
+
+
+class GenericDataFilePlotter(object):
+    """
+    Extract data from a generic text file with results
+    in tabular format and plot data with matplotlib.
+    Multiple datasets are supported.
+    No attempt is made to handle metadata (e.g. column name)
+    Mainly used to handle text files written without any schema.
+    """
+    def __init__(self, filepath):
+        with open(filepath, "rt") as fh:
+            self.od = _generic_parser_fh(fh)
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        lines = []
+        for key, arr in self.od.items():
+            lines.append("key: `%s` --> array shape: %s" % (key, str(arr.shape)))
+        return "\n".join(lines)
+
+    @add_fig_kwargs
+    def plot(self, use_index=False, fontsize=8, **kwargs):
+        """
+        Plot all arrays. Use multiple axes if datasets.
+
+        Args:
+            use_index: By default, the x-values are taken from the first column.
+                If use_index is False, the x-values are the row index.
+            fontsize: fontsize for title.
+            kwargs: options passed to ``ax.plot``.
+
+        Return: |matplotlib-figure|
+        """
+        # build grid of plots.
+        num_plots, ncols, nrows = len(self.od), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # Don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        for ax, (key, arr) in zip(ax_list, self.od.items()):
+            ax.set_title(key, fontsize=fontsize)
+            ax.grid(True)
+            xs = arr[0] if not use_index else list(range(len(arr[0])))
+            for ys in arr[1:] if not use_index else arr:
+                ax.plot(xs, ys)
+
+        return fig
+
+
+class GenericDataFilesPlotter(object):
+
+    @classmethod
+    def from_files(cls, filepaths):
+        """
+        Build object from a list of `filenames`.
+        """
+        new = cls()
+        for filepath in filepaths:
+            new.add_file(filepath)
+        return new
+
+    def __init__(self):
+        self.odlist = []
+        self.filepaths = []
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        lines = []
+        app = lines.append
+        for od, filepath in zip(self.odlist, self.filepaths):
+            app("File: %s" % filepath)
+            for key, arr in od.items():
+                lines.append("\tkey: `%s` --> array shape: %s" % (key, str(arr.shape)))
+
+        return "\n".join(lines)
+
+    def add_file(self, filepath):
+        """Add data from `filepath`"""
+        with open(filepath, "rt") as fh:
+            self.odlist.append(_generic_parser_fh(fh))
+            self.filepaths.append(filepath)
+
+    @add_fig_kwargs
+    def plot(self, use_index=False, fontsize=8, colormap="viridis", **kwargs):
+        """
+        Plot all arrays. Use multiple axes if datasets.
+
+        Args:
+            use_index: By default, the x-values are taken from the first column.
+                If use_index is False, the x-values are the row index.
+            fontsize: fontsize for title.
+            colormap: matplotlib color map.
+            kwargs: options passed to ``ax.plot``.
+
+        Return: |matplotlib-figure|
+        """
+        if not self.odlist: return None
+
+        # Compute intersection of all keys.
+        # Here we loose the initial ordering in the dict but oh well!
+        klist = [list(d.keys()) for d in self.odlist]
+        keys = set(klist[0]).intersection(*klist)
+        if not keys:
+            print("Warning: cannot find common keys in files. Check input data")
+            return None
+
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(keys), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        # Don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        import matplotlib.pyplot as plt
+        cmap = plt.get_cmap(colormap)
+        import itertools
+        line_cycle = itertools.cycle(["-", ":", "--", "-.",])
+
+        # One ax for key, each ax may show multiple arrays
+        # so we need different line styles that are consistent with input data.
+        # Figure may be crowded but it's difficult to do better without metadata
+        # so I'm not gonna spend time to implement more complicated logic.
+        for ax, key in zip(ax_list, keys):
+            ax.set_title(key, fontsize=fontsize)
+            ax.grid(True)
+            for iod, (od, filepath) in enumerate(zip(self.odlist, self.filepaths)):
+                if key not in od: continue
+                arr = od[key]
+                color = cmap(iod / len(self.odlist))
+                xvals = arr[0] if not use_index else list(range(len(arr[0])))
+                arr_list = arr[1:] if not use_index else arr
+                for iarr, (ys, linestyle) in enumerate(zip(arr_list, line_cycle)):
+                    ax.plot(xvals, ys, color=color, linestyle=linestyle,
+                            label=os.path.relpath(filepath) if iarr == 0 else None)
+
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig

@@ -206,7 +206,9 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         uf_cart = self.uf_kpoints.get_cart_coords()
 
         klines, xs, ticks = find_points_along_path(cart_bounds, uf_cart, dist_tol)
-        if len(klines) == 0: return None
+        if len(klines) == 0:
+            print("Warning: find_points_along_path returned None. Try to increase dist_tol.")
+            return None
         if verbose:
             uf_frac_coords = np.reshape([k.frac_coords for k in self.uf_kpoints], (-1, 3))
             fcoords = uf_frac_coords[klines]
@@ -232,11 +234,18 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         ax.set_xticks(ticks, minor=False)
         ax.set_xticklabels(klabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
         ax.grid(True)
-        ax.set_ylabel('Energy [eV]')
+        ax.set_ylabel('Energy (eV)')
         set_axlims(ax, ylims, "y")
         if self.nss == 2: ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        print("TODO: Add call to plot_unfolded")
+        yield self.ebands.plot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -252,7 +261,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             nbv.new_code_cell("#f2b.unfolded_kpoints.plot();"),
             nbv.new_code_cell(r"""\
 # kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
-# klabels = ["Y", "$Gamma$", "X"]
+# klabels = ["Y", "$\Gamma$", "X"]
 # f2b.plot_unfolded(kbounds, klabels);"""),
         ])
 

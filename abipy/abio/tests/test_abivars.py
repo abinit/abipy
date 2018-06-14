@@ -49,6 +49,7 @@ class TestAbinitInputFile(AbipyTest):
         s = "acell 3*1 natom 1 ntypat 1 typat 1 znucl 14 xred 3*0e0"
         inp = AbinitInputFile.from_string(s)
         assert inp.structure == si1_structure
+        assert not inp.has_multi_structures
 
         # xcart instead of xred and more variables using * syntax.
         s = "acell 1 2*1 natom 1*1 ntypat 1*1 typat 1*1 znucl *14 xcart 0d0 0d0 0d0"

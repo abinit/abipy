@@ -1439,13 +1439,14 @@ class KSamplingInfo(AttrDict):
                 if np.all(self.kptrlatt_orig == self.kptrlatt) and is_diagonal(self.kptrlatt):
                     self["mpdivs"] = np.diag(self.kptrlatt)
                 else:
-                    import warnings
-                    warnings.warn("""
-monkhorst_pack_folding variables has not been written to netcdf file.
-Received {mpdivs}
-Setting mpdivs to None, this may create problems in post-processing tools.
-If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
                     self["mpdivs"] = None
+#                    import warnings
+#                    warnings.warn("""
+#monkhorst_pack_folding variables has not been written to netcdf file.
+#Received {mpdivs}
+#Setting mpdivs to None, this may create problems in post-processing tools.
+#If needed, use python netcdf to change the value of `monkhorst_pack_folding`""".format(mpdivs=self["mpdivs"]))
+
 
     def __str__(self):
         return self.to_string()
@@ -1565,6 +1566,7 @@ class KpointsReaderMixin(object):
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
         return self.read_value("monkhorst_pack_folding")
+        #return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
 
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
