@@ -1203,7 +1203,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
                     ks_ebands_kmesh%nband, bstop))
             if ks_ebands_kpath.structure != self.structure:
-                raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
+                cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+                #raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
 
             # K-points and weight for DOS are taken from ks_ebands_kmesh
             dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
