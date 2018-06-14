@@ -1,6 +1,8 @@
 """Tests for htc.FilesFile."""
 from __future__ import print_function, division, unicode_literals
 
+import sys
+
 from abipy.core.testing import AbipyTest
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
 
@@ -22,7 +24,8 @@ class AbinitVariableDatabaseTest(AbipyTest):
             assert var.name == name
             repr(var); str(var)
             str(var.info)
-            str(var._repr_html_())
+            if sys.version[0:3] > '2.7':
+                str(var._repr_html_())
 
         # Database methods.
         database.apropos("ecut")
