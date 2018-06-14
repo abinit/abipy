@@ -11,7 +11,10 @@ abicheck.py --with-flow
 #nosetests -v --with-coverage --cover-package=abipy --logging-level=INFO --doctest-tests
 #nosetests -v --with-coverage --cover-package=abipy --doctest-tests
 
-pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy --ignore=abipy/gui
+./dev_scripts/pyclean.py .
+
+pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy
+#    --ignore=abipy/gui --ignore=abipy/data/refs
 
 # This is to run the integration tests (append results)
 if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then 
