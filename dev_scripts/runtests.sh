@@ -13,12 +13,12 @@ abicheck.py --with-flow
 
 #./dev_scripts/pyclean.py .
 
-cd abipy && \
 pytest --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy
 #    --ignore=abipy/gui --ignore=abipy/data/refs
-cd ..
+#cd ..
 
 # This is to run the integration tests (append results)
+# integration_tests are excluded in setup.cfg
 if [[ "${TRAVIS_PYTHON_VERSION}" == "3.6" && "${TRAVIS_OS_NAME}" == "linux" ]]; then 
     pytest -n 2 --cov-config=.coveragerc --cov=abipy --cov-append -v abipy/integration_tests 
 fi
