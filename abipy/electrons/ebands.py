@@ -3711,9 +3711,9 @@ class Bands3D(Has_Structure):
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
 
         try:
-            from skimage.measure import marching_cubes_lewiner
+            from skimage.measure import marching_cubes_lewiner as marching_cubes
         except ImportError:
-            from skimage.measure import marching_cubes as marching_cubes_lewiner
+            from skimage.measure import marching_cubes
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)
