@@ -10,6 +10,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import time
+import itertools
 import numpy as np
 
 from collections import OrderedDict, namedtuple
@@ -729,9 +730,7 @@ class GenericDataFilesPlotter(object):
         # Don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
-        import itertools
         line_cycle = itertools.cycle(["-", ":", "--", "-.",])
 
         # One ax for key, each ax may show multiple arrays
