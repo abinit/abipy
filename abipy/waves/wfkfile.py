@@ -255,7 +255,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     #    #return wclass
 
-    def ipw_visualize_widget(self):
+    def ipw_visualize_widget(self): # pragma: no cover
         """
         Return an ipython widget with controllers to visualize the wavefunctions.
 

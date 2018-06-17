@@ -164,7 +164,7 @@ install_requires = [
 "numpy",
 "scipy",
 "spglib",
-"pymatgen==2018.3.14",
+"pymatgen==2018.6.11",
 "netCDF4",
 "matplotlib",
 "seaborn",
@@ -189,6 +189,7 @@ setup_args = dict(
       version=version,
       description=description,
       long_description=long_description,
+      long_description_content_type="text/x-rst",
       author=author,
       author_email=author_email,
       maintainer=maintainer,
@@ -212,13 +213,17 @@ if __name__ == "__main__":
     setup(**setup_args)
 
     print("""
-Please read the following if you are about to use abipy for the first time:
+Please read the following if you are about to use AbiPy for the first time:
 
-[1]
-    abipy needs to know about the cluster/computer you are running on. This information
-    is provided via the manager.yml and scheduler.yml files. These files must be located
-    in ~/.abinit/abipy or in the working directory in which you execute the flow.
-    Examples are provided in abipy/data/managers
+Abipy needs to know about the cluster/computer you are running on. This information
+is provided via the manager.yml and scheduler.yml files.
+These files must be located in ~/.abinit/abipy or in the working directory in which you execute the flow.
+Examples are provided in abipy/data/managers.
+See also the HTML page:
+
+    http://abinit.github.io/abipy/workflows/manager_examples.html
+
+TIP: Use abicheck.py to validate the final configuration.
 
 Have fun!
 """)

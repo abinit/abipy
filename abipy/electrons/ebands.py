@@ -1232,7 +1232,12 @@ class ElectronBands(Has_Structure):
                 if verbose:
                     app("Valence minimum located at:\n%s" % indent(str(self.lomos[spin])))
                 app("Valence maximum located at:\n%s" % indent(str(self.homos[spin])))
-                app("")
+                try:
+                    # Cannot assume enough states for this!
+                    app("Conduction minimum located at:\n%s" % indent(str(self.lumos[spin])))
+                    app("")
+                except Exception:
+                    pass
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))
@@ -1302,7 +1307,7 @@ class ElectronBands(Has_Structure):
         return StatParams(mean=ediff.mean(axis=axis), stdev=ediff.std(axis=axis),
                           min=ediff.min(axis=axis), max=ediff.max(axis=axis))
 
-    def ipw_edos_widget(self):
+    def ipw_edos_widget(self): # pragma: no cover
         """
         Return an ipython widget with controllers to compute the electron DOS.
         """
@@ -1630,7 +1635,8 @@ class ElectronBands(Has_Structure):
             nband_sk=self.nband_sk, smearing=self.smearing)
 
     @add_fig_kwargs
-    def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None, **kwargs):
+    def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
+	     points=None, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1647,6 +1653,7 @@ class ElectronBands(Has_Structure):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            points:
 
         Returns: |matplotlib-Figure|
         """
@@ -1677,6 +1684,11 @@ class ElectronBands(Has_Structure):
 
             for band in band_list:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
+
+        if points is not None:
+            e0 = self.get_e0(e0)
+            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s),
+                       marker="o", c="b")
 
         return fig
 
@@ -1734,7 +1746,8 @@ class ElectronBands(Has_Structure):
         if title is not None: ax.set_title(title, fontsize=fontsize)
 
         ax.grid(True)
-        ax.set_ylabel('Energy (eV)')
+        ax.set_ylabel("Energy (eV)")
+        ax.set_xlabel("Wave vector")
 
         # Set ticks and labels.
         klabels = kwargs.pop("klabels", None)
@@ -1927,14 +1940,14 @@ class ElectronBands(Has_Structure):
         if not self.has_linewidths: return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
+        xlabel = r"$\epsilon_{KS}\;(eV)$"
+        if e0 is not None:
+            xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
+
         # DSU sort to get lw(e) with sorted energies.
         e0mesh, lws = zip(*sorted(zip(self.eigens.flat, self.linewidths.flat), key=lambda t: t[0]))
         e0 = self.get_e0(e0)
         e0mesh = np.array(e0mesh) - e0
-
-        xlabel = r"$\epsilon_{KS}\;(eV)$"
-        #if fermie is not None:
-        #    xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         #kw_lw = kwargs.pop("lw", 1)
@@ -2270,7 +2283,6 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
     import pandas as pd
     return pd.DataFrame(odict_list, index=index)
                         #columns=list(odict_list[0].keys()) if odict_list else None)
-
 
 
 class ElectronBandsPlotter(NotebookWriter):
@@ -2779,7 +2791,7 @@ class ElectronBandsPlotter(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return self.ipw_select_plot()
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -2892,15 +2904,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
     def read_smearing(self):
         """Returns a :class:`Smearing` instance with info on the smearing technique."""
         occopt = int(self.read_value("occopt"))
-
-        try:
-            scheme = "".join(c for c in self.read_value("smearing_scheme"))
-            scheme = scheme.strip()
-        except TypeError as exc:
-            #cprint("Error while trying to read `smearing_scheme`. Set scheme to None")
-            #scheme = None
-            scheme = "".join(c.decode("utf-8") for c in self.read_value("smearing_scheme"))
-            scheme = scheme.strip()
+        scheme = self.read_string("smearing_scheme")
 
         return Smearing(
             scheme=scheme,
@@ -3426,7 +3430,7 @@ class ElectronDosPlotter(NotebookWriter):
 
         return fig
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3708,10 +3712,15 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            from skimage import measure
+            import skimage
         except ImportError:
             raise ImportError("scikit-image not installed.\n"
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
+
+        try:
+            from skimage.measure import marching_cubes_lewiner as marching_cubes
+        except ImportError:
+            from skimage.measure import marching_cubes
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)
@@ -3737,7 +3746,8 @@ class Bands3D(Has_Structure):
                 #   Gives a measure for the maximum value of the data in the local region near each vertex.
                 #   This can be used by visualization tools to apply a colormap to the mesh
                 voldata = np.reshape(self.ucdata_sbk[spin, band], self.kdivs)
-                verts, faces, normals, values = measure.marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
+                verts, faces, normals, values = marching_cubes(voldata, level=e0, spacing=tuple(self.spacing))
+                #verts, faces, normals, values = marching_cubes_lewiner(voldata, level=e0, spacing=tuple(self.spacing))
                 verts = self.reciprocal_lattice.get_cartesian_coords(verts)
                 ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2]) #, cmap='Spectral', lw=1, antialiased=True)
                 # mayavi package:
@@ -4030,7 +4040,14 @@ class RobotWithEbands(object):
                 if hue is None:
                     # Extract data.
                     xvals, yvals = get_xy(item, spin, params, self.abifiles)
-                    ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                    if not is_string(xvals[0]):
+                        ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
+                    else:
+                        # Must handle list of strings in a different way.
+                        xn = range(len(xvals))
+                        ax.plot(xn, yvals, marker=marker_spin[spin], **kwargs)
+                        ax.set_xticks(xn)
+                        ax.set_xticklabels(xvals, fontsize=fontsize)
                 else:
                     for g in groups:
                         # Extract data.

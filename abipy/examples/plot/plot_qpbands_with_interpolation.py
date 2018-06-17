@@ -37,6 +37,13 @@ r = sigres.interpolate(lpratio=5,
                        )
 qp_edos = r.qp_ebands_kmesh.get_edos()
 
+# Get points with ab-initio QP energies from the SIGRES so that
+# we can plot the interpolate interpolated QP band structure with the first principles results.
+# This part is optional
+points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24)
+r.qp_ebands_kpath.plot(points=points)
+#raise ValueError()
+
 # Shortcut: pass the name of the GSR files directly.
 #r = sigres.interpolate(ks_ebands_kpath=abidata.ref_file("si_nscf_GSR.nc"),
 #                       ks_ebands_kmesh=abidata.ref_file("si_scf_GSR.nc"))
@@ -45,8 +52,8 @@ qp_edos = r.qp_ebands_kmesh.get_edos()
 
 # Use ElectronBandsPlotter to plot the KS and the QP band structure with matplotlib.
 plotter = ElectronBandsPlotter()
-plotter.add_ebands("LDA", ks_ebands_kpath, dos=ks_edos)
-plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, dos=qp_edos)
+plotter.add_ebands("LDA", ks_ebands_kpath, edos=ks_edos)
+plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, edos=qp_edos)
 
 # Get pandas dataframe with band structure parameters.
 #df = plotter.get_ebands_frame()

@@ -335,6 +335,7 @@ class QPList(list):
         qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
         xlabel = r"$\epsilon_{KS}\;(eV)$"
+        print("fermie", fermie)
         if fermie is not None:
             xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
             e0mesh -= fermie
@@ -520,6 +521,7 @@ class SelfEnergy(object):
         else:
             raise ValueError("Don't know how to handle what option %s" % str(what))
 
+        #ax.set_xlabel(r"$\omega - \espilon_{KS} (eV)")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return lines
@@ -681,23 +683,25 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.ebands.to_string(title="Kohn-Sham bands", with_structure=False))
+        app("")
 
         # TODO: Finalize the implementation: add GW metadata.
-        app(marquee("QP direct gaps in eV", mark="="))
+        app(marquee("QP direct gaps", mark="="))
         for kgw in self.gwkpoints:
             for spin in range(self.nsppol):
                 qp_dirgap = self.get_qpgap(spin, kgw)
+                app("QP_dirgap: %.3f (eV) for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
                 #ks_dirgap =
-                app("QP_dirgap: %.3f for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
+        app("")
 
-        #if verbose > 1
-        #    strio = cStringIO()
-        #    self.print_qps(file=strio)
-        #    strio.seek(0)
-        #    app("")
-        #    app(marquee("QP results for each k-point and spin (All in eV)", mark="="))
-        #    app("".join(strio))
-        #    app("")
+        # Show QP results
+        strio = cStringIO()
+        self.print_qps(precision=3, ignore_imag=verbose==0, file=strio)
+        strio.seek(0)
+        app("")
+        app(marquee("QP results for each k-point and spin (all in eV)", mark="="))
+        app("".join(strio))
+        app("")
 
         # TODO: Fix header.
         #if verbose > 1:
@@ -716,6 +720,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def ebands(self):
         """|ElectronBands| with the KS energies."""
         return self._ebands
+
+    @property
+    def has_spectral_function(self):
+        """True if file contains spectral function data."""
+        return self.reader.has_spfunc
 
     @lazy_property
     def qplist_spin(self):
@@ -771,6 +780,80 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 df_sk = self.get_dataframe_sk(spin, gwkpoint, ignore_imag=ignore_imag)[keys]
                 print_dataframe(df_sk, title="K-point: %s, spin: %s" % (repr(gwkpoint), spin),
                                 precision=precision, file=file)
+
+    def get_points_from_ebands(self, ebands_kpath, dist_tol=1e-12, size=24, verbose=0):
+        """
+        Generate object storing the QP energies lying on the k-path used by ebands_kpath.
+        Mainly used to plot the QP energies in ebands.plot when the QP energies are interpolated with the SKW method.
+
+        Args:
+            ebands_kpath: |ElectronBands| object with the QP energies along an arbitrary k-path.
+            dist_tol: A point is considered to be on the path if its distance from the line
+                is less than dist_tol.
+            size: The marker size in points**2
+            verbose: Verbosity level
+
+        Return:
+
+        Example::
+
+            r = sigres.interpolate(lpratio=5,
+                                   ks_ebands_kpath=ks_ebands_kpath,
+                                   ks_ebands_kmesh=ks_ebands_kmesh
+                                   )
+            points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24)
+            r.qp_ebands_kpath.plot(points=points)
+        """
+        kpath = ebands_kpath.kpoints
+        if not ebands_kpath.kpoints.is_path:
+            raise TypeError("Expecting band structure with a Kpath, got %s" % type(kpath))
+        if verbose:
+            print("Input kpath\n", ebands_kpath.kpoints)
+            print("gwkpoints included in GW calculation\n", self.gwkpoints)
+            print("lines\n", kpath.lines)
+            print("kpath.frac_bounds:\n", kpath.frac_bounds)
+            print("kpath.cart_bounds:\n", kpath.frac_bounds)
+
+        # Construct the stars of the k-points for all k-points included in the GW calculation.
+        # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for GW
+        # so we have to build the k-stars and find the k-points lying along the path and keep
+        # track of the mapping kpt --> star --> kgw
+        gw_stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.gwkpoints]
+        cart_coords, back2istar = [], []
+        for istar, gw_star in enumerate(gw_stars):
+            cart_coords.extend([k.cart_coords for k in gw_star])
+            back2istar.extend([istar] * len(gw_star))
+        cart_coords = np.reshape(cart_coords, (-1, 3))
+
+        # Find (star) k-points on the path.
+        p = kpath.find_points_along_path(cart_coords, dist_tol=dist_tol)
+        if len(p.ikfound) == 0:
+            cprint("Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.", "yellow")
+            return Marker()
+
+        # Read complex GW energies from file.
+        qp_arr = self.reader.read_value("egw", cmode="c")
+
+        # Each marker is a list of tuple(x, y, value)
+        x, y, s = [], [], []
+        kpath_lenght = kpath.ds.sum()
+
+        for ik, dalong_path in zip(p.ikfound, p.dist_list):
+            istar = back2istar[ik]
+            # The k-point used in the GW calculation.
+            gwk = gw_stars[istar].base_point
+            # Indices needed to access SIGRES arrays (we have to live with this format)
+            ik_ibz = self.reader.kpt2fileindex(gwk)
+            ik_b = self.reader.gwkpt2seqindex(gwk)
+            for spin in range(self.nsppol):
+                # Need to select bands included in the GW calculation.
+                for qpe in qp_arr[spin, ik_ibz, self.gwbstart_sk[spin, ik_b]:self.gwbstop_sk[spin, ik_b]]:
+                    # Assume the path is properly normalized.
+                    x.append((dalong_path / kpath_lenght) * (len(kpath) - 1))
+                    y.append(qpe.real)
+                    s.append(size)
+
+        return Marker(*(x, y, s))
 
     @add_fig_kwargs
     def plot_qpgaps(self, ax=None, plot_qpmks=True, fontsize=8, **kwargs):
@@ -844,7 +927,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         with_fields = QPState.get_fields_for_plot(with_fields, exclude_fields)
 
-        fermie = self.ebands.get_e0(e0)
+        # Because qplist does not have the fermi level.
+        fermie = self.ebands.get_e0(e0) if e0 is not None else None
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_qps_vs_e0(
                 with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,
@@ -860,7 +944,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Plot the spectral function for all k-points, bands and spins available in the SIGRES file.
 
         Args:
-            include_bands: List of bands to include. Note means all.
+            include_bands: List of bands to include. Nonee means all.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1195,7 +1279,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
                     ks_ebands_kmesh%nband, bstop))
             if ks_ebands_kpath.structure != self.structure:
-                raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
+                cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
+                #raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
 
             # K-points and weight for DOS are taken from ks_ebands_kmesh
             dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
@@ -1229,6 +1314,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         yield self.plot_qps_vs_e0(show=False)
         yield self.plot_qpbands_ibz(show=False)
         yield self.plot_ksbands_with_qpmarkers(show=False)
+        if self.has_spectral_function:
+            yield self.plot_spectral_functions(include_bands=None, show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -1715,7 +1802,7 @@ class SigresRobot(Robot, RobotWithEbands):
     def _check_dims_and_params(self):
         """Test that nsppol, sigma_kpoints, tlist are consistent."""
         if not len(self.abifiles) > 1:
-            return
+            return 0
 
         nc0 = self.abifiles[0]
         errors = []
@@ -1842,7 +1929,15 @@ class SigresRobot(Robot, RobotWithEbands):
                     qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
                         for ncfile in ncfiles]))
                     yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
-                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+
+                    if not is_string(params[0]):
+                        ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                    else:
+                        # Must handle list of strings in a different way.
+                        xn = range(len(params))
+                        ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
+                        ax.set_xticks(xn)
+                        ax.set_xticklabels(params, fontsize=fontsize)
                 else:
                     for g in groups:
                         qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
@@ -1925,7 +2020,14 @@ class SigresRobot(Robot, RobotWithEbands):
             if hue is None:
                 # Extract QP data.
                 yvals = [getattr(qp, what) for qp in qplist]
-                ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                if not is_string(params[0]):
+                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                else:
+                    # Must handle list of strings in a different way.
+                    xn = range(len(params))
+                    ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
+                    ax.set_xticks(xn)
+                    ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g, qplist in zip(groups, qplist_group):
                     # Extract QP data.
@@ -2061,6 +2163,15 @@ class SigresRobot(Robot, RobotWithEbands):
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_qpgaps_convergence(plot_qpmks=True, show=False)
+        #yield self.plot_qpdata_conv_skb(spin, kpoint, band, show=False)
+        #yield self.plot_qpfield_vs_e0(field, show=False)
+        #yield self.plot_selfenergy_conv(spin, kpoint, band, sortby=None, hue=None, show=False)
+
     def write_notebook(self, nbpath=None):
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
@@ -2071,9 +2182,13 @@ class SigresRobot(Robot, RobotWithEbands):
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False, **kwargs)"),
             #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False)"),
+            nbv.new_code_cell("robot.plot_qpgaps_convergence(plot_qpmks=True, sortby=None, hue=None);"),
+            nbv.new_code_cell("#robot.plot_qpdata_conv_skb(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
+            nbv.new_code_cell("robot.plot_qpfield_vs_e0(field='qpeme0', sortby=None, hue=None);"),
+            nbv.new_code_cell("#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
         ])
 
         # Mixins

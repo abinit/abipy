@@ -144,7 +144,7 @@ class TestPlotting(AbipyTest):
 
         if self.has_matplotlib():
             assert plotter.plot(show=False)
-
+            assert plotter.plot(use_index=True, show=False)
 
     def test_generic_data_files_plotter(self):
         """Testing GenericDataFilesPlotter object."""
@@ -159,3 +159,4 @@ class TestPlotting(AbipyTest):
 
         if self.has_matplotlib():
             assert plotter.plot(show=False)
+            assert plotter.plot(use_index=True, show=False)

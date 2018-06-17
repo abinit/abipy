@@ -20,6 +20,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.kpoints import Kpath
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels)
+from abipy.tools import duck
 from abipy.electrons.ebands import ElectronDos, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
 from abipy.abio.robots import Robot
@@ -1179,14 +1180,19 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
             #ax.set_title(what, fontsize=fontsize)
             if hue is None:
+                params_are_string = duck.is_string(params[0])
+                xvals = params if not params_are_string else range(len(params))
                 for iq, qsamp in enumerate(qsamps):
                     a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in ncfiles]
                     yvals = [getattr(a2f, what) for a2f in a2f_list]
-                    l = ax.plot(params, yvals,
+                    l = ax.plot(xvals, yvals,
                                 marker=self.marker_qsamp[qsamp],
                                 linestyle=self.linestyle_qsamp[qsamp],
                                 color=None if iq == 0 else l[0].get_color(),
                                 )
+                    if params_are_string:
+                        ax.set_xticks(xvals)
+                        ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g in groups:
                     for iq, qsamp in enumerate(qsamps):

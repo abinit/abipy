@@ -1516,7 +1516,16 @@ class SigEPhRobot(Robot, RobotWithEbands):
                     yvals = [ncfile.qp_dirgaps_t[spin, ikc, itemp] for ncfile in ncfiles]
                     if plot_qpmks:
                         yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
-                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+
+                    if not duck.is_string(params[0]):
+                        ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                    else:
+                        # Must handle list of strings in a different way.
+                        xn = range(len(params))
+                        ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
+                        ax.set_xticks(xn)
+                        ax.set_xticklabels(params, fontsize=fontsize)
+
                 else:
                     for g in groups:
                         yvals = [ncfile.qp_dirgaps_t[spin, ikc, itemp] for ncfile in g.abifiles]
@@ -1594,7 +1603,14 @@ class SigEPhRobot(Robot, RobotWithEbands):
             if hue is None:
                 # Extract QP data.
                 yvals = [getattr(qp, what)[itemp] for qp in qplist]
-                ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                if not duck.is_string(params[0]):
+                    ax.plot(params, yvals, marker=nc0.marker_spin[spin])
+                else:
+                    # Must handle list of strings in a different way.
+                    xn = range(len(params))
+                    ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
+                    ax.set_xticks(xn)
+                    ax.set_xticklabels(params, fontsize=fontsize)
             else:
                 for g, qplist in zip(groups, qplist_group):
                     # Extract QP data.

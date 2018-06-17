@@ -2294,15 +2294,17 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     Error = AnaddbInputError
 
-    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None):
+    def __init__(self, structure, comment="", anaddb_args=None, anaddb_kwargs=None, spell_check=True):
+
         """
         Args:
             structure: |Structure| object
             comment: Optional string with a comment that will be placed at the beginning of the file.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
-        self._spell_check = True
+        self.set_spell_check(spell_check)
         self._structure = structure
         self.comment = comment
 
@@ -2344,7 +2346,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
-                        directions=None, anaddb_args=None, anaddb_kwargs=None):
+                        directions=None, anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
@@ -2357,6 +2359,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 cartesian direction will be used
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
         new = cls(structure, comment="ANADB input for phonon frequencies at one q-point",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
@@ -2420,7 +2423,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
                         qptbounds=None, asr=2, chneut=0, dipdip=1, dos_method="tetra", lo_to_splitting=False,
-                        anaddb_args=None, anaddb_kwargs=None):
+                        anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Build an anaddb input file for the computation of phonon bands and phonon DOS.
 
@@ -2444,6 +2447,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
         dosdeltae, dossmear = None, None
 
@@ -2459,7 +2463,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
 
         new = cls(structure, comment="ANADB input for phonon bands and DOS",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         # Parameters for the DOS
         if qppa:

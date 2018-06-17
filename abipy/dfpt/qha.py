@@ -63,7 +63,7 @@ class QHA(object):
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns:
-            `namedtuple`` with the following attributes:
+            `namedtuple` with the following attributes::
 
                 tot_en: numpy array with shape (nvols, num) with the energies used for the fit
                 fits: list of subclasses of pymatgen.analysis.eos.EOSBase, depending on the type of
@@ -71,6 +71,7 @@ class QHA(object):
                 min_en: numpy array with the minimum energies for the list of temperatures
                 min_vol: numpy array with the minimum volumes for the list of temperatures
                 temp: numpy array with the temperatures considered
+
         """
 
         tmesh = np.linspace(tstart, tstop, num)

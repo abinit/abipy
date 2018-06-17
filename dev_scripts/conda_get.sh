@@ -21,10 +21,11 @@ export PATH="${HOME}/miniconda/bin:${PATH}"
 
 hash -r
 
-conda config --set always_yes yes --set changeps1 no
+conda config --set always_yes yes --set changeps1 yes
 conda update -q conda
 # Useful for debugging any issues with conda
 conda info -a
 # Replace dep1 dep2 ... with your dependencies
 conda create -q -n test-environment python=${TRAVIS_PYTHON_VERSION}
 source activate test-environment
+

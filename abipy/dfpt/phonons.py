@@ -892,6 +892,8 @@ class PhononBands(object):
         if units:
             ax.set_ylabel(abu.wlabel_from_units(units))
 
+        ax.set_xlabel("Wave vector")
+
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
         if ticks:
@@ -3370,7 +3372,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         return anim
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3593,7 +3595,7 @@ class PhononDosPlotter(NotebookWriter):
         #fig.tight_layout()
         return fig
 
-    def ipw_select_plot(self):
+    def ipw_select_plot(self): # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
@@ -3607,7 +3609,7 @@ class PhononDosPlotter(NotebookWriter):
                 units=["eV", "meV", "cm-1", "Thz", "Ha"],
             )
 
-    def ipw_harmonic_thermo(self):
+    def ipw_harmonic_thermo(self): # pragma: no cover
         """
         Return an ipython widget with controllers to plot thermodynamic properties
         from the phonon DOS within the harmonic approximation.
@@ -3962,8 +3964,8 @@ class InteratomicForceConstants(Has_Structure):
         if 'linewidth' not in kwargs and 'lw' not in kwargs:
             kwargs['lw'] = 0
 
-        ax.set_xlabel('Distance [Bohr]')
-        ax.set_ylabel(r'IFC [Ha/Bohr$^2$]')
+        ax.set_xlabel('Distance (Bohr)')
+        ax.set_ylabel(r'IFC (Ha/Bohr$^2$)')
         ax.grid(True)
 
         ax.plot(dist, filtered_ifc, **kwargs)

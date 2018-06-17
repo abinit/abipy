@@ -563,7 +563,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         yield self.structure.plot_bz(show=False)
 
     def anaget_phmodes_at_qpoint(self, qpoint=None, asr=2, chneut=1, dipdip=1, workdir=None, mpi_procs=1,
-                                 manager=None, verbose=0, lo_to_splitting=False, directions=None, anaddb_kwargs=None):
+                                 manager=None, verbose=0, lo_to_splitting=False, spell_check=True,
+                                 directions=None, anaddb_kwargs=None):
         """
         Execute anaddb to compute phonon modes at the given q-point (without LO-TO splitting)
 
@@ -607,7 +608,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         inp = AnaddbInput.modes_at_qpoint(self.structure, qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=lo_to_splitting, directions=directions,
-                                          anaddb_kwargs=anaddb_kwargs)
+                                          anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir,
                                           manager=manager, mpi_procs=mpi_procs)
@@ -627,9 +628,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
             return ncfile.phbands
 
-    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
-                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
-                                     anaddb_kwargs=None, verbose=0,
+    def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1, 
+                                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, 
+                                     anaddb_kwargs=None, verbose=0, spell_check=True,
                                      mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS
@@ -675,7 +676,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
             nqsmall=nqsmall, qppa=qppa, q1shft=(0, 0, 0), qptbounds=qptbounds,
             asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method, lo_to_splitting=lo_to_splitting,
-            anaddb_kwargs=anaddb_kwargs)
+            anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
 
         #work as usual
         task = AnaddbTask.temp_shell_task(inp, ddb_node=self.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)

@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Test abipy command line scripts."""
+"""Test AbiPy command line scripts."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import sys
@@ -14,7 +14,7 @@ from abipy.core.testing import AbipyTest
 from abipy import abilab
 
 
-script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "abipy", "scripts"))
+script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_if_all_scripts_are_tested():
@@ -47,8 +47,8 @@ class ScriptTest(AbipyTest):
 
         # Use Agg backend for plots.
         #env.writefile("matplotlibrc", "backend: Agg")
-        with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
-            fh.write("backend: Agg\n")
+        #with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
+        #    fh.write("backend: Agg\n")
 
         if check_help_version:
             # Start with --help. If this does not work...
