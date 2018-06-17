@@ -1135,8 +1135,8 @@ class Kpath(KpointList):
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
             len(self.lines), [len(l) for l in self.lines]))
         if verbose:
-             for i, line in enumerate(self.lines):
-                 app("line %d: %s" % (i, line))
+            for i, line in enumerate(self.lines):
+                app("line %d: %s" % (i, line))
         header = "\n".join(lines)
 
         vids = {line[0] for line in self.lines}
