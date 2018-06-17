@@ -179,45 +179,66 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             ham_k = np.zeros((nkpt, nwan, nwan), dtype=np.complex)
             eigval2 = np.zeros((nkpt, nwan), dtype=np.double)
 
-    def interpolate_ebands(self, kpoints=None):
-        for spin in range(self.nsppol):
-            nwan = self.nwan_spin[spin]
-            hr = self.hwr_spin[spin]
-            # Interpolate the Hamiltonian at each kpoint.
-            ham_kprm = np.empty((nwan, nwan), dtype=np.complex)
-            for ik, kpt in enumerate(kpoints):
-                ham_kprm[:] = 0.0
-                # do iR=1,nrpts
-                #  rdotk=two_pi*DOT_PRODUCT(BSt%kptns(:,ikpt),irvec(:,iR))
-                #  fact=EXP(j_dpc*rdotk)/REAL(ndegen(iR),dp)
-                #  ham_kprm=ham_kprm+fact*ham_r(:,:,iR)
-                # end do
+            #! Real-space Hamiltonian H(R) is calculated by Fourier
+            #! transforming H(q) defined on the ab-initio reciprocal mesh
+            #!
+            #allocate(HH_q(num_wann,num_wann,num_kpts))
+            #allocate(num_states(num_kpts))
 
-                # Diagonalise H_k (->basis of eigenstates)
+            #HH_q=cmplx_0
+            #do ik=1,num_kpts
+            #   if(have_disentangled) then
+            #      num_states(ik)=ndimwin(ik)
+            #   else
+            #      num_states(ik)=num_wann
+            #   endif
+            #   call get_win_min(ik,winmin_q)
+            #   do m=1,num_wann
+            #      do n=1,m
+            #         do i=1,num_states(ik)
+            #            ii=winmin_q+i-1
+            #            HH_q(n,m,ik)=HH_q(n,m,ik)&
+            #             +conjg(v_matrix(i,n,ik))*eigval(ii,ik)&
+            #             *v_matrix(i,m,ik)
+            #         enddo
+            #         HH_q(m,n,ik)=conjg(HH_q(n,m,ik))
+            #      enddo
+            #   enddo
+            #enddo
+            #call fourier_q_to_R(HH_q,HH_R)
 
-        return ElectronBands(self.structure, kpoints, eigens, self.ebands.fermie, occfacts, self.ebands.nelect,
-                             self.nspinor, self.nspden, nband_sk=None, smearing=None, linewidths=None)
-
-    @add_fig_kwargs
-    def plot_hwr(self, ax=None, **kwargs):
+    def interpolate_ebands(self, vertices_names=None, line_density=20):
         """
-        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
 
         Args:
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-            kwargs: options passed to ``ax.plot``.
+            vertices_names: Used to specify the k-path for the interpolated QP band structure
+                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
+                the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
+                the density of the sampling. If None, the k-path is automatically generated according
+                to the point group of the system.
+            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
 
-        Return: |matplotlib-Figure|
+        Returns: |ElectronBands| object with interpolated energies.
         """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        if vertices_names is None:
+            vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+        kpoints = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+        kfrac_coords, knames = kpoints.frac_coords, kpoints.names
 
-        # Sort points by length
-        # Length(ii), Lattice point Rws(1:3,ii), (MAXVAL |hamW_ij(R,isp)|, isp=1,nsppol)'
+        # NB: May have different number of wannier functions if nsppol == 2
+        nk = len(kpoints)
+        eigens = np.zeros((self.nsppol, nk, self.mwan)
+        occfacts = np.zeros(eigens.shape)
+
+        # Interpolate the Hamiltonian for each kpoint and spin
         for spin in range(self.nsppol):
-            nwan = self.nwan_spin[spin]
-            hr = self.hwr_spin[spin]
+            for ik, kpt in enumerate(kpoints):
+               oeigs = self.hwr.eval_sk(spin, kpt.frac_coords, der1=None, der2=None)
+               eigens[spin, ik, :] = oeigs
 
-        return fig
+        return ElectronBands(self.structure, kpoints, eigens, self.ebands.fermie,
+                             occfacts, self.ebands.nelect, self.nspinor, self.nspden)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -245,6 +266,86 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+# TODO: Interface with ElectronsInterpolator
+class HWannierR(object)
+
+    def __init__(self, irvec, ndegen):
+        self.irvec = irvec
+        self.ndegen = ndegen
+
+    def eval_sk(self, spin, kpt, der1=None, der2=None):
+        """
+        Interpolate eigenvalues for all bands at a given (spin, k-point).
+        Optionally compute gradients and Hessian matrices.
+
+        Args:
+            spin: Spin index.
+            kpt: K-point in reduced coordinates.
+            der1: If not None, ouput gradient is stored in der1[nband, 3].
+            der2: If not None, output Hessian is der2[nband, 3, 3].
+
+        Return:
+            oeigs[nband]
+        """
+        #call pw90common_fourier_R_to_k(kpt,HH_R,HH,0)
+        #call utility_diagonalize(HH,num_wann,my_eig(:,loop_kpt),UU)
+
+        #  !! For alpha=0:
+        #  !! O_ij(R) --> O_ij(k) = sum_R e^{+ik.R}*O_ij(R)
+        #  !!
+        #  !! For alpha=1,2,3:
+        #  !! sum_R [cmplx_i*R_alpha*e^{+ik.R}*O_ij(R)]
+        #  !! where R_alpha is a Cartesian component of R
+        #  !! ***REMOVE EVENTUALLY*** (replace with pw90common_fourier_R_to_k_new)
+
+        #    real(kind=dp)                                   :: kpt(3)
+        #    complex(kind=dp), dimension(:,:,:), intent(in)  :: OO_R
+        #    complex(kind=dp), dimension(:,:), intent(out)   :: OO
+        #    integer                                         :: alpha
+
+        #    integer          :: ir, i,j,ideg
+        #    real(kind=dp)    :: rdotk
+        #    complex(kind=dp) :: phase_fac
+
+        #    OO(:,:)=cmplx_0
+        #    do ir=1,nrpts
+        #        ! [lp] Original code, without IJ-dependent shift:
+        #         rdotk=twopi*dot_product(kpt(:),irvec(:,ir))
+        #         phase_fac=cmplx(cos(rdotk),sin(rdotk),dp)/real(ndegen(ir),dp)
+        #         if(alpha==0) then
+        #            OO(:,:)=OO(:,:)+phase_fac*OO_R(:,:,ir)
+        #         elseif(alpha==1.or.alpha==2.or.alpha==3) then
+        #            OO(:,:)=OO(:,:)+&
+        #                  cmplx_i*crvec(alpha,ir)*phase_fac*OO_R(:,:,ir)
+        #         else
+        #            stop 'wrong value of alpha in pw90common_fourier_R_to_k'
+        #         endif
+        #    enddo
+
+        #  end subroutine pw90common_fourier_R_to_k
+
+    @add_fig_kwargs
+    def plot_hwr(self, ax=None, **kwargs):
+        """
+        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            kwargs: options passed to ``ax.plot``.
+
+        Return: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # Sort points by length
+        # Length(ii), Lattice point Rws(1:3,ii), (MAXVAL |hamW_ij(R,isp)|, isp=1,nsppol)'
+        for spin in range(self.nsppol):
+            nwan = self.nwan_spin[spin]
+            hr = self.hwr_spin[spin]
+
+        return fig
 
 
 class AbiwanReader(ElectronsReader):
