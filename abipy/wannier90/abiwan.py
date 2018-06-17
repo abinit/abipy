@@ -6,7 +6,9 @@ import numpy as np
 
 #from collections import OrderedDict
 from monty.string import marquee
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, NotebookWriter
+from monty.functools import lazy_property
+from monty.termcolor import cprint
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 
@@ -52,42 +54,42 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     @lazy_property
     def mwan(self):
         """Max number of Wannier functions over spins, i.e max(nwan_spin) (used to dimension arrays)."""
-        self.mwan = self.reader.read_dimvalue("mwan")
+        return self.reader.read_dimvalue("mwan")
 
-    @lazy_property
-    def nntot(self):
-        """Number of k-point neighbours."""
-        return self.reader.read_dimvalue("nntot")
+    #@lazy_property
+    #def nntot(self):
+    #    """Number of k-point neighbours."""
+    #    return self.reader.read_dimvalue("nntot")
 
-    @lazy_property
-    def ndimwin(self)
-        """
-        [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.
-        """
-        return self.reader.read_value("ndimwin")
+    #@lazy_property
+    #def ndimwin(self):
+    #    """
+    #    [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.
+    #    """
+    #    return self.reader.read_value("ndimwin")
 
-    @lazy_property
-    def band_in(self)
-        """[nsppol, mband] logical array. True if (spin, band) is included in the calculation."""
-        return self.reader.read_value("band_in")
+    #@lazy_property
+    #def band_in(self):
+    #    """[nsppol, mband] logical array. True if (spin, band) is included in the calculation."""
+    #    return self.reader.read_value("band_in")
 
-    @lazy_property
-    def lwindow(self)
-        """
-        [nsppol, mband, nkpt] array. Only if disentanglement
-        True if this band at this k-point lies within the outer window
-        """
-        return self.reader.read_value("lwindow")
+    #@lazy_property
+    #def lwindow(self):
+    #    """
+    #    [nsppol, mband, nkpt] array. Only if disentanglement
+    #    True if this band at this k-point lies within the outer window
+    #    """
+    #    return self.reader.read_value("lwindow")
 
-    @lazy_property
-    def have_disentangled(self):
-        """[nsppol] array. Whether a disentanglement has been performed."""
-        return self.reader.read_value("have_disentangled")
+    #@lazy_property
+    #def have_disentangled(self):
+    #    """[nsppol] array. Whether a disentanglement has been performed."""
+    #    return self.reader.read_value("have_disentangled")
 
     @lazy_property
     def wann_centers(self):
-        """Numpy array of shape (nsppol, mwan, 3). with centers in Ang."""
-        return self.reader.read_value("wann_centers")
+        """Numpy array of shape (nsppol, mwan, 3). with Wannier centers in Ang."""
+        return self.reader.read_value("wann_centres")
 
     @lazy_property
     def wann_spreads(self):
@@ -95,7 +97,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return self.reader.read_value("wann_spreads")
 
     @lazy_property
-    def irvec(self)
+    def irvec(self):
         """
         [nrpts, 3] array with the lattice vectors in the WS cell
         in the basis of the lattice vectors defining the unit cell
@@ -109,6 +111,13 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         It will be weighted using 1 / ndegen[ir]
         """
         return self.reader.read_value("ndegen")
+
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        od = self.get_ebands_params()
+        # TODO
+        return od
 
     def __str__(self):
         """String representation."""
@@ -126,17 +135,21 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
 
         app(marquee("Wannier centers and spreads", mark="="))
-        for spin in self.nsppol:
-            for iwan in range(len(self.nwan_spin[spin])):
-                app("Center %.6f %6.f %6.f, Spread: %.6f" % (self.centers[spin, iwan, :], self.spreads[spin, iwan]
+        for spin in range(self.nsppol):
+            for iwan in range(self.nwan_spin[spin]):
+                app("Center %.6f %.6f %.6f, Spread: %.6f" % (
+                    self.wann_centers[spin, iwan, 0],
+                    self.wann_centers[spin, iwan, 1],
+                    self.wann_centers[spin, iwan, 2],
+                    self.wann_spreads[spin, iwan]))
 
         #self.have_disentangled:
         #self.band_in
         #self.lwindow
 
-        if verbose > 1:
-            app("")
-            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+        #if verbose > 1:
+        #    app("")
+        #    app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 
@@ -160,14 +173,14 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         self.hwr_spin = [None] * self.nsppol
         nr = len(self.irvec)
         #nkpt = ??
-        for spin in range(len(self.nsppol)):
+        for spin in range(self.nsppol):
             nwan = self.nwan_spin[spin]
             hr = self.hwr_spin[spin] = np.empty((nr, nwan, nwan), dtype=np.complex)
             ham_k = np.zeros((nkpt, nwan, nwan), dtype=np.complex)
             eigval2 = np.zeros((nkpt, nwan), dtype=np.double)
 
     def interpolate_ebands(self, kpoints=None):
-        for spin in range(len(self.nsppol)):
+        for spin in range(self.nsppol):
             nwan = self.nwan_spin[spin]
             hr = self.hwr_spin[spin]
             # Interpolate the Hamiltonian at each kpoint.
@@ -186,7 +199,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                              self.nspinor, self.nspden, nband_sk=None, smearing=None, linewidths=None)
 
     @add_fig_kwargs
-    def plot_hwr(self, ax=None, **kwargs)
+    def plot_hwr(self, ax=None, **kwargs):
         """
         Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
 
@@ -200,7 +213,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
         # Sort points by length
         # Length(ii), Lattice point Rws(1:3,ii), (MAXVAL |hamW_ij(R,isp)|, isp=1,nsppol)'
-        for spin in range(len(self.nsppol)):
+        for spin in range(self.nsppol):
             nwan = self.nwan_spin[spin]
             hr = self.hwr_spin[spin]
 
@@ -211,6 +224,11 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.ebands.plot(show=False)
+        if kwargs.get("verbose"):
+            ebw = self.interpolate_ebands()
+            yield ebw.plot(show=False)
+        else:
+            cprint("Use verbose option to plot interpolated band and H(R)", "yellow")
 
     def write_notebook(self, nbpath=None):
         """
