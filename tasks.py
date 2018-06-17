@@ -32,7 +32,7 @@ def push_doc(ctx):
 @task
 def open_doc(ctx):
     import webbrowser
-    webbrowser.open("file://" + os.path.join(ABIPY_ROOTDIR, "docs/_build/html/index.html"))
+    webbrowser.open_new_tab("file://" + os.path.join(ABIPY_ROOTDIR, "docs/_build/html/index.html"))
 
 
 @task
@@ -56,12 +56,12 @@ pytest -n 2 --cov-config=.coveragerc --cov=abipy -v --doctest-modules abipy \
 
 @task
 def plots(ctx):
-    with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples"):
+    with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples")):
         ctx.run("_runplots.py", pty=True)
 
 @task
-def plots(ctx):
-    with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples"):
+def flows(ctx):
+    with cd(os.path.join(ABIPY_ROOTDIR, "abipy", "examples")):
         ctx.run("_runflows.py", pty=True)
 
 #@task
@@ -95,8 +95,7 @@ def plots(ctx):
 #def release(ctx, run_tests=True):
 #    ctx.run("rm -r dist build abipy.egg-info", warn=True)
 #    set_ver(ctx)
-#    if run_tests:
-#        ctx.run("pytest")
+#    if run_tests: pytest(ctx)
 #    publish(ctx)
 #    log_ver(ctx)
 #    update_doc(ctx)

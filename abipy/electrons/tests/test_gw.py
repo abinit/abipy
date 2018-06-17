@@ -211,6 +211,8 @@ class TestSigresFile(AbipyTest):
 
         r.qp_ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
+        points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24, verbose=2)
+
         # Plot the LDA and the QPState band structure with matplotlib.
         plotter = abilab.ElectronBandsPlotter()
         plotter.add_ebands("LDA", r.ks_ebands_kpath, dos=ks_edos)
@@ -219,6 +221,7 @@ class TestSigresFile(AbipyTest):
         if self.has_matplotlib():
             assert plotter.combiplot(title="Silicon band structure", show=False)
             assert plotter.gridplot(title="Silicon band structure", show=False)
+            assert r.qp_ebands_kpath.plot(points=points, show=False)
 
         sigres.close()
 

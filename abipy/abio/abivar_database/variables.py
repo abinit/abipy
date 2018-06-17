@@ -1073,6 +1073,11 @@ class InputVariables(OrderedDict):
             if v.varset in sections:
                 varlist.append(v)
 
+        if not varlist:
+            # Preventive check because someone may change the Abinit varset
+            # thus breaking client code.
+            raise ValueError("Empty varlist. Maybe someone changed varset again or wrong names in sections. %s" % str(sections))
+
         return varlist
 
     def vars_with_char(self, chars):

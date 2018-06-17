@@ -335,6 +335,7 @@ class QPList(list):
         qps = self if self.is_e0sorted else self.sort_by_e0()
         e0mesh = qps.get_e0mesh()
         xlabel = r"$\epsilon_{KS}\;(eV)$"
+        print("fermie", fermie)
         if fermie is not None:
             xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
             e0mesh -= fermie
@@ -780,6 +781,80 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 print_dataframe(df_sk, title="K-point: %s, spin: %s" % (repr(gwkpoint), spin),
                                 precision=precision, file=file)
 
+    def get_points_from_ebands(self, ebands_kpath, dist_tol=1e-12, size=24, verbose=0):
+        """
+        Generate object storing the QP energies lying on the k-path used by ebands_kpath.
+        Mainly used to plot the QP energies in ebands.plot when the QP energies are interpolated with the SKW method.
+
+        Args:
+            ebands_kpath: |ElectronBands| object with the QP energies along an arbitrary k-path.
+            dist_tol: A point is considered to be on the path if its distance from the line
+                is less than dist_tol.
+            size: The marker size in points**2
+            verbose: Verbosity level
+
+        Return:
+
+        Example::
+
+            r = sigres.interpolate(lpratio=5,
+                                   ks_ebands_kpath=ks_ebands_kpath,
+                                   ks_ebands_kmesh=ks_ebands_kmesh
+                                   )
+            points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24)
+            r.qp_ebands_kpath.plot(points=points)
+        """
+        kpath = ebands_kpath.kpoints
+        if not ebands_kpath.kpoints.is_path:
+            raise TypeError("Expecting band structure with a Kpath, got %s" % type(kpath))
+        if verbose:
+            print("Input kpath\n", ebands_kpath.kpoints)
+            print("gwkpoints included in GW calculation\n", self.gwkpoints)
+            print("lines\n", kpath.lines)
+            print("kpath.frac_bounds:\n", kpath.frac_bounds)
+            print("kpath.cart_bounds:\n", kpath.frac_bounds)
+
+        # Construct the stars of the k-points for all k-points included in the GW calculation.
+        # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for GW
+        # so we have to build the k-stars and find the k-points lying along the path and keep
+        # track of the mapping kpt --> star --> kgw
+        gw_stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.gwkpoints]
+        cart_coords, back2istar = [], []
+        for istar, gw_star in enumerate(gw_stars):
+            cart_coords.extend([k.cart_coords for k in gw_star])
+            back2istar.extend([istar] * len(gw_star))
+        cart_coords = np.reshape(cart_coords, (-1, 3))
+
+        # Find (star) k-points on the path.
+        p = kpath.find_points_along_path(cart_coords, dist_tol=dist_tol)
+        if len(p.ikfound) == 0:
+            cprint("Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.", "yellow")
+            return Marker()
+
+        # Read complex GW energies from file.
+        qp_arr = self.reader.read_value("egw", cmode="c")
+
+        # Each marker is a list of tuple(x, y, value)
+        x, y, s = [], [], []
+        kpath_lenght = kpath.ds.sum()
+
+        for ik, dalong_path in zip(p.ikfound, p.dist_list):
+            istar = back2istar[ik]
+            # The k-point used in the GW calculation.
+            gwk = gw_stars[istar].base_point
+            # Indices needed to access SIGRES arrays (we have to live with this format)
+            ik_ibz = self.reader.kpt2fileindex(gwk)
+            ik_b = self.reader.gwkpt2seqindex(gwk)
+            for spin in range(self.nsppol):
+                # Need to select bands included in the GW calculation.
+                for qpe in qp_arr[spin, ik_ibz, self.gwbstart_sk[spin, ik_b]:self.gwbstop_sk[spin, ik_b]]:
+                    # Assume the path is properly normalized.
+                    x.append((dalong_path / kpath_lenght) * (len(kpath) - 1))
+                    y.append(qpe.real)
+                    s.append(size)
+
+        return Marker(*(x, y, s))
+
     @add_fig_kwargs
     def plot_qpgaps(self, ax=None, plot_qpmks=True, fontsize=8, **kwargs):
         """
@@ -852,7 +927,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         with_fields = QPState.get_fields_for_plot(with_fields, exclude_fields)
 
-        fermie = self.ebands.get_e0(e0)
+        # Because qplist does not have the fermi level.
+        fermie = self.ebands.get_e0(e0) if e0 is not None else None
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_qps_vs_e0(
                 with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,

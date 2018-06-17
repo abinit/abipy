@@ -315,6 +315,8 @@ class ArrayPlotter(object):
         return fig
 
 
+#TODO use object and introduce c for color, client code should be able to customize it.
+# Rename it to ScatterData
 class Marker(namedtuple("Marker", "x y s")):
     """
     Stores the position and the size of the marker.
@@ -387,7 +389,7 @@ class Marker(namedtuple("Marker", "x y s")):
                 neg_y.append(y)
                 neg_s.append(s)
 
-        return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
+        return self.__class__(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
 class MplExpose(object): # pragma: no cover

@@ -892,6 +892,8 @@ class PhononBands(object):
         if units:
             ax.set_ylabel(abu.wlabel_from_units(units))
 
+        ax.set_xlabel("Wave vector")
+
         # Set ticks and labels.
         ticks, labels = self._make_ticks_and_labels(kwargs.pop("qlabels", None))
         if ticks:
@@ -3962,8 +3964,8 @@ class InteratomicForceConstants(Has_Structure):
         if 'linewidth' not in kwargs and 'lw' not in kwargs:
             kwargs['lw'] = 0
 
-        ax.set_xlabel('Distance [Bohr]')
-        ax.set_ylabel(r'IFC [Ha/Bohr$^2$]')
+        ax.set_xlabel('Distance (Bohr)')
+        ax.set_ylabel(r'IFC (Ha/Bohr$^2$)')
         ax.grid(True)
 
         ax.plot(dist, filtered_ifc, **kwargs)
