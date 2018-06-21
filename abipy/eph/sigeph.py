@@ -709,6 +709,21 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.reader.tmesh
 
     @lazy_property
+    def kcalc2ibz(self):
+        """Return a mapping of the kpoints at which the self energy was calculated and the ibz"""
+        if (len(self.sigma_kpoints) == len(self.ebands.kpoints) and 
+            all(k1 == k2 for (k1, k2) in zip(self.sigma_kpoints, self.ebands.kpoints))):
+            return np.arange(len(self.sigma_kpoints))
+
+        # Generic case
+        # Map sigma_kpoints to ebands.kpoints
+        kcalc2ibz = np.empty(self.nkcalc, dtype=np.int)
+        for ikc, sigkpt in enumerate(self.sigma_kpoints):
+            kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
+
+        return kcalc2ibz
+
+    @lazy_property
     def ks_dirgaps(self):
         """
         |numpy-array| of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.
@@ -867,16 +882,16 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         #get dos
         if method == "gaussian":
-            dos = np.zeros((ntemp,nw))
+            dos = np.zeros((ntemp,self.nsppol,nw))
             for spin in range(self.nsppol):
-                for ik in range(self.nkcalc):
+                for ik in self.kcalc2ibz:
                     weight = ebands.kpoints.weights[ik]
                     for band in range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik]):
                         qp = self.reader.read_qp(spin,ik,band)
                         e0 = qp.e0
                         for it in range(ntemp):
                             linewidth = abs(qp.fan0.imag[it])
-                            dos[it] += weight * linewidth * gaussian(mesh,width,center=e0)
+                            dos[it,spin] += weight * linewidth * gaussian(mesh,width,center=e0)
         else:
             raise NotImplementedError("Method %s is not supported" % method)
 
@@ -1294,7 +1309,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 break
             yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
         yield self.plot_qps_vs_e0(show=False)
-        yield self.plot_qps_vs_e0(with_fields="fan0", reim="imag", function=np.abs, show=False)
+        yield self.plot_qps_vs_e0(with_fields="fan0", reim="imag", function=abs, show=False)
 
     def write_notebook(self, nbpath=None, title=None):
         """
@@ -1896,6 +1911,45 @@ class TdepElectronBands(object): # pragma: no cover
             return filepath
 
     @add_fig_kwargs
+    def plot_itemp_with_lws_vs_e0(self, itemp, ax_list=None, width_ratios=(2,1),
+                                  function=lambda x: x, fact=2.0, **kwargs):
+        """
+        Plot bandstructure with linewidth at temperature ``itemp`` and linewidth vs the KS energies.
+        
+        Args:
+            itemp: Temperature index
+            ax_list: The axes for the bandstructure plot and the DOS plot. If ax_list is None, a new figure
+                is created and the two axes are automatically generated.
+            width_ratios: Defines the ratio between the band structure plot and the dos plot.
+            function: Apply this function to the values before plotting
+
+        Return: |matplotlib-Figure|
+        """
+        import matplotlib.pyplot as plt 
+        from matplotlib.gridspec import GridSpec
+        if ax_list is None:
+            # Build axes and align bands and DOS.
+            fig = plt.figure()
+            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.1, right=0.85)
+            ax0 = plt.subplot(gspec[0])
+            ax1 = plt.subplot(gspec[1], sharey=ax0)
+        else:
+            # Take them from ax_list.
+            ax0, ax1 = ax_list
+            fig = plt.gcf()
+
+        #plot the band structure
+        self.plot_itemp(itemp,ax=ax0,fact=fact,show=False)
+
+        #plot the dos
+        self.plot_lws_vs_e0(itemp,ax=ax1,exchange_xy=True,function=abs,show=False)
+
+        ax1.grid(True)
+        ax1.yaxis.set_ticks_position("right")
+        ax1.yaxis.set_label_position("right") 
+        return fig
+
+    @add_fig_kwargs
     def plot_itemp(self, itemp, ax=None, e0="fermie", ylims=None, fontsize=12, fact=2.0, **kwargs):
         """
         Plot band structures with linewidth at temperature ``itemp``.
@@ -2002,7 +2056,7 @@ class TdepElectronBands(object): # pragma: no cover
             else:
                 qp_ebands = self.qp_ebands_kpath_t[itemp]
 
-            fig = qp_ebands.plot_lws_vs_e0(ax=ax, e0=e0, exchange_xy=False,
+            fig = qp_ebands.plot_lws_vs_e0(ax=ax, e0=e0, exchange_xy=exchange_xy,
                 function=function, xlims=xlims, ylims=ylims, fontsize=fontsize,
                 label="T = %.1f K" % self.tmesh[itemp],
                 color=cmap(itemp / len(itemp_list)), # if kw_color is None else kw_color,
