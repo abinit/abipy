@@ -1172,7 +1172,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.reader.read_allqps()
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, itemp_list=None, with_fields="all", exclude_fields=None, e0="fermie",
+    def plot_qps_vs_e0(self, itemp_list=None, with_fields="all", reim="real",
+                       function=lambda x: x, exclude_fields=None, e0="fermie",
                        colormap="jet", xlims=None, ax_list=None, fontsize=8, **kwargs):
         """
         Plot the QP results in the SIGEPH file as function of the initial KS energy.
@@ -1182,6 +1183,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
+            reim: Plot the real or imaginary part
+            function: Apply a function to the results before plotting
             exclude_fields: Similar to ``with_field`` but excludes fields.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
@@ -1198,7 +1201,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         fermie = self.ebands.get_e0(e0)
         for spin in range(self.nsppol):
             fig = self.qplist_spin[spin].plot_vs_e0(itemp_list=itemp_list,
-                with_fields=with_fields, exclude_fields=exclude_fields, fermie=fermie,
+                with_fields=with_fields, reim=reim, function=function, exclude_fields=exclude_fields, fermie=fermie,
                 colormap=colormap, xlims=xlims, ax_list=ax_list, fontsize=fontsize, marker=self.marker_spin[spin],
                 show=False, **kwargs)
             ax_list = fig.axes
@@ -1682,7 +1685,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpfield_vs_e0(self, field, itemp=0, sortby=None, hue=None, fontsize=8,
+    def plot_qpfield_vs_e0(self, field, itemp=0, reim="real", function=lambda x: x, sortby=None, hue=None, fontsize=8,
                            colormap="jet", e0="fermie", **kwargs):
         """
         For each file in the robot, plot one of the attributes of :class:`QpTempState`
@@ -1691,6 +1694,8 @@ class SigEPhRobot(Robot, RobotWithEbands):
         Args:
             field (str): String defining the attribute to plot.
             itemp (int): Temperature index.
+            reim: Plot the real or imaginary part
+            function: Apply a function to the results before plotting
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -1720,7 +1725,8 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 if sortby is not None:
                     label = "%s: %s" % (self._get_label(sortby), param)
                 fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
-                    e0=e0, ax_list=ax_list, color=cmap(i / len(lnp_list)), fontsize=fontsize,
+                    reim=reim, function=function, e0=e0, ax_list=ax_list, 
+                    color=cmap(i / len(lnp_list)), fontsize=fontsize,
                     label=label, show=False)
                 ax_list = fig.axes
         else:
@@ -1734,6 +1740,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
                     fig = ncfile.plot_qps_vs_e0(itemp_list=[itemp], with_fields=list_strings(field),
+                        reim=reim, function=function,
                         e0=e0, ax_list=ax_mat[:, ig], color=cmap(i / len(g)), fontsize=fontsize,
                         label="%s: %s" % (self._get_label(sortby), param), show=False)
 
