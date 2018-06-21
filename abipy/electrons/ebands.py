@@ -1911,7 +1911,7 @@ class ElectronBands(Has_Structure):
         return fig
 
     @add_fig_kwargs
-    def plot_lws_vs_e0(self, ax=None, e0="fermie", exchange_xy=False,
+    def plot_lws_vs_e0(self, ax=None, e0="fermie", function=lambda x: x, exchange_xy=False,
                        xlims=None, ylims=None, fontsize=12, **kwargs):
         r"""
         Plot the electronic linewidths vs KS energy.
@@ -1922,6 +1922,7 @@ class ElectronBands(Has_Structure):
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to e0=0
+            function: Apply this function to the values before plotting
             exchange_xy: True to exchange x-y axis.
             xlims, ylims: Set the data limits for the x-axis or the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -1947,7 +1948,7 @@ class ElectronBands(Has_Structure):
         kw_color = kwargs.pop("color", "red")
         kw_label = kwargs.pop("label", None)
 
-        xx, yy = e0mesh, lws
+        xx, yy = e0mesh, tuple([function(lw) for lw in lws])
         if exchange_xy: xx, yy = yy, xx
         ax.plot(xx, yy, kw_linestyle, color=kw_color, label=kw_label, **kwargs)
         #ax.scatter(xx, yy)
