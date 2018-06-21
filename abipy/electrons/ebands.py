@@ -527,7 +527,7 @@ class ElectronBands(Has_Structure):
 
         for idx, kpoint in enumerate(self.kpoints):
             name = kpoint.name if kpoint.name is not None else self.structure.findname_in_hsym_stars(kpoint)
-            if name is not None:
+            if name is not None and name is not "":
                 _auto_klabels[idx] = name
                 if kpoint.name is None: kpoint.set_name(name)
 
@@ -624,7 +624,7 @@ class ElectronBands(Has_Structure):
     @property
     def has_metallic_scheme(self):
         """True if we are using a metallic scheme for occupancies."""
-        return self.smearing.has_metallic_scheme
+        return self.smearing.get("has_metallic_scheme",None)
 
     #def recalc_fermie(self, nelect=None, method="gaussian", step=0.001, width=0.002):
     #    """
@@ -1792,7 +1792,7 @@ class ElectronBands(Has_Structure):
 
         label = kwargs.pop("label", None)
         # Handle linewidths
-        with_linewidths = kwargs.pop("with_linewidths", False) and self.has_linewidths
+        with_linewidths = kwargs.pop("with_linewidths", True) and self.has_linewidths
         if with_linewidths:
             lw_opts = kwargs.pop("lw_opts", dict(alpha=0.6))
             lw_fact = lw_opts.pop("fact", 2.0)

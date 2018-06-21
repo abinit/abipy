@@ -33,14 +33,14 @@ from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 __all__ = [
-    "QpTempState"
-    "QpTempList"
-    "EphLifetimes"
-    "EphSelfEnergy"
-    "SigEPhFile"
-    "SigEPhRobot"
-    "TdepElectronBands"
-    "SigmaPhReader"
+    "QpTempState",
+    "QpTempList",
+    "EphLifetimes",
+    "EphSelfEnergy",
+    "SigEPhFile",
+    "SigEPhRobot",
+    "TdepElectronBands",
+    "SigmaPhReader",
 ]
 
 # TODO QPState and QPList from electrons.gw (Define base abstract class?).
@@ -884,7 +884,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     
     #def get_dirgaps_dataframe(self):
 
-    def interpolate(self, itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
+    def interpolate(self, itemp_list=None, lpratio=5, mode="qp", ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
                     vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0): # pragma: no cover
         """
         Interpolated the self-energy corrections in k-space on a k-path and, optionally, on a k-mesh.
@@ -893,6 +893,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             itemp_list: List of temperature indices to interpolate. None for all.
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
+            mode: Interpolation mode, can be 'qp' or 'ks+lifetimes'
             ks_ebands_kpath: KS |ElectronBands| on a k-path. If present,
                 the routine interpolates the QP corrections and apply them on top of the KS band structure
                 This is the recommended option because QP corrections are usually smoother than the
@@ -941,7 +942,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         if ks_ebands_kpath is None:
             # Generate k-points for interpolation. Will interpolate all bands available in the sigeph file.
-            bstart, bstop = 0, -1
+            bstart, bstop = 0, self.reader.min_bstop
             if vertices_names is None:
                 vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
             kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
@@ -961,13 +962,25 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 cprint("Number of bands in KS band structure smaller than the number of bands in GW corrections", "red")
                 cprint("Highest GW bands will be ignored", "red")
 
+        if ks_ebands_kmesh is not None:
+            # K-points and weight for DOS are taken from ks_ebands_kmesh
+            dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
+            dos_weights = [k.weight for k in ks_ebands_kmesh.kpoints]
+
         # Interpolate QP energies if ks_ebands_kpath is None else interpolate QP corrections
         # and re-apply them on top of the KS band structure.
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
-        # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
-        # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
-        qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+        if mode == "qp":
+            # Read QP energies from file (real + imag part) and compute corrections if ks_ebands_kpath.
+            # nctkarr_t("qp_enes", "dp", "two, ntemp, max_nbcalc, nkcalc, nsppol")
+            qpes = self.reader.read_value("qp_enes", cmode="c") * units.Ha_to_eV
+        elif mode == "ks+lifetimes":
+            qpes_im = self.reader.read_value("vals_e0ks", cmode="c").imag * units.Ha_to_eV
+            qpes_re = self.reader.read_value("ks_enes") * units.Ha_to_eV
+            qpes = qpes_re[:,:,:,np.newaxis] + 1j*qpes_im        
+        else:
+            ValueError("Invalid interpolation mode: %s can be either 'qp' or 'ks+lifetimes'")
 
         if ks_ebands_kpath is not None:
             if ks_ebands_kpath.structure != self.structure:
@@ -1019,6 +1032,21 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     else:
                         lw_kpath = qp_corrs
 
+                if ks_ebands_kmesh: 
+                    #interpolate QP energies
+                    if reim == "real":
+                        eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens
+                    else:
+                        linewidths_kmesh = skw.interp_kpts(dos_kcoords).eigens
+
+                else:
+                    #interpolate QP energies corrections and add them to KS
+                    ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
+                    if reim == "real":
+                        eigens_kmesh = skw.interp_kpts_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol).eigens
+                    else:
+                        linewidths_kmesh = skw.interp_kpts(dos_kcoords).eigens
+
             interpolators_t.append(skw_reim)
 
             # Build new ebands object with k-path.
@@ -1038,36 +1066,18 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                  linewidths=lw_kpath)
             qp_ebands_kpath_t.append(newt)
 
-        # TODO
-        qp_ebands_kmesh = None
-        if ks_ebands_kmesh is not None:
-            raise NotImplementedError()
-            # Interpolate QP corrections on the same k-mesh as the one used in the KS run.
-            ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
-            if bstop > ks_ebands_kmesh.nband:
-                raise ValueError("Not enough bands in ks_ebands_kmesh, found %s, minimum expected %d\n" % (
-                    ks_ebands_kmesh%nband, bstop))
-            if ks_ebands_kpath.structure != self.structure:
-                raise ValueError("sigres.structure and ks_ebands_kmesh.structures differ. Check your files!")
+            if ks_ebands_kmesh is not None:
+                # Interpolate QP corrections on the same k-mesh as the one used in the KS run.
+                ks_ebands_kmesh = ElectronBands.as_ebands(ks_ebands_kmesh)
 
-            # K-points and weight for DOS are taken from ks_ebands_kmesh
-            dos_kcoords = [k.frac_coords for k in ks_ebands_kmesh.kpoints]
-            dos_weights = [k.weight for k in ks_ebands_kmesh.kpoints]
-
-            # Interpolate QP corrections from bstart to bstop
-            ref_eigens = ks_ebands_kmesh.eigens[:, :, bstart:bstop]
-            qp_corrs = skw.interp_kpts_and_enforce_degs(dos_kcoords, ref_eigens, atol=ks_degatol).eigens
-            eigens_kmesh = qp_corrs if only_corrections else ref_eigens + qp_corrs
-
-            # Build new ebands object with k-mesh
-            kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
-                                   names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
-            occfacts_kmesh = np.zeros(eigens_kmesh.shape)
-            linewidths_kmesh = np.ones(eigens_kmesh.shape) * 0.2
-            newt = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
-                                 self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
-                                 linewidths=linewidths_kmesh)
-            qp_ebands_kmesh_t.append(newt)
+                # Build new ebands object with k-mesh
+                kpts_kmesh = IrredZone(self.structure.reciprocal_lattice, dos_kcoords, weights=dos_weights,
+                                       names=None, ksampling=ks_ebands_kmesh.kpoints.ksampling)
+                occfacts_kmesh = np.zeros(eigens_kmesh.shape)
+                newt = ElectronBands(self.structure, kpts_kmesh, eigens_kmesh, qp_fermie, occfacts_kmesh,
+                                     self.ebands.nelect, self.ebands.nspinor, self.ebands.nspden,
+                                     linewidths=linewidths_kmesh)
+                qp_ebands_kmesh_t.append(newt)
 
         return TdepElectronBands(self.tmesh[itemp_list], ks_ebands_kpath, qp_ebands_kpath_t,
                                  ks_ebands_kmesh, qp_ebands_kmesh_t, interpolators_t)
@@ -1275,6 +1285,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Used in abiview.py to get a quick look at the results.
         """
         verbose = kwargs.pop("verbose", 0)
+        
         yield self.plot_qpbands_ibzt(show=False)
         #yield self.plot_qpgaps_t(qp_kpoints=0, show=False)
         for i, qp_kpt in enumerate(self.sigma_kpoints):
@@ -1283,6 +1294,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 break
             yield self.plot_qpgaps_t(qp_kpoints=qp_kpt, show=False)
         yield self.plot_qps_vs_e0(show=False)
+        yield self.plot_qps_vs_e0(with_fields="fan0", reim="imag", function=np.abs, show=False)
 
     def write_notebook(self, nbpath=None, title=None):
         """
@@ -1884,7 +1896,7 @@ class TdepElectronBands(object): # pragma: no cover
             return filepath
 
     @add_fig_kwargs
-    def plot_itemp(self, itemp, ax=None, e0="fermie", ylims=None, fontsize=12, **kwargs):
+    def plot_itemp(self, itemp, ax=None, e0="fermie", ylims=None, fontsize=12, fact=2.0, **kwargs):
         """
         Plot band structures with linewidth at temperature ``itemp``.
 
@@ -1908,7 +1920,7 @@ class TdepElectronBands(object): # pragma: no cover
 
         # Plot QP(T) bands with linewidths
         title = "T = %.1f K" % self.tmesh[itemp]
-        qp_opts = dict(color="red", lw=2, label="QP")
+        qp_opts = dict(color="red", lw=2, label="QP", lw_opts=dict(fact=fact))
         self.qp_ebands_kpath_t[itemp].plot_ax(ax, e0, **qp_opts)
         self.qp_ebands_kpath_t[itemp].decorate_ax(ax, fontsize=fontsize, title=title)
 
@@ -1985,7 +1997,7 @@ class TdepElectronBands(object): # pragma: no cover
         for itemp in itemp_list:
             # Select kmesh or kpath
             if self.has_kmesh:
-                qp_ebands = self.qp_ebands_mesh_t[itemp]
+                qp_ebands = self.qp_ebands_kmesh_t[itemp]
             else:
                 qp_ebands = self.qp_ebands_kpath_t[itemp]
 
