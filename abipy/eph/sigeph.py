@@ -26,12 +26,22 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title)
-from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
+from abipy.tools import gaussian, duck
+from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
 #from abipy.dfpt.phonons import PhononBands, RobotWithPhbands, factor_ev2units, unit_tag, dos_label_from_units
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
+__all__ = [
+    "QpTempState"
+    "QpTempList"
+    "EphLifetimes"
+    "EphSelfEnergy"
+    "SigEPhFile"
+    "SigEPhRobot"
+    "TdepElectronBands"
+    "SigmaPhReader"
+]
 
 # TODO QPState and QPList from electrons.gw (Define base abstract class?).
 # __eq__ based on skb?
@@ -251,7 +261,11 @@ class QpTempList(list):
 
     def to_string(self, verbose=0, title=None):
         """String representation."""
-        return " "
+        lines = []; app = lines.append
+        app(marquee("QpTempList",mark="="))
+        app("nqps: %d"%len(self))
+        app("ntemps: %d"%self.ntemp) 
+        return "\n".join(lines)
 
     #def copy(self):
     #    """Copy of self."""
@@ -305,7 +319,8 @@ class QpTempList(list):
 
     # TODO: Linewidths
     @add_fig_kwargs
-    def plot_vs_e0(self, itemp_list=None, with_fields="all", exclude_fields=None, fermie=None,
+    def plot_vs_e0(self, itemp_list=None, with_fields="all", reim="real", function=lambda x: x, 
+                   exclude_fields=None, fermie=None,
                    colormap="jet", ax_list=None, xlims=None, fontsize=12, **kwargs):
         """
         Plot the QP results as a function of the initial KS energy.
@@ -315,6 +330,8 @@ class QpTempList(list):
             with_fields: The names of the qp attributes to plot as function of e0.
                 Accepts: List of strings or string with tokens separated by blanks.
                 See :class:`QPState` for the list of available fields.
+            reim: Plot the real or imaginary part
+            function: Apply a function to the results before plotting
             exclude_fields: Similar to `with_field` but excludes fields.
             fermie: Value of the Fermi level used in plot. None for absolute e0s.
             colormap: matplotlib color map.
@@ -328,6 +345,10 @@ class QpTempList(list):
         """
         fields = QpTempState.get_fields_for_plot("e0", with_fields, exclude_fields)
         if not fields: return None
+        
+        if   reim == "real": ylabel_mask = "Re(%s)"
+        elif reim == "imag": ylabel_mask = "Im(%s)"
+        else: return ValueError("Invalid option for reim, should be 'real' or 'imag'")
 
         num_plots, ncols, nrows = len(fields), 1, 1
         if num_plots > 1:
@@ -358,17 +379,17 @@ class QpTempList(list):
             ax.grid(True)
             if irow == nrows - 1:
                 ax.set_xlabel(xlabel)
-            ax.set_ylabel(field, fontsize=fontsize)
+            ax.set_ylabel(ylabel_mask%field, fontsize=fontsize)
             has_legend = False
             # Plot different temperatures.
             for itemp in itemp_list:
                 yt = qps.get_field_itemp(field, itemp)
-                # TODO real and imag?
+                yt_reim = getattr(yt,reim)
                 label = kw_label
                 if kw_label is None:
                     label = "T = %.1f K" % self.tmesh[itemp] if ix == 0 else None
                 has_legend = has_legend or bool(label)
-                ax.plot(e0mesh, yt.real, kw_linestyle,
+                ax.plot(e0mesh, function(yt_reim), kw_linestyle,
                         color=cmap(itemp / self.ntemp) if kw_color is None else kw_color,
                         label=label, **kwargs)
 
@@ -381,7 +402,6 @@ class QpTempList(list):
         if num_plots % ncols != 0: ax_list[-1].axis('off')
 
         return fig
-
 
 class EphSelfEnergy(object):
     r"""
@@ -530,7 +550,6 @@ class EphSelfEnergy(object):
 
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
-
 
 class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
@@ -819,6 +838,50 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if itemp is not None: df = df[df["tmesh"] == self.tmesh[itemp]]
         return df
 
+    def get_linewidth_dos(self,method="gaussian",step=0.1,width=0.2):
+        """
+        Calculate linewidth density of states
+
+        Args:
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+
+        Returns: |ElectronDos| object.
+        """
+
+        ebands = self.ebands
+        ntemp = self.ntemp
+        tmesh = self.tmesh
+
+        #Compute linear mesh
+        nelect = ebands.nelect
+        fermie = ebands.get_e0("fermie")
+        epad = 3.0 * width
+        min_band = np.min(self.bstart_sk)
+        max_band = np.max(self.bstop_sk)
+        e_min = np.min(ebands.eigens[:,:,min_band]) - epad
+        e_max = np.max(ebands.eigens[:,:,max_band]) + epad
+        nw = int(1 + (e_max - e_min) / step)
+        mesh, step = np.linspace(e_min, e_max, num=nw, endpoint=True, retstep=True)
+
+        #get dos
+        if method == "gaussian":
+            dos = np.zeros((ntemp,nw))
+            for spin in range(self.nsppol):
+                for ik in range(self.nkcalc):
+                    weight = ebands.kpoints.weights[ik]
+                    for band in range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik]):
+                        qp = self.reader.read_qp(spin,ik,band)
+                        e0 = qp.e0
+                        for it in range(ntemp):
+                            linewidth = abs(qp.fan0.imag[it])
+                            dos[it] += weight * linewidth * gaussian(mesh,width,center=e0)
+        else:
+            raise NotImplementedError("Method %s is not supported" % method)
+
+        return [ElectronDos(mesh, dos_t, nelect, fermie=fermie) for dos_t in dos]
+    
     #def get_dirgaps_dataframe(self):
 
     def interpolate(self, itemp_list=None, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
@@ -1974,7 +2037,6 @@ class TdepElectronBands(object): # pragma: no cover
 
         return edos_plotter
 
-
 class SigmaPhReader(BaseEphReader):
     """
     Reads data from file and constructs objects.
@@ -2181,3 +2243,5 @@ class SigmaPhReader(BaseEphReader):
             qps_spin[spin] = QpTempList(qps)
 
         return tuple(qps_spin)
+
+
