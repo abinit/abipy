@@ -960,6 +960,11 @@ class OutNcFile(AbinitNcFile):
                 varscache[name] = reader.read_value(name)
             return varscache[name]
 
+    @lazy_property
+    def params(self):
+        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        return {}
+
     def close(self):
         """Close the file."""
         self.reader.close()
