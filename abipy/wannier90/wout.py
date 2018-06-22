@@ -13,7 +13,20 @@ from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 
 
 class WoutFile(BaseFile, Has_Structure, NotebookWriter):
+    """
+    Main output file produced by Wannier90
 
+    Usage example:
+
+    .. code-block:: python
+
+        with abilab.abiopen("foo.wout") as wout:
+            print(wout)
+            wout.plot()
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: WoutFile
+    """
     def __init__(self, filepath):
         super(WoutFile, self).__init__(filepath)
         self.warnings = []

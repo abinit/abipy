@@ -28,7 +28,7 @@ install:
   - conda uninstall -y pymatgen
 
   - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
-  - pip install nose nose-exclude
+  #- pip install nose nose-exclude
   #- pip install graphviz
 
   # Mayavi (optional requirement)
@@ -57,7 +57,7 @@ before_script:
     - sleep 3 # give xvfb some time to start
     # https://github.com/travis-ci/travis-ci/issues/6307
     - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then rvm get head; fi 
-    - rm abipy/gui/__init__.py 
+    #- rm abipy/gui/__init__.py 
 
 # command to run tests
 script: ./dev_scripts/runtests.sh

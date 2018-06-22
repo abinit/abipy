@@ -10,6 +10,7 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import time
+import itertools
 import numpy as np
 
 from collections import OrderedDict, namedtuple
@@ -314,6 +315,8 @@ class ArrayPlotter(object):
         return fig
 
 
+#TODO use object and introduce c for color, client code should be able to customize it.
+# Rename it to ScatterData
 class Marker(namedtuple("Marker", "x y s")):
     """
     Stores the position and the size of the marker.
@@ -386,7 +389,7 @@ class Marker(namedtuple("Marker", "x y s")):
                 neg_y.append(y)
                 neg_s.append(s)
 
-        return Marker(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
+        return self.__class__(pos_x, pos_y, pos_s), Marker(neg_x, neg_y, neg_s)
 
 
 class MplExpose(object): # pragma: no cover
@@ -729,9 +732,7 @@ class GenericDataFilesPlotter(object):
         # Don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
-        import itertools
         line_cycle = itertools.cycle(["-", ":", "--", "-.",])
 
         # One ax for key, each ax may show multiple arrays

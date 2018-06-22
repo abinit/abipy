@@ -49,23 +49,18 @@ class ETSF_Reader(ionc.ETSF_Reader):
         #print(type(b))
         import netCDF4
         try:
-            #value = netCDF4.chartostring(sweep_mode['data'][0])[()].decode('utf-8')
             value = netCDF4.chartostring(b)[()].decode('utf-8')
-            #value = netCDF4.chartostring(b).decode('utf-8')
         except Exception:
             try:
-                #value = netCDF4.chartostring(sweep_mode['data'][0])[()]
                 value = netCDF4.chartostring(b)[()]
-                #value = netCDF4.chartostring(b)
             except Exception:
                 try:
                     value = "".join(c for c in self.read_value(varname))
                 except TypeError as exc:
-                    #print("Error while trying to read `%s` string % str(varname))
                     value = "".join(c.decode("utf-8") for c in self.read_value(varname))
 
         return value.strip()
 
     def none_if_masked_array(self, arr):
-        """Retur None if arr is a MaskedArray else None."""
-        return arr if not isinstance(arr, np.ma.MaskedArray) else None
+        """Return None if arr is a MaskedArray else None."""
+        return None if np.ma.is_masked(arr) else arr

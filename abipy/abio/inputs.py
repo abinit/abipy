@@ -2302,8 +2302,9 @@ class AnaddbInput(AbstractInput, Has_Structure):
             comment: Optional string with a comment that will be placed at the beginning of the file.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
-        self._spell_check = spell_check
+        self.set_spell_check(spell_check)
         self._structure = structure
         self.comment = comment
 
@@ -2345,7 +2346,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
 
     @classmethod
     def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, lo_to_splitting=False,
-                        directions=None, anaddb_args=None, anaddb_kwargs=None):
+                        directions=None, anaddb_args=None, anaddb_kwargs=None, spell_check=False):
         """
         Input file for the calculation of the phonon frequencies at a given q-point.
 
@@ -2358,6 +2359,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
                 cartesian direction will be used
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
         new = cls(structure, comment="ANADB input for phonon frequencies at one q-point",
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
@@ -2445,6 +2447,7 @@ class AnaddbInput(AbstractInput, Has_Structure):
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
         """
         dosdeltae, dossmear = None, None
 

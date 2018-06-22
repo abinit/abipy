@@ -1635,7 +1635,8 @@ class ElectronBands(Has_Structure):
             nband_sk=self.nband_sk, smearing=self.smearing)
 
     @add_fig_kwargs
-    def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None, **kwargs):
+    def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
+	     points=None, **kwargs):
         r"""
         Plot the electronic band structure.
 
@@ -1652,6 +1653,7 @@ class ElectronBands(Has_Structure):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
+            points:
 
         Returns: |matplotlib-Figure|
         """
@@ -1682,6 +1684,11 @@ class ElectronBands(Has_Structure):
 
             for band in band_list:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
+
+        if points is not None:
+            e0 = self.get_e0(e0)
+            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s),
+                       marker="o", c="b")
 
         return fig
 
@@ -1739,7 +1746,8 @@ class ElectronBands(Has_Structure):
         if title is not None: ax.set_title(title, fontsize=fontsize)
 
         ax.grid(True)
-        ax.set_ylabel('Energy (eV)')
+        ax.set_ylabel("Energy (eV)")
+        ax.set_xlabel("Wave vector")
 
         # Set ticks and labels.
         klabels = kwargs.pop("klabels", None)
@@ -1933,14 +1941,14 @@ class ElectronBands(Has_Structure):
         if not self.has_linewidths: return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
+        xlabel = r"$\epsilon_{KS}\;(eV)$"
+        if e0 is not None:
+            xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
+
         # DSU sort to get lw(e) with sorted energies.
         e0mesh, lws = zip(*sorted(zip(self.eigens.flat, self.linewidths.flat), key=lambda t: t[0]))
         e0 = self.get_e0(e0)
         e0mesh = np.array(e0mesh) - e0
-
-        xlabel = r"$\epsilon_{KS}\;(eV)$"
-        #if fermie is not None:
-        #    xlabel = r"$\epsilon_{KS}-\epsilon_F\;(eV)$"
 
         kw_linestyle = kwargs.pop("linestyle", "o")
         #kw_lw = kwargs.pop("lw", 1)
@@ -2277,7 +2285,6 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True):
     import pandas as pd
     return pd.DataFrame(odict_list, index=index)
                         #columns=list(odict_list[0].keys()) if odict_list else None)
-
 
 
 class ElectronBandsPlotter(NotebookWriter):
@@ -3707,11 +3714,15 @@ class Bands3D(Has_Structure):
         Return: |matplotlib-Figure|
         """
         try:
-            #from skimage import measure
-            from skimage.measure import marching_cubes
+            import skimage
         except ImportError:
             raise ImportError("scikit-image not installed.\n"
                 "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
+
+        try:
+            from skimage.measure import marching_cubes_lewiner as marching_cubes
+        except ImportError:
+            from skimage.measure import marching_cubes
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)

@@ -127,8 +127,10 @@ class TestStructure(AbipyTest):
         if self.has_matplotlib():
             assert si.plot_bz(show=False)
             assert si.plot_bz(pmg_path=False, show=False)
-            assert si.plot_xrd(show=False)
             assert si.plot(show=False)
+            if sys.version[0:3] > '2.7':
+                # pmg broke py compatibility
+                assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
             #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis

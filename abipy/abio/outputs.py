@@ -626,7 +626,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         tight_layout = kwargs.pop("tight_layout", True)
-        with_timer = kwargs.pop("with_timer", False)
+        with_timer = kwargs.pop("with_timer", True)
 
         self.seek(0)
         icycle = -1
@@ -646,7 +646,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         if with_timer:
             self.seek(0)
-            yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
+            try:
+                yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
+            except Exception:
+                print("Abinit output files does not contain timopt data")
+
 
     def compare_gs_scf_cycles(self, others, show=True):
         """

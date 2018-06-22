@@ -708,6 +708,7 @@ class KpointList(collections.Sequence):
     of base methods implementing the sequence protocol and helper functions.
     The subclasses |Kpath| and |IrredZone| provide specialized methods to operate
     on k-points representing a path or list of points in the IBZ, respectively.
+    This object is immutable.
 
     .. Note:
 
@@ -1133,8 +1134,9 @@ class Kpath(KpointList):
         if title is not None: app(marquee(title, mark="="))
         app("K-path contains %s lines. Number of k-points in each line: %s" % (
             len(self.lines), [len(l) for l in self.lines]))
-        #for i, line in enumerate(self.lines):
-        #    app("line %d: %s" % (i, line))
+        if verbose:
+            for i, line in enumerate(self.lines):
+                app("line %d: %s" % (i, line))
         header = "\n".join(lines)
 
         vids = {line[0] for line in self.lines}
@@ -1200,6 +1202,27 @@ class Kpath(KpointList):
 
         lines[-1].append(len(self)-1)
         return tuple(lines)
+
+    @lazy_property
+    def frac_bounds(self):
+        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        frac_bounds = [self[line[0]].frac_coords for line in self.lines]
+        frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
+        return np.reshape(frac_bounds, (-1, 3))
+
+    @lazy_property
+    def cart_bounds(self):
+        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        cart_bounds = [self[line[0]].cart_coords for line in self.lines]
+        cart_bounds.append(self[self.lines[-1][-1]].cart_coords)
+        return np.reshape(cart_bounds, (-1, 3))
+
+    def find_points_along_path(self, cart_coords, dist_tol=1e-12):
+        """
+        Find points in ``cart_coords`` lying on the path with distance less than `dist_tol`.
+        See find_points_along_path function for API.
+        """
+        return find_points_along_path(self.cart_bounds, cart_coords, dist_tol=dist_tol)
 
     def finite_diff(self, values, order=1, acc=4):
         """
@@ -1565,8 +1588,8 @@ class KpointsReaderMixin(object):
 
     def read_kmpdivs(self):
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
-        return self.read_value("monkhorst_pack_folding")
-        #return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
+        #return self.read_value("monkhorst_pack_folding")
+        return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
 
     def read_kptrlatt(self):
         """Returns ABINIT variable kptrlatt. None if not found."""
@@ -1687,13 +1710,13 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
             is less than dist_tol.
 
     Return:
-        (klines, dist_list, ticks)
+        (ikfound, dist_list, path_ticks)
 
-        klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.
+        ikfound is a numpy array with the indices of the points lying on the path. Empty if no point is found.
         dist_list: numpy array with the distance of the points along the line.
-        ticks:
+        path_ticks: numpy array with the ticks associated to the input k-path.
     """
-    klines, dist_list, ticks = [], [], [0]
+    ikfound, dist_list, path_ticks = [], [], [0]
 
     dl = 0  # cumulative length of the path
     for ibound, x0 in enumerate(cart_bounds[:-1]):
@@ -1702,7 +1725,7 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
         #B = x1 - x0
         dk = np.sqrt(np.dot(B,B))
         #print("x0", x0, "x1", x1)
-        ticks.append(ticks[ibound] + dk)
+        path_ticks.append(path_ticks[ibound] + dk)
         for ik, k in enumerate(cart_coords):
             dist = dist_point_from_line(k, x0, x1)
             #print(frac_coords[ik], dist)
@@ -1716,9 +1739,13 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
             if dist_tol + dk >= x >= 0:
                 # k-point is within the cart_bounds range
                 # append k-point coordinate along the cart_bounds
-                klines.append(ik)
+                ikfound.append(ik)
                 dist_list.append(x + dl)
 
         dl = dl + dk
 
-    return np.array(klines), np.array(dist_list), np.array(ticks)
+    return dict2namedtuple(
+            ikfound=np.array(ikfound),
+            dist_list=np.array(dist_list),
+            path_ticks=np.array(path_ticks),
+           )

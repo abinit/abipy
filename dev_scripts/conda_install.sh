@@ -11,6 +11,7 @@ conda config --add channels abinit
 echo "Installing requirements listed requirements.txt and requirements-optional.txt ..."
 # https://github.com/ContinuumIO/anaconda-issues/issues/542
 conda install -y -c anaconda setuptools
+conda install nomkl
 conda install -y --file ./requirements.txt
 conda install -y --file ./requirements-optional.txt
 
