@@ -2150,7 +2150,7 @@ class ElectronBands(Has_Structure):
         return evals_on_line, h, self.kpoints.versors[line[0]]
 
     def interpolate(self, lpratio=5, vertices_names=None, line_density=20,
-                    kmesh=None, is_shift=None, filter_params=None, verbose=0):
+                    kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None, verbose=0):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
         Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
@@ -2170,6 +2170,7 @@ class ElectronBands(Has_Structure):
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
             is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along
                 the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
+            bstart, bstop: Select the range of band to be used in the interpolation
             filter_params: TO BE described.
             verbose: Verbosity level
 
@@ -2194,7 +2195,7 @@ class ElectronBands(Has_Structure):
         cell = (self.structure.lattice.matrix, self.structure.frac_coords,
                 self.structure.atomic_numbers)
 
-        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens, self.fermie, self.nelect,
+        skw = SkwInterpolator(lpratio, my_kcoords, self.eigens[:,:,bstart:bstop], self.fermie, self.nelect,
                               cell, fm_symrel, self.has_timrev,
                               filter_params=filter_params, verbose=verbose)
 

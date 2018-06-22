@@ -957,7 +957,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         if ks_ebands_kpath is None:
             # Generate k-points for interpolation. Will interpolate all bands available in the sigeph file.
-            bstart, bstop = 0, self.reader.min_bstop
+            bstart, bstop = self.reader.max_bstart, self.reader.min_bstop
             if vertices_names is None:
                 vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
             kpath = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
@@ -1256,11 +1256,6 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
 
-        # Map sigma_kpoints to ebands.kpoints
-        kcalc2ibz = np.empty(self.nkcalc, dtype=np.int)
-        for ikc, sigkpt in enumerate(self.sigma_kpoints):
-            kcalc2ibz[ikc] = self.ebands.kpoints.index(sigkpt)
-
         # TODO: It seems there's a minor issue with fermie if SCF band structure.
         e0 = self.ebands.get_e0(e0)
         #print("e0",e0, self.ebands.fermie)
@@ -1282,8 +1277,8 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # Add (scattered) QP(T) energies for the calculated k-points.
             for itemp in itemp_list:
                 yvals = qpes[spin, :, :, itemp].real - e0
-                for band in range(self.reader.min_bstop):
-                    ax.scatter(kcalc2ibz, yvals[:, band],
+                for ib,band in enumerate(range(*band_range)):
+                    ax.scatter(self.kcalc2ibz, yvals[:, ib],
                         label="T = %.1f K" % self.tmesh[itemp] if band == 0 else None,
                         color=cmap(itemp / self.ntemp), alpha=0.6, marker="o", s=20,
                     )
