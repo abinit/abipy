@@ -1014,6 +1014,16 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         #    for spin in range(self.nsppol):
         #        qpdata[spin, ik_ibz, :] = egw_rarr[spin, ik_ibz, :]
 
+        #HM: This seems to do the trick
+        nkpoints = len(self.sigma_kpoints)
+        nbands = self.reader.bstop_sk.max()
+        qpes_new = np.zeros((self.nsppol,nkpoints,nbands,self.ntemp),dtype=np.complex)
+        for spin in range(self.nsppol):
+            for ik in self.kcalc2ibz:
+                for nb,band in enumerate(range(self.bstart_sk[spin, ik], self.bstop_sk[spin, ik])):
+                    qpes_new[spin,ik,band] = qpes[spin,ik,nb]
+        qpes = qpes_new
+
         # Build interpolator for QP corrections.
         from abipy.core.skw import SkwInterpolator
         cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
