@@ -127,6 +127,25 @@ def abiview_ebands(options):
         return 0
 
 
+def abiview_fs(options):
+    """
+    Extract eigenvaleus in the IBZ from file and visualize Fermi surface with --appname
+    """
+    with abilab.abiopen(options.filepath) as abifile:
+        eb3d = abifile.ebands.get_ebands3d()
+
+        if options.appname == "mpl":
+            eb3d.plot_isosurfaces()
+        elif options.appname == "xsf":
+            eb3d.xcrysden_view()
+        elif options.appname == "mayavi":
+            eb3d.mvplot_isosurfaces()
+        else:
+            raise ValueError("Unsupported value for --appname: %s" % str(options.appname))
+
+        return 0
+
+
 def abiview_fatbands(options):
     """
     Plot electronic fatbands bands if file contains high-symmetry k-path
@@ -352,6 +371,8 @@ Usage example:
     abiview.py ebands out_WFK.nc              ==>  Plot electrons bands (or DOS) with matplotlib.
     abiview.py ebands out_GSR.nc --xmgrace    ==>  Generate xmgrace file with electron bands.
     abiview.py fatbands out_FATBANDS.nc       ==>  Plot electron fatbands or PJDOS depending on k-sampling.
+    abiview.py fs FILE_WITH_KMESH.nc          ==>  Visualize Fermi surface from netcdf file with electron energies
+                                                   on a k-mesh. Use -a xsf to change application e.g. Xcrysden.
     abiview.py optic out_OPTIC.nc             ==>  Plot optical properties computed by optic code.
 
 #########
@@ -483,6 +504,11 @@ def get_parser(with_epilog=False):
     # Subparser for ebands commands.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
     add_args(p_ebands, "xmgrace", "bxsf", "force")
+
+    # Subparser for fs commands.
+    p_fs = subparsers.add_parser('fs', parents=[copts_parser], help=abiview_fs.__doc__)
+    p_fs.add_argument("-a", "--appname", type=str, default="mpl",
+        help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
 
     # Subparser for fatbands commands.
     p_fatbands = subparsers.add_parser('fatbands', parents=[copts_parser, slide_parser], help=abiview_fatbands.__doc__)

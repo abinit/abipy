@@ -527,7 +527,8 @@ class ElectronBands(Has_Structure):
 
         for idx, kpoint in enumerate(self.kpoints):
             name = kpoint.name if kpoint.name is not None else self.structure.findname_in_hsym_stars(kpoint)
-            if name is not None:
+            #if name is not None:
+            if name:
                 _auto_klabels[idx] = name
                 if kpoint.name is None: kpoint.set_name(name)
 
@@ -1241,7 +1242,6 @@ class ElectronBands(Has_Structure):
 
         if with_kpoints:
             app(self.kpoints.to_string(verbose=verbose, title="K-points"))
-            app("")
 
         return "\n".join(lines)
 
@@ -1747,7 +1747,7 @@ class ElectronBands(Has_Structure):
 
         ax.grid(True)
         ax.set_ylabel("Energy (eV)")
-        ax.set_xlabel("Wave vector")
+        ax.set_xlabel("Wave Vector")
 
         # Set ticks and labels.
         klabels = kwargs.pop("klabels", None)
@@ -1756,6 +1756,7 @@ class ElectronBands(Has_Structure):
             # Don't show label if previous k-point is the same.
             for il in range(1, len(labels)):
                 if labels[il] == labels[il-1]: labels[il] = ""
+            #print("ticks", ticks, "\nlabels", labels)
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
 
@@ -2436,7 +2437,8 @@ class ElectronBandsPlotter(NotebookWriter):
             yield getattr(self, mname)(show=False)
 
     @add_fig_kwargs
-    def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8, **kwargs):
+    def combiplot(self, e0="fermie", ylims=None, width_ratios=(2, 1), fontsize=8,
+                  linestyle_dict=None, **kwargs):
         """
         Plot the band structure and the DOS on the same figure.
         Use ``gridplot`` to plot band structures on different figures.
@@ -2460,6 +2462,7 @@ class ElectronBandsPlotter(NotebookWriter):
             width_ratios: Defines the ratio between the band structure plot and the dos plot.
                 Used when there are DOS stored in the plotter.
             fontsize: fontsize for titles and legend.
+            linestyle_dict: Dictionary mapping labels to matplotlib linestyle options.
 
         Returns: |matplotlib-Figure|.
         """
@@ -2493,14 +2496,15 @@ class ElectronBandsPlotter(NotebookWriter):
 
         for (label, ebands), lineopt in zip(self.ebands_dict.items(), self.iter_lineopt()):
             i += 1
-            my_kwargs.update(lineopt)
+            if linestyle_dict is not None and label in linestyle_dict:
+                my_kwargs.update(linestyle_dict[label])
+            else:
+                my_kwargs.update(lineopt)
+
             opts_label[label] = my_kwargs.copy()
 
             # Get energy zero.
-            if e0 == "edos_fermie":
-                mye0 = self.edoses_dict[label].fermie
-            else:
-                mye0 = ebands.get_e0(e0)
+            mye0 = self.edoses_dict[label].fermie if e0 == "edos_fermie" else ebands.get_e0(e0)
 
             l = ebands.plot_ax(ax0, mye0, spin=None, band=None, **my_kwargs)
             lines.append(l[0])
@@ -3651,7 +3655,7 @@ class Bands3D(Has_Structure):
         Visualize electron energy isosurfaces with xcrysden_.
         """
         _, tmp_filepath = tempfile.mkstemp(suffix=".bxsf", text=True)
-        #print("Producing BXSF file in:", tmp_filepath)
+        print("Producing BXSF file in:", tmp_filepath)
         self.to_bxsf(tmp_filepath, unit="eV")
         from abipy.iotools.visualizer import Xcrysden
         return Xcrysden(tmp_filepath)()

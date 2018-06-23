@@ -491,6 +491,13 @@ def abicomp_sigeph(options):
     return _invoke_robot(options)
 
 
+def abicomp_abiwan(options):
+    """
+    Compare multiple ABIWAN files.
+    """
+    return _invoke_robot(options)
+
+
 def dataframe_from_pseudos(pseudos, index=None):
     """
     Build pandas dataframe with the most important info associated to
@@ -719,6 +726,7 @@ Usage example:
   abicomp.py ebands *_GSR.nc -nb                => Interact with the plotter in the jupyter notebook.
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
   abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
+  abicomp.py abiwan *_ABIWAN.nc --expose        => Compare ABIWAN results, produce matplotlib figures.
 
 #########
 # Phonons
@@ -952,6 +960,7 @@ def get_parser(with_epilog=False):
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
     p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)

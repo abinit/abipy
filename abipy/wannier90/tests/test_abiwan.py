@@ -11,70 +11,104 @@ from abipy.core.testing import AbipyTest
 
 class TestAbiwanFile(AbipyTest):
 
-    def test_abiwan_nodis(self):
+    def test_abiwan_without_dis(self):
         """Testing abiwan file without DISENTANGLE."""
-        #filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")
+        filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")
         with abilab.abiopen(filepath) as abiwan:
             repr(abiwan); str(abiwan)
             assert abiwan.to_string(verbose=2)
-            #assert abiwan.version == "2.1.0+git"
-            #assert abiwan.structure.formula == "Ga1 As1"
-            #self.assert_almost_equal(abiwan.structure.frac_coords.ravel(),
-            #        [0.00000, 0.00000, 0.00000, 0.25000, 0.25000, 0.25000])
-            #assert not abiwan.warnings
-            #for k in ("MAIN", "WANNIERISE"):
-            #    assert k in abiwan.params_section
-            #assert not abiwan.use_disentangle
-            #assert abiwan.nwan == 4
-            #assert np.all(abiwan.grid_size == 2)
-            #assert len(abiwan.conv_df) == 20 + 1
-            #assert abiwan.conv_df.O_D[0] == 0.0083198 and abiwan.conv_df.O_OD[0] == 0.5036294
-            #assert abiwan.conv_df.O_D[20] == 0.0080300 and abiwan.conv_df.O_OD[20] == 0.5019880
+            assert abiwan.structure.formula == "Ga1 As1"
+            self.assert_equal(abiwan.nwan, [4])
+            assert abiwan.mwan == 4 and abiwan.nntot == 4
+            self.assert_equal(abiwan.num_bands_spin, [4])
+            self.assert_equal(abiwan.have_disentangled, [False])
 
-            ## numpy array (nwan, nstep, ...)
-            ##natom = len(abiwan.structure)
-            #nstep = 21
-            #assert abiwan.wf_centers.shape == (abiwan.nwan, nstep, 3)
+            #abiwan.lwindow
+            #natom = len(abiwan.structure)
+            assert abiwan.wann_centers.shape == (abiwan.nsppol, abiwan.mwan, 3)
             #self.assert_equal(abiwan.wf_centers[1, 20], [-0.866253,  0.866253,  0.866253])
-            #assert abiwan.wf_spreads.shape == (abiwan.nwan, nstep)
+            assert abiwan.wan_spreads.shape == (abiwan.nsppol, abiwan.mwan)
             #self.assert_equal(abiwan.wf_spreads[1, 20], 1.11672024)
+            assert len(abiwan.irvec) == len(abiwan.nedeg)
+            #abiwan.params
 
-            #if self.has_matplotlib():
-            #    assert abiwan.plot(show=False)
-            #    assert abiwan.plot_centers_spread(show=False)
+            # Compare input eigenvalues with interpolated values.
+            in_eigens = abiwan.ebands.eigens
+            for spin in range(abiwan.nsppol):
+                for ik, kpt in enumerate(abiwan.kpoints):
+                    ews = abiwan.hwan.eval_sk(spin, kpt.frac_coords)
+                    self.assert_almost_equal(ews, in_eigens[spin, ik, :self.nwan_spin[spin]])
 
-            #if self.has_nbformat():
-            #    assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))
+            ebands_wan = abiwan.interpolate_ebands(line_density=10)
+            plotter = abiwan.get_plotter_from_ebands(ebands_wan)
 
-    #def test_example03_silicon(self):
-    #    """Parsing example02_silicon.wout with DISENTANGLE"""
+            if self.has_matplotlib():
+                assert abiwan.hwan.plot(show=False)
+                assert abiwan.plot_centers_spread(show=False)
+
+            if self.has_nbformat():
+                assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))
+
+    #def test_abiwan_with_dis(self):
+    #    """Testing abiwan file with DISENTANGLE."""
+    #    filepath = os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")
     #    with abilab.abiopen(filepath) as abiwan:
     #        repr(abiwan); str(abiwan)
     #        assert abiwan.to_string(verbose=2)
-    #        assert abiwan.version == "2.1.0+git"
-    #        assert abiwan.structure.formula == "Si2"
-    #        self.assert_almost_equal(abiwan.structure.frac_coords.ravel(),
-    #                [-0.25000, 0.75000, -0.25000, 0.00000, 0.00000, 0.00000])
-    #        assert not abiwan.warnings
-    #        for k in ("MAIN", "WANNIERISE", "DISENTANGLE"):
-    #            assert k in abiwan.params_section
-    #        assert abiwan.use_disentangle
-    #        assert abiwan.nwan == 8
-    #        assert np.all(abiwan.grid_size == 4)
-    #        assert len(abiwan.conv_df) == 6 + 1
-    #        assert abiwan.conv_df.O_D[1] == 0.1213986 and abiwan.conv_df.O_OD[1] == 2.7017701
-    #        assert abiwan.conv_df.O_D.values[-1] == 0.1054702 and abiwan.conv_df.O_OD.values[-1] == 2.5449106
+    #        #assert abiwan.structure.formula == "Ga1 As1"
+    #        self.assert_equal(abiwan.nwan, [4])
+    #        assert abiwan.mwan == 4
+    #        assert abiwan.nntot == 4
+    #        self.assert_equal(abiwan.num_bands_spin, [4]
+    #        self.assert_equal(abiwan.have_disentangled, [False])
 
-    #        # numpy array (nwan, nstep, ...)
-    #        nstep = len(abiwan.conv_df.O_D)
-    #        assert abiwan.wf_centers.shape == (abiwan.nwan, nstep, 3)
-    #        self.assert_equal(abiwan.wf_centers[7, -1], [0.888643,  0.888652,  1.810090 ])
-    #        assert abiwan.wf_spreads.shape == (abiwan.nwan, nstep)
-    #        self.assert_equal(abiwan.wf_spreads[7, -1], 1.81245236)
+    #        #abiwan.lwindow
+    #        ## numpy array (nwan, nstep, ...)
+    #        ##natom = len(abiwan.structure)
+    #        #nstep = 21
+    #        #assert abiwan.wann_centers.shape == (abiwan.nsppol, abiwan.mwan, 3)
+    #        #self.assert_equal(abiwan.wf_centers[1, 20], [-0.866253,  0.866253,  0.866253])
+    #        #assert abiwan.wan_spreads.shape == (abiwan.nsppol, abiwan.mwan)
+    #        assert len(abiwan.irvec) == len(abiwan.nedeg)
+    #        #self.assert_equal(abiwan.wf_spreads[1, 20], 1.11672024)
+    #        #abiwan.params
 
-    #        if self.has_matplotlib():
-    #            assert abiwan.plot(show=False)
-    #            assert abiwan.plot_centers_spread(show=False)
+    #        Compare input eigenvalues with interpolated values
+    #        in_eigens = abiwan.ebands.eigens
+    #        for spin in range(abiwan.nsppol):
+    #            for ik, kpt in enumerate(abiwan.kpoints):
+    #                ews = abiwan.hwan.eval_sk(spin, kpt.frac_coords)
+    #                self.assert_almost_equal(ews, in_eigens[spin, ik, :self.nwan_spin[spin]])
 
-    #        if self.has_nbformat():
-    #            assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))
+    #        #ebands_wan = awiwan.interpolate_ebands(line_density=10)
+    #        #plotter = abiwan.get_plotter_from_ebands(ebands_wan)
+
+    #        #if self.has_matplotlib():
+    #        #    assert abiwan.hwan.plot(show=False)
+    #        #    assert abiwan.plot_centers_spread(show=False)
+
+    #        #if self.has_nbformat():
+    #        #    assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+    def test_abiwan_robot(self):
+        """Testing abiwan file with DISENTANGLE."""
+        filepaths = [os.path.join(abidata.dirpath, "refs", "wannier90", "foo_ABIWAN.nc")]
+
+        robot = abilab.AbiwanRobot.from_files()
+        assert repr(robot); assert str(robot)
+        assert robot.to_string(verbose==2)
+        assert len(robot.abifiles) == 1
+        assert robot.EXT == "ABIWAN"
+
+	# Get pandas dataframe.
+        df = robot.get_dataframe()
+        self.assert_equal(df["ecut"].values, 6.0)
+
+        if self.has_matplotlib():
+            assert ebands_plotter.gridplot(show=False)
+
+        if self.has_nbformat():
+            robot.write_notebook(nbpath=self.get_tmpname(text=True))
+
+        robot.close()

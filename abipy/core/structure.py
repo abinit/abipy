@@ -1238,13 +1238,18 @@ class Structure(pymatgen.Structure, NotebookWriter):
     def convert(self, fmt="cif", **kwargs):
         """
         Return string with the structure in the given format `fmt`
-        Options include "abivars", "cif", "xsf", "poscar", "cssr", "json".
+        Options include "abivars", "cif", "xsf", "poscar", "siesta", "wannier90", "cssr", "json".
         """
         if fmt == "abivars":
             return self.abi_string
         elif fmt == "qe":
             from pymatgen.io.pwscf import PWInput
             return str(PWInput(self, pseudo={s: s + ".pseudo" for s in self.symbol_set}))
+        elif fmt == "siesta":
+            return structure2siesta(self)
+        elif fmt == "wannier90":
+            from abipy.wannier90.win import structure2wannier90
+            return structure2wannier90(self)
         else:
             return super(Structure, self).to(fmt=fmt, **kwargs)
 
@@ -2037,3 +2042,58 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
 
     else:
         raise ValueError("Unsupported mode: `%s`" % str(mode))
+
+
+def structure2siesta(structure, verbose=0):
+    """
+    Return string with structural information in Siesta format from pymatgen structure
+
+    Args:
+        structure: pymatgen structure.
+        verbose: Verbosity level.
+    """
+
+    if not structure.is_ordered:
+        raise NotImplementedError("""\
+Received disordered structure with partial occupancies that cannot be converted into a Siesta input
+Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
+to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.""")
+
+    types_of_specie = structure.types_of_specie
+
+    lines = []
+    app = lines.append
+    app("NumberOfAtoms %d" % len(structure))
+    app("NumberOfSpecies %d" % structure.ntypesp)
+
+    if verbose:
+        app("# The species number followed by the atomic number, and then by the desired label")
+    app("%block ChemicalSpeciesLabel")
+    for itype, specie in enumerate(types_of_specie):
+        app("    %d %d %s" % (itype + 1, specie.number, specie.symbol))
+    app("%endblock ChemicalSpeciesLabel")
+
+    # Write lattice vectors.
+    # Set small values to zero. This usually happens when the CIF file
+    # does not give structure parameters with enough digits.
+    lvectors = np.where(np.abs(structure.lattice.matrix) > 1e-8, structure.lattice.matrix, 0.0)
+    app("LatticeConstant 1.0 Ang")
+    app("%block LatticeVectors")
+    for r in lvectors:
+        app("    %.10f %.10f %.10f" % (r[0], r[1], r[2]))
+    app("%endblock LatticeVectors")
+
+    # Write atomic coordinates
+    #% block AtomicCoordinatesAndAtomicSpecies
+    #4.5000 5.0000 5.0000 1
+    #5.5000 5.0000 5.0000 1
+    #% endblock AtomicCoordinatesAndAtomicSpecies
+    app("AtomicCoordinatesFormat Fractional")
+    app("%block AtomicCoordinatesAndAtomicSpecies")
+    for i, site in enumerate(structure):
+        itype = types_of_specie.index(site.specie)
+        fc = np.where(np.abs(site.frac_coords) > 1e-8, site.frac_coords, 0.0)
+        app("    %.10f %.10f %.10f %d" % (fc[0], fc[1], fc[2], itype + 1))
+    app("%endblock AtomicCoordinatesAndAtomicSpecies")
+
+    return "\n".join(lines)

@@ -282,6 +282,32 @@ def has_timrev_from_kptopt(kptopt):
     return int(kptopt) not in (3, 4)
 
 
+def kptopt2str(kptopt, verbose=0):
+    """
+    Return human-readable string with meaning of kptopt.
+    """
+    if kptopt < 0:
+        t = ("Band structure run. Use kptbounds, and ndivk (ndivsm)"
+             "The absolute value of kptopt gives the number of segments of the band structure." +
+             "Weights are usually irrelevant with this option")
+    else:
+        t = {
+            0: ("Manual mode",
+                "User-provided nkpt, kpt, kptnrm and wtk"),
+            1: ("Use space group symmetries and TR symmetry",
+                "Usual mode for GS calculations (ngkpt or kptrlatt, nshiftk and shiftk)"),
+            2: ("Only TR symmetry",
+                "This is to be used for DFPT at Gamma (ngkpt or kptrlatt, nshiftk and shiftk)"),
+            3: ("Do not take into account any symmetry",
+                "This is to be used for DFPT at non-zero q (ngkpt or kptrlatt, nshiftk and shiftk)."),
+            4: ("Spatial symmetries, NO TR symmetry",
+                "This has to be used for PAW calculations with SOC (pawspnorb/=0) " +
+                "from ngkpt or kptrlatt, nshiftk and shiftk."),
+        }[kptopt]
+
+    return t[0] if verbose == 0 else t[0] + "\n" + t[1]
+
+
 def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symrecs, has_timrev):
     """
     Build mapping between a list of k-points in reduced coordinates (``other_kpoints``)
@@ -1314,7 +1340,8 @@ class IrredZone(KpointList):
             mpdivs, shifts = self.mpdivs_shifts
             d = "[%d, %d, %d]" % tuple(mpdivs)
             s = ", ".join("[%.1f, %.1f, %.1f]" % tuple(s) for s in shifts)
-            app("K-mesh with divisions: %s, shifts: %s, kptopt: %s" % (d, s, self.ksampling.kptopt))
+            app("K-mesh with divisions: %s, shifts: %s" % (d, s))
+            app("kptopt: %s (%s)" % (self.ksampling.kptopt, kptopt2str(self.ksampling.kptopt)))
         else:
             app("nkpt: %d" % len(self))
             app(self.ksampling.to_string(verbose=verbose))
@@ -1487,7 +1514,7 @@ class KSamplingInfo(AttrDict):
                 app("shifts: %s" % str(self.shifts))
                 app("kptrlatt_orig: %s" % str(self.kptrlatt_orig))
                 app("shifts_orig: %s" % str(self.shifts_orig))
-                app("kptopt: %s" % str(self.kptopt))
+                app("kptopt: %s (%s)" % (str(self.kptopt), kptopt2str(self.kptopt)))
 
         elif self.is_path:
             app("Path with kptopt: %s" % self.kptopt)
@@ -1498,7 +1525,7 @@ class KSamplingInfo(AttrDict):
 
     @property
     def is_mesh(self):
-        """True if we have a path in the BZ."""
+        """True if we have a mesh in the BZ."""
         return self.kptopt > 0 and (self.mpdivs is not None or self.kptrlatt is not None)
 
     @property

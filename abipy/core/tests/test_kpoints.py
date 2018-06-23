@@ -57,6 +57,12 @@ class TestHelperFunctions(AbipyTest):
         assert not has_timrev_from_kptopt(4)
         assert has_timrev_from_kptopt(-7)
 
+    def test_kptopt2str(self):
+        """Testing kptopt2str."""
+        from abipy.core.kpoints import kptopt2str
+        for kptopt in [-5, 0, 1, 2, 3, 4]:
+            assert kptopt2str(kptopt, verbose=1 if kptopt != 1 else 0)
+
 
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
