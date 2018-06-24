@@ -1240,14 +1240,14 @@ class Structure(pymatgen.Structure, NotebookWriter):
         Return string with the structure in the given format `fmt`
         Options include "abivars", "cif", "xsf", "poscar", "siesta", "wannier90", "cssr", "json".
         """
-        if fmt == "abivars":
+        if fmt in ("abivars", "abinit"):
             return self.abi_string
         elif fmt == "qe":
             from pymatgen.io.pwscf import PWInput
             return str(PWInput(self, pseudo={s: s + ".pseudo" for s in self.symbol_set}))
         elif fmt == "siesta":
             return structure2siesta(self)
-        elif fmt == "wannier90":
+        elif fmt in ("wannier90", "w90"):
             from abipy.wannier90.win import structure2wannier90
             return structure2wannier90(self)
         else:
@@ -1637,6 +1637,52 @@ class Structure(pymatgen.Structure, NotebookWriter):
         kptbounds = [k.frac_coords for k in self.hsym_kpoints]
         return np.reshape(kptbounds, (-1, 3))
 
+    def get_kpath_input_string(self, fmt="abinit", line_density=10):
+        """
+        Return string with input variables for band-structure calculations
+        in the format used by code `fmt`.
+        Use `line_density` points for the smallest segment (if supported by code).
+        """
+        lines = []; app = lines.append
+        if fmt in ("abinit", "abivars"):
+            app("# Abinit Structure")
+            app(self.convert(fmt=fmt))
+            app("\n# K-path in reduced coordinates:")
+            app("# tolwfr 1e-20 iscf -2 getden ??")
+            app(" ndivsm %d" % line_density)
+            app(" kptopt %d" % -(len(self.hsym_kpoints) - 1))
+            app(" kptbounds")
+            for k in self.hsym_kpoints:
+                app("    %+.5f  %+.5f  %+.5f  # %s" % (*k.frac_coords, k.name))
+
+        elif fmt in ("wannier90", "w90"):
+            app("# Wannier90 structure")
+            from abipy.wannier90.win import Wannier90Input
+            win = Wannier90Input(self)
+            win.set_kpath()
+            app(win.to_string())
+
+        elif fmt == "siesta":
+            app("# Siesta structure")
+            app(self.convert(fmt=fmt))
+            # Build normalized k-path.
+            from .kpoints import Kpath
+            vertices_names = [(k.frac_coords, k.name) for k in self.hsym_kpoints]
+            kpath = Kpath.from_vertices_and_names(self, vertices_names, line_density=line_density)
+            app("%block BandLines")
+            prev_ik = 0
+            for ik, k in enumerate(kpath):
+                if not k.name: continue
+                n = ik - prev_ik
+                app("%d  %+.5f  %+.5f  %+.5f  # %s" % (n if n else 1, *k.frac_coords, k.name))
+                prev_ik = ik
+            app("%endblock BandLines")
+
+        else:
+            raise ValueError("Don't know how to generate string for code: `%s`" % str(fmt))
+
+        return "\n".join(lines)
+
     #def ksampling_from_jhudb(self, **kwargs):
     #    from pymatgen.ext.jhu import get_kpoints
     #    __doc__ = get_kpoints.__doc__
@@ -1675,7 +1721,8 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
     def calc_ngkpt(self, nksmall):
         """
-        Compute the ABINIT variable ``ngkpt`` from the number of divisions used for the smallest lattice vector.
+        Compute the ABINIT variable ``ngkpt`` from the number of divisions used
+        for the smallest lattice vector.
 
         Args:
             nksmall (int): Number of division for the smallest lattice vector.

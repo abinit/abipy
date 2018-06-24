@@ -108,6 +108,9 @@ class TestStructure(AbipyTest):
         for fmt in ["abivars", "cif", "POSCAR", "json", "xsf", "qe", "siesta", "wannier90"]:
             assert len(znse.convert(fmt=fmt)) > 0
 
+        for fmt in ["abinit", "w90", "siesta"]:
+            assert len(znse.get_kpath_input_string(fmt=fmt)) > 0
+
         oxi_znse = znse.get_oxi_state_decorated()
         assert len(oxi_znse.abi_string)
         from pymatgen.core.periodic_table import Specie

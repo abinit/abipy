@@ -184,14 +184,15 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
             help="Enforce primitive standard cell.")
 
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
-    def add_format_arg(parser, default, option=True):
+    def add_format_arg(parser, default, option=True, formats=None):
         """Add --format option to a parser with default value `default`."""
+        formats = supported_formats if formats is None else formats
         if option:
             parser.add_argument("-f", "--format", default=default, type=str,
-                help="Output format. Default: %s. Accept: %s" % (default, supported_formats))
+                help="Output format. Default: %s. Accept: %s" % (default, formats))
         else:
             parser.add_argument('format', nargs="?", default=default, type=str,
-                help="Output format. Default: %s. Accept: %s" % (default, supported_formats))
+                help="Output format. Default: %s. Accept: %s" % (default, formats))
 
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
@@ -297,6 +298,7 @@ closest points in this particular structure. This is usually what you want in a 
     # Subparser for kpath.
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
         help="Read structure from file, generate k-path for band-structure calculations.")
+    add_format_arg(p_kpath, default="abinit", formats=["abinit", "wannier90", "siesta"])
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
         help="Read structure from file, plot Brillouin zone with matplotlib.")
@@ -633,15 +635,7 @@ def main():
 
     elif options.command == "kpath":
         structure = abilab.Structure.from_file(options.filepath)
-        print("# Abinit Structure")
-        print(structure.abi_string)
-        print("\n# K-path in reduced coordinates:")
-        print("# tolwfr 1e-20 iscf -2 getden ??")
-        print(" ndivsm 10")
-        print(" kptopt", -(len(structure.hsym_kpoints) - 1))
-        print(" kptbounds")
-        for k in structure.hsym_kpoints:
-            print("    %+.5f  %+.5f  %+.5f" % tuple(k.frac_coords), "#", k.name)
+        print(structure.get_kpath_input_string(fmt=options.format, line_density=10))
 
     elif options.command == "bz":
         abilab.Structure.from_file(options.filepath).plot_bz()

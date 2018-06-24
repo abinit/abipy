@@ -1,9 +1,13 @@
 # coding: utf-8
-"""Interface to the ABIWAN netcdf file produced by abinit by calling wannier90 in library mode."""
+"""
+Interface to the ABIWAN netcdf file produced by abinit by calling wannier90 in library mode.
+Inspired to the Fortran version of wannier90.
+"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import numpy as np
 import pandas as pd
+import time
 
 from collections import OrderedDict
 from tabulate import tabulate
@@ -46,13 +50,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         # Number of bands actually used to construct the Wannier functions
         self.num_bands_spin = self.reader.read_value("num_bands")
 
-        # Here be very careful with F --> C
-        #complex(dp) U_matrix(mwan,mwan,nkpt,nsppol)
-        #complex(dp) U_matrix_opt(mband,mwan,nkpt,nsppol)
-        # complex(dpc) :: hamWR(:,:,:,:)
-        # ! hamWR(mwan,mwan,nrpts,nsppol))
-        # ! Hamiltonian in k-space (ab-initio grid) in the Wannier gauge.
-
     @lazy_property
     def nwan_spin(self):
         """Number of Wannier functions for each spin."""
@@ -94,7 +91,9 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     @lazy_property
     def have_disentangled_spin(self):
         """[nsppol] bool array. Whether disentanglement has been performed."""
-        return self.reader.read_value("have_disentangled_spin").astype(np.bool)
+        #return self.reader.read_value("have_disentangled_spin").astype(np.bool)
+        # TODO: Exclude bands
+        return self.nwan_spin != self.num_bands_spin
 
     @lazy_property
     def wann_centers(self):
@@ -129,12 +128,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         # TODO
         return od
 
-    @lazy_property
-    def u_matrix(self):
-        # Here be very careful with F --> C
-        #complex(dp) U_matrix(mwan, mwan, nkpt, nsppol)
-        return self.reader.read_value("U_matrix", cmode="c")
-
     def __str__(self):
         """String representation."""
         return self.to_string()
@@ -165,22 +158,22 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             app(tabulate(table, tablefmt="plain"))
             app("")
 
-        #if verbose and self.have_disentangled_spin[spin]:
-        app(marquee("Lwindow", mark="="))
-        app("[nsppol, nkpt, max_num_bands] array. True if state lies within the outer window.\n")
-        for spin in range(self.nsppol):
-            if self.nsppol == 2: app("For spin: %d" % spin)
-            for ik in range(self.nkpt):
-                app("For ik: %d, %s" % (ik, self.lwindow[spin, ik]))
-            app("")
+        if verbose and np.any(self.have_disentangled_spin):
+            app(marquee("Lwindow", mark="="))
+            app("[nsppol, nkpt, max_num_bands] array. True if state lies within the outer window.\n")
+            for spin in range(self.nsppol):
+                if self.nsppol == 2: app("For spin: %d" % spin)
+                for ik in range(self.nkpt):
+                    app("For ik: %d, %s" % (ik, self.lwindow[spin, ik]))
+                app("")
 
-        #if verbose and np.any(self.bands_in[nsppol])
-        app(marquee("Bands_in", mark="="))
-        app("[nsppol, mband] array. True if (spin, band) is included in the calculation. Set by exclude_bands.\n")
-        for spin in range(self.nsppol):
-            if self.nsppol == 2: app("For spin: %d" % spin)
-            app("%s" % str(self.bands_in[spin]))
-            app("")
+        if verbose and np.any(self.bands_in):
+            app(marquee("Bands_in", mark="="))
+            app("[nsppol, mband] array. True if (spin, band) is included in the calculation. Set by exclude_bands.\n")
+            for spin in range(self.nsppol):
+                if self.nsppol == 2: app("For spin: %d" % spin)
+                app("%s" % str(self.bands_in[spin]))
+                app("")
 
         if verbose > 1:
             #app("")
@@ -209,92 +202,82 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         Construct the matrix elements of the KS Hamiltonian in real space
         """
-        #eigenvalues_w,
-        #eigenvalues_w,(max_num_bands,nkpt,nsppol))
+        start = time.time()
 
-        # <0n|H|Rm>
         nrpts, num_kpts = len(self.irvec), self.ebands.nkpt
         kfrac_coords = self.ebands.kpoints.frac_coords
+        # Init datastructures needed by HWanR
         spin_rmn = [None] * self.nsppol
+        spin_vmatrix = np.empty((self.nsppol, num_kpts), dtype=object)
+
+        # Read Unitary matrices from file.
+        # Here be very careful with F --> C because we have to transpose.
+        # complex U_matrix[nsppol, nkpt, mwan, mwan]
+        u_matrix = self.reader.read_value("U_matrix", cmode="c")
+
+        # complex U_matrix_opt[nsppol, mkpt, mwan, mband]
+        if np.any(self.have_disentangled_spin):
+            u_matrix_opt = self.reader.read_value("U_matrix_opt", cmode="c")
 
         for spin in range(self.nsppol):
             num_wan = self.nwan_spin[spin]
-
-            # Calculate the matrix that describes the combined effect of
-            # disentanglement and maximal localization. This is the combination
-            # that is most often needed for interpolation purposes
-            if not self.have_disentangled_spin[spin]:
-                # v_matrix = u_matrix
-                v_matrix = self.u_matrix[spin]
-                v_matrix = v_matrix.transpose((0, 2, 1))
-            else:
-                #if self.have_disentangled_spin[spin]:
-                #! slim down eigval to contain states within the outer window
-                #do loop_kpt=1,num_kpts
-                #   counter=0
-                #   do j=1,num_bands
-                #      if(lwindow(j,loop_kpt)) then
-                #         counter=counter+1
-                #         eigval_opt(counter,loop_kpt)=eigval(j,loop_kpt)
-                #      end if
-                #   end do
-                #end do
-
-                #allocate(v_matrix(num_bands,num_wann,num_kpts),stat=ierr)
-                #   v_matrix=cmplx_0
-                #   do loop_kpt=1,num_kpts
-                #      do j=1,num_wann
-                #         do m=1,ndimwin(loop_kpt)
-                #            do i=1,num_wann
-                #               v_matrix(m,j,loop_kpt)=v_matrix(m,j,loop_kpt)&
-                #                    +u_matrix_opt(m,i,loop_kpt)*u_matrix(i,j,loop_kpt)
-                raise NotImplementedError()
+            #num_bands = self.num_bands_spin[spin]
 
             # Real-space Hamiltonian H(R) is calculated by Fourier
             # transforming H(q) defined on the ab-initio reciprocal mesh
             HH_q = np.zeros((num_kpts, num_wan, num_wan), dtype=np.complex)
-            num_states = np.ones(num_kpts, dtype=np.int) * num_wan
 
             for ik in range(num_kpts):
-                #if self.have_disentangled_spin[spin]:
-                #   num_states(ik) = ndimwin(ik)
-                #else
-                #   num_states(ik) = num_wann
-                #endif
-                #call get_win_min(ik, winmin_q)
                 eigs_k = self.ebands.eigens[spin, ik]
-                #HKS = np.diag(eigs_k)
-                HKS = np.diag(eigs_k[self.bands_in[spin]])
+                # May have num_wan != mwan
+                uk = u_matrix[spin, ik][:num_wan, :num_wan].transpose().copy()
 
-                for m in range(num_wan):
-                   for n in range(m):
-                      for i in range(num_states[ik]):
-                         #ii = winmin_q + i - 1
-                         ii = i
-                         #HH_q(n,m,ik)=HH_q(n,m,ik) + conjg(v_matrix(i,n,ik)) * eigs_k[ii] * v_matrix(i,m,ik)
-                         #HH_q[ik,m,n] += np.conj(v_matrix[ik,n,i]) * eigs_k[ii] * v_matrix[ik, m, i]
-                         #HH_q[ik,n,m] += np.conj(v_matrix[ik,i,n]) * eigs_k[ii] * v_matrix[ik, i, m]
-                         #HH_q[ik,n,m] += np.conj(v_matrix[ik,n,i]) * eigs_k[ii] * v_matrix[ik, i, m]
-                      #HH_q[ik,m,n] = np.conj(HH_q[ik,n,m])
+                # Calculate the matrix that describes the combined effect of
+                # disentanglement and maximal localization. This is the combination
+                # that is most often needed for interpolation purposes
+                # FIXME: problem with netcdf file
+                if not self.have_disentangled_spin[spin]:
+                    # [num_wann, num_wann] matrices, bands_in needed if exclude_bands
+                    hks = np.diag(eigs_k[self.bands_in[spin]])
+                    v_matrix = uk
+                else:
+                    # Select bands within the outer window
+                    # TODO: Test if bands_in?
+                    mask = self.lwindow[spin, ik]
+                    hks = np.diag(eigs_k[mask])
+                    v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk
 
-                HH_q[ik] = v_matrix[ik].conjugate().transpose() @ HKS @ v_matrix[ik]
+                HH_q[ik] = v_matrix.transpose().conjugate() @ hks @ v_matrix
+                spin_vmatrix[spin, ik] = v_matrix
 
-            # Fourier transforms Wannier-gauge representation
+            # Fourier transform Hamiltonian in the wannier-gauge representation.
             # O_ij(R) = (1/N_kpts) sum_q e^{-iqR} O_ij(q)
             rmn = np.zeros((nrpts, num_wan, num_wan), dtype=np.complex)
             j2pi = 2.0j * np.pi
+
+            """
             for ir in range(nrpts):
                for ik, kfcs in enumerate(kfrac_coords):
                   jqr = j2pi * np.dot(kfcs, self.irvec[ir])
                   rmn[ir] += np.exp(-jqr) * HH_q[ik]
             rmn *= (1.0 / num_kpts)
+            """
+
+            for ik, kfcs in enumerate(kfrac_coords):
+                jqr = j2pi * np.dot(self.irvec, kfcs)
+                phases = np.exp(-jqr)
+                rmn += phases[:, None, None] * HH_q[ik]
+            rmn *= (1.0 / num_kpts)
+
             # Save results
             spin_rmn[spin] = rmn
 
-        return HWanR(self.structure, self.nwan_spin, spin_rmn, self.irvec, self.ndegen)
+        print("HWanR built in", time.time() - start)
+        return HWanR(self.structure, self.nwan_spin, spin_vmatrix, spin_rmn, self.irvec, self.ndegen)
 
     def interpolate_ebands(self, vertices_names=None, line_density=20, kpoints=None):
         """
+        Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier.
 
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -319,6 +302,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         eigens = np.zeros((self.nsppol, nk, self.mwan))
 
         # Interpolate the Hamiltonian for each kpoint and spin.
+        start = time.time()
+        write_warning = True
         for spin in range(self.nsppol):
             num_wan = self.nwan_spin[spin]
             for ik, kpt in enumerate(kpoints):
@@ -328,8 +313,14 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                     # May have different number of wannier functions if nsppol == 2.
                     # Here I use the last value to fill eigens matrix (not very clean but oh well).
                     eigens[spin, ik, num_wan:self.mwan] = oeigs[-1]
+                    if write_warning:
+                        cprint("Different number of wannier functions for spin. Filling last bands with oeigs[-1]",
+                               "yellow")
+                        write_warning = False
 
+        print("Interpolation completed", time.time() - start)
         occfacts = np.zeros_like(eigens)
+
         return ElectronBands(self.structure, kpoints, eigens, self.ebands.fermie,
                              occfacts, self.ebands.nelect, self.nspinor, self.nspden)
 
@@ -350,11 +341,11 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         yield self.interpolate_ebands().plot(show=False)
         yield self.hwan.plot(show=False)
-        #if kwargs.get("verbose"):
-        linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
-        yield self.get_plotter_from_ebands(self.ebands).combiplot(linestyle_dict=linestyle_dict, show=False)
-        #else:
-        #    cprint("Use verbose option to compare ab-initio points with interpolated values", "yellow")
+        if kwargs.get("verbose"):
+            linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
+            yield self.get_plotter_from_ebands(self.ebands).combiplot(linestyle_dict=linestyle_dict, show=False)
+        else:
+            cprint("Use verbose option to compare ab-initio points with interpolated values", "yellow")
 
     def write_notebook(self, nbpath=None):
         """
@@ -378,10 +369,18 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
 # TODO: Interface with ElectronsInterpolator
 class HWanR(object):
+    """
+    This object represents the KS Hamiltonian in the wannier-gauge representation.
+    It provides low-level methods to interpolate the KS eigenvalues, and high-level
+    APIs to interpolate bandstructures and plot the decay of the matrix elements in real space.
 
-    def __init__(self, structure, nwan_spin, spin_rmn, irvec, ndegen):
+    # <0n|H|Rm>
+    """
+
+    def __init__(self, structure, nwan_spin, spin_vmatrix, spin_rmn, irvec, ndegen):
         self.structure = structure
         self.nwan_spin = nwan_spin
+        self.spin_vmatrix = spin_vmatrix
         self.spin_rmn = spin_rmn
         self.irvec = irvec
         self.ndegen = ndegen
@@ -406,36 +405,41 @@ class HWanR(object):
         Return:
             oeigs[nband]
         """
-        #!! For alpha=0:
-        #!! O_ij(k) = sum_R e^{+ik.R}*O_ij(R)
-        #!!
-        #!! For alpha=1,2,3:
-        #!!     sum_R [cmplx_i*R_alpha*e^{+ik.R}*O_ij(R)]
-        #!! where R_alpha is a Cartesian component of R
-        #!! ***REMOVE EVENTUALLY*** (replace with pw90common_fourier_R_to_k_new)
         if der1 is not None or der2 is not None:
             raise NotImplementedError("Derivatives")
 
+        # O_ij(k) = sum_R e^{+ik.R}*O_ij(R)
         j2pi = 2.0j * np.pi
+        """
         num_wan = self.nwan_spin[spin]
         hk_ij = np.zeros((num_wan, num_wan), dtype=np.complex)
         for ir in range(self.nrpts):
             jrk = j2pi * np.dot(kpt, self.irvec[ir])
             hk_ij += self.spin_rmn[spin][ir] * (np.exp(jrk) / self.ndegen[ir])
         oeigs, _ = np.linalg.eigh(hk_ij)
+        """
+
+        # This is a bit faster.
+        jrk = j2pi * np.dot(self.irvec, kpt)
+        phases = np.exp(jrk) / self.ndegen
+        hk_ij = (self.spin_rmn[spin] * phases[:, None, None]).sum(axis=0)
+        oeigs, _ = np.linalg.eigh(hk_ij)
 
         return oeigs
 
-    #def interpolate_omat(self, omat):
+    #def interpolate_omat(self, omat, out_kpoints):
+    #def interpolate_sigres(self, sigres):
+    #def interpolate_sigeph(self, sigeph):
 
     @add_fig_kwargs
-    def plot(self, ax=None, fontsize=12, **kwargs):
+    def plot(self, ax=None, fontsize=12, yscale="log", **kwargs):
         """
         Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
+            yscale: Define scale for y-axis. Passed to ax.set_yscale
             kwargs: options passed to ``ax.plot``.
 
         Return: |matplotlib-Figure|
@@ -464,8 +468,7 @@ class HWanR(object):
                     lw=kwargs.get("lw", 2), color=kwargs.get("color", "r"),
                     label=label)
 
-            # The interval near 0 will be on a linear scale, so 0 can be displayed.
-            ax.set_yscale("symlog")
+            ax.set_yscale("log")
 
         if needs_legend:
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -545,7 +548,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
     def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs):
         """
         Compare the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
-        on the same Axes. Assume ABIWAN files given on the same k-mesh.
+        on the same Axes.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -561,7 +564,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         return fig
 
-    def get_eband_plotter(self, vertices_names=None, line_density=20, kpoints=None, **kwargs):
+    def get_interpolated_ebands_plotter(self, vertices_names=None, line_density=20, kpoints=None, **kwargs):
         """
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -576,7 +579,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         Return: |ElectronBandsPlotter| object.
         """
-        diff_str = self.had_different_structures()
+        diff_str = self.has_different_structures()
         if diff_str: cprint(diff_str, "yellow")
 
         nc0 = self.abifiles[0]
