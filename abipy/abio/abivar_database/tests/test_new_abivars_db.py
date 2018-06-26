@@ -32,7 +32,11 @@ class AbinitVariableDatabaseTest(AbipyTest):
         # FIXME
         #assert len(database.json_dumps_varnames())
 
-        print("vargeo section:\n", database.vars_with_varset("vargeo"))
+        for setname in [
+            "basic", "rlx", "gstate", "eph", "ffield", "paral", "gw", "dfpt", 
+            "geo", "bse", "dev", "paw", "dmft", "files", "internal", "w90"]:
+            assert database.vars_with_varset(setname)
+
         for section in database.my_varset_list:
             assert len(database.vars_with_varset(section))
 
