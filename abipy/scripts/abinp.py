@@ -242,6 +242,17 @@ def abinp_anaph(options):
     return finalize(inp, options)
 
 
+def abinp_lobster(options):
+    """
+    Build and print Lobster input file from directory with files file (for pseudos)
+    and GSR.nc output file (multidatasets are not allowed).
+    Supports also directory with vasprun.xml and POTCAR file.
+    """
+    from abipy.electrons.lobster import LobsterInput
+    lobinp = LobsterInput.from_run_dir(os.path.dirname(options.dirpath))
+    print(lobinp)
+
+
 def get_epilog():
     return r"""
 Usage example:
@@ -273,6 +284,12 @@ Usage example:
 ########################
 
     abinp.py anaph out_DDB          # Build anaddb input file for phonon bands + DOS from DDB file.
+
+#############
+# Other Codes
+#############
+
+    abinp.py lobster .              # Build and print lobster input file from directory.
 
 
 Note that one can use pass any file providing a pymatgen structure
@@ -310,10 +327,15 @@ def get_parser(with_epilog=False):
              "contains more than one dataset.")
     abiinput_parser.add_argument("-p", '--pseudos', nargs="+", default=None, help="List of pseudopotentials")
 
-    # Parent parser for commands that need to know the filepath for the structure.
+    # Parent parser for commands requiring a file.
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', type=str,
         help="File with the crystalline structure (netcdf, cif, POSCAR, input files ...)")
+
+    # Parent parser for commands requiring a path to a directory.
+    dir_selector = argparse.ArgumentParser(add_help=False)
+    dir_selector.add_argument('dirpath', type=str,
+        help="Directory with input files required by COMMAND.")
 
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -361,6 +383,9 @@ def get_parser(with_epilog=False):
 
     # Subparser for anaph command.
     p_anaph = subparsers.add_parser('anaph', parents=inpgen_parsers, help=abinp_anaph.__doc__)
+
+    # Subparser for lobster command.
+    p_lobster = subparsers.add_parser('lobster', parents=[dir_selector], help=abinp_lobster.__doc__)
 
     return parser
 

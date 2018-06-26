@@ -67,6 +67,6 @@ class LobsterInputTest(AbipyTest):
     def test_lobsterinput(self):
         lin = LobsterInput(atom_pairs=[(0,1), (2,3)], orbitalwise=True)
         lin.set_basis_functions_from_abinit_pseudos([abidata.pseudo("Al.GGA_PBE-JTH.xml")])
-        self.assertEqual(lin.basis_functions[0], "Al 3s  3p")
+        assert lin.basis_functions[0] == "Al 3s  3p"
 
         lin.write(self.mkdtemp())

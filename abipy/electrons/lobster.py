@@ -399,6 +399,8 @@ class LobsterInput(object):
 
         basis_functions = []
         for p in pseudos:
+            if not hasattr(p, "valence_states"):
+                raise RuntimeError("Only PAW pseudos in PAWXML format are supported by Lobster interface.")
             el = p.symbol + " ".join(str(vs['n'] + OrbitalType(int(vs['l'])).name)
                                      for vs in p.valence_states.values() if 'n' in vs)
             basis_functions.append(el)
@@ -442,7 +444,7 @@ class LobsterInput(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self, verbose=0):
         """
         String representation.
         """
