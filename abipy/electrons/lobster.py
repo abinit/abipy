@@ -2,11 +2,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import re
-import six
 import glob
 import numpy as np
-import linecache
-from copy import copy
 from collections import defaultdict
 from abipy.core.func1d import Function1D
 from abipy.electrons.gsr import GsrFile
@@ -464,7 +461,7 @@ class LobsterInput(object):
             lines.append(line)
 
         for dr in self.dist_range:
-            line = "cohpGenerator from {} to {}"+" ".format(dr[0], dr[1])
+            line = "cohpGenerator from {} to {}".format(dr[0], dr[1])
             if len(dr) > 2:
                 line += " type {} type {}".format(dr[2], dr[3])
             if self.orbitalwise:
@@ -478,7 +475,7 @@ class LobsterInput(object):
             lines.append("COHPEndEnergy {}".format(self.end_en))
 
         if self.en_steps:
-             lines.append("COHPSteps {}".format(self.en_steps))
+            lines.append("COHPSteps {}".format(self.en_steps))
 
         if self.gaussian_smearing:
             lines.append("gaussianSmearingWidth {}".format(self.gaussing_smearing))
