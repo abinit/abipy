@@ -828,7 +828,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Find (star) k-points on the path.
         p = kpath.find_points_along_path(cart_coords, dist_tol=dist_tol)
         if len(p.ikfound) == 0:
-            cprint("Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.", "yellow")
+            cprint("Warning: Found zero points lying on the input k-path. Try to increase dist_tol.", "yellow")
             return Marker()
 
         # Read complex GW energies from file.

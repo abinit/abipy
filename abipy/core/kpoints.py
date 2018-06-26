@@ -1736,7 +1736,8 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
         dist_tol: A point is considered to be on the path if its distance from the line
             is less than dist_tol.
 
-    Return:
+    Return: namedtuple with the following attributes:
+
         (ikfound, dist_list, path_ticks)
 
         ikfound is a numpy array with the indices of the points lying on the path. Empty if no point is found.

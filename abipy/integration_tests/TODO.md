@@ -37,6 +37,8 @@ TODO list:
 
 * abicomp should accept tolsym args
 
+* Remove all the abiview commands that are now implemented in abiopen. 
+
 ## Medium priority
 
 * remove phononflow

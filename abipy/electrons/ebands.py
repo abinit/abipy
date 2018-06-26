@@ -641,6 +641,92 @@ class ElectronBands(Has_Structure):
     #    self.fermie = fermie
     #    # TODO: Recalculate occupations.
 
+    def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
+        """
+        """
+        #if frac_bounds is None:
+        #    frac_bounds = self.structure.calc_kptbounds()
+
+        # Construct the stars of the k-points for all k-points in self..
+        # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for self
+        # so we have to build the k-stars and find the k-points lying along the path and keep
+        # track of the mapping kpt --> star --> kgw
+        stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.kpoints]
+        cart_coords, back2istar = [], []
+        for istar, star in enumerate(stars):
+            cart_coords.extend([k.cart_coords for k in star])
+            back2istar.extend([istar] * len(star))
+        cart_coords = np.reshape(cart_coords, (-1, 3))
+
+        # Find (star) k-points on the path.
+        from abipy.core.kpoints import find_points_along_path
+        cart_bounds = self.structure.reciprocal_lattice.get_cartesian_coords(frac_bounds)
+        assert len(cart_bounds) == len(frac_bounds)
+        p = find_points_along_path(cart_bounds, cart_coords, dist_tol=dist_tol)
+        if len(p.ikfound) == 0:
+            raise ValueError("Find zero points lying on the input k-path. Try to increase dist_tol")
+
+        new_eigens = np.zeros((self.nsppol, len(p.ikfound), self.mband))
+        new_occfacts = np.zeros_like(new_eigens)
+        new_linewidths = None if self.linewidths is None else np.zeros_like(new_eigens)
+        new_frac_coords = []
+
+        # Correspondence new.kpoints --> self.ebands.kpoints
+        # Useful if client code has to rearrange other arrays ordered according to self.ebands.kpoints.
+        ik_new2prev = []
+        for ik, ik_new in enumerate(p.ikfound):
+            # Stars are ordered as self.kpoints to this is the index we need to access self.eigens.
+            # and trasfer the data from self to new
+            ik_self = back2istar[ik_new]
+            ik_new2prev.append(ik_self)
+            fcs = self.structure.reciprocal_lattice.get_fractional_coords(cart_coords[ik_new])
+            new_frac_coords.append(fcs)
+            for spin in range(self.nsppol):
+                new_eigens[spin, ik] = self.eigens[spin, ik_self]
+                new_occfacts[spin, ik] = self.occfacts[spin, ik_self]
+                if self.linewidths is not None:
+                    new_linewidths[spin, ik] = self.linewidths[spin, ik_self]
+
+        new_kpoints = Kpath(self.structure.reciprocal_lattice, new_frac_coords, weights=None, names=None)
+
+        new = self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
+                             self.nelect, self.nspinor, self.nspden,
+                             smearing=self.smearing, linewidths=new_linewidths)
+
+        return dict2namedtuple(ebands=snew, ik_new2prev=ik_new2prev)
+
+    #def new_from_bandslice(self, band_slice):
+    #    """Build new ElectronBands object by selecting bands via band_slice (slice object)."""
+    #    new_eigens = self.eigens[:, :, band_slice].copy()
+    #    new_occfacts = self.occupation[:, :, band_slice].copy()
+    #    new_linewidths = None if not self.linewidths else self.linewidths[:, :, band_slice].copy()
+
+    #    return self.__class__(self.structure, self.kpoints, new_eigens, self.fermie, new_occfacts,
+    #                          self.nelect, self.nspinor, self.nspden,
+    #                          smearing=self.smearing, linewidths=new_linewidths)
+
+    #@classmethod
+    #def empty_with_ibz(cls, ngkpt, structure, fermie, nelect, nsppol, nspinor, nspden, mband,
+    #                   shiftk=(0, 0, 0), kptopt=1, smearing=None, linewidths=None):
+
+    #    from abipy.abio.factories import gs_input
+    #    from abipy.data.hgh_pseudos import HGH_TABLE
+    #    gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+    #    ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt)
+    #    ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
+
+    #    kpoints = IrredZone(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
+    #                        names=None, ksampling=ksampling)
+
+    #    new_eigens = np.zeros((nsppol, len(kpoints), mband))
+    #    new_occfacts = np.zeros_like(new_eigens)
+
+    #    return cls(structure, kpoints, new_eigens, fermie, new_occfacts,
+    #               nelect, nspinor, nspden,
+    #               smearing=smearing, linewidths=linewidths)
+
+    #def downsample_kpoints()
+
     def get_dict4pandas(self, with_spglib=True):
         """
         Return a :class:`OrderedDict` with the most important parameters:
@@ -1681,6 +1767,9 @@ class ElectronBands(Has_Structure):
                 opts = {"color": "black", "linewidth": 2.0}
             else:
                 opts = {"color": "red", "linewidth": 2.0}
+            # This to pass kwargs to plot_ax and avoid both lw and linewidth in opts
+            if "lw" in kwargs: opts.pop("linewidth")
+            opts.update(kwargs)
 
             for band in band_list:
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
@@ -2162,7 +2251,7 @@ class ElectronBands(Has_Structure):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
         Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
-        so it's recommended to call this method with band structure obtained in the IBZ.
+        so it's recommended to call this method with energies obtained in the IBZ.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
@@ -2173,7 +2262,7 @@ class ElectronBands(Has_Structure):
                 the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
-            line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
+            line_density: Number of points in the smallest segment of the k-path.
             kmesh: Used to activate the interpolation on the homogeneous mesh for DOS (uses spglib_ API).
                 kmesh is given by three integers and specifies mesh numbers along reciprocal primitive axis.
             is_shift: three integers (spglib_ API). When is_shift is not None, the kmesh is shifted along

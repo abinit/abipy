@@ -512,6 +512,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
                 Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
+        # TODO
         # Add attributes specified by the users
         #attrs = [
         #    "energy", "pressure", "max_force",

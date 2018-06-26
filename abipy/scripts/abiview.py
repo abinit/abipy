@@ -127,6 +127,21 @@ def abiview_ebands(options):
         return 0
 
 
+def abiview_skw(options):
+    """
+    Interpolate energies in k-space along a k-path with star-function methods
+    Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
+    so it's recommended to call this method with energies obtained in the IBZ.
+    Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ...
+    """
+    ebands = abilab.ElectronBands.as_ebands(options.filepath)
+    if not ebands.kpoints.is_ibz:
+        cprint("SKW interpolator should be called with energies in the IBZ", "yellow")
+    r = ebands.interpolate(lpratio=options.lpratio, line_density=options.line_density, verbose=options.verbose)
+    r.ebands_kpath.plot()
+    return 0
+
+
 def abiview_fs(options):
     """
     Extract eigenvaleus in the IBZ from file and visualize Fermi surface with --appname
@@ -374,6 +389,8 @@ Usage example:
     abiview.py fs FILE_WITH_KMESH.nc          ==>  Visualize Fermi surface from netcdf file with electron energies
                                                    on a k-mesh. Use -a xsf to change application e.g. Xcrysden.
     abiview.py optic out_OPTIC.nc             ==>  Plot optical properties computed by optic code.
+    abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot
+                                                  interpolated bands.
 
 #########
 # Phonons
@@ -442,7 +459,7 @@ def get_parser(with_epilog=False):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
 
-    # Create the parsers for the sub-commands
+    # Create the parsers for the sub-command
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
     def add_args(p, *args):
@@ -501,16 +518,24 @@ def get_parser(with_epilog=False):
             "See http://www.graphviz.org/pdf/dot.1.pdf "
             "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
 
-    # Subparser for ebands commands.
+    # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
     add_args(p_ebands, "xmgrace", "bxsf", "force")
 
-    # Subparser for fs commands.
+    # Subparser for ebands command.
+    p_skw = subparsers.add_parser('skw', parents=[copts_parser], help=abiview_skw.__doc__)
+    p_skw.add_argument("-lp", "--lpratio", type=int, default=5,
+        help=("Ratio between the number of star functions and the number of ab-initio k-points. "
+              "The default should be OK in many systems, larger values may be required for accurate derivatives."))
+    p_skw.add_argument("-ld", "--line-density", type=int, default=20,
+        help ="Number of points in the smallest segment of the k-path.")
+
+    # Subparser for fs command.
     p_fs = subparsers.add_parser('fs', parents=[copts_parser], help=abiview_fs.__doc__)
     p_fs.add_argument("-a", "--appname", type=str, default="mpl",
         help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
 
-    # Subparser for fatbands commands.
+    # Subparser for fatbands command.
     p_fatbands = subparsers.add_parser('fatbands', parents=[copts_parser, slide_parser], help=abiview_fatbands.__doc__)
 
     # Subparser for ddb command.
