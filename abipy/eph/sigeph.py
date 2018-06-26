@@ -1057,7 +1057,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                     else:
                         lw_kpath = qp_corrs
 
-                if ks_ebands_kmesh: 
+                if ks_ebands_kmesh is None: 
                     #interpolate QP energies
                     if reim == "real":
                         eigens_kmesh = skw.interp_kpts(dos_kcoords).eigens
@@ -1933,7 +1933,7 @@ class TdepElectronBands(object): # pragma: no cover
 
     @add_fig_kwargs
     def plot_itemp_with_lws_vs_e0(self, itemp, ax_list=None, width_ratios=(2,1),
-                                  function=lambda x: x, fact=2.0, **kwargs):
+                                  function=lambda x: x, fact=10.0, **kwargs):
         """
         Plot bandstructure with linewidth at temperature ``itemp`` and linewidth vs the KS energies.
         
@@ -1963,7 +1963,10 @@ class TdepElectronBands(object): # pragma: no cover
         self.plot_itemp(itemp,ax=ax0,fact=fact,show=False)
 
         #plot the dos
-        self.plot_lws_vs_e0(itemp,ax=ax1,exchange_xy=True,function=abs,show=False)
+        dos_markersize = kwargs.pop("markersize", 4)
+        self.plot_lws_vs_e0(itemp_list=[itemp],ax=ax1,
+                            exchange_xy=True,function=abs,
+                            markersize=dos_markersize,show=False)
 
         ax1.grid(True)
         ax1.yaxis.set_ticks_position("right")
@@ -2066,22 +2069,26 @@ class TdepElectronBands(object): # pragma: no cover
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
 
-        #kw_linestyle = kwargs.pop("linestyle", "o")
+        kw_linestyle = kwargs.pop("linestyle", "o")
+        kw_markersize = kwargs.pop("markersize", 3)
         #kw_color = kwargs.pop("color", None)
         #kw_label = kwargs.pop("label", None)
 
-        for itemp in itemp_list:
+        for it,itemp in enumerate(itemp_list):
+
             # Select kmesh or kpath
             if self.has_kmesh:
                 qp_ebands = self.qp_ebands_kmesh_t[itemp]
             else:
                 qp_ebands = self.qp_ebands_kpath_t[itemp]
 
+            kwargs = dict(markersize=kw_markersize, linestyle=kw_linestyle)
+
             fig = qp_ebands.plot_lws_vs_e0(ax=ax, e0=e0, exchange_xy=exchange_xy,
                 function=function, xlims=xlims, ylims=ylims, fontsize=fontsize,
                 label="T = %.1f K" % self.tmesh[itemp],
-                color=cmap(itemp / len(itemp_list)), # if kw_color is None else kw_color,
-                show=False)
+                color=cmap(it / len(itemp_list)), # if kw_color is None else kw_color,
+                show=False,**kwargs)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
