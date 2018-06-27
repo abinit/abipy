@@ -14,9 +14,28 @@ from pymatgen.io.abinit.pseudos import Pseudo
 from monty.collections import tree
 from monty.io import zopen
 from monty.functools import lazy_property
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt, set_axlims
 
 
-class Coxp(object):
+class _LobsterFile(object):
+    """
+    Base class for output files produced by lobster.
+    """
+
+    def __str__(self):
+        return self.to_string()
+
+    def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
+        """
+        Shows a predefined list of matplotlib figures with minimal input from the user.
+        """
+        from abipy.tools.plotting import MplExpose
+        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            e(self.yield_figs(**kwargs))
+
+
+
+class Coxp(_LobsterFile):
     """
     Wrapper class for the crystal orbital projections produced from Lobster.
     Wraps both a COOP and a COHP.
@@ -49,6 +68,7 @@ class Coxp(object):
         self.averaged = averaged or {}
         self.fermie = fermie
         self.total = total
+        self.nsppol = len(self.averaged)
 
     @property
     def site_pairs_total(self):
@@ -208,8 +228,71 @@ class Coxp(object):
                 results[pair][spin] = Function1D(self.energies, pair_data[spin]['single'])
         return results
 
+    def to_string(self, verbose=0):
+        """String reprensetation with Verbosity level `verbose`."""
+        lines = ["foobar"]; app = lines.append
+        return "\n".join(lines)
 
-class ICoxp(object):
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(what="d", show=False)
+        yield self.plot(what="i", show=False)
+
+    @add_fig_kwargs
+    def plot(self, what="d", ax=None, exchange_xy=False, **kwargs):
+        """
+        Plot averaged values (DOS or IDOS depending on what).
+
+        Args:
+            what: string selecting what will be plotted. "dos" for DOS, "idos" for IDOS
+            exchange_xy: True to exchange x-y axis.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        if not self.averaged: return None
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        for spin in range(self.nsppol):
+            spin_sign = +1 if spin == 0 else -1
+            #if spin == 0:
+            #    opts = {"color": "black", "linewidth": 1.0}
+            #else:
+            #    opts = {"color": "red", "linewidth": 1.0}
+            #opts.update(kwargs)
+
+            key = {"d": "single", "i": "integrated"}[what]
+            xs = self.energies
+            ys = self.averaged[spin][key] * spin_sign
+            if exchange_xy: xx, yy = yy, xx
+            ax.plot(xs, ys)
+
+        xlabel, ylabel = "Energy (eV)", {"d": "DOS", "i": "IDOS"}[what]
+        if exchange_xy: xlabel, ylabel =ylabel, xlabel
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+
+        return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(gsr)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
+
+class ICoxp(_LobsterFile):
     """
     Wrapper class for the integrated crystal orbital projections up to the Fermi energy
     produced from Lobster.
@@ -261,8 +344,13 @@ class ICoxp(object):
 
         return cls(values)
 
+    def to_string(self, verbose=0):
+        """String reprensetation with Verbosity level `verbose`."""
+        lines = ["foobar"]; app = lines.append
+        return "\n".join(lines)
 
-class LobsterDos(object):
+
+class LobsterDos(_LobsterFile):
     """
     Total and partial dos extracted from lobster DOSCAR.
     The fermi energy is always at the zero value.
@@ -285,9 +373,10 @@ class LobsterDos(object):
         self.energies = energies
         self.total_dos = total_dos
         self.pdos = pdos
+        self.nsppol = len(total_dos)
 
     @classmethod
-    def from_file(self, filepath):
+    def from_file(cls, filepath):
         """
         Generates an instance from the DOSCAR.lobster file.
         Accepts gzipped files.
@@ -333,7 +422,69 @@ class LobsterDos(object):
                 for i_spin, spin in enumerate(spins):
                     pdos[i_site][orb][spin] = pdos_data[:, i_spin+n_spin*i_orb+1]
 
-        return LobsterDos(energies=energies, total_dos=total_dos, pdos=pdos)
+        return cls(energies=energies, total_dos=total_dos, pdos=pdos)
+
+    def to_string(self, verbose=0):
+        """String reprensetation with Verbosity level `verbose`."""
+        lines = ["foobar"]; app = lines.append
+        return "\n".join(lines)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+
+    @add_fig_kwargs
+    def plot(self, what="d", ax=None, exchange_xy=False, **kwargs):
+        """
+        Plot averaged values (DOS or IDOS depending on what).
+
+        Args:
+            what: string selecting what will be plotted. "dos" for DOS, "idos" for IDOS
+            exchange_xy: True to exchange x-y axis.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        #if not self.averaged: return None
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        for spin in range(self.nsppol):
+            spin_sign = +1 if spin == 0 else -1
+            #if spin == 0:
+            #    opts = {"color": "black", "linewidth": 1.0}
+            #else:
+            #    opts = {"color": "red", "linewidth": 1.0}
+            #opts.update(kwargs)
+
+            #key = {"d": "single", "i": "integrated"}[what]
+            xs = self.energies
+            ys = self.total_dos[spin] * spin_sign
+            if exchange_xy: xx, yy = yy, xx
+            ax.plot(xs, ys)
+
+        xlabel, ylabel = "Energy (eV)", "DOS"
+        if exchange_xy: xlabel, ylabel =ylabel, xlabel
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+
+        return fig
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(gsr)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class LobsterInput(object):
@@ -559,7 +710,6 @@ class LobsterInput(object):
         en_steps = int((end_en-start_en)/dE)
 
         return cls(basis_functions=basis_functions, start_en=start_en, end_en=end_en, en_steps=en_steps, **kwargs)
-
 
     def write(self, dirpath='.'):
         """
