@@ -322,6 +322,17 @@ def abiview_sigeph(options):
 
     return 0
 
+def abiview_lobster(options):
+    """Analyze lobster results."""
+    from abipy.electrons.lobster import LobsterAnalyzer
+    prefix = ""
+    lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=prefix)
+    print(lobana.to_string(verbose=options.verbose))
+
+    lobana.plot()
+
+    return 0
+
 
 def get_epilog():
     return """\
@@ -383,6 +394,8 @@ Usage example:
 ###############
 
   abiview.py dirviz DIRECTORY            ==> Visualize directory tree with graphviz.
+
+  abiview.py lobster DIRECTORY           ==> Visualize Lobster results.
 
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
@@ -518,6 +531,9 @@ def get_parser(with_epilog=False):
 
     # Subparser for sigeph command.
     p_sigeph = subparsers.add_parser('sigeph', parents=[copts_parser, slide_parser], help=abiview_sigeph.__doc__)
+
+    # Subparser for lobster command.
+    p_lobster = subparsers.add_parser('lobster', parents=[copts_parser], help=abiview_lobster.__doc__)
 
     # Subparser for denpot command.
     #p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)

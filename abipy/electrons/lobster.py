@@ -1,26 +1,42 @@
+"Tools to analyze output files produced by lobster code."""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import re
 import glob
 import numpy as np
-from collections import defaultdict
-from abipy.core.func1d import Function1D
-from abipy.electrons.gsr import GsrFile
+
+from collections import defaultdict, OrderedDict
+from monty.string import marquee #is_string, list_strings,
+from monty.collections import tree
+from monty.io import zopen
+from monty.termcolor import cprint
+from monty.functools import lazy_property
 from pymatgen.electronic_structure.core import OrbitalType
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.io.abinit.pseudos import Pseudo
-from monty.collections import tree
-from monty.io import zopen
-from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt, set_axlims
-
+from abipy.core.structure import Structure
+from abipy.core.func1d import Function1D
+from abipy.electrons.gsr import GsrFile
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible #, set_axlims
+from abipy.tools import duck
 
 class _LobsterFile(object):
     """
     Base class for output files produced by lobster.
     """
+    # These class attributes can be redefined in order to customize the plots.
+
+    # Mapping L --> color used in plots.
+    color_l = {"s": "red", "p": "blue", "d": "green", "f": "orange"}
+
+    # \U starts an eight-character Unicode escape. raw strings do not work in python2.7
+    # and we need a latex symbol to avoid errors in matplotlib --> replace myuparrow --> uparrow
+
+    # Mapping spin --> title used in subplots that depend on (collinear) spin.
+    spin2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
+            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}
 
     def __str__(self):
         return self.to_string()
@@ -32,6 +48,24 @@ class _LobsterFile(object):
         from abipy.tools.plotting import MplExpose
         with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
             e(self.yield_figs(**kwargs))
+
+
+
+class _Orbital(object):
+
+    @classmethod
+    def from_string(cls, s):
+        n, l, m = s[0], s[1], s[3:]
+        return cls(n=n, l=l, m=m)
+
+    def __init__(self, n, l, m):
+        self.n, self.l, self.m = n, l, m
+
+    def totex(self, site_index):
+        # 4p_x
+        n, l, m = orb[0], orb[1], orb[3:]
+        orbs[0]
+        return "%s_{%s}" % (ind, nlm_tex)
 
 
 
@@ -229,8 +263,15 @@ class Coxp(_LobsterFile):
         return results
 
     def to_string(self, verbose=0):
-        """String reprensetation with Verbosity level `verbose`."""
-        lines = ["foobar"]; app = lines.append
+        """String representation with verbosity level `verbose`."""
+        lines = []; app = lines.append
+        app("Number of energies: %d, from %.3f to %.3f (eV) with E_Fermi = 0" % (
+            len(self.energies), self.energies[0], self.energies[-1]))
+        app("has_partial_projections: %s, nsppol: %d" % (bool(self.partial), self.nsppol))
+        app("Number of pairs: %d" % len(self.total))
+        for i, pair in enumerate(self.total):
+            app("%d --> %s" % (i, str(pair)))
+
         return "\n".join(lines)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -239,6 +280,9 @@ class Coxp(_LobsterFile):
         """
         yield self.plot(what="d", show=False)
         yield self.plot(what="i", show=False)
+        # TODO
+        yield self.plot_site_pairs_total([0, 1], show=False)
+        yield self.plot_site_pairs_partial([0, 1], show=False)
 
     @add_fig_kwargs
     def plot(self, what="d", ax=None, exchange_xy=False, **kwargs):
@@ -257,25 +301,136 @@ class Coxp(_LobsterFile):
         ax.grid(True)
 
         for spin in range(self.nsppol):
-            spin_sign = +1 if spin == 0 else -1
-            #if spin == 0:
-            #    opts = {"color": "black", "linewidth": 1.0}
-            #else:
-            #    opts = {"color": "red", "linewidth": 1.0}
-            #opts.update(kwargs)
+            opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
+                   {"color": "red", "linewidth": 1.0}
+            opts.update(kwargs)
 
             key = {"d": "single", "i": "integrated"}[what]
-            xs = self.energies
-            ys = self.averaged[spin][key] * spin_sign
-            if exchange_xy: xx, yy = yy, xx
-            ax.plot(xs, ys)
+            xs, ys = self.energies, -self.averaged[spin][key]
+            if exchange_xy: xs, ys = ys, xs
+            ax.plot(xs, ys, label=None, **opts)
 
-        xlabel, ylabel = "Energy (eV)", {"d": "DOS", "i": "IDOS"}[what]
-        if exchange_xy: xlabel, ylabel =ylabel, xlabel
+        # TODO Add appropriate labels but need to know the file type.
+        xlabel, ylabel = "Energy (eV)", {"d": "-DOS", "i": "-IDOS"}[what]
+        if exchange_xy:
+            xlabel, ylabel = ylabel, xlabel
+            # Add vertical line to signal the zero.
+            ax.axvline(c="k", ls=":", lw=1)
+        else:
+            ax.axhline(c="k", ls=":", lw=1)
+
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
 
         return fig
+
+    @add_fig_kwargs
+    def plot_site_pairs_total(self, from_site_index, what="single", exchange_xy=False, ax=None,
+                              fontsize=8, **kwargs):
+        """
+        Args:
+            from_site_index:
+            what:
+            exchange_xy: True to exchange x-y axis.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+
+        Returns: |matplotlib-Figure|
+        """
+        # Handle list of sites.
+        if duck.is_listlike(from_site_index):
+            nrows = len(from_site_index)
+            sharex, sharey = True, False
+            if exchange_xy: sharex, sharey = sharey, sharex
+            ax_list, fig, plt = get_axarray_fig_plt(ax, nrows=nrows, ncols=1,
+                                                    sharex=sharex, sharey=sharey, squeeze=False)
+            # Recursive call.
+            for ax, index in zip(ax_list.ravel(), from_site_index):
+                fig = self.plot_site_pairs_total(index, what=what, exchange_xy=exchange_xy, ax=ax,
+                    fontsize=fontsize, show=False)
+
+            return fig
+
+        # Single site
+        pairs = [p for p in self.total if from_site_index == p[0]]
+        if not pairs:
+            cprint("Cannot find pairs starting from site index %s" % str(from_site_index), "yellow")
+            return None
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        for pair in pairs:
+            for spin in range(self.nsppol):
+                xs, ys = self.energies, self.total[pair][spin][what]
+                if exchange_xy: xs, ys = ys, xs
+                label = "%s -> %s" % (pair[0], pair[1])
+                ax.plot(xs, ys, label=label) #, lw=lw, color=color, ls=ls)
+                #style_opts = self.get_style_pair(pair)
+                #label = r"$%s \rightarrow %s" % (o0.totex(pair[0], o1.totex[pair[1]]))
+                #ax.plot(xs, ys, label=label, **style_opts)
+
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_site_pairs_partial(self, from_site_index, what="single", exchange_xy=False, ax=None,
+                                fontsize=8, **kwargs):
+        """
+        Args:
+            from_site_index:
+            what:
+            exchange_xy: True to exchange x-y axis.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+
+        Returns: |matplotlib-Figure|
+        """
+        # Handle list of sites.
+        if duck.is_listlike(from_site_index):
+            nrows = len(from_site_index)
+            sharex, sharey = True, False
+            if exchange_xy: sharex, sharey = sharey, sharex
+            ax_list, fig, plt = get_axarray_fig_plt(ax, nrows=nrows, ncols=1,
+                                                    sharex=sharex, sharey=sharey, squeeze=False)
+            # Recursive call.
+            for ax, index in zip(ax_list.ravel(), from_site_index):
+                fig = self.plot_site_pairs_partial(index, what=what, exchange_xy=exchange_xy, ax=ax,
+                    fontsize=fontsize, show=False)
+
+            return fig
+
+        # Single site.
+        pairs = [p for p in self.partial if from_site_index == p[0]]
+        if not pairs:
+            cprint("Cannot find pairs starting from site index %s" % str(from_site_index), "yellow")
+            return None
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        # [(0, 1)]["4s", "4p_x"][spin]["single"]
+        for pair in pairs:
+            for orbs, d in self.partial[pair].items():
+                for spin in range(self.nsppol):
+                    xs = self.energies
+                    ys = -d[spin][what]
+                    if exchange_xy: xs, ys = ys, xs
+                    label = "$%s_{%s} -> %s_{%s}$" % (pair[0], orbs[0], pair[1], orbs[1])
+                    ax.plot(xs, ys, label=label)
+                    #o0 = _Orbital.from_string(orbs[0])
+                    #o1 = _Orbital.from_string(orbs[1])
+                    #style_opts = self.get_style_orbs(o0, o1)
+                    #label = r"$%s \rightarrow %s" % (o0.totex(pair[0], o1.totex[pair[1]]))
+                    #ax.plot(xs, ys, label=label, **style_opts)
+
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+    def get_style_orbs(self, orb0, orb1):
+        return dict(lw=lw, color=color, ls=ls)
 
     def write_notebook(self, nbpath=None):
         """
@@ -345,9 +500,36 @@ class ICoxp(_LobsterFile):
         return cls(values)
 
     def to_string(self, verbose=0):
-        """String reprensetation with Verbosity level `verbose`."""
-        lines = ["foobar"]; app = lines.append
+        """String representation with verbosity level `verbose`."""
+        lines = []; app = lines.append
+        app("Number of pairs: %d" % len(self.values))
+        app(self.dataframe.to_string(index=False))
+
         return "\n".join(lines)
+
+    @lazy_property
+    def dataframe(self):
+        # self.values[pair][spin]
+        import pandas as pd
+        rows = []
+        for pair, d in self.values.items():
+            for spin in sorted(d.keys()):
+                rows.append(OrderedDict([
+                               ("index0", pair[0]),
+                               ("index1", pair[1]),
+                               ("spin", spin),
+                               ("average", d[spin]["average"]),
+                               ("distance", d[spin]["distance"]),
+                               ("n_bonds", d[spin]["n_bonds"]),
+                               ("pair_spin", (pair[0], pair[1], spin)),
+                            ]))
+
+        return pd.DataFrame(rows, columns=list(rows[0].keys()))
+
+    #def plot(self):
+    #    import seaborn as sns
+    #    sns.barplot(x="average", y="pair_spin", data=self.dataframe)
+    #        #label="Alcohol-involved", color="b")
 
 
 class LobsterDos(_LobsterFile):
@@ -425,8 +607,15 @@ class LobsterDos(_LobsterFile):
         return cls(energies=energies, total_dos=total_dos, pdos=pdos)
 
     def to_string(self, verbose=0):
-        """String reprensetation with Verbosity level `verbose`."""
-        lines = ["foobar"]; app = lines.append
+        """String representation with Verbosity level `verbose`."""
+        lines = []; app = lines.append
+        app("Number of energies: %d, from %.3f to %.3f (eV) with E_Fermi = 0" % (
+            len(self.energies), self.energies[0], self.energies[-1]))
+        app("nsppol: %d" % (self.nsppol))
+        app("Number of sites in projected DOS: %d" % len(self.pdos))
+        for i_site, dsite in self.pdos.items():
+            app("%d --> {%s}" % (i_site, ", ".join(dsite.keys())))
+
         return "\n".join(lines)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -436,39 +625,83 @@ class LobsterDos(_LobsterFile):
         yield self.plot(show=False)
 
     @add_fig_kwargs
-    def plot(self, what="d", ax=None, exchange_xy=False, **kwargs):
+    def plot(self, ax=None, exchange_xy=False, **kwargs):
         """
-        Plot averaged values (DOS or IDOS depending on what).
+        Plot DOS.
 
         Args:
-            what: string selecting what will be plotted. "dos" for DOS, "idos" for IDOS
             exchange_xy: True to exchange x-y axis.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
         Returns: |matplotlib-Figure|
         """
-        #if not self.averaged: return None
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
         for spin in range(self.nsppol):
-            spin_sign = +1 if spin == 0 else -1
-            #if spin == 0:
-            #    opts = {"color": "black", "linewidth": 1.0}
-            #else:
-            #    opts = {"color": "red", "linewidth": 1.0}
-            #opts.update(kwargs)
+            opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
+                   {"color": "red", "linewidth": 1.0}
+            opts.update(kwargs)
 
-            #key = {"d": "single", "i": "integrated"}[what]
-            xs = self.energies
-            ys = self.total_dos[spin] * spin_sign
-            if exchange_xy: xx, yy = yy, xx
-            ax.plot(xs, ys)
+            xs, ys = self.energies, self.total_dos[spin]
+            if exchange_xy: xs, ys = ys, xs
+            ax.plot(xs, ys, label=None, **opts)
 
         xlabel, ylabel = "Energy (eV)", "DOS"
-        if exchange_xy: xlabel, ylabel =ylabel, xlabel
+        if exchange_xy: xlabel, ylabel = ylabel, xlabel
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_pdos(self, site_index, ax=None, exchange_xy=False, fontsize=8, **kwargs):
+        """
+        Plot projected DOS
+
+        Args:
+            site_index
+            exchange_xy: True to exchange x-y axis.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+
+        Returns: |matplotlib-Figure|
+        """
+        # Handle list of sites.
+        if duck.is_listlike(site_index):
+            nrows = len(site_index)
+            sharex, sharey = True, False
+            if exchange_xy: sharex, sharey = sharey, sharex
+            ax_list, fig, plt = get_axarray_fig_plt(ax, nrows=nrows, ncols=1,
+                                                    sharex=sharex, sharey=sharey, squeeze=False)
+            # Recursive call.
+            for ax, index in zip(ax_list.ravel(), site_index):
+                fig = self.plot_pdos(index, exchange_xy=exchange_xy, ax=ax,
+                    fontsize=fontsize, show=False)
+
+            return fig
+
+        # Single site.
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax.grid(True)
+
+        # self.pdos[site_index]["4p_x"][spin]
+        for orb, d in self.pdos[site_index].items():
+            for spin in range(self.nsppol):
+                #opts = {"color": "black", "linewidth": 1.0} if spin == 0 else \
+                #       {"color": "red", "linewidth": 1.0}
+                #opts.update(kwargs)
+                xs, ys = self.energies, d[spin]
+                if exchange_xy: xs, ys = ys, xs
+                label = "$%s_{%s}$" % (site_index, orbs)
+                ax.plot(xs, ys, label=label)
+
+        xlabel, ylabel = "Energy (eV)", "PDOS"
+        if exchange_xy: xlabel, ylabel = ylabel, xlabel
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
@@ -642,7 +875,7 @@ class LobsterInput(object):
         return "\n".join(lines)
 
     @classmethod
-    def from_run_dir(cls, dirpath, dE=0.01, **kwargs):
+    def from_dir(cls, dirpath, dE=0.01, **kwargs):
         """
         Generates an instance of the class based on the output folder of a DFT calculation.
         Reads the information from the pseudopotentials in order to determine the
@@ -650,7 +883,7 @@ class LobsterInput(object):
 
         Args:
             dirpath: the path to the calculation directory. For abinit it should contain the
-                "files" file, for vasp it should contain the vasprun.xml and the POTCAR.
+                "files" file and GSR file, for vasp it should contain the vasprun.xml and the POTCAR.
             dE: The spacing of the energy sampling in eV.
             kwargs: the inputs for the init method, except for basis_functions, start_en,
                 end_en and en_steps.
@@ -722,3 +955,160 @@ class LobsterInput(object):
         # Write the input file.
         with open(os.path.join(dirpath, 'lobsterin'), "wt") as f:
             f.write(str(self))
+
+
+class LobsterAnalyzer(object):
+
+    @classmethod
+    def from_dir(cls, dirpath, prefix=""):
+        """
+        Generates an instance of the class based on the output folder of a DFT calculation.
+
+        Args:
+            dirpath: the path to the calculation directory.
+                For abinit it should contain either
+                    (GSR file, ...)
+                for vasp it should contain the vasprun.xml and the POTCAR.
+        """
+        dirpath = os.path.abspath(dirpath)
+        k2ext = {
+            "coop_path": "COOPCAR.lobster",
+            "cohp_path": "COHPCAR.lobster",
+            "icohp_path": "ICOHPLIST.lobster",
+            "lobdos_path": "DOSCAR.lobster",
+        }
+        kwargs = {k: None for k in k2ext}
+        for k, ext in k2ext.items():
+            # Handle [prefix]COHPCAR.lobster
+            p = "%s*%s" % (prefix, ext)
+            paths = glob.glob(os.path.join(dirpath, p))
+            # Treat [prefix]COHPCAR.lobster.gz
+            if not paths:
+                p = "%s*%s.gz" % (prefix, ext)
+                paths = glob.glob(os.path.join(dirpath, p))
+
+            if paths:
+                print(k, "-->", paths)
+                if len(paths) > 1:
+                    raise RuntimeError("Found multiple files matching glob pattern: %s" % str(paths))
+                kwargs[k] = paths[0]
+
+        # Try to find a file from which we can extract the structure.
+        structure = None
+        """
+        if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
+            # Vasp mode
+            vr = Vasprun(os.path.join(dirpath, 'vasprun.xml'))
+            structure = Structure.as_structur(vr.final_structure)
+            #fermie = vr.efermi
+        else:
+            # Abinit mode
+            #filenames = os.listdir(dirpath)
+            for trial in ("run.abi", "out_GSR.nc", "run.abo"):
+                apath = os.path.join(dirpath, trial)
+                if os.path.isfile(apath):
+                    break
+                raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
+
+            from abipy.abilab import abiopen
+            with abiopen(apath) as abifile:
+                structure = abifile.structure
+
+        if structure is None:
+            raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
+        """
+
+        return cls(structure, **kwargs)
+
+    def __init__(self, structure, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
+        self.coop = Coxp.from_file(coop_path) if coop_path else None
+        self.cohp = Coxp.from_file(cohp_path) if cohp_path else None
+        self.icohp = ICoxp.from_file(icohp_path) if icohp_path else None
+        self.lobdos = LobsterDos.from_file(lobdos_path) if lobdos_path else None
+        # TODO
+        self.structure = structure
+        self.nsppol = 1
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        lines = []; app = lines.append
+        for aname, header in [("coop", "COOP File"), ("cohp", "COHP File"),
+                              ("icohp", "ICHOHPLIST File"), ("lobdos", "Lobster DOSCAR"),]:
+            obj = getattr(self, aname, None)
+            if obj is None: continue
+            app(marquee(header, mark="="))
+            app(obj.to_string(verbose=verbose))
+
+        #app(self.structure.to_string(verbose=verbose, title="Structure"))
+
+        return "\n".join(lines)
+
+    @add_fig_kwargs
+    def plot(self, entries=("coop", "cohp", "lobdos"), **kwargs):
+
+        entries = [e for e in entries if getattr(self, e, None)]
+        if not entries: return None
+
+        axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries),
+                                              sharex=False, sharey=True, squeeze=False)
+
+        for spin in range(self.nsppol):
+            for ix, (label, ax) in enumerate(zip(entries, axmat[spin])):
+                obj = getattr(self, label)
+                obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
+                if ix != 0:
+                    set_visible(ax, False, "ylabel")
+                if self.nsppol == 2 and spin == 0:
+                    set_visible(ax, False, "xlabel")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_with_ebands(self, ebands, entries=("coop", "cohp", "lobdos"), **kwargs):
+        ebands = ElectronBands.as_ebands(ebands)
+
+        entries = [e for e in entries if getattr(self, e, None)]
+        if not entries: return None
+
+        import matplotlib.pyplot as plt
+        from matplotlib.gridspec import GridSpec
+        fig = plt.figure()
+
+        # Build grid.
+        nrows, ncols = self.nsppol, len(entries) + 1
+        width_ratios = [2] + [1] * len(entries)
+        gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios, wspace=0.05)
+        # Bands and DOS will share the y-axis
+        axmat = np.array((nrows, ncols), dtype=object)
+        for icol in range(ncols):
+            for irow in range(nrows):
+                axmat[irow, icol] = plt.subplot(gspec[irow, icol], sharey=None if irow == 0 else axmat[irow, icol-1])
+
+        #axmat, fig, plt = get_axarray_fig_plt(None, nrows=self.nsppol, ncols=len(entries) + 1,
+        #                                        sharex=False, sharey=True, squeeze=False)
+
+        for spin in range(self.nsppol):
+            for ix, (label, ax) in enumerate(zip(entries, axmat[spin, :])):
+                if ix == 0:
+                    ebands.plot(spin=spin, e0="fermie", ax=ax, show=False)
+                else:
+                    obj = getattr(self, label)
+                    obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
+
+                if ix != 0:
+                    set_visible(ax, False, "ylabel")
+                if self.nsppol == 2 and spin == 0:
+                    set_visible(ax, False, "xlabel")
+
+        return fig
+
+    #def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
+    #    """
+    #    Shows a predefined list of matplotlib figures with minimal input from the user.
+    #    """
+    #    from abipy.tools.plotting import MplExpose
+    #    with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+    #        e(self.yield_figs(**kwargs))

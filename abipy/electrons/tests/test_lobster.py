@@ -3,8 +3,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 import os
 import abipy.data as abidata
-from abipy.electrons.lobster import LobsterInput, Coxp, ICoxp, LobsterDos
 from abipy.core.testing import AbipyTest
+from abipy.electrons.lobster import LobsterInput, Coxp, ICoxp, LobsterDos, LobsterAnalyzer
 
 
 test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
@@ -36,6 +36,8 @@ class CoxpTest(AbipyTest):
 
         if self.has_matplotlib():
             assert cohp.plot(title="default values", show=False)
+            assert cohp.plot_site_pairs_total(from_index=[0, 1], what="single", exchange_xy=True, show=False)
+            assert cohp.plot_site_pairs_partial(from_index=[0, 1], what="single", exchange_xy=True, show=False)
 
         if self.has_nbformat():
             assert cohp.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -64,10 +66,13 @@ class ICoxpTest(AbipyTest):
 
     def test_icoxp(self):
         icohp = ICoxp.from_file(os.path.join(test_dir, "GaAs_ICOHPLIST.lobster.gz"))
+        repr(icohp); str(icohp)
+        assert icohp.to_string(verbose=2)
         self.assertIn((0,1), icohp.values)
         self.assertIn(0, icohp.values[(0,1)])
 
         self.assertAlmostEqual(icohp.values[(0,1)][0]['average'], -4.36062)
+        self.assertAlmostEqual(icohp.dataframe.average[0], -4.36062)
 
         if self.has_matplotlib():
             assert icohp.plot(title="default values", show=False)
@@ -80,6 +85,8 @@ class LobsterDosTest(AbipyTest):
 
     def test_lobsterdos(self):
         ldos = LobsterDos.from_file(os.path.join(test_dir, "GaAs_DOSCAR.lobster.gz"))
+        repr(ldos); str(ldos)
+        assert ldos.to_string(verbose=2)
         self.assertEqual(len(ldos.energies), 401)
         assert ldos.nsppol == 1
         self.assertIn(1, ldos.pdos)
@@ -91,9 +98,25 @@ class LobsterDosTest(AbipyTest):
 
         if self.has_matplotlib():
             assert ldos.plot(title="default values", show=False)
+            assert ldos.plot_pdos(site_index=0, title="default values", show=False)
+            assert ldos.plot_pdos(site_index=[0, 1], exchange_xy=True, title="default values", show=False)
 
         if self.has_nbformat():
             assert ldos.write_notebook(nbpath=self.get_tmpname(text=True))
+
+
+class LobsterAnalyzerTest(AbipyTest):
+
+    def test_lobster_analyzer(self):
+        lobana = LobsterAnalyzer.from_dir(test_dir, prefix="GaAs_")
+        repr(lobana); str(lobana)
+        assert lobana.to_string(verbose=2)
+
+        if self.has_matplotlib():
+            assert lobana.plot(title="default values", show=False)
+
+        if self.has_nbformat():
+            assert lobana.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class LobsterInputTest(AbipyTest):

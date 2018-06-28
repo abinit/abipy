@@ -249,7 +249,7 @@ def abinp_lobster(options):
     Supports also directory with vasprun.xml and POTCAR file.
     """
     from abipy.electrons.lobster import LobsterInput
-    lobinp = LobsterInput.from_run_dir(os.path.dirname(options.dirpath))
+    lobinp = LobsterInput.from_dir(os.path.dirname(options.dirpath))
     print(lobinp)
 
 
