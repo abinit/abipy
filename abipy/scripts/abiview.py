@@ -328,8 +328,8 @@ def abiview_lobster(options):
     prefix = ""
     lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=prefix)
     print(lobana.to_string(verbose=options.verbose))
-
-    lobana.plot()
+    #lobana.plot()
+    lobana.plot_coxp_with_dos(from_site_index=[0, 1])
 
     return 0
 

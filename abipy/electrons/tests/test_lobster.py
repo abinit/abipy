@@ -20,6 +20,9 @@ class CoxpTest(AbipyTest):
         repr(cohp); str(cohp)
         assert cohp.to_string(verbose=2)
         assert cohp.nsppol == 1
+        assert len(cohp.type_of_index) == 2
+        assert cohp.type_of_index[0] == "Ga" and cohp.type_of_index[1] == "As"
+
         self.assertEqual(len(cohp.energies), 401)
         self.assertIn((0,1), cohp.partial)
         self.assertIn(("4s", "4p_x"), cohp.partial[(0,1)])
@@ -36,17 +39,19 @@ class CoxpTest(AbipyTest):
 
         if self.has_matplotlib():
             assert cohp.plot(title="default values", show=False)
-            assert cohp.plot_site_pairs_total(from_index=[0, 1], what="single", exchange_xy=True, show=False)
-            assert cohp.plot_site_pairs_partial(from_index=[0, 1], what="single", exchange_xy=True, show=False)
+            assert cohp.plot_site_pairs_total(from_site_index=[0, 1], what="single", exchange_xy=True, show=False)
+            assert cohp.plot_site_pairs_partial(from_site_index=[0, 1], what="single", exchange_xy=True, show=False)
 
-        if self.has_nbformat():
-            assert cohp.write_notebook(nbpath=self.get_tmpname(text=True))
+        #if self.has_nbformat():
+        #    assert cohp.write_notebook(nbpath=self.get_tmpname(text=True))
 
         # Test COOPCAR
         coop = Coxp.from_file(os.path.join(test_dir, "GaAs_COOPCAR.lobster.gz"))
         repr(coop); str(coop)
         assert coop.to_string(verbose=2)
         assert coop.nsppol == 1
+        assert len(coop.type_of_index) == 2
+        assert coop.type_of_index[0] == "Ga" and coop.type_of_index[1] == "As"
         self.assertEqual(len(coop.energies), 401)
         self.assertIn((0, 1), coop.partial)
         self.assertIn(("4s", "4p_x"), coop.partial[(0, 1)])
@@ -58,8 +63,8 @@ class CoxpTest(AbipyTest):
         if self.has_matplotlib():
             assert coop.plot(title="default values", show=False)
 
-        if self.has_nbformat():
-            assert coop.write_notebook(nbpath=self.get_tmpname(text=True))
+        #if self.has_nbformat():
+        #    assert coop.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class ICoxpTest(AbipyTest):
@@ -70,15 +75,17 @@ class ICoxpTest(AbipyTest):
         assert icohp.to_string(verbose=2)
         self.assertIn((0,1), icohp.values)
         self.assertIn(0, icohp.values[(0,1)])
-
         self.assertAlmostEqual(icohp.values[(0,1)][0]['average'], -4.36062)
         self.assertAlmostEqual(icohp.dataframe.average[0], -4.36062)
 
-        if self.has_matplotlib():
-            assert icohp.plot(title="default values", show=False)
+        assert len(icohp.type_of_index) == 2
+        assert icohp.type_of_index[0] == "Ga" and cohp.type_of_index[1] == "As"
 
-        if self.has_nbformat():
-            assert icohp.write_notebook(nbpath=self.get_tmpname(text=True))
+        #if self.has_matplotlib():
+        #    assert icohp.plot(title="default values", show=False)
+
+        #if self.has_nbformat():
+        #    assert icohp.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class LobsterDosTest(AbipyTest):
@@ -101,8 +108,8 @@ class LobsterDosTest(AbipyTest):
             assert ldos.plot_pdos(site_index=0, title="default values", show=False)
             assert ldos.plot_pdos(site_index=[0, 1], exchange_xy=True, title="default values", show=False)
 
-        if self.has_nbformat():
-            assert ldos.write_notebook(nbpath=self.get_tmpname(text=True))
+        #if self.has_nbformat():
+        #    assert ldos.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class LobsterAnalyzerTest(AbipyTest):
@@ -114,9 +121,11 @@ class LobsterAnalyzerTest(AbipyTest):
 
         if self.has_matplotlib():
             assert lobana.plot(title="default values", show=False)
+            assert lobana.plot_coxp_with_dos(from_site_index=1, what="coop", title="default values", show=False)
+            assert lobana.plot_coxp_with_dos(from_site_index=[1, 2], with_orbitals=True, show=False)
 
-        if self.has_nbformat():
-            assert lobana.write_notebook(nbpath=self.get_tmpname(text=True))
+        #if self.has_nbformat():
+        #    assert lobana.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 class LobsterInputTest(AbipyTest):
