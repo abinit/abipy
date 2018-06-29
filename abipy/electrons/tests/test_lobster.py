@@ -22,6 +22,7 @@ class CoxpTest(AbipyTest):
         assert cohp.nsppol == 1
         assert len(cohp.type_of_index) == 2
         assert cohp.type_of_index[0] == "Ga" and cohp.type_of_index[1] == "As"
+        assert cohp.cop_type == "cohp"
 
         self.assertEqual(len(cohp.energies), 401)
         self.assertIn((0,1), cohp.partial)
@@ -52,6 +53,7 @@ class CoxpTest(AbipyTest):
         assert coop.nsppol == 1
         assert len(coop.type_of_index) == 2
         assert coop.type_of_index[0] == "Ga" and coop.type_of_index[1] == "As"
+        assert coop.cop_type == "coop"
         self.assertEqual(len(coop.energies), 401)
         self.assertIn((0, 1), coop.partial)
         self.assertIn(("4s", "4p_x"), coop.partial[(0, 1)])
@@ -78,8 +80,9 @@ class ICoxpTest(AbipyTest):
         self.assertAlmostEqual(icohp.values[(0,1)][0]['average'], -4.36062)
         self.assertAlmostEqual(icohp.dataframe.average[0], -4.36062)
 
+        assert icohp.cop_type == "cohp"
         assert len(icohp.type_of_index) == 2
-        assert icohp.type_of_index[0] == "Ga" and cohp.type_of_index[1] == "As"
+        assert icohp.type_of_index[0] == "Ga" and icohp.type_of_index[1] == "As"
 
         #if self.has_matplotlib():
         #    assert icohp.plot(title="default values", show=False)
@@ -117,6 +120,7 @@ class LobsterAnalyzerTest(AbipyTest):
     def test_lobster_analyzer(self):
         lobana = LobsterAnalyzer.from_dir(test_dir, prefix="GaAs_")
         repr(lobana); str(lobana)
+        assert lobana.nsppol == 1
         assert lobana.to_string(verbose=2)
 
         if self.has_matplotlib():
