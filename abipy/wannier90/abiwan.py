@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Interface to the ABIWAN netcdf file produced by abinit by calling wannier90 in library mode.
+Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.
 Inspired to the Fortran version of wannier90.
 """
 from __future__ import print_function, division, unicode_literals, absolute_import
@@ -292,6 +292,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
         Returns: |ElectronBands| object with Wannier-interpolated energies.
         """
+        # TODO: Option for IBZ mesh?
         # Need KpointList object.
         if kpoints is None:
             if vertices_names is None:
@@ -548,7 +549,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs):
         """
-        Compare the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
+        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
         on the same Axes.
 
         Args:
