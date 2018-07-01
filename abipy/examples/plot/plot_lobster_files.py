@@ -5,15 +5,15 @@ Lobster COHP/COP/DOS
 
 This example shows how to analyze the output files
 produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1>
+Use `abiview.py lobster DIRPATH` for a command line interface.
 """
-from abipy.abilab import LobsterAnalyzer
+import os
 import abipy.data as abidata
 
-#filename = abidata.ref_file("si_nscf_GSR.nc")
+from abipy.abilab import LobsterAnalyzer
 
-import os
-dirpath = "/Users/gmatteo/git_repos/abipy/abipy/test_files"
-#filename = os.path.join(dirpath, "GaAs_COHPCAR.lobster.gz")
+
+dirpath = os.path.join(abidata.dirpath, "refs", "lobster_gaas")
 
 # Open the all the lobster files produced in directory dirpath
 # with the (optional) prefix GaAs_

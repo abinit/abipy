@@ -18,12 +18,13 @@ from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.core.structure import Structure
 from abipy.core.func1d import Function1D
+from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible #, set_axlims
 from abipy.tools import duck
 
 
-class _LobsterFile(object):
+class _LobsterFile(BaseFile, NotebookWriter):
     """
     Base class for output files produced by lobster.
     """
@@ -42,54 +43,53 @@ class _LobsterFile(object):
     def __str__(self):
         return self.to_string()
 
-    def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
-        """
-        Shows a predefined list of matplotlib figures with minimal input from the user.
-        """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
-            e(self.yield_figs(**kwargs))
+    def close(self):
+        """Needed by ABC."""
 
 
-# TODO: Add cop_type from filename, use TextFile and AbiPy protocol.
 class Coxp(_LobsterFile):
     """
     Wrapper class for the crystal orbital projections produced by Lobster.
     Wraps both a COOP and a COHP.
     Can contain both the total and orbitalwise projections.
-    """
 
-    def __init__(self, cop_type, type_of_index, energies, total=None, partial=None, averaged=None, fermie=None):
-        """
-        Args:
-            cop_type:
-            type_of_index: Dictionary mappping site index to element string.
-            energies: list of energies. Shifted such that the Fermi level lies at 0 eV.
-            total: a dictionary with the values of the total overlap, not projected over orbitals.
-                The dictionary should have the following nested keys: a tuple with the index of the sites
-                considered as a pair (0-based, e.g. (0, 1)), the spin (i.e. 0 or 1), a "single"
-                or "integrated" string indicating the value corresponding to the value of
-                the energy or to the integrated value up to that energy.
-            partial: a dictionary with the values of the partial crystal orbital projections.
-                The dictionary should have the following nested keys: a tuple with the index of the sites
-                considered as a pair (0-based, e.g. (0, 1)), a tuple with the string representing the
-                projected orbitals for that pair (e.g. ("4s", "4p_x")), the spin (i.e. 0 or 1),
-                a "single" or "integrated" string indicating the value corresponding to the value of
-                the energy or to the integrated value up to that energy. Each dictionary should contain a
-                numpy array with a list of COP values with the same size as energies.
-            averaged: a dictionary with the values of the partial crystal orbital projections
-                averaged over all atom pairs specified. The main key should indicate the spin (0 or 1)
-                and the nested dictionary should have "single" and "integrated" as keys.
-            fermie: value of the fermi energy.
-        """
-        self.type_of_index = type_of_index
-        self.energies = energies
-        self.partial = partial or {}
-        self.averaged = averaged or {}
-        self.fermie = fermie
-        self.total = total
-        self.nsppol = len(self.averaged)
-        self.cop_type = cop_type
+    .. attribute:: cop_type
+
+    .. attribute:: type_of_index
+
+        Dictionary mappping site index to element string.
+
+    .. attribute:: energies
+
+        list of energies. Shifted such that the Fermi level lies at 0 eV.
+
+    .. attribute:: total
+
+        a dictionary with the values of the total overlap, not projected over orbitals.
+        The dictionary should have the following nested keys: a tuple with the index of the sites
+        considered as a pair (0-based, e.g. (0, 1)), the spin (i.e. 0 or 1), a "single"
+        or "integrated" string indicating the value corresponding to the value of
+        the energy or to the integrated value up to that energy.
+
+    .. attribute:: partial
+
+        a dictionary with the values of the partial crystal orbital projections.
+        The dictionary should have the following nested keys: a tuple with the index of the sites
+        considered as a pair (0-based, e.g. (0, 1)), a tuple with the string representing the
+        projected orbitals for that pair (e.g. ("4s", "4p_x")), the spin (i.e. 0 or 1),
+        a "single" or "integrated" string indicating the value corresponding to the value of
+        the energy or to the integrated value up to that energy. Each dictionary should contain a
+        numpy array with a list of COP values with the same size as energies.
+
+    .. attribute:: averaged
+
+        a dictionary with the values of the partial crystal orbital projections
+        averaged over all atom pairs specified. The main key should indicate the spin (0 or 1)
+        and the nested dictionary should have "single" and "integrated" as keys.
+
+    .. attribute:: fermie
+        value of the fermi energy.
+    """
 
     @property
     def site_pairs_total(self):
@@ -122,6 +122,8 @@ class Coxp(_LobsterFile):
                                  r')\s+('+float_patt+r')\s+('+float_patt+r')')
         pair_patt = re.compile(r'No\.\d+:([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?->([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?')
 
+        new = cls(filepath)
+
         with zopen(filepath, "rt") as f:
             # find the header
             for line in f:
@@ -132,7 +134,7 @@ class Coxp(_LobsterFile):
                     n_en_steps = int(match.group(3))
                     min_en = float(match.group(4))
                     max_en = float(match.group(5))
-                    fermie = float(match.group(6))
+                    new.fermie = float(match.group(6))
                     break
             else:
                 raise ValueError("Can't find the header in file {}".format(filepath))
@@ -141,7 +143,7 @@ class Coxp(_LobsterFile):
 
             count_pairs = 0
             pairs_data = []
-            type_of_index = {}
+            new.type_of_index = {}
             # parse the pairs considered
             for line in f:
                 match = pair_patt.match(line.rstrip())
@@ -153,10 +155,10 @@ class Coxp(_LobsterFile):
                     index1 = int(index1) - 1
                     index2 = int(index2) - 1
                     pairs_data.append([type1, index1, orbital1, type2, index2, orbital2])
-                    if index1 in type_of_index: assert type_of_index[index1] == type1
-                    type_of_index[index1] = type1
-                    if index2 in type_of_index: assert type_of_index[index2] == type2
-                    type_of_index[index2] = type2
+                    if index1 in new.type_of_index: assert new.type_of_index[index1] == type1
+                    new.type_of_index[index1] = type1
+                    if index2 in new.type_of_index: assert new.type_of_index[index2] == type2
+                    new.type_of_index[index2] = type2
                     count_pairs += 1
                     if count_pairs == n_pairs:
                         break
@@ -166,15 +168,15 @@ class Coxp(_LobsterFile):
             data = np.fromstring(f.read(), dtype=np.float, sep=' ').reshape([n_en_steps, 1+n_spin*n_column_groups*2])
 
             # initialize and fill results
-            energies = data[:, 0]
-            averaged = defaultdict(dict)
-            total = tree()
-            partial = tree()
+            new.energies = data[:, 0]
+            new.averaged = defaultdict(dict)
+            new.total = tree()
+            new.partial = tree()
 
             for i, s in enumerate(spins):
                 base_index = 1+i*n_column_groups*2
-                averaged[s]['single'] = data[:, base_index]
-                averaged[s]['integrated'] = data[:, base_index+1]
+                new.averaged[s]['single'] = data[:, base_index]
+                new.averaged[s]['integrated'] = data[:, base_index+1]
                 for j, p in enumerate(pairs_data):
                     index1 = p[1]
                     index2 = p[4]
@@ -182,23 +184,24 @@ class Coxp(_LobsterFile):
                     if p[2] is not None:
                         single = data[:, base_index+2*(j+1)]
                         integrated = data[:, base_index+2*(j+1)+1]
-                        partial[(index1, index2)][(p[2], p[5])][s]['single'] = single
-                        partial[(index2, index1)][(p[5], p[2])][s]['single'] = single
-                        partial[(index1, index2)][(p[2], p[5])][s]['integrated'] = integrated
-                        partial[(index2, index1)][(p[5], p[2])][s]['integrated'] = integrated
+                        new.partial[(index1, index2)][(p[2], p[5])][s]['single'] = single
+                        new.partial[(index2, index1)][(p[5], p[2])][s]['single'] = single
+                        new.partial[(index1, index2)][(p[2], p[5])][s]['integrated'] = integrated
+                        new.partial[(index2, index1)][(p[5], p[2])][s]['integrated'] = integrated
                     else:
                         single = data[:, base_index+2*(j+1)]
                         integrated = data[:, base_index+2*(j+1)+1]
-                        total[(index1, index2)][s]['single'] = single
-                        total[(index2, index1)][s]['single'] = single
-                        total[(index1, index2)][s]['integrated'] = integrated
-                        total[(index2, index1)][s]['integrated'] = integrated
+                        new.total[(index1, index2)][s]['single'] = single
+                        new.total[(index2, index1)][s]['single'] = single
+                        new.total[(index1, index2)][s]['integrated'] = integrated
+                        new.total[(index2, index1)][s]['integrated'] = integrated
 
-        cop_type = "unknown"
-        if "COOPCAR.lobster" in filepath: cop_type = "coop"
-        if "COHPCAR.lobster" in filepath: cop_type = "cohp"
+        new.cop_type = "unknown"
+        if "COOPCAR.lobster" in filepath: new.cop_type = "coop"
+        if "COHPCAR.lobster" in filepath: new.cop_type = "cohp"
+        new.nsppol = len(new.averaged)
 
-        return cls(cop_type, type_of_index, energies=energies, total=total, partial=partial, averaged=averaged, fermie=fermie)
+        return new
 
     @lazy_property
     def functions_pair_lorbitals(self):
@@ -275,8 +278,8 @@ class Coxp(_LobsterFile):
         yield self.plot(what="d", show=False)
         yield self.plot(what="i", show=False)
         # TODO
-        yield self.plot_site_pairs_total([0, 1], show=False)
-        yield self.plot_site_pairs_partial([0, 1], show=False)
+        #yield self.plot_site_pairs_total([0, 1], show=False)
+        #yield self.plot_site_pairs_partial([0, 1], show=False)
 
     @add_fig_kwargs
     def plot(self, what="d", spin=None, ax=None, exchange_xy=False, **kwargs):
@@ -467,9 +470,7 @@ class Coxp(_LobsterFile):
 
     def get_labelstyle_from_spin_pair_orbs(self, spin, pair, orbs):
         type0, type1 = self.type_of_index[pair[0]], self.type_of_index[pair[1]]
-        label = r"$%s_{%s}@%s \rightarrow %s_{%s}%s$" % (type0, orbs[0], pair[0], type1, orbs[1], pair[1])
-        #o0 = _Orbital.from_string(orbs[0])
-        #o1 = _Orbital.from_string(orbs[1])
+        label = r"$%s_{%s}@%s \rightarrow %s_{%s}@%s$" % (type0, orbs[0], pair[0], type1, orbs[1], pair[1])
         style = {} #dict(lw=lw, color=color, ls=ls)
         return label, style
 
@@ -496,19 +497,18 @@ class ICoxp(_LobsterFile):
     Wrapper class for the integrated crystal orbital projections up to the Fermi energy
     produced from Lobster.
     May contain the output stored in ICOHPLIST.lobster and ICOOPLIST.lobster
-    """
 
-    def __init__(self, cop_type, values, type_of_index):
-        """
-        Args:
-            cop_type:
-            values: a dictionary with the following keys: a tuple with the index of the sites
-                considered as a pair (0-based, e.g. (0,1)), the spin (i.e. 0 or 1)
-            type_of_index: Dictionary mappping site index to element string.
-        """
-        self.values = values
-        self.type_of_index = type_of_index
-        self.cop_type = cop_type
+    .. attribute::  cop_type
+
+    .. attribute:: values
+
+        a dictionary with the following keys: a tuple with the index of the sites
+        considered as a pair (0-based, e.g. (0,1)), the spin (i.e. 0 or 1)
+
+    .. attribute:: type_of_index
+
+        Dictionary mappping site index to element string.
+    """
 
     @classmethod
     def from_file(cls, filepath):
@@ -526,10 +526,13 @@ class ICoxp(_LobsterFile):
         header_patt = re.compile(r'.*?(over+\s#\s+bonds)?\s+for\s+spin\s+(\d).*')
         data_patt = re.compile(r'\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+('+
                                float_patt+r')\s+('+float_patt+r')(\d+)?')
-        values = tree()
+
+        new = cls(filepath)
+        new.values = tree()
+
         spin = None
         avg_num_bonds = False
-        type_of_index = {}
+        new.type_of_index = {}
         with zopen(filepath, "rt") as f:
             for line in f:
                 match = header_patt.match(line.rstrip())
@@ -542,17 +545,17 @@ class ICoxp(_LobsterFile):
                     # 0-based indexing
                     index1 = int(index1) - 1
                     index2 = int(index2) - 1
-                    type_of_index[index1] = type1
-                    type_of_index[index2] = type2
+                    new.type_of_index[index1] = type1
+                    new.type_of_index[index2] = type2
                     avg_data = {'average': float(avg), 'distance': dist, 'n_bonds': int(n_bonds) if n_bonds else None}
-                    values[(index1, index2)][spin] = avg_data
-                    values[(index2, index1)][spin] = avg_data
+                    new.values[(index1, index2)][spin] = avg_data
+                    new.values[(index2, index1)][spin] = avg_data
 
-        cop_type = "unknown"
-        if "ICOOPLIST.lobster" in filepath: cop_type = "coop"
-        if "ICOHPLIST.lobster" in filepath: cop_type = "cohp"
+        new.cop_type = "unknown"
+        if "ICOOPLIST.lobster" in filepath: new.cop_type = "coop"
+        if "ICOHPLIST.lobster" in filepath: new.cop_type = "cohp"
 
-        return cls(cop_type, values, type_of_index)
+        return new
 
     def to_string(self, verbose=0):
         """String representation with verbosity level `verbose`."""
@@ -588,46 +591,46 @@ class ICoxp(_LobsterFile):
     #    sns.barplot(x="average", y="pair_spin", data=self.dataframe)
     #        #label="Alcohol-involved", color="b")
 
-    #def write_notebook(self, nbpath=None):
-    #    """
-    #    Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
-    #    working directory is created. Return path to the notebook.
-    #    """
-    #    nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-    #    nb.cells.extend([
-    #        nbv.new_code_cell("coxp = abilab.abiopen('%s')" % self.filepath),
-    #        nbv.new_code_cell("print(coxp)"),
-    #        nbv.new_code_cell("coxp.plot(what='d');"),
-    #        nbv.new_code_cell("coxp.plot_site_pairs_total(from_site_index=[0,]);"),
-    #        nbv.new_code_cell("coxp.plot_site_pairs_partial(from_site_index=[0,]);"),
-    #    ])
+        nb.cells.extend([
+            nbv.new_code_cell("coxp = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(coxp)"),
+            nbv.new_code_cell("coxp.plot(what='d');"),
+            nbv.new_code_cell("coxp.plot_site_pairs_total(from_site_index=[0,]);"),
+            nbv.new_code_cell("coxp.plot_site_pairs_partial(from_site_index=[0,]);"),
+        ])
 
-    #    return self._write_nb_nbpath(nb, nbpath)
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class LobsterDos(_LobsterFile):
     """
     Total and partial dos extracted from lobster DOSCAR.
     The fermi energy is always at the zero value.
-    """
 
-    def __init__(self, energies, total_dos, pdos):
-        """
-        Args:
-            energies: list of energies. Shifted such that the Fermi level lies at 0 eV.
-            total_dos: a dictionary with spin as a key (i.e. 0 or 1) and containing the values of the total DOS.
-                Should have the same size as energies.
-            pdos: a dictionary with the values of the projected DOS.
-                The dictionary should have the following nested keys: the index of the site (0-based),
-                the string representing the projected orbital (e.g. "4p_x"), the spin (i.e. 0 or 1).
-                Each dictionary should contain a numpy array with a list of DOS values with the
-                same size as energies.
-        """
-        self.energies = energies
-        self.total_dos = total_dos
-        self.pdos = pdos
-        self.nsppol = len(total_dos)
+    .. attribute:: energies
+
+            list of energies. Shifted such that the Fermi level lies at 0 eV.
+
+    .. attribute:: total_dos
+
+            a dictionary with spin as a key (i.e. 0 or 1) and containing the values of the total DOS.
+            Should have the same size as energies.
+
+    .. attribute:: pdos
+
+        a dictionary with the values of the projected DOS.
+        The dictionary should have the following nested keys: the index of the site (0-based),
+        the string representing the projected orbital (e.g. "4p_x"), the spin (i.e. 0 or 1).
+        Each dictionary should contain a numpy array with a list of DOS values with the
+        same size as energies.
+    """
 
     @classmethod
     def from_file(cls, filepath):
@@ -644,6 +647,8 @@ class LobsterDos(_LobsterFile):
         with zopen(filepath, "rt") as f:
             dos_data = f.readlines()
 
+        new = cls(filepath)
+
         n_sites = int(dos_data[0].split()[0])
         n_energies = int(dos_data[5].split()[2])
 
@@ -654,12 +659,12 @@ class LobsterDos(_LobsterFile):
         tdos_data = np.fromiter((d for l in dos_data[6:6+n_energies] for d in l.split()),
                                 dtype=np.float).reshape((n_energies, 1+2*n_spin))
 
-        energies = tdos_data[:,0]
-        total_dos = {}
+        new.energies = tdos_data[:,0]
+        new.total_dos = {}
         for i_spin, spin in enumerate(spins):
-            total_dos[spin] = tdos_data[:,1+2*i_spin]
+            new.total_dos[spin] = tdos_data[:,1+2*i_spin]
 
-        pdos = tree()
+        new.pdos = tree()
         # read partial doses
         for i_site in range(n_sites):
             i_first_line = 5+(n_energies+1)*(i_site+1)
@@ -673,9 +678,11 @@ class LobsterDos(_LobsterFile):
 
             for i_orb, orb in enumerate(orbitals):
                 for i_spin, spin in enumerate(spins):
-                    pdos[i_site][orb][spin] = pdos_data[:, i_spin+n_spin*i_orb+1]
+                    new.pdos[i_site][orb][spin] = pdos_data[:, i_spin+n_spin*i_orb+1]
 
-        return cls(energies=energies, total_dos=total_dos, pdos=pdos)
+        new.nsppol = len(new.total_dos)
+        return new
+        #return cls(energies=energies, total_dos=total_dos, pdos=pdos)
 
     def to_string(self, verbose=0):
         """String representation with Verbosity level `verbose`."""
@@ -1028,7 +1035,7 @@ class LobsterInput(object):
             f.write(str(self))
 
 
-class LobsterAnalyzer(object):
+class LobsterAnalyzer(NotebookWriter):
 
     @classmethod
     def from_dir(cls, dirpath, prefix=""):
@@ -1059,7 +1066,7 @@ class LobsterAnalyzer(object):
                 paths = glob.glob(os.path.join(dirpath, p))
 
             if paths:
-                print(k, "-->", paths)
+                #print(k, "-->", paths)
                 if len(paths) > 1:
                     raise RuntimeError("Found multiple files matching glob pattern: %s" % str(paths))
                 kwargs[k] = paths[0]
@@ -1121,6 +1128,12 @@ class LobsterAnalyzer(object):
         #app(self.structure.to_string(verbose=verbose, title="Structure"))
 
         return "\n".join(lines)
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
 
     @add_fig_kwargs
     def plot(self, entries=("coop", "cohp", "dos"), spin=None, **kwargs):
@@ -1241,14 +1254,6 @@ class LobsterAnalyzer(object):
                     set_visible(ax, False, "xlabel")
 
         return fig
-
-    #def expose(self, slide_mode=False, slide_timeout=None, **kwargs):
-    #    """
-    #    Shows a predefined list of matplotlib figures with minimal input from the user.
-    #    """
-    #    from abipy.tools.plotting import MplExpose
-    #    with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
-    #        e(self.yield_figs(**kwargs))
 
     def write_notebook(self, nbpath=None):
         """

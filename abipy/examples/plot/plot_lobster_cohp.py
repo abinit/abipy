@@ -5,13 +5,15 @@ Lobster COHPCAR
 
 This example shows how to analyze the COHPCAR file
 produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1>
+Use `abiopen.py FILE` with --expose or --print for a command line interface
+and --notebook to generate a jupyter notebook.
 """
-from abipy.abilab import abiopen
+import os
 import abipy.data as abidata
 
-#filename = abidata.ref_file("si_nscf_GSR.nc")
-import os
-dirpath = "/Users/gmatteo/git_repos/abipy/abipy/test_files"
+from abipy.abilab import abiopen
+
+dirpath = os.path.join(abidata.dirpath, "refs", "lobster_gaas")
 filename = os.path.join(dirpath, "GaAs_COHPCAR.lobster.gz")
 
 # Open the COHPCAR.lobster file (same API for COOPCAR.lobster)
