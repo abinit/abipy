@@ -7,7 +7,7 @@ import glob
 import numpy as np
 
 from collections import defaultdict, OrderedDict
-from monty.string import marquee #is_string, list_strings,
+from monty.string import marquee
 from monty.collections import tree
 from monty.io import zopen
 from monty.termcolor import cprint
@@ -20,7 +20,7 @@ from abipy.core.structure import Structure
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible #, set_axlims
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 from abipy.tools import duck
 
 
@@ -55,17 +55,19 @@ class Coxp(_LobsterFile):
 
     .. attribute:: cop_type
 
+        String. Either "coop" or "cohp".
+
     .. attribute:: type_of_index
 
         Dictionary mappping site index to element string.
 
     .. attribute:: energies
 
-        list of energies. Shifted such that the Fermi level lies at 0 eV.
+        List of energies. Shifted such that the Fermi level lies at 0 eV.
 
     .. attribute:: total
 
-        a dictionary with the values of the total overlap, not projected over orbitals.
+        A dictionary with the values of the total overlap, not projected over orbitals.
         The dictionary should have the following nested keys: a tuple with the index of the sites
         considered as a pair (0-based, e.g. (0, 1)), the spin (i.e. 0 or 1), a "single"
         or "integrated" string indicating the value corresponding to the value of
@@ -73,7 +75,7 @@ class Coxp(_LobsterFile):
 
     .. attribute:: partial
 
-        a dictionary with the values of the partial crystal orbital projections.
+        A dictionary with the values of the partial crystal orbital projections.
         The dictionary should have the following nested keys: a tuple with the index of the sites
         considered as a pair (0-based, e.g. (0, 1)), a tuple with the string representing the
         projected orbitals for that pair (e.g. ("4s", "4p_x")), the spin (i.e. 0 or 1),
@@ -83,12 +85,13 @@ class Coxp(_LobsterFile):
 
     .. attribute:: averaged
 
-        a dictionary with the values of the partial crystal orbital projections
+        A dictionary with the values of the partial crystal orbital projections
         averaged over all atom pairs specified. The main key should indicate the spin (0 or 1)
         and the nested dictionary should have "single" and "integrated" as keys.
 
     .. attribute:: fermie
-        value of the fermi energy.
+
+        value of the fermi energy in eV.
     """
 
     @property
@@ -277,9 +280,6 @@ class Coxp(_LobsterFile):
         """
         yield self.plot(what="d", show=False)
         yield self.plot(what="i", show=False)
-        # TODO
-        #yield self.plot_site_pairs_total([0, 1], show=False)
-        #yield self.plot_site_pairs_partial([0, 1], show=False)
 
     @add_fig_kwargs
     def plot(self, what="d", spin=None, ax=None, exchange_xy=False, **kwargs):
@@ -395,10 +395,12 @@ class Coxp(_LobsterFile):
         return fig
 
     def get_labelstyle_from_spin_pair(self, spin, pair):
+        """Return label and linestyle for spin and pair indices"""
         type0, type1 = self.type_of_index[pair[0]], self.type_of_index[pair[1]]
         label = r"${%s}@{%s} \rightarrow {%s}@{%s}$" % (type0, pair[0], type1, pair[1])
         style = {"color": "black", "linewidth": 1.0} if spin == 0 else \
                 {"color": "red", "linewidth": 1.0}
+        # TODO: Improve style
         #style = {} #dict(lw=lw, color=color, ls=ls)
         return label, style
 
@@ -469,8 +471,10 @@ class Coxp(_LobsterFile):
         return fig
 
     def get_labelstyle_from_spin_pair_orbs(self, spin, pair, orbs):
+        """Return label and linestyle for spin, pair indices and orbs tuple."""
         type0, type1 = self.type_of_index[pair[0]], self.type_of_index[pair[1]]
         label = r"$%s_{%s}@%s \rightarrow %s_{%s}@%s$" % (type0, orbs[0], pair[0], type1, orbs[1], pair[1])
+        # TODO: Improve style
         style = {} #dict(lw=lw, color=color, ls=ls)
         return label, style
 
@@ -500,9 +504,11 @@ class ICoxp(_LobsterFile):
 
     .. attribute::  cop_type
 
+        String. Either "coop" or "cohp".
+
     .. attribute:: values
 
-        a dictionary with the following keys: a tuple with the index of the sites
+        A dictionary with the following keys: a tuple with the index of the sites
         considered as a pair (0-based, e.g. (0,1)), the spin (i.e. 0 or 1)
 
     .. attribute:: type_of_index
@@ -567,6 +573,7 @@ class ICoxp(_LobsterFile):
 
     @lazy_property
     def dataframe(self):
+        """|DataFrame| with the results."""
         # self.values[pair][spin]
         import pandas as pd
         rows = []
@@ -616,16 +623,16 @@ class LobsterDos(_LobsterFile):
 
     .. attribute:: energies
 
-            list of energies. Shifted such that the Fermi level lies at 0 eV.
+        List of energies. Shifted such that the Fermi level lies at 0 eV.
 
     .. attribute:: total_dos
 
-            a dictionary with spin as a key (i.e. 0 or 1) and containing the values of the total DOS.
-            Should have the same size as energies.
+        A dictionary with spin as a key (i.e. 0 or 1) and containing the values of the total DOS.
+        Should have the same size as energies.
 
     .. attribute:: pdos
 
-        a dictionary with the values of the projected DOS.
+        A dictionary with the values of the projected DOS.
         The dictionary should have the following nested keys: the index of the site (0-based),
         the string representing the projected orbital (e.g. "4p_x"), the spin (i.e. 0 or 1).
         Each dictionary should contain a numpy array with a list of DOS values with the
@@ -682,7 +689,6 @@ class LobsterDos(_LobsterFile):
 
         new.nsppol = len(new.total_dos)
         return new
-        #return cls(energies=energies, total_dos=total_dos, pdos=pdos)
 
     def to_string(self, verbose=0):
         """String representation with Verbosity level `verbose`."""
@@ -909,9 +915,7 @@ class LobsterInput(object):
         return self.to_string()
 
     def to_string(self, verbose=0):
-        """
-        String representation.
-        """
+        """String representation."""
         lines = []
 
         if self.basis_set:
@@ -1044,9 +1048,6 @@ class LobsterAnalyzer(NotebookWriter):
 
         Args:
             dirpath: the path to the calculation directory.
-                For abinit it should contain either
-                    (GSR file, ...)
-                for vasp it should contain the vasprun.xml and the POTCAR.
         """
         dirpath = os.path.abspath(dirpath)
         k2ext = {
@@ -1071,9 +1072,9 @@ class LobsterAnalyzer(NotebookWriter):
                     raise RuntimeError("Found multiple files matching glob pattern: %s" % str(paths))
                 kwargs[k] = paths[0]
 
+        """
         # Try to find a file from which we can extract the structure.
         structure = None
-        """
         if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
             # Vasp mode
             vr = Vasprun(os.path.join(dirpath, 'vasprun.xml'))
@@ -1095,16 +1096,16 @@ class LobsterAnalyzer(NotebookWriter):
         if structure is None:
             raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
         """
-        return cls(dirpath, prefix, structure, **kwargs)
+        return cls(dirpath, prefix, **kwargs)
 
-    def __init__(self, dirpath, prefix, structure, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
+    def __init__(self, dirpath, prefix, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
         self.coop = Coxp.from_file(coop_path) if coop_path else None
         self.cohp = Coxp.from_file(cohp_path) if cohp_path else None
         self.icohp = ICoxp.from_file(icohp_path) if icohp_path else None
         self.dos = LobsterDos.from_file(lobdos_path) if lobdos_path else None
         self.dirpath = dirpath
         self.prefix = prefix
-        self.structure = structure
+        #self.structure = structure
 
         for a in ("coop", "cohp", "icohp", "dos"):
             obj = getattr(self, a)
@@ -1231,6 +1232,7 @@ class LobsterAnalyzer(NotebookWriter):
         nrows, ncols = self.nsppol, len(entries) + 1
         width_ratios = [2] + [1] * len(entries)
         gspec = GridSpec(nrows=nrows, ncols=ncols, width_ratios=width_ratios, wspace=0.05)
+
         # Bands and DOS will share the y-axis
         axmat = np.array((nrows, ncols), dtype=object)
         for icol in range(ncols):

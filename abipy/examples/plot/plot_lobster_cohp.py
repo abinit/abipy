@@ -23,11 +23,11 @@ print(cohp)
 # Plot COHP.
 cohp.plot(title="GaAs COHP")
 
-# Plot integrate COHP.
+# Plot integrated COHP.
 cohp.plot(what="i", title="GaAs integrated COHP")
 
-# Plot COHP total overlap for all sites listed in `from_site_index`
+# Plot total overlap for all sites listed in `from_site_index`
 cohp.plot_site_pairs_total(from_site_index=[0], title="COHP total overlap for site index 0")
 
-# Plot partial crystal orbital projections (DOS or IDOS) for all sites listed in `from_site_index`
+# Plot partial crystal orbital projections for all sites listed in `from_site_index`
 cohp.plot_site_pairs_partial(from_site_index=[0], title="COHP with orbital projections from site index 0")

@@ -322,6 +322,7 @@ def abiview_sigeph(options):
 
     return 0
 
+
 def abiview_lobster(options):
     """Analyze lobster output files in directory."""
     from abipy.electrons.lobster import LobsterAnalyzer
@@ -339,7 +340,7 @@ def abiview_lobster(options):
 
     else:
         lobana.plot()
-    #lobana.plot_coxp_with_dos(from_site_index=[0, 1])
+        #lobana.plot_coxp_with_dos(from_site_index=[0, 1])
 
     return 0
 

@@ -12,13 +12,11 @@ import abipy.data as abidata
 
 from abipy.abilab import LobsterAnalyzer
 
-
 dirpath = os.path.join(abidata.dirpath, "refs", "lobster_gaas")
 
 # Open the all the lobster files produced in directory dirpath
 # with the (optional) prefix GaAs_
 lobana = LobsterAnalyzer.from_dir(dirpath, prefix="GaAs_")
-
 print(lobana)
 
 # Plot COOP + COHP + DOS.
