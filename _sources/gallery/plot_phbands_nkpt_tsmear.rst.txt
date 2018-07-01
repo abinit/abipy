@@ -72,7 +72,7 @@ We use two files produced by anaddb:
 
     #r.phbands_plotter.gridplot_with_hue("nkpt")
 
-**Total running time of the script:** ( 0 minutes  11.453 seconds)
+**Total running time of the script:** ( 0 minutes  12.567 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phbands_nkpt_tsmear.py:

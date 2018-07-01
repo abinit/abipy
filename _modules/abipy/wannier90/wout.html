@@ -144,7 +144,20 @@
 
 
 <div class="viewcode-block" id="WoutFile"><a class="viewcode-back" href="../../../api/wannier90_api.html#abipy.wannier90.wout.WoutFile">[docs]</a><span class="k">class</span> <span class="nc">WoutFile</span><span class="p">(</span><span class="n">BaseFile</span><span class="p">,</span> <span class="n">Has_Structure</span><span class="p">,</span> <span class="n">NotebookWriter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main output file produced by Wannier90</span>
 
+<span class="sd">    Usage example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        with abilab.abiopen(&quot;foo.wout&quot;) as wout:</span>
+<span class="sd">            print(wout)</span>
+<span class="sd">            wout.plot()</span>
+
+<span class="sd">    .. rubric:: Inheritance Diagram</span>
+<span class="sd">    .. inheritance-diagram:: WoutFile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WoutFile</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
@@ -533,7 +546,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

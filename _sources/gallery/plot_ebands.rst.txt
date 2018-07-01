@@ -56,7 +56,7 @@ produced at the end of the GS run.
     # Plot the BZ and the k-point path.
     ebands.kpoints.plot()
 
-**Total running time of the script:** ( 0 minutes  1.405 seconds)
+**Total running time of the script:** ( 0 minutes  1.867 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands.py:

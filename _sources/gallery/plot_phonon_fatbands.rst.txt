@@ -86,7 +86,7 @@ See tutorial/lesson_rf2.html
     # Decompose contributions along the three Cartesian directions.
     phbands.plot_phdispl_cartdirs(qpoint=(0, 0, 0), units="cm-1")
 
-**Total running time of the script:** ( 0 minutes  1.881 seconds)
+**Total running time of the script:** ( 0 minutes  3.009 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_phonon_fatbands.py:

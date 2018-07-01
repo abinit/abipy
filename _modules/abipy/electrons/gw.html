@@ -466,6 +466,7 @@
         <span class="n">qps</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_e0sorted</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_by_e0</span><span class="p">()</span>
         <span class="n">e0mesh</span> <span class="o">=</span> <span class="n">qps</span><span class="o">.</span><span class="n">get_e0mesh</span><span class="p">()</span>
         <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">\;(eV)$&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;fermie&quot;</span><span class="p">,</span> <span class="n">fermie</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">fermie</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">xlabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\epsilon_</span><span class="si">{KS}</span><span class="s2">-\epsilon_F\;(eV)$&quot;</span>
             <span class="n">e0mesh</span> <span class="o">-=</span> <span class="n">fermie</span>
@@ -911,6 +912,80 @@
                 <span class="n">print_dataframe</span><span class="p">(</span><span class="n">df_sk</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;K-point: </span><span class="si">%s</span><span class="s2">, spin: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">gwkpoint</span><span class="p">),</span> <span class="n">spin</span><span class="p">),</span>
                                 <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="SigresFile.get_points_from_ebands"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.get_points_from_ebands">[docs]</a>    <span class="k">def</span> <span class="nf">get_points_from_ebands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ebands_kpath</span><span class="p">,</span> <span class="n">dist_tol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate object storing the QP energies lying on the k-path used by ebands_kpath.</span>
+<span class="sd">        Mainly used to plot the QP energies in ebands.plot when the QP energies are interpolated with the SKW method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ebands_kpath: |ElectronBands| object with the QP energies along an arbitrary k-path.</span>
+<span class="sd">            dist_tol: A point is considered to be on the path if its distance from the line</span>
+<span class="sd">                is less than dist_tol.</span>
+<span class="sd">            size: The marker size in points**2</span>
+<span class="sd">            verbose: Verbosity level</span>
+
+<span class="sd">        Return:</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            r = sigres.interpolate(lpratio=5,</span>
+<span class="sd">                                   ks_ebands_kpath=ks_ebands_kpath,</span>
+<span class="sd">                                   ks_ebands_kmesh=ks_ebands_kmesh</span>
+<span class="sd">                                   )</span>
+<span class="sd">            points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24)</span>
+<span class="sd">            r.qp_ebands_kpath.plot(points=points)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kpath</span> <span class="o">=</span> <span class="n">ebands_kpath</span><span class="o">.</span><span class="n">kpoints</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ebands_kpath</span><span class="o">.</span><span class="n">kpoints</span><span class="o">.</span><span class="n">is_path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting band structure with a Kpath, got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">kpath</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Input kpath</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ebands_kpath</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;gwkpoints included in GW calculation</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwkpoints</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;lines</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">kpath</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;kpath.frac_bounds:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">kpath</span><span class="o">.</span><span class="n">frac_bounds</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;kpath.cart_bounds:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">kpath</span><span class="o">.</span><span class="n">frac_bounds</span><span class="p">)</span>
+
+        <span class="c1"># Construct the stars of the k-points for all k-points included in the GW calculation.</span>
+        <span class="c1"># In principle, the input k-path is arbitrary and not necessarily in the IBZ used for GW</span>
+        <span class="c1"># so we have to build the k-stars and find the k-points lying along the path and keep</span>
+        <span class="c1"># track of the mapping kpt --&gt; star --&gt; kgw</span>
+        <span class="n">gw_stars</span> <span class="o">=</span> <span class="p">[</span><span class="n">kpoint</span><span class="o">.</span><span class="n">compute_star</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">abi_spacegroup</span><span class="o">.</span><span class="n">fm_symmops</span><span class="p">)</span> <span class="k">for</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwkpoints</span><span class="p">]</span>
+        <span class="n">cart_coords</span><span class="p">,</span> <span class="n">back2istar</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">istar</span><span class="p">,</span> <span class="n">gw_star</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gw_stars</span><span class="p">):</span>
+            <span class="n">cart_coords</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">k</span><span class="o">.</span><span class="n">cart_coords</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">gw_star</span><span class="p">])</span>
+            <span class="n">back2istar</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">istar</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gw_star</span><span class="p">))</span>
+        <span class="n">cart_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># Find (star) k-points on the path.</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">kpath</span><span class="o">.</span><span class="n">find_points_along_path</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">,</span> <span class="n">dist_tol</span><span class="o">=</span><span class="n">dist_tol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">ikfound</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cprint</span><span class="p">(</span><span class="s2">&quot;Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Marker</span><span class="p">()</span>
+
+        <span class="c1"># Read complex GW energies from file.</span>
+        <span class="n">qp_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="s2">&quot;egw&quot;</span><span class="p">,</span> <span class="n">cmode</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Each marker is a list of tuple(x, y, value)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">kpath_lenght</span> <span class="o">=</span> <span class="n">kpath</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">dalong_path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">ikfound</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">dist_list</span><span class="p">):</span>
+            <span class="n">istar</span> <span class="o">=</span> <span class="n">back2istar</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span>
+            <span class="c1"># The k-point used in the GW calculation.</span>
+            <span class="n">gwk</span> <span class="o">=</span> <span class="n">gw_stars</span><span class="p">[</span><span class="n">istar</span><span class="p">]</span><span class="o">.</span><span class="n">base_point</span>
+            <span class="c1"># Indices needed to access SIGRES arrays (we have to live with this format)</span>
+            <span class="n">ik_ibz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">kpt2fileindex</span><span class="p">(</span><span class="n">gwk</span><span class="p">)</span>
+            <span class="n">ik_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">gwkpt2seqindex</span><span class="p">(</span><span class="n">gwk</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
+                <span class="c1"># Need to select bands included in the GW calculation.</span>
+                <span class="k">for</span> <span class="n">qpe</span> <span class="ow">in</span> <span class="n">qp_arr</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik_ibz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gwbstart_sk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik_b</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">gwbstop_sk</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ik_b</span><span class="p">]]:</span>
+                    <span class="c1"># Assume the path is properly normalized.</span>
+                    <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">dalong_path</span> <span class="o">/</span> <span class="n">kpath_lenght</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpath</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qpe</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Marker</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="SigresFile.plot_qpgaps"><a class="viewcode-back" href="../../../api/electrons_api.html#abipy.electrons.gw.SigresFile.plot_qpgaps">[docs]</a>    <span class="nd">@add_fig_kwargs</span>
     <span class="k">def</span> <span class="nf">plot_qpgaps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_qpmks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -983,7 +1058,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">with_fields</span> <span class="o">=</span> <span class="n">QPState</span><span class="o">.</span><span class="n">get_fields_for_plot</span><span class="p">(</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="p">)</span>
 
-        <span class="n">fermie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span>
+        <span class="c1"># Because qplist does not have the fermi level.</span>
+        <span class="n">fermie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ebands</span><span class="o">.</span><span class="n">get_e0</span><span class="p">(</span><span class="n">e0</span><span class="p">)</span> <span class="k">if</span> <span class="n">e0</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsppol</span><span class="p">):</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qplist_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">]</span><span class="o">.</span><span class="n">plot_qps_vs_e0</span><span class="p">(</span>
                 <span class="n">with_fields</span><span class="o">=</span><span class="n">with_fields</span><span class="p">,</span> <span class="n">exclude_fields</span><span class="o">=</span><span class="n">exclude_fields</span><span class="p">,</span> <span class="n">fermie</span><span class="o">=</span><span class="n">fermie</span><span class="p">,</span>
@@ -2265,7 +2341,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

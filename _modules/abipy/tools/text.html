@@ -166,6 +166,22 @@
             <span class="n">text</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">tok</span>
 
     <span class="k">return</span> <span class="n">numbers</span><span class="p">,</span> <span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="rreplace"><a class="viewcode-back" href="../../../api/tools_api.html#abipy.tools.text.rreplace">[docs]</a><span class="k">def</span> <span class="nf">rreplace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">occurrence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    replace old with new in string but, instead of starting from the beginning</span>
+<span class="sd">    as replace does, starting from the end.</span>
+
+<span class="sd">    &gt;&gt;&gt; s = &#39;1232425&#39;</span>
+<span class="sd">    &gt;&gt;&gt; assert rreplace(s, &#39;2&#39;, &#39; &#39;, 2) == &#39;123 4 5&#39;</span>
+<span class="sd">    &gt;&gt;&gt; assert rreplace(s, &#39;2&#39;, &#39; &#39;, 3) == &#39;1 3 4 5&#39;</span>
+<span class="sd">    &gt;&gt;&gt; assert rreplace(s, &#39;2&#39;, &#39; &#39;, 4) == &#39;1 3 4 5&#39;</span>
+<span class="sd">    &gt;&gt;&gt; assert rreplace(s, &#39;2&#39;, &#39; &#39;, 0) == &#39;1232425&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Based on https://stackoverflow.com/questions/2556108/rreplace-how-to-replace-the-last-occurrence-of-an-expression-in-a-string</span>
+    <span class="n">li</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">occurrence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">li</span><span class="p">)</span></div>
 </pre></div>
 
     </div>
@@ -180,7 +196,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

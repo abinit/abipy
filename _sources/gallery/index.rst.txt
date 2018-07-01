@@ -359,6 +359,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the output files produced by Lobster code &lt;http://schmeling.a...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_files_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_lobster_files.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_lobster_files
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot a band structure using the eigenvalues stored in the GSR file pr...">
 
 .. only:: html
@@ -456,6 +476,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_ejdos
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to analyze the COHPCAR file produced by Lobster code &lt;http://schmeling.a...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_lobster_cohp_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_lobster_cohp.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_lobster_cohp
 
 .. raw:: html
 
@@ -879,26 +919,6 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate an energy-dependent scissors operator by fitting the GW QPSt...">
-
-.. only:: html
-
-    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_scissor_thumb.png
-
-        :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py`
-
-.. raw:: html
-
-    </div>
-
-
-.. toctree::
-   :hidden:
-
-   /gallery/plot_qpbands_with_scissor
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to plot the L-projected fatbands of MgB2 using the FATBANDS.nc files pro...">
 
 .. only:: html
@@ -936,6 +956,26 @@ or use one of the options of :ref:`abiview.py` to plot the results automatically
    :hidden:
 
    /gallery/plot_efatbands_spin
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate an energy-dependent scissors operator by fitting the GW corr...">
+
+.. only:: html
+
+    .. figure:: /gallery/images/thumb/sphx_glr_plot_qpbands_with_scissor_thumb.png
+
+        :ref:`sphx_glr_gallery_plot_qpbands_with_scissor.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /gallery/plot_qpbands_with_scissor
 
 .. raw:: html
 

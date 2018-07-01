@@ -839,6 +839,7 @@
 <span class="sd">    of base methods implementing the sequence protocol and helper functions.</span>
 <span class="sd">    The subclasses |Kpath| and |IrredZone| provide specialized methods to operate</span>
 <span class="sd">    on k-points representing a path or list of points in the IBZ, respectively.</span>
+<span class="sd">    This object is immutable.</span>
 
 <span class="sd">    .. Note:</span>
 
@@ -1264,8 +1265,9 @@
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">app</span><span class="p">(</span><span class="n">marquee</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">mark</span><span class="o">=</span><span class="s2">&quot;=&quot;</span><span class="p">))</span>
         <span class="n">app</span><span class="p">(</span><span class="s2">&quot;K-path contains </span><span class="si">%s</span><span class="s2"> lines. Number of k-points in each line: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">),</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">]))</span>
-        <span class="c1">#for i, line in enumerate(self.lines):</span>
-        <span class="c1">#    app(&quot;line %d: %s&quot; % (i, line))</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">):</span>
+                <span class="n">app</span><span class="p">(</span><span class="s2">&quot;line </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
         <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
         <span class="n">vids</span> <span class="o">=</span> <span class="p">{</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">}</span>
@@ -1331,6 +1333,27 @@
 
         <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Kpath.frac_bounds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.frac_bounds">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">frac_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Numpy array of shape [M, 3] with the vertexes of the path in frac coords.&quot;&quot;&quot;</span>
+        <span class="n">frac_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">]</span>
+        <span class="n">frac_bounds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">frac_bounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Kpath.cart_bounds"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.cart_bounds">[docs]</a>    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">cart_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Numpy array of shape [M, 3] with the vertexes of the path in frac coords.&quot;&quot;&quot;</span>
+        <span class="n">cart_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">cart_coords</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">]</span>
+        <span class="n">cart_bounds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">cart_coords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Kpath.find_points_along_path"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.find_points_along_path">[docs]</a>    <span class="k">def</span> <span class="nf">find_points_along_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cart_coords</span><span class="p">,</span> <span class="n">dist_tol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find points in ``cart_coords`` lying on the path with distance less than `dist_tol`.</span>
+<span class="sd">        See find_points_along_path function for API.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">find_points_along_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_bounds</span><span class="p">,</span> <span class="n">cart_coords</span><span class="p">,</span> <span class="n">dist_tol</span><span class="o">=</span><span class="n">dist_tol</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Kpath.finite_diff"><a class="viewcode-back" href="../../../api/core_api.html#abipy.core.kpoints.Kpath.finite_diff">[docs]</a>    <span class="k">def</span> <span class="nf">finite_diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">acc</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1818,13 +1841,13 @@
 <span class="sd">            is less than dist_tol.</span>
 
 <span class="sd">    Return:</span>
-<span class="sd">        (klines, dist_list, ticks)</span>
+<span class="sd">        (ikfound, dist_list, path_ticks)</span>
 
-<span class="sd">        klines is a numpy array with the indices of the points lying on the path. Empty if no point is found.</span>
+<span class="sd">        ikfound is a numpy array with the indices of the points lying on the path. Empty if no point is found.</span>
 <span class="sd">        dist_list: numpy array with the distance of the points along the line.</span>
-<span class="sd">        ticks:</span>
+<span class="sd">        path_ticks: numpy array with the ticks associated to the input k-path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">klines</span><span class="p">,</span> <span class="n">dist_list</span><span class="p">,</span> <span class="n">ticks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ikfound</span><span class="p">,</span> <span class="n">dist_list</span><span class="p">,</span> <span class="n">path_ticks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">dl</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># cumulative length of the path</span>
     <span class="k">for</span> <span class="n">ibound</span><span class="p">,</span> <span class="n">x0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cart_bounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
@@ -1833,7 +1856,7 @@
         <span class="c1">#B = x1 - x0</span>
         <span class="n">dk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">B</span><span class="p">))</span>
         <span class="c1">#print(&quot;x0&quot;, x0, &quot;x1&quot;, x1)</span>
-        <span class="n">ticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ticks</span><span class="p">[</span><span class="n">ibound</span><span class="p">]</span> <span class="o">+</span> <span class="n">dk</span><span class="p">)</span>
+        <span class="n">path_ticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_ticks</span><span class="p">[</span><span class="n">ibound</span><span class="p">]</span> <span class="o">+</span> <span class="n">dk</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">):</span>
             <span class="n">dist</span> <span class="o">=</span> <span class="n">dist_point_from_line</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
             <span class="c1">#print(frac_coords[ik], dist)</span>
@@ -1847,12 +1870,16 @@
             <span class="k">if</span> <span class="n">dist_tol</span> <span class="o">+</span> <span class="n">dk</span> <span class="o">&gt;=</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># k-point is within the cart_bounds range</span>
                 <span class="c1"># append k-point coordinate along the cart_bounds</span>
-                <span class="n">klines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
+                <span class="n">ikfound</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ik</span><span class="p">)</span>
                 <span class="n">dist_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">dl</span><span class="p">)</span>
 
         <span class="n">dl</span> <span class="o">=</span> <span class="n">dl</span> <span class="o">+</span> <span class="n">dk</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">klines</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_list</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">dict2namedtuple</span><span class="p">(</span>
+            <span class="n">ikfound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ikfound</span><span class="p">),</span>
+            <span class="n">dist_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_list</span><span class="p">),</span>
+            <span class="n">path_ticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">path_ticks</span><span class="p">),</span>
+           <span class="p">)</span></div>
 </pre></div>
 
     </div>
@@ -1867,7 +1894,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

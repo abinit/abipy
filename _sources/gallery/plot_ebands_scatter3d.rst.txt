@@ -33,7 +33,7 @@ The color of the point gives the energy of the state wrt to the Fermi level.
     with abilab.abiopen(abidata.ref_file("ni_kpath_GSR.nc")) as ncfile:
         ncfile.ebands.plot_scatter3d(band=9, spin=0)
 
-**Total running time of the script:** ( 0 minutes  1.817 seconds)
+**Total running time of the script:** ( 0 minutes  1.638 seconds)
 
 
 .. _sphx_glr_download_gallery_plot_ebands_scatter3d.py:

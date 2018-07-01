@@ -194,6 +194,7 @@
 <span class="kn">from</span> <span class="nn">abipy.eph.a2f</span> <span class="k">import</span> <span class="n">A2fFile</span><span class="p">,</span> <span class="n">A2fRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.eph.sigeph</span> <span class="k">import</span> <span class="n">SigEPhFile</span><span class="p">,</span> <span class="n">SigEPhRobot</span>
 <span class="kn">from</span> <span class="nn">abipy.wannier90</span> <span class="k">import</span> <span class="n">WoutFile</span>
+<span class="kn">from</span> <span class="nn">abipy.electrons.lobster</span> <span class="k">import</span> <span class="n">Coxp</span><span class="p">,</span> <span class="n">ICoxp</span><span class="p">,</span> <span class="n">LobsterDos</span><span class="p">,</span> <span class="n">LobsterInput</span><span class="p">,</span> <span class="n">LobsterAnalyzer</span>
 
 <span class="c1"># Abinit Documentation.</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.abivars_db</span> <span class="k">import</span> <span class="n">get_abinit_variables</span><span class="p">,</span> <span class="n">abinit_help</span><span class="p">,</span> <span class="n">docvar</span>
@@ -222,6 +223,11 @@
     <span class="p">(</span><span class="s2">&quot;.fhi&quot;</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;JTH.xml&quot;</span><span class="p">,</span> <span class="n">Pseudo</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">&quot;.wout&quot;</span><span class="p">,</span> <span class="n">WoutFile</span><span class="p">),</span>
+    <span class="c1"># Lobster files.</span>
+    <span class="p">(</span><span class="s2">&quot;COHPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">Coxp</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;COOPCAR.lobster&quot;</span><span class="p">,</span> <span class="n">Coxp</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;ICOHPLIST.lobster&quot;</span><span class="p">,</span> <span class="n">ICoxp</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;DOSCAR.lobster&quot;</span><span class="p">,</span> <span class="n">LobsterDos</span><span class="p">),</span>
 <span class="p">])</span>
 
 <span class="c1"># Abinit files require a special treatment.</span>
@@ -274,7 +280,10 @@
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">==</span> <span class="n">Flow</span><span class="o">.</span><span class="n">PICKLE_FNAME</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Flow</span>
 
+    <span class="kn">from</span> <span class="nn">abipy.tools.text</span> <span class="k">import</span> <span class="n">rreplace</span>
     <span class="k">for</span> <span class="n">ext</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">ext2file</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># This to support gzipped files.</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">occurrence</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span> <span class="k">return</span> <span class="bp">cls</span>
 
     <span class="n">ext</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -512,7 +521,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

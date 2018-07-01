@@ -232,48 +232,52 @@ Usage example:
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 File extensions supported:
-Extension       Class
---------------  -----------------------------------------------------
-.abi            &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
-.in             &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
-.abo            &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
-.out            &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
-.log            &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
-.cif            &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-POSCAR          &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-.cssr           &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
-.cube           &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
-anaddb.nc       &lt;class &#39;abipy.dfpt.anaddbnc.AnaddbNcFile&#39;&gt;
-DEN             &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt;
-.psp8           &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-.pspnc          &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-.fhi            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-JTH.xml         &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
-.wout           &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
-GSR.nc          &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
-DEN.nc          &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
-OUT.nc          &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
-DDK.nc          &lt;class &#39;abipy.electrons.ddk.DdkFile&#39;&gt;
-VHA.nc          &lt;class &#39;abipy.electrons.denpot.VhartreeNcFile&#39;&gt;
-VXC.nc          &lt;class &#39;abipy.electrons.denpot.VxcNcFile&#39;&gt;
-VHXC.nc         &lt;class &#39;abipy.electrons.denpot.VhxcNcFile&#39;&gt;
-POT.nc          &lt;class &#39;abipy.electrons.denpot.PotNcFile&#39;&gt;
-WFK.nc          &lt;class &#39;abipy.waves.wfkfile.WfkFile&#39;&gt;
-HIST.nc         &lt;class &#39;abipy.dynamics.hist.HistFile&#39;&gt;
-PSPS.nc         &lt;class &#39;abipy.electrons.psps.PspsFile&#39;&gt;
-DDB             &lt;class &#39;abipy.dfpt.ddb.DdbFile&#39;&gt;
-PHBST.nc        &lt;class &#39;abipy.dfpt.phonons.PhbstFile&#39;&gt;
-PHDOS.nc        &lt;class &#39;abipy.dfpt.phonons.PhdosFile&#39;&gt;
-SCR.nc          &lt;class &#39;abipy.electrons.scr.ScrFile&#39;&gt;
-SIGRES.nc       &lt;class &#39;abipy.electrons.gw.SigresFile&#39;&gt;
-GRUNS.nc        &lt;class &#39;abipy.dfpt.gruneisen.GrunsNcFile&#39;&gt;
-MDF.nc          &lt;class &#39;abipy.electrons.bse.MdfFile&#39;&gt;
-FATBANDS.nc     &lt;class &#39;abipy.electrons.fatbands.FatBandsFile&#39;&gt;
-FOLD2BLOCH.nc   &lt;class &#39;abipy.electrons.fold2bloch.Fold2BlochNcfile&#39;&gt;
-CUT3DDENPOT.nc  &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&gt;
-OPTIC.nc        &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
-A2F.nc          &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
-SIGEPH.nc       &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
+Extension          Class
+-----------------  -----------------------------------------------------
+.abi               &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.in                &lt;class &#39;abipy.abio.abivars.AbinitInputFile&#39;&gt;
+.abo               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.out               &lt;class &#39;abipy.abio.outputs.AbinitOutputFile&#39;&gt;
+.log               &lt;class &#39;abipy.abio.outputs.AbinitLogFile&#39;&gt;
+.cif               &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+POSCAR             &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cssr              &lt;class &#39;abipy.core.structure.Structure&#39;&gt;
+.cube              &lt;class &#39;abipy.core.mixins.CubeFile&#39;&gt;
+anaddb.nc          &lt;class &#39;abipy.dfpt.anaddbnc.AnaddbNcFile&#39;&gt;
+DEN                &lt;class &#39;abipy.electrons.denpot.DensityFortranFile&#39;&gt;
+.psp8              &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.pspnc             &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.fhi               &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+JTH.xml            &lt;class &#39;pymatgen.io.abinit.pseudos.Pseudo&#39;&gt;
+.wout              &lt;class &#39;abipy.wannier90.wout.WoutFile&#39;&gt;
+COHPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.Coxp&#39;&gt;
+COOPCAR.lobster    &lt;class &#39;abipy.electrons.lobster.Coxp&#39;&gt;
+ICOHPLIST.lobster  &lt;class &#39;abipy.electrons.lobster.ICoxp&#39;&gt;
+DOSCAR.lobster     &lt;class &#39;abipy.electrons.lobster.LobsterDos&#39;&gt;
+GSR.nc             &lt;class &#39;abipy.electrons.gsr.GsrFile&#39;&gt;
+DEN.nc             &lt;class &#39;abipy.electrons.denpot.DensityNcFile&#39;&gt;
+OUT.nc             &lt;class &#39;abipy.abio.outputs.OutNcFile&#39;&gt;
+DDK.nc             &lt;class &#39;abipy.electrons.ddk.DdkFile&#39;&gt;
+VHA.nc             &lt;class &#39;abipy.electrons.denpot.VhartreeNcFile&#39;&gt;
+VXC.nc             &lt;class &#39;abipy.electrons.denpot.VxcNcFile&#39;&gt;
+VHXC.nc            &lt;class &#39;abipy.electrons.denpot.VhxcNcFile&#39;&gt;
+POT.nc             &lt;class &#39;abipy.electrons.denpot.PotNcFile&#39;&gt;
+WFK.nc             &lt;class &#39;abipy.waves.wfkfile.WfkFile&#39;&gt;
+HIST.nc            &lt;class &#39;abipy.dynamics.hist.HistFile&#39;&gt;
+PSPS.nc            &lt;class &#39;abipy.electrons.psps.PspsFile&#39;&gt;
+DDB                &lt;class &#39;abipy.dfpt.ddb.DdbFile&#39;&gt;
+PHBST.nc           &lt;class &#39;abipy.dfpt.phonons.PhbstFile&#39;&gt;
+PHDOS.nc           &lt;class &#39;abipy.dfpt.phonons.PhdosFile&#39;&gt;
+SCR.nc             &lt;class &#39;abipy.electrons.scr.ScrFile&#39;&gt;
+SIGRES.nc          &lt;class &#39;abipy.electrons.gw.SigresFile&#39;&gt;
+GRUNS.nc           &lt;class &#39;abipy.dfpt.gruneisen.GrunsNcFile&#39;&gt;
+MDF.nc             &lt;class &#39;abipy.electrons.bse.MdfFile&#39;&gt;
+FATBANDS.nc        &lt;class &#39;abipy.electrons.fatbands.FatBandsFile&#39;&gt;
+FOLD2BLOCH.nc      &lt;class &#39;abipy.electrons.fold2bloch.Fold2BlochNcfile&#39;&gt;
+CUT3DDENPOT.nc     &lt;class &#39;abipy.electrons.denpot.Cut3dDenPotNcFile&#39;&gt;
+OPTIC.nc           &lt;class &#39;abipy.electrons.optic.OpticNcFile&#39;&gt;
+A2F.nc             &lt;class &#39;abipy.eph.a2f.A2fFile&#39;&gt;
+SIGEPH.nc          &lt;class &#39;abipy.eph.sigeph.SigEPhFile&#39;&gt;
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -376,7 +380,7 @@ Please follow this convention to facilitate the integration with AbiPy.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

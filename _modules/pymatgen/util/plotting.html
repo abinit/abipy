@@ -488,6 +488,7 @@
         <span class="n">show</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">savefig</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;savefig&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">tight_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;tight_layout&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_grid</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ax_grid&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="c1"># Call func and return immediately if None is returned.</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -502,8 +503,10 @@
             <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="n">size_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">),</span> <span class="n">size_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">),</span>
                                 <span class="o">**</span><span class="n">size_kwargs</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">savefig</span><span class="p">:</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savefig</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ax_grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">ax_grid</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">tight_layout</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
@@ -511,6 +514,10 @@
                 <span class="c1"># For some unknown reason, this problem shows up only on travis.</span>
                 <span class="c1"># https://stackoverflow.com/questions/22708888/valueerror-when-using-matplotlib-tight-layout</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ignoring Exception raised by fig.tight_layout</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">savefig</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savefig</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -529,6 +536,8 @@
 <span class="s2">        savefig           &quot;abc.png&quot; or &quot;abc.eps&quot; to save the figure to a file.</span>
 <span class="s2">        size_kwargs       Dictionary with options passed to fig.set_size_inches</span>
 <span class="s2">                          e.g. size_kwargs=dict(w=3, h=4)</span>
+<span class="s2">        ax_grid           True (False) to add (remove) grid from all axes in fig.</span>
+<span class="s2">                          Default: None i.e. fig is left unchanged.</span>
 <span class="s2">        tight_layout      True to call fig.tight_layout (default: False)</span>
 <span class="s2">        ================  ====================================================</span>
 
@@ -556,7 +565,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -1647,7 +1647,16 @@
                     <span class="n">yvals</span> <span class="o">=</span> <span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">qp_dirgaps_t</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">itemp</span><span class="p">]</span> <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">ncfiles</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">plot_qpmks</span><span class="p">:</span>
                         <span class="n">yvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">yvals</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ncfile</span><span class="o">.</span><span class="n">ks_dirgaps</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">]</span> <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">ncfiles</span><span class="p">])</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Must handle list of strings in a different way.</span>
+                        <span class="n">xn</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xn</span><span class="p">)</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
+
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
                         <span class="n">yvals</span> <span class="o">=</span> <span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">qp_dirgaps_t</span><span class="p">[</span><span class="n">spin</span><span class="p">,</span> <span class="n">ikc</span><span class="p">,</span> <span class="n">itemp</span><span class="p">]</span> <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">abifiles</span><span class="p">]</span>
@@ -1725,7 +1734,14 @@
             <span class="k">if</span> <span class="n">hue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Extract QP data.</span>
                 <span class="n">yvals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">qp</span><span class="p">,</span> <span class="n">what</span><span class="p">)[</span><span class="n">itemp</span><span class="p">]</span> <span class="k">for</span> <span class="n">qp</span> <span class="ow">in</span> <span class="n">qplist</span><span class="p">]</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Must handle list of strings in a different way.</span>
+                    <span class="n">xn</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xn</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">nc0</span><span class="o">.</span><span class="n">marker_spin</span><span class="p">[</span><span class="n">spin</span><span class="p">])</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xn</span><span class="p">)</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">qplist</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">qplist_group</span><span class="p">):</span>
                     <span class="c1"># Extract QP data.</span>
@@ -2326,7 +2342,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

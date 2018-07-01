@@ -322,7 +322,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="exception">
 <dt id="abipy.dfpt.ddb.DdbError">
 <em class="property">exception </em><code class="descclassname">abipy.dfpt.ddb.</code><code class="descname">DdbError</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></a></p>
 <p>Error class raised by DDB.</p>
 </dd></dl>
 
@@ -397,10 +397,10 @@ save it to temporary file and return new DdbFile object.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Materials Project material_id (e.g., mp-1234).</li>
-<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – A String API key for accessing the MaterialsProject REST interface.
+<li><strong>material_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Materials Project material_id (e.g., mp-1234).</li>
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A String API key for accessing the MaterialsProject REST interface.
 If None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in your .pmgrc.yaml.</li>
-<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.
 Defaults to the standard Materials Project REST address</li>
 </ul>
 </td>
@@ -444,7 +444,7 @@ Use e.g. <code class="docutils literal"><span class="pre">ddb.header.ecut</span>
 <dt id="abipy.dfpt.ddb.DdbFile.computed_dynmat">
 <code class="descname">computed_dynmat</code><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbFile.computed_dynmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbFile.computed_dynmat" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> mapping q-point object to –&gt; pandas Dataframe.
-The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
+The <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> contains the columns: “idir1”, “ipert1”, “idir2”, “ipert2”, “cvalue”
 and (idir1, ipert1, idir2, ipert2) as index.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -578,7 +578,7 @@ Produce <a class="reference external" href="https://en.wikipedia.org/wiki/JSON">
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>lo_to_splitting</strong> – Allowed values are [True, False, “automatic”]. Defaults to False
 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -626,7 +626,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -776,7 +776,7 @@ plotter: |PhononDosPlotter| object.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>chneut</strong> – Anaddb input variable. See official documentation.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 </ul>
@@ -803,7 +803,7 @@ plotter: |PhononDosPlotter| object.
 <li><strong>ngqpt</strong> – Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default)</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -829,7 +829,7 @@ Requires phonon perturbations at Gamma and static electric field perturbations.<
 <li><strong>chneut</strong><strong>, </strong><strong>dipdip</strong> (<em>asr</em><em>,</em>) – Anaddb input variable. See official documentation.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information</li>
 <li><strong>anaddb_kwargs</strong> – additional kwargs for anaddb</li>
 </ul>
@@ -1051,7 +1051,11 @@ elements, indicating the indices [i, j] of the desired component or a string amo
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1093,9 +1097,9 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>mpid_list</strong> – List of Materials Project material_ids (e.g., [“mp-1234”, “mp-1245”]).</li>
-<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – A String API key for accessing the MaterialsProject REST interface.
+<li><strong>api_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A String API key for accessing the MaterialsProject REST interface.
 If None, the code will check if there is a <cite>PMG_MAPI_KEY</cite> in your .pmgrc.yaml.</li>
-<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.
+<li><strong>endpoint</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Url of endpoint to access the MaterialsProject REST interface.
 Defaults to the standard Materials Project REST address</li>
 </ul>
 </td>
@@ -1109,7 +1113,7 @@ Defaults to the standard Materials Project REST address</li>
 <code class="descname">get_dataframe_at_qpoint</code><span class="sig-paren">(</span><em>qpoint=None</em>, <em>units='eV'</em>, <em>asr=2</em>, <em>chneut=1</em>, <em>dipdip=1</em>, <em>with_geo=True</em>, <em>abspath=False</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/ddb.html#DdbRobot.get_dataframe_at_qpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.ddb.DdbRobot.get_dataframe_at_qpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated
 by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
+Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with results</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1127,7 +1131,7 @@ where key is a string with the name of column and value is the value to be inser
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -1185,7 +1189,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.dfpt.frozen_phonons.FrozenPhonon">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.frozen_phonons.</code><code class="descname">FrozenPhonon</code><span class="sig-paren">(</span><em>original_structure</em>, <em>original_displ_cart</em>, <em>structures</em>, <em>normalized_displ_cart</em>, <em>etas</em>, <em>qpt_frac_coords</em>, <em>scale_matrix</em>, <em>energies=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/frozen_phonons.html#FrozenPhonon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.frozen_phonons.FrozenPhonon" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Class defining a set of structures with displaced atoms.
 Provides methods to generate, interpolate and plot the data.</p>
 <dl class="attribute">
@@ -1328,7 +1332,11 @@ freq in eV. Requires the 0 displacement to be present in the list of etas.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1383,7 +1391,11 @@ obtained from the frequency, rather than the absolute difference.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1484,7 +1496,7 @@ This file contains Grunesein parameters computed via finite difference.</p>
 <dl class="method">
 <dt id="abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe">
 <code class="descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/gruneisen.html#GrunsNcFile.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.gruneisen.GrunsNcFile.to_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -1562,7 +1574,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1631,7 +1647,11 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1692,7 +1712,11 @@ Case-insensitive.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1764,7 +1788,11 @@ marker to ‘o’, color to black.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1884,7 +1912,7 @@ depending on the input structure.</li>
 <li><strong>verbose</strong> – verbosity level. Set it to a value &gt; 0 to get more information.</li>
 <li><strong>mpi_procs</strong> – Number of MPI processes to use.</li>
 <li><strong>workdir</strong> – Working directory. If None, a temporary directory is created.</li>
-<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
+<li><strong>manager</strong> – <a class="reference external" href="http://pymatgen.org/pymatgen.io.abinit.tasks.html#pymatgen.io.abinit.tasks.TaskManager" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.io.abinit.tasks.TaskManager</span></code></a> object. If None, the object is initialized from the configuration file.</li>
 </ul>
 </td>
 </tr>
@@ -1941,7 +1969,7 @@ mass units used for the calculation.</p>
 <dl class="class">
 <dt id="abipy.dfpt.phonons.PhononBands">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.phonons.</code><code class="descname">PhononBands</code><span class="sig-paren">(</span><em>structure</em>, <em>qpoints</em>, <em>phfreqs</em>, <em>phdispl_cart</em>, <em>non_anal_ph=None</em>, <em>amu=None</em>, <em>linewidths=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Container object storing the phonon band structure.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -2344,7 +2372,11 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2410,7 +2442,11 @@ It useful to better distinguish close bands when the number of branch is large.<
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2500,7 +2536,11 @@ The values are the labels. e.g. <code class="docutils literal"><span class="pre"
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2555,7 +2595,11 @@ Used if <code class="docutils literal"><span class="pre">ax_list</span></code> i
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2630,7 +2674,11 @@ Should have the same length of atoms_index or be None. If None automatic labelli
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2700,7 +2748,11 @@ Should have the same length of atoms_index or be None. If None automatic labelli
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2710,7 +2762,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBands.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBands.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBands.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the following columns:</p>
 <blockquote>
 <div>[‘qidx’, ‘mode’, ‘freq’, ‘qpoint’]</div></blockquote>
 <p>where:</p>
@@ -2785,7 +2837,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2964,7 +3020,7 @@ Accepts integer, vector with reduced coordinates or <a class="reference internal
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhbstFile.get_phframe">
 <code class="descname">get_phframe</code><span class="sig-paren">(</span><em>qpoint</em>, <em>with_structure=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhbstFile.get_phframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhbstFile.get_phframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
+<dd><p>Return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the phonon frequencies at the given q-point and
 information on the crystal structure (used for convergence studies).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3138,7 +3194,11 @@ hence what=”id” plots both IDOS and DOS. (default “d”).</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3157,7 +3217,7 @@ Zero point energy is included.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
-<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
+<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
 </ul>
 </td>
 </tr>
@@ -3177,7 +3237,7 @@ Zero point energy is included.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
-<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
+<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
 </ul>
 </td>
 </tr>
@@ -3198,7 +3258,7 @@ Zero point energy is included.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
-<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
+<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
 </ul>
 </td>
 </tr>
@@ -3219,7 +3279,7 @@ for different temperatures</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>tstart</strong> – The starting value (in Kelvin) of the temperature mesh.</li>
 <li><strong>tstop</strong> – The end value (in Kelvin) of the mesh.</li>
-<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
+<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – optional Number of samples to generate. Default is 50.</li>
 </ul>
 </td>
 </tr>
@@ -3278,7 +3338,11 @@ thermodynamic quantities will be given on a per-unit-cell basis.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3396,7 +3460,7 @@ Provides helper function to visualize/extract data.</p>
 <dt id="abipy.dfpt.phonons.PhdosFile.params">
 <code class="descname">params</code><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhdosFile.params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhdosFile.params" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">OrderedDict</span></code> with the convergence parameters
-Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
+Used to construct <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -3484,7 +3548,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3544,7 +3612,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3602,7 +3674,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3665,7 +3741,7 @@ Supports plots on the same graph or separated plots.</p>
 <dl class="method">
 <dt id="abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame">
 <code class="descname">get_phbands_frame</code><span class="sig-paren">(</span><em>with_spglib=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/phonons.html#PhononBandsPlotter.get_phbands_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.phonons.PhononBandsPlotter.get_phbands_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
+<dd><p>Build a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results available in the band structures.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3773,7 +3849,11 @@ Used if plotter has DOSes.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3835,7 +3915,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3897,7 +3981,11 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -3948,7 +4036,11 @@ Band structures are drawn on different subplots.</p>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4000,7 +4092,11 @@ Phonon Band structures are drawn on the same plot.</p>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4050,7 +4146,11 @@ at a given q-point. One panel for all phbands stored in the plotter.</p>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4190,7 +4290,11 @@ or scalar e.g. <cite>left</cite>. If left (right) is None, default values are us
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4247,7 +4351,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4303,7 +4411,11 @@ Possible values in [“internal_energy”, “free_energy”, “entropy”, “
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4344,7 +4456,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.dfpt.qha.QHA">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.qha.</code><code class="descname">QHA</code><span class="sig-paren">(</span><em>structures</em>, <em>doses</em>, <em>energies</em>, <em>eos_name='vinet'</em>, <em>pressure=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/dfpt/qha.html#QHA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.qha.QHA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations
 at different volumes.
 Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
@@ -4471,7 +4583,11 @@ The list should have the same size and the volumes should match.</p>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4543,7 +4659,11 @@ finite difference on the fitted values of the volume as a function of temperatur
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4594,7 +4714,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4649,7 +4773,11 @@ be raised.</p>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -4758,8 +4886,8 @@ in the list. Choose the values of tstart, tstop and num to satisfy this conditio
 <dl class="class">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">NLOpticalSusceptibilityTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#NLOpticalSusceptibilityTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.NLOpticalSusceptibilityTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.Tensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.Tensor</span></code></a> containing the
 non-linear optical susceptibility tensor.</p>
 <dl class="classmethod">
 <dt id="abipy.dfpt.tensors.NLOpticalSusceptibilityTensor.from_file">
@@ -4773,8 +4901,8 @@ This requires to run anaddb with <code class="docutils literal"><span class="pre
 <dl class="class">
 <dt id="abipy.dfpt.tensors.DielectricTensor">
 <em class="property">class </em><code class="descclassname">abipy.dfpt.tensors.</code><code class="descname">DielectricTensor</code><a class="reference internal" href="../_modules/abipy/dfpt/tensors.html#DielectricTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.dfpt.tensors.DielectricTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
-<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.11)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
+<dd><p>Bases: <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a></p>
+<p>Subclass of <a class="reference external" href="http://pymatgen.org/pymatgen.analysis.elasticity.tensors.html#pymatgen.analysis.elasticity.tensors.SquareTensor" title="(in pymatgen v2018.6.27)"><code class="xref py py-class docutils literal"><span class="pre">pymatgen.analysis.elasticity.tensors.SquareTensor</span></code></a>
 describing a dielectric tensor.</p>
 <dl class="method">
 <dt id="abipy.dfpt.tensors.DielectricTensor.reflectivity">
@@ -4801,7 +4929,7 @@ returns the three components of the reflectivity.</p>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

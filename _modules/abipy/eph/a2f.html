@@ -151,6 +151,7 @@
 <span class="kn">from</span> <span class="nn">abipy.core.kpoints</span> <span class="k">import</span> <span class="n">Kpath</span>
 <span class="kn">from</span> <span class="nn">abipy.tools.plotting</span> <span class="k">import</span> <span class="p">(</span><span class="n">add_fig_kwargs</span><span class="p">,</span> <span class="n">get_ax_fig_plt</span><span class="p">,</span> <span class="n">get_axarray_fig_plt</span><span class="p">,</span> <span class="n">set_axlims</span><span class="p">,</span> <span class="n">set_visible</span><span class="p">,</span>
     <span class="n">rotate_ticklabels</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abipy.tools</span> <span class="k">import</span> <span class="n">duck</span>
 <span class="kn">from</span> <span class="nn">abipy.electrons.ebands</span> <span class="k">import</span> <span class="n">ElectronDos</span><span class="p">,</span> <span class="n">RobotWithEbands</span>
 <span class="kn">from</span> <span class="nn">abipy.dfpt.phonons</span> <span class="k">import</span> <span class="n">PhononBands</span><span class="p">,</span> <span class="n">PhononDos</span><span class="p">,</span> <span class="n">RobotWithPhbands</span>
 <span class="kn">from</span> <span class="nn">abipy.abio.robots</span> <span class="k">import</span> <span class="n">Robot</span>
@@ -1310,14 +1311,19 @@
         <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ax_list</span><span class="p">,</span> <span class="n">what_list</span><span class="p">)):</span>
             <span class="c1">#ax.set_title(what, fontsize=fontsize)</span>
             <span class="k">if</span> <span class="n">hue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">params_are_string</span> <span class="o">=</span> <span class="n">duck</span><span class="o">.</span><span class="n">is_string</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">xvals</span> <span class="o">=</span> <span class="n">params</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">params_are_string</span> <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">iq</span><span class="p">,</span> <span class="n">qsamp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qsamps</span><span class="p">):</span>
                     <span class="n">a2f_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ncfile</span><span class="o">.</span><span class="n">get_a2f_qsamp</span><span class="p">(</span><span class="n">qsamp</span><span class="p">)</span> <span class="k">for</span> <span class="n">ncfile</span> <span class="ow">in</span> <span class="n">ncfiles</span><span class="p">]</span>
                     <span class="n">yvals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">a2f</span><span class="p">,</span> <span class="n">what</span><span class="p">)</span> <span class="k">for</span> <span class="n">a2f</span> <span class="ow">in</span> <span class="n">a2f_list</span><span class="p">]</span>
-                    <span class="n">l</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span>
+                    <span class="n">l</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span>
                                 <span class="n">marker</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">marker_qsamp</span><span class="p">[</span><span class="n">qsamp</span><span class="p">],</span>
                                 <span class="n">linestyle</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">linestyle_qsamp</span><span class="p">[</span><span class="n">qsamp</span><span class="p">],</span>
                                 <span class="n">color</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">iq</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_color</span><span class="p">(),</span>
                                 <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">params_are_string</span><span class="p">:</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xvals</span><span class="p">)</span>
+                        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">iq</span><span class="p">,</span> <span class="n">qsamp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qsamps</span><span class="p">):</span>
@@ -1587,7 +1593,7 @@
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

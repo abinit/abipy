@@ -177,7 +177,7 @@ and Eliashberg function).</p>
 <dl class="class">
 <dt id="abipy.eph.a2f.A2f">
 <em class="property">class </em><code class="descclassname">abipy.eph.a2f.</code><code class="descname">A2f</code><span class="sig-paren">(</span><em>mesh</em>, <em>values_spin</em>, <em>values_spin_nu</em>, <em>ngqpt</em>, <em>meta</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.a2f.A2f" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Eliashberg function a2F(w). Energies are in eV.</p>
 <dl class="attribute">
 <dt id="abipy.eph.a2f.A2f.marker_spin">
@@ -294,7 +294,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -346,7 +350,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -401,7 +409,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -450,7 +462,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -468,7 +484,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>start</strong> – The starting value of the sequence.</li>
 <li><strong>stop</strong> – The end value of the sequence</li>
-<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – optional. Number of samples to generate. Default is 50. Must be non-negative.</li>
+<li><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – optional. Number of samples to generate. Default is 50. Must be non-negative.</li>
 <li><strong>ax</strong> – <a class="reference external" href="https://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes" title="(in Matplotlib v2.2.2)"><code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes.Axes</span></code></a> or None if a new figure should be created.</li>
 </ul>
 </td>
@@ -501,7 +517,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -513,7 +533,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.eph.a2f.A2Ftr">
 <em class="property">class </em><code class="descclassname">abipy.eph.a2f.</code><code class="descname">A2Ftr</code><span class="sig-paren">(</span><em>mesh</em>, <em>vals_in</em>, <em>vals_out</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2Ftr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.a2f.A2Ftr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Transport Eliashberg function a2F(w). Energies are in eV.</p>
 <dl class="attribute">
 <dt id="abipy.eph.a2f.A2Ftr.marker_spin">
@@ -695,7 +715,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -751,7 +775,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -803,7 +831,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -856,7 +888,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -916,7 +952,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.a2f.A2fRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>abspath=False</em>, <em>with_geo=False</em>, <em>with_params=True</em>, <em>funcs=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/a2f.html#A2fRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.a2f.A2fRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
+<dd><p>Build and return a <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with the most important results.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -933,7 +969,7 @@ where key is a string with the name of column and value is the value to be inser
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="method">
@@ -990,7 +1026,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1051,7 +1091,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1110,7 +1154,11 @@ If callable, the output of hue(abifile) is used.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1160,7 +1208,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1327,7 +1379,7 @@ working directory is created. Return path to the notebook.</p>
 </tr>
 </tbody>
 </table>
-<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
+<p>Return: <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a></p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -1396,7 +1448,11 @@ See <a class="reference internal" href="#abipy.eph.sigeph.QpTempState" title="ab
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1408,7 +1464,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.eph.sigeph.QpTempList">
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">QpTempList</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#QpTempList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.QpTempList" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a></p>
 <p>A list of quasiparticle corrections (usually for a given spin).</p>
 <dl class="attribute">
 <dt id="abipy.eph.sigeph.QpTempList.tmesh">
@@ -1505,7 +1561,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1517,7 +1577,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.eph.sigeph.EphSelfEnergy">
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">EphSelfEnergy</code><span class="sig-paren">(</span><em>wmesh</em>, <em>qp</em>, <em>vals_e0ks</em>, <em>dvals_de0ks</em>, <em>dw_vals</em>, <em>vals_wr</em>, <em>spfunc_wr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#EphSelfEnergy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.EphSelfEnergy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Electron self-energy due to phonon interaction <span class="math">\(\Sigma_{nk}(\omega,T)\)</span>
 Actually these are the diagonal matrix elements in the KS basis set.</p>
 <dl class="attribute">
@@ -1581,7 +1641,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1638,7 +1702,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1774,7 +1842,7 @@ ikcalc is the index in the nkcalc array..</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 included in the calculation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1793,7 +1861,7 @@ included in the calculation.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhFile.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>itemp=None</em>, <em>index=None</em>, <em>with_params=False</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhFile.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhFile.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
+<dd><p>Returns <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for the given (spin, k-point).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1903,7 +1971,11 @@ or None to plot all k-points.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1954,7 +2026,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2021,7 +2097,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2074,7 +2154,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2118,7 +2202,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk">
 <code class="descname">get_dataframe_sk</code><span class="sig-paren">(</span><em>spin</em>, <em>kpoint</em>, <em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe_sk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe_sk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with qp results for this spin, k-point</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2138,7 +2222,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="method">
 <dt id="abipy.eph.sigeph.SigEPhRobot.get_dataframe">
 <code class="descname">get_dataframe</code><span class="sig-paren">(</span><em>with_params=True</em>, <em>ignore_imag=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#SigEPhRobot.get_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.SigEPhRobot.get_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.24.0.dev0+110.gbf1c3dc.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
+<dd><p>Return <a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis/generated/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v0.23.1+1.g7cbebaf.dirty)"><code class="xref py py-class docutils literal"><span class="pre">pandas.DataFrame</span></code></a> with QP results for all k-points, bands and spins
 present in the files treated by the robot.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2212,7 +2296,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2272,7 +2360,11 @@ If callable, the output of hue(abifile) is used.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2334,7 +2426,11 @@ If callable, the output of hue(abifile) is used.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2395,7 +2491,11 @@ If callable, the output of hue(abifile) is used.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2412,8 +2512,8 @@ at temperature <cite>itemp</cite> as a function of the KS energy.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>field</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – String defining the attribute to plot.</li>
-<li><strong>itemp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – Temperature index.</li>
+<li><strong>field</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – String defining the attribute to plot.</li>
+<li><strong>itemp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Temperature index.</li>
 <li><strong>sortby</strong> – Define the convergence parameter, sort files and produce plot labels.
 Can be None, string or function. If None, no sorting is performed.
 If string and not empty it’s assumed that the abifile has an attribute
@@ -2461,7 +2561,11 @@ If callable, the output of hue(abifile) is used.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2486,7 +2590,7 @@ working directory is created. Return path to the notebook.</p>
 <dl class="class">
 <dt id="abipy.eph.sigeph.TdepElectronBands">
 <em class="property">class </em><code class="descclassname">abipy.eph.sigeph.</code><code class="descname">TdepElectronBands</code><span class="sig-paren">(</span><em>tmesh</em>, <em>ks_ebands_kpath</em>, <em>qp_ebands_kpath_t</em>, <em>ks_ebands_kmesh</em>, <em>qp_ebands_kmesh_t</em>, <em>interpolators_t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/eph/sigeph.html#TdepElectronBands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.eph.sigeph.TdepElectronBands" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>A list of <a class="reference internal" href="electrons_api.html#abipy.electrons.ebands.ElectronBands" title="abipy.electrons.ebands.ElectronBands"><code class="xref py py-class docutils literal"><span class="pre">abipy.electrons.ebands.ElectronBands</span></code></a> (T) with a real part renormalized by
 the E-PH sel-energy. Imaginary part is stored in a specialized array.
 This object is not supposed to be instantiated directly.
@@ -2570,7 +2674,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2622,7 +2730,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2680,7 +2792,11 @@ or scalar e.g. <code class="docutils literal"><span class="pre">left</span></cod
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -2829,7 +2945,7 @@ Only real part is returned if <code class="docutils literal"><span class="pre">i
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>

@@ -187,7 +187,7 @@
 <dl class="class">
 <dt id="abipy.tools.NoDefaultProvided">
 <em class="property">class </em><code class="descclassname">abipy.tools.</code><code class="descname">NoDefaultProvided</code><a class="reference internal" href="../_modules/abipy/tools.html#NoDefaultProvided"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.NoDefaultProvided" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 </dd></dl>
 
 <dl class="function">
@@ -295,7 +295,7 @@ are available in <cite>arr</cite>.</p>
 <dl class="class">
 <dt id="abipy.tools.devtools.HtmlDiff">
 <em class="property">class </em><code class="descclassname">abipy.tools.devtools.</code><code class="descname">HtmlDiff</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/devtools.html#HtmlDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.devtools.HtmlDiff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>This object produces diff files in HTML format and displays them in the browser.</p>
 <p>Usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">HtmlDiff</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span><span class="o">.</span><span class="n">open_browser</span><span class="p">()</span>
@@ -402,7 +402,7 @@ the FFT libraries used by ABINIT and plot the results with matplotlib.</p>
 <dl class="class">
 <dt id="abipy.tools.fftprof.FFTBenchmark">
 <em class="property">class </em><code class="descclassname">abipy.tools.fftprof.</code><code class="descname">FFTBenchmark</code><span class="sig-paren">(</span><em>title</em>, <em>FFT_tests</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/fftprof.html#FFTBenchmark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.fftprof.FFTBenchmark" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Container class storing the results of the FFT benchmark.</p>
 <p>Use the class method <code class="docutils literal"><span class="pre">from_file</span></code> to generate a new instance.</p>
 <dl class="classmethod">
@@ -451,7 +451,11 @@ the FFT libraries used by ABINIT and plot the results with matplotlib.</p>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -478,14 +482,14 @@ exception is raised to prevent infinite loops.</p>
 <dl class="exception">
 <dt id="abipy.tools.iotools.EditorError">
 <em class="property">exception </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">EditorError</code><a class="reference internal" href="../_modules/abipy/tools/iotools.html#EditorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.EditorError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></a></p>
 <p>Base class for exceptions raised by <cite>Editor</cite></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="abipy.tools.iotools.Editor">
 <em class="property">class </em><code class="descclassname">abipy.tools.iotools.</code><code class="descname">Editor</code><span class="sig-paren">(</span><em>editor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/iotools.html#Editor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.iotools.Editor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="attribute">
 <dt id="abipy.tools.iotools.Editor.DEFAULT_EDITOR">
 <code class="descname">DEFAULT_EDITOR</code><em class="property"> = 'vi'</em><a class="headerlink" href="#abipy.tools.iotools.Editor.DEFAULT_EDITOR" title="Permalink to this definition">¶</a></dt>
@@ -744,7 +748,7 @@ By default, vinf = values[-1]</li>
 <dl class="class">
 <dt id="abipy.tools.numtools.BlochRegularGridInterpolator">
 <em class="property">class </em><code class="descclassname">abipy.tools.numtools.</code><code class="descname">BlochRegularGridInterpolator</code><span class="sig-paren">(</span><em>structure</em>, <em>datar</em>, <em>add_replicas=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/numtools.html#BlochRegularGridInterpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.numtools.BlochRegularGridInterpolator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>This object interpolates the periodic part of a Bloch state in real space.</p>
 <dl class="method">
 <dt id="abipy.tools.numtools.BlochRegularGridInterpolator.eval_line">
@@ -900,7 +904,11 @@ values: numpy array of shape [ndt, num] with interpolated values.</dd>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -911,7 +919,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.tools.plotting.ArrayPlotter">
 <em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">ArrayPlotter</code><span class="sig-paren">(</span><em>*labels_and_arrays</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="abipy.tools.plotting.ArrayPlotter.keys">
 <code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#ArrayPlotter.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.ArrayPlotter.keys" title="Permalink to this definition">¶</a></dt>
@@ -988,7 +996,11 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1052,7 +1064,7 @@ and linewidth to 3.</li>
 <dl class="class">
 <dt id="abipy.tools.plotting.GenericDataFilePlotter">
 <em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">GenericDataFilePlotter</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilePlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilePlotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <p>Extract data from a generic text file with results
 in tabular format and plot data with matplotlib.
 Multiple datasets are supported.
@@ -1108,7 +1120,11 @@ If use_index is False, the x-values are the row index.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1120,7 +1136,7 @@ e.g. size_kwargs=dict(w=3, h=4)</td>
 <dl class="class">
 <dt id="abipy.tools.plotting.GenericDataFilesPlotter">
 <em class="property">class </em><code class="descclassname">abipy.tools.plotting.</code><code class="descname">GenericDataFilesPlotter</code><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="classmethod">
 <dt id="abipy.tools.plotting.GenericDataFilesPlotter.from_files">
 <em class="property">classmethod </em><code class="descname">from_files</code><span class="sig-paren">(</span><em>filepaths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/plotting.html#GenericDataFilesPlotter.from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.plotting.GenericDataFilesPlotter.from_files" title="Permalink to this definition">¶</a></dt>
@@ -1183,7 +1199,11 @@ If use_index is False, the x-values are the row index.</li>
 <td>Dictionary with options passed to fig.set_size_inches
 e.g. size_kwargs=dict(w=3, h=4)</td>
 </tr>
-<tr class="row-even"><td>tight_layout</td>
+<tr class="row-even"><td>ax_grid</td>
+<td>True (False) to add (remove) grid from all axes in fig.
+Default: None i.e. fig is left unchanged.</td>
+</tr>
+<tr class="row-odd"><td>tight_layout</td>
 <td>True to call fig.tight_layout (default: False)</td>
 </tr>
 </tbody>
@@ -1248,6 +1268,20 @@ plt: matplotlib pyplot module.</td>
 <dd><p>Split line into (numbers, text).</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="abipy.tools.text.rreplace">
+<code class="descclassname">abipy.tools.text.</code><code class="descname">rreplace</code><span class="sig-paren">(</span><em>s</em>, <em>old</em>, <em>new</em>, <em>occurrence</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abipy/tools/text.html#rreplace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abipy.tools.text.rreplace" title="Permalink to this definition">¶</a></dt>
+<dd><p>replace old with new in string but, instead of starting from the beginning
+as replace does, starting from the end.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;1232425&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;123 4 5&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1 3 4 5&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1 3 4 5&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1232425&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 </div>
 
@@ -1264,7 +1298,7 @@ plt: matplotlib pyplot module.</td>
     </p>
     <p>
         &copy; Copyright 2018, M. Giantomassi and the AbiPy group.<br/>
-      Last updated on Jun 15, 2018.<br/>
+      Last updated on Jul 01, 2018.<br/>
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.<br/>
     </p>
   </div>
