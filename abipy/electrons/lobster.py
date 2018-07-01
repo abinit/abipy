@@ -16,7 +16,6 @@ from pymatgen.electronic_structure.core import OrbitalType
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.io.abinit.pseudos import Pseudo
-from abipy.core.structure import Structure
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
@@ -1072,30 +1071,29 @@ class LobsterAnalyzer(NotebookWriter):
                     raise RuntimeError("Found multiple files matching glob pattern: %s" % str(paths))
                 kwargs[k] = paths[0]
 
-        """
         # Try to find a file from which we can extract the structure.
-        structure = None
-        if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
-            # Vasp mode
-            vr = Vasprun(os.path.join(dirpath, 'vasprun.xml'))
-            structure = Structure.as_structur(vr.final_structure)
-            #fermie = vr.efermi
-        else:
-            # Abinit mode
-            #filenames = os.listdir(dirpath)
-            for trial in ("run.abi", "out_GSR.nc", "run.abo"):
-                apath = os.path.join(dirpath, trial)
-                if os.path.isfile(apath):
-                    break
-                raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
+        #structure = None
+        #if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
+        #    # Vasp mode
+        #    vr = Vasprun(os.path.join(dirpath, 'vasprun.xml'))
+        #    structure = Structure.as_structur(vr.final_structure)
+        #    #fermie = vr.efermi
+        #else:
+        #    # Abinit mode
+        #    #filenames = os.listdir(dirpath)
+        #    for trial in ("run.abi", "out_GSR.nc", "run.abo"):
+        #        apath = os.path.join(dirpath, trial)
+        #        if os.path.isfile(apath):
+        #            break
+        #        raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
 
-            from abipy.abilab import abiopen
-            with abiopen(apath) as abifile:
-                structure = abifile.structure
+        #    from abipy.abilab import abiopen
+        #    with abiopen(apath) as abifile:
+        #        structure = abifile.structure
 
-        if structure is None:
-            raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
-        """
+        #if structure is None:
+        #    raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
+
         return cls(dirpath, prefix, **kwargs)
 
     def __init__(self, dirpath, prefix, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
