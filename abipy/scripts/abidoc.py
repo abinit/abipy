@@ -72,8 +72,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for graphviz.
     p_graphviz = subparsers.add_parser('graphviz', parents=[copts_parser, var_parser],
-        help=("Draw variable dependencies with graphviz package.)"
-             "See https://graphviz.readthedocs.io/."))
+        help=("Draw variable dependencies with graphviz package."
+              "See https://graphviz.readthedocs.io/."))
     p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "

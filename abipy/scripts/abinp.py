@@ -248,8 +248,7 @@ def abinp_lobster(options):
     and GSR.nc output file (multidatasets are not allowed).
     Supports also directory with vasprun.xml and POTCAR file.
     """
-    from abipy.electrons.lobster import LobsterInput
-    lobinp = LobsterInput.from_run_dir(os.path.dirname(options.dirpath))
+    lobinp = abilab.LobsterInput.from_dir(os.path.dirname(options.dirpath))
     print(lobinp)
 
 

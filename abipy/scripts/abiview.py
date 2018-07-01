@@ -323,6 +323,28 @@ def abiview_sigeph(options):
     return 0
 
 
+def abiview_lobster(options):
+    """Analyze lobster output files in directory."""
+    from abipy.electrons.lobster import LobsterAnalyzer
+    lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=options.prefix)
+    print(lobana.to_string(verbose=options.verbose))
+
+    if options.ipython:
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        import IPython
+        IPython.embed(header="The LobsterAnalyzer is bound to the `lobana` variable.\nTry `print(lobana)`")
+
+    elif options.notebook:
+        return lobana.make_and_open_notebook(foreground=options.foreground)
+
+    else:
+        lobana.plot()
+        #lobana.plot_coxp_with_dos(from_site_index=[0, 1])
+
+    return 0
+
+
 def get_epilog():
     return """\
 Usage example:
@@ -384,6 +406,8 @@ Usage example:
 
   abiview.py dirviz DIRECTORY            ==> Visualize directory tree with graphviz.
 
+  abiview.py lobster DIRECTORY           ==> Visualize Lobster results.
+
 Use `abiview.py --help` for help and `abiview.py COMMAND --help` to get the documentation for `COMMAND`.
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
@@ -415,6 +439,25 @@ def get_parser(with_epilog=False):
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")
     slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+
+    # Parent parser for commands supporting ipython
+    ipy_parser = argparse.ArgumentParser(add_help=False)
+    ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
+
+    # Parent parser for commands supporting (jupyter notebooks)
+    nb_parser = argparse.ArgumentParser(add_help=False)
+    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
+    nb_parser.add_argument('--foreground', action='store_true', default=False,
+        help="Run jupyter notebook in the foreground.")
+
+    # Parent parser for commands supporting expose.
+    #expose_parser = argparse.ArgumentParser(add_help=False)
+    #expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
+    #        help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
+    #expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
+    #        help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
+    #expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
+    #        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -518,6 +561,11 @@ def get_parser(with_epilog=False):
 
     # Subparser for sigeph command.
     p_sigeph = subparsers.add_parser('sigeph', parents=[copts_parser, slide_parser], help=abiview_sigeph.__doc__)
+
+    # Subparser for lobster command.
+    p_lobster = subparsers.add_parser('lobster', parents=[copts_parser, ipy_parser, nb_parser],
+        help=abiview_lobster.__doc__)
+    p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
 
     # Subparser for denpot command.
     #p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)

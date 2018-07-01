@@ -35,3 +35,19 @@ def nums_and_text(line):
             text += " " + tok
 
     return numbers, text
+
+
+def rreplace(s, old, new, occurrence):
+    """
+    replace old with new in string but, instead of starting from the beginning
+    as replace does, starting from the end.
+
+    >>> s = '1232425'
+    >>> assert rreplace(s, '2', ' ', 2) == '123 4 5'
+    >>> assert rreplace(s, '2', ' ', 3) == '1 3 4 5'
+    >>> assert rreplace(s, '2', ' ', 4) == '1 3 4 5'
+    >>> assert rreplace(s, '2', ' ', 0) == '1232425'
+    """
+    # Based on https://stackoverflow.com/questions/2556108/rreplace-how-to-replace-the-last-occurrence-of-an-expression-in-a-string
+    li = s.rsplit(old, occurrence)
+    return new.join(li)
