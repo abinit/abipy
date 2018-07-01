@@ -1964,7 +1964,7 @@ class ElectronBands(Has_Structure):
         if ax_list is None:
             # Build axes and align bands and DOS.
             fig = plt.figure()
-            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
+            gspec = GridSpec(nrows=1, ncols=2, width_ratios=width_ratios, wspace=0.05)
             ax0 = plt.subplot(gspec[0])
             ax1 = plt.subplot(gspec[1], sharey=ax0)
         else:
@@ -2561,7 +2561,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
         if self.edoses_dict:
             # Build grid with two axes.
-            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
+            gspec = GridSpec(nrows=1, ncols=2, width_ratios=width_ratios, wspace=0.05)
             # bands and DOS will share the y-axis
             ax0 = plt.subplot(gspec[0])
             ax1 = plt.subplot(gspec[1], sharey=ax0)
@@ -2852,7 +2852,7 @@ class ElectronBandsPlotter(NotebookWriter):
         else:
             # Animation with band structures + DOS.
             from matplotlib.gridspec import GridSpec
-            gspec = GridSpec(1, 2, width_ratios=width_ratios, wspace=0.05)
+            gspec = GridSpec(nrows=1, ncols=2, width_ratios=width_ratios, wspace=0.05)
             ax0 = plt.subplot(gspec[0])
             ax1 = plt.subplot(gspec[1], sharey=ax0)
             ebands_list[0].decorate_ax(ax0)
@@ -3275,7 +3275,7 @@ class ElectronDos(object):
 
         if ax_list is None:
             fig = plt.figure()
-            gspec = GridSpec(2, 1, height_ratios=height_ratios, wspace=0.05)
+            gspec = GridSpec(nrows=2, ncols=1, height_ratios=height_ratios, wspace=0.05)
             ax0 = plt.subplot(gspec[0])
             ax1 = plt.subplot(gspec[1], sharex=ax0)
             ax_list = [ax0, ax1]

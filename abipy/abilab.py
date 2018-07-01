@@ -63,6 +63,8 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
+from abipy.wannier90 import WoutFile
+from abipy.electrons.lobster import Coxp, ICoxp, LobsterDos, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -91,6 +93,11 @@ ext2file = collections.OrderedDict([
     (".fhi", Pseudo),
     ("JTH.xml", Pseudo),
     (".wout", WoutFile),
+    # Lobster files.
+    ("COHPCAR.lobster", Coxp),
+    ("COOPCAR.lobster", Coxp),
+    ("ICOHPLIST.lobster", ICoxp),
+    ("DOSCAR.lobster", LobsterDos),
 ])
 
 # Abinit files require a special treatment.
@@ -144,7 +151,10 @@ def abifile_subclass_from_filename(filename):
     if os.path.basename(filename) == Flow.PICKLE_FNAME:
         return Flow
 
+    from abipy.tools.text import rreplace
     for ext, cls in ext2file.items():
+        # This to support gzipped files.
+        if filename.endswith(".gz"): filename = rreplace(filename, ".gz", "", occurrence=1)
         if filename.endswith(ext): return cls
 
     ext = filename.split("_")[-1]

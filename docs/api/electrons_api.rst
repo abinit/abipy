@@ -85,6 +85,14 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`lobster` Module
+---------------------
+
+.. automodule:: abipy.electrons.lobster
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`optic` Module
 -------------------
 
