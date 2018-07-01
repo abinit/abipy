@@ -1,6 +1,7 @@
 """Tests for electrons.lobster module"""
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+import sys
 import os
 import abipy.data as abidata
 
@@ -139,5 +140,9 @@ class LobsterInputTest(AbipyTest):
         repr(lin); str(lin)
         assert lin.to_string(verbose=2)
         lin.set_basis_functions_from_abinit_pseudos([abidata.pseudo("Al.GGA_PBE-JTH.xml")])
-        assert lin.basis_functions[0] == "Al 3s  3p"
+        if sys.version[0:3] < '2.7':
+            # py2 portability issue with dictionaries.
+            assert sorted(lin.basis_functions[0].split()) == sorted("Al 3s  3p".split())
+        else:
+            assert lin.basis_functions[0] == "Al 3s  3p"
         lin.write(self.mkdtemp())

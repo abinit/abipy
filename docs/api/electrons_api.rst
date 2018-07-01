@@ -86,7 +86,7 @@ electrons Package
    :show-inheritance:
 
 :mod:`lobster` Module
--------------------
+---------------------
 
 .. automodule:: abipy.electrons.lobster
    :members:

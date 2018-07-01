@@ -572,7 +572,7 @@ class ICoxp(_LobsterFile):
 
     @lazy_property
     def dataframe(self):
-        """|DataFrame| with the results."""
+        """|pandas-DataFrame| with results."""
         # self.values[pair][spin]
         import pandas as pd
         rows = []
