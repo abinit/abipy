@@ -1533,7 +1533,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
         except Exception as exc:
             self._handle_task_exception(task, exc)
 
-    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
+    def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None, verbose=0):
         """
         This function computes the list of points in the IBZ and the corresponding weights.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -1544,6 +1544,7 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             kptopt: Option for k-point generation. If None, the value in self is used.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+            verbose: verbosity level.
 
         Returns:
             `namedtuple` with attributes:
@@ -1566,7 +1567,8 @@ class AbinitInput(six.with_metaclass(abc.ABCMeta, AbiAbstractInput, MSONable, Ha
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
         if kptopt is not None: inp["kptopt"] = kptopt
-        #print("Computing ibz with input:\n", str(inp))
+        if verbose:
+            print("Computing ibz with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)

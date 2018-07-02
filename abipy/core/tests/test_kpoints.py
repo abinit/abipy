@@ -9,8 +9,8 @@ import abipy.data as abidata
 
 from pymatgen.core.lattice import Lattice
 from abipy import abilab
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, KpointsReader, has_timrev_from_kptopt,
-    KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_grid2ibz, set_atol_kdiff, set_spglib_tols)
+from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, IrredZone, KpointsReader,
+    has_timrev_from_kptopt, KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, Ktables, map_grid2ibz, set_atol_kdiff, set_spglib_tols)
 from abipy.core.testing import AbipyTest
 
 
@@ -224,7 +224,23 @@ class TestKpointList(AbipyTest):
         assert len(add_klist) == 4
         assert add_klist == add_klist.remove_duplicated()
 
-#class TestIrredZone(AbipyTest):
+class TestIrredZone(AbipyTest):
+
+    def test_irredzone_class_methods(self):
+        structure = abilab.Structure.as_structure(abidata.cif_file("si.cif"))
+
+        ibz = IrredZone.from_ngkpt(structure, ngkpt=[4, 4, 4], shiftk=[0.0, 0.0, 0.0], verbose=2)
+        assert ibz.is_ibz
+        assert len(ibz) == 8
+        assert ibz.ksampling.kptopt == 1
+        self.assert_equal(ibz.ksampling.mpdivs, [4, 4, 4])
+
+        ibz = IrredZone.from_kppa(structure, 1000, shiftk=[0.5, 0.5, 0.5], kptopt=1, verbose=1)
+        assert ibz.is_ibz
+        assert len(ibz) == 60
+        self.assert_equal(ibz.ksampling.mpdivs, [8, 8, 8])
+
+
 #class TestKpath(AbipyTest):
 
 

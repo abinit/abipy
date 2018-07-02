@@ -11,15 +11,25 @@ from scipy.interpolate import UnivariateSpline
 #from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 #from monty.termcolor import cprint
-#import pymatgen.core.units as units
-from abipy.core.mixins import Has_Structure, Has_ElectronBands #, NotebookWriter
-#from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
+from abipy.core.mixins import Has_Structure, Has_ElectronBands
+#from abipy.core.kpoints import KpointList, find_points_along_path
 from abipy.electrons import ElectronBands
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt
 
 
 class ArpesPlotter(Has_Structure, Has_ElectronBands):
+    """
 
+    Usage example:
+
+    .. code-block:: python
+
+        with abilab.abiopen("foo_ABIWAN.nc") as abiwan:
+            print(abiwan)
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ArpesPlotter
+    """
     @classmethod
     def model_from_ebands(cls, ebands):
         ebands = ElectronBands.as_ebands(ebands)
@@ -33,7 +43,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands):
         aw_meshes = np.empty((ebands.nsppol, ebands.nkpt, ebands.mband, nwr))
         #aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
         #aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
-        from abipy.tools.numtools import gaussian, lorentzian
+        from abipy.tools.numtools import lorentzian
         from scipy.integrate import cumtrapz
         for spin in ebands.spins:
             for ik, kpt in enumerate(ebands.kpoints):
@@ -92,6 +102,10 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands):
     def to_string(self, verbose=0):
         lines = []
         app = lines.append
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
+
+        #if verbose > 1:
         return "\n".join(lines)
 
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
@@ -101,7 +115,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands):
         return self.__class__(p.new_ebands, aw, aw_meshes, self.tmesh)
 
     def interpolate(self):
-        new_ebands = self.ebands.interpolate(self, lpratio=5, vertices_names=None, line_density=20,
+        new_ebands = self.ebands.interpolate(lpratio=5, vertices_names=None, line_density=20,
                             kmesh=None, is_shift=None, filter_params=None, verbose=0)
 
         # Build interpolator.

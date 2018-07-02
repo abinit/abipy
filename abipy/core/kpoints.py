@@ -1308,6 +1308,37 @@ class IrredZone(KpointList):
 
     .. inheritance-diagram:: IrredZone
     """
+
+    @classmethod
+    def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):
+        """
+        Build an IrredZone object from (ngkpt, shift) by calling Abinit
+        to get the list of irreducible k-points.
+        """
+        from abipy.abio.factories import gs_input
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
+        ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
+
+        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
+                   names=None, ksampling=ksampling)
+
+    @classmethod
+    def from_kppa(cls, structure, kppa, shiftk, kptopt=1, verbose=0):
+        """
+        Build an IrredZone object from (kppa, shift) by calling Abinit
+        to get the list of irreducible k-points.
+        """
+        from abipy.abio.factories import gs_input
+        from abipy.data.hgh_pseudos import HGH_TABLE
+        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized", kppa=kppa)
+        ibz = gsinp.abiget_ibz(ngkpt=None, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
+        ksampling = KSamplingInfo.from_mpdivs(gsinp["ngkpt"], shiftk, kptopt)
+
+        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
+                   names=None, ksampling=ksampling)
+
     def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None, ksampling=None):
         """
         Args:
@@ -1345,6 +1376,13 @@ class IrredZone(KpointList):
         else:
             app("nkpt: %d" % len(self))
             app(self.ksampling.to_string(verbose=verbose))
+
+        app("Number of points in the IBZ: %s" % len(self))
+        for i, k in enumerate(self):
+            if i > 20 and verbose == 0:
+                app(4 * " " + "...")
+                break
+            app("%6d) [%+.3f, %+.3f, %+.3f],  weight=%.3f" % (i, k[0], k[1], k[2], k.weight))
 
         return "\n".join(lines)
 

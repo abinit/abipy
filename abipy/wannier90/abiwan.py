@@ -36,7 +36,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbiwanFile
     """
-
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a netcdf_ file."""
@@ -57,7 +56,10 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @lazy_property
     def mwan(self):
-        """Max number of Wannier functions over spins, i.e max(nwan_spin) (used to dimension arrays)."""
+        """
+        Max number of Wannier functions over spins, i.e max(nwan_spin)
+        (used to dimension arrays).
+        """
         return self.reader.read_dimvalue("mwan")
 
     @lazy_property
@@ -102,7 +104,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @lazy_property
     def wann_spreads(self):
-        """[nsppol, mwan] array with spreads."""
+        """[nsppol, mwan] array with spreads in Ang^2"""
         return self.reader.read_value("wann_spreads")
 
     @lazy_property
@@ -210,7 +212,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         spin_rmn = [None] * self.nsppol
         spin_vmatrix = np.empty((self.nsppol, num_kpts), dtype=object)
 
-        # Read Unitary matrices from file.
+        # Read unitary matrices from file.
         # Here be very careful with F --> C because we have to transpose.
         # complex U_matrix[nsppol, nkpt, mwan, mwan]
         u_matrix = self.reader.read_value("U_matrix", cmode="c")
@@ -221,7 +223,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
         for spin in range(self.nsppol):
             num_wan = self.nwan_spin[spin]
-            #num_bands = self.num_bands_spin[spin]
 
             # Real-space Hamiltonian H(R) is calculated by Fourier
             # transforming H(q) defined on the ab-initio reciprocal mesh
@@ -272,12 +273,12 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             # Save results
             spin_rmn[spin] = rmn
 
-        print("HWanR built in", time.time() - start)
+        print("HWanR built in %.3f (s)" % (time.time() - start))
         return HWanR(self.structure, self.nwan_spin, spin_vmatrix, spin_rmn, self.irvec, self.ndegen)
 
     def interpolate_ebands(self, vertices_names=None, line_density=20, kpoints=None):
         """
-        Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier.
+        Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier functions.
 
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -302,7 +303,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         nk = len(kpoints)
         eigens = np.zeros((self.nsppol, nk, self.mwan))
 
-        # Interpolate the Hamiltonian for each kpoint and spin.
+        # Interpolate Hamiltonian for each kpoint and spin.
         start = time.time()
         write_warning = True
         for spin in range(self.nsppol):
@@ -319,7 +320,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                                "yellow")
                         write_warning = False
 
-        print("Interpolation completed", time.time() - start)
+        print("Interpolation completed in %.3f [s]" % (time.time() - start))
         occfacts = np.zeros_like(eigens)
 
         return ElectronBands(self.structure, kpoints, eigens, self.ebands.fermie,
@@ -372,8 +373,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 class HWanR(object):
     """
     This object represents the KS Hamiltonian in the wannier-gauge representation.
-    It provides low-level methods to interpolate the KS eigenvalues, and high-level
-    APIs to interpolate bandstructures and plot the decay of the matrix elements in real space.
+    It provides low-level methods to interpolate the KS eigenvalues, and a high-level API
+    to interpolate bandstructures and plot the decay of the matrix elements in real space.
 
     # <0n|H|Rm>
     """
@@ -428,7 +429,8 @@ class HWanR(object):
 
         return oeigs
 
-    #def interpolate_omat(self, omat, out_kpoints):
+    # TODO
+    #def interpolate_omat(self, omat, kpoints):
     #def interpolate_sigres(self, sigres):
     #def interpolate_sigeph(self, sigeph):
 
@@ -616,14 +618,11 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-            #nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
-            #nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
-            #nbv.new_code_cell("#anim = ebands_plotter.animate();"),
-            #nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
-            #nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
-            #nbv.new_code_cell("#robot.gridplot_eos();"),
+            nbv.new_code_cell("robot = abilab.AbiwanRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.get_dataframe()"),
+            nbv.new_code_cell("robot.plot_hwanr();"),
+            nbv.new_code_cell("ebands_plotter = robot.get_interpolated_ebands_plotter()"),
+            nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
         ])
 
         # Mixins

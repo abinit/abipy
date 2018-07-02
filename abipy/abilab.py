@@ -63,7 +63,6 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
-from abipy.wannier90 import WoutFile
 from abipy.electrons.lobster import Coxp, ICoxp, LobsterDos, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.

@@ -18,7 +18,7 @@ from monty.termcolor import cprint
 from pymatgen.io.vasp.outputs import Xdatcar
 from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.core.kpoints import Ktables, Kpoint
+from abipy.core.kpoints import Ktables, Kpoint, IrredZone
 from abipy.core.structure import diff_structures
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
@@ -663,20 +663,19 @@ def main():
 
     elif options.command == "abikmesh":
         structure = abilab.Structure.from_file(options.filepath)
-        from abipy.data.hgh_pseudos import HGH_TABLE
-        gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized", kppa=options.kppa)
+        if options.kppa is None and options.ngkpt is None:
+            raise ValueError("Either ngkpt or kppa must be provided")
+
         if options.kppa is not None:
             print("Calling Abinit to compute the IBZ with kppa:", options.kppa, "and shiftk:", options.shiftk)
-            options.ngkpt = None
+            ibz = IrredZone.from_kppa(structure, options.kppa, options.shiftk,
+                                      kptopt=options.kptopt, verbose=options.verbose)
         else:
-            print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shiftk", options.shiftk)
-        ibz = gsinp.abiget_ibz(ngkpt=options.ngkpt, shiftk=options.shiftk, kptopt=options.kptopt)
-        if options.verbose:
-            print(gsinp)
+            print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shiftk:", options.shiftk)
+            ibz = IrredZone.from_ngkpt(structure, options.ngkpt, options.shiftk,
+                                       kptopt=options.kptopt, verbose=options.verbose)
 
-        print("Found %d points in the IBZ:" % len(ibz.points))
-        for i, (k, w) in enumerate(zip(ibz.points, ibz.weights)):
-            print("%6d) [%+.3f, %+.3f, %+.3f]  weight=%.3f" % (i, k[0], k[1], k[2], w))
+        print(ibz.to_string(verbose=options.verbose))
 
     #elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
