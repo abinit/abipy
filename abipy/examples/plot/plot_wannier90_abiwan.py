@@ -23,8 +23,13 @@ abiwan.hwan.plot(title="Matrix elements in real space")
 
 # Interpolate bands with Wannier using an automatically selected k-path
 # with 3 points for the smallest segment.
-ebands_wan = abiwan.interpolate_ebands(line_density=3)
-ebands_wan.plot(title="Wannier-interpolated")
+ebands_wan_kpath = abiwan.interpolate_ebands(line_density=5)
+ebands_wan_kpath.plot(title="Wannier-interpolated")
+
+# Interpolate bands in the IBZ defined by ngkpt
+ebands_wan_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])
+edos = ebands_wan_kmesh.get_edos()
+ebands_wan_kpath.plot_with_edos(edos, title="Wannier-interpolated bands and DOS")
 
 # To compare the interpolated bands with ab-initio results,
 # pass a file with the ab-initio bands to get_plotter_from_ebands

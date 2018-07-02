@@ -41,7 +41,11 @@ class TestAbiwanFile(AbipyTest):
                     ews = abiwan.hwan.eval_sk(spin, kpt.frac_coords)
                     self.assert_almost_equal(ews[:n], in_eigens[spin, ik, :n])
 
+            ebands_kmesh = abiwan.interpolate_ebands(ngkpt=(4, 4, 4))
+            assert ebands_kmesh.kpoints.is_ibz
+
             ebands_wan = abiwan.interpolate_ebands(line_density=10)
+            assert ebands_wan.kpoints.is_path
             plotter = abiwan.get_plotter_from_ebands(ebands_wan)
 
             if self.has_matplotlib():

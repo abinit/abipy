@@ -183,10 +183,19 @@ def main():
                 print(abifile.to_string(verbose=options.verbose))
             else:
                 print(abifile)
-            if not hasattr(abifile, "expose"):
-                raise TypeError("Object of type `%s` does not implement expose method" % type(abifile))
-            abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                           verbose=options.verbose)
+
+            if hasattr(abifile, "expose"):
+
+                abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                               verbose=options.verbose)
+            else:
+                if not hasattr(abifile, "yield_figs"):
+                    raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
+                from abipy.tools.plotting import MplExpose
+                with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                               verbose=options.verbose) as e:
+                    e(abifile.yield_figs())
+
             return 0
 
         # Start ipython shell with namespace

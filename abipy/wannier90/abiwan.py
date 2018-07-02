@@ -15,7 +15,7 @@ from monty.string import marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpath
+from abipy.core.kpoints import Kpath, IrredZone
 from abipy.abio.robots import Robot
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
@@ -156,7 +156,9 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             app("")
             table = [["WF_index", "Center", "Spread"]]
             for iwan in range(self.nwan_spin[spin]):
-                table.append([iwan, self.wann_centers[spin, iwan], self.wann_spreads[spin, iwan]])
+                table.append([iwan,
+                             "%s" % np.array2string(self.wann_centers[spin, iwan], precision=5),
+                             "%.3f" % self.wann_spreads[spin, iwan]])
             app(tabulate(table, tablefmt="plain"))
             app("")
 
@@ -187,6 +189,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return "\n".join(lines)
 
     def close(self):
+        """Close file."""
         self.reader.close()
 
     @lazy_property
@@ -276,29 +279,37 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         print("HWanR built in %.3f (s)" % (time.time() - start))
         return HWanR(self.structure, self.nwan_spin, spin_vmatrix, spin_rmn, self.irvec, self.ndegen)
 
-    def interpolate_ebands(self, vertices_names=None, line_density=20, kpoints=None):
+    def interpolate_ebands(self, vertices_names=None, line_density=20, ngkpt=None, shiftk=(0, 0, 0), kpoints=None):
         """
         Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier functions.
+        Supports k-path via (vertices_names, line_density), IBZ mesh defined by ngkpt and shiftk
+        or input list of kpoints.
 
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
-                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                List of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
             line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
+            ngkpt: Mesh divisions. Used if bands should be interpolated in the IBZ.
+            shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
 
         Returns: |ElectronBands| object with Wannier-interpolated energies.
         """
-        # TODO: Option for IBZ mesh?
         # Need KpointList object.
         if kpoints is None:
-            if vertices_names is None:
-                vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
-            kpoints = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
+            if ngkpt is not None:
+                # IBZ sampling
+                kpoints = IrredZone.from_ngkpt(self.structure, ngkpt, shiftk, kptopt=1, verbose=0)
+            else:
+                # K-Path
+                if vertices_names is None:
+                    vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
+                kpoints = Kpath.from_vertices_and_names(self.structure, vertices_names, line_density=line_density)
 
         nk = len(kpoints)
         eigens = np.zeros((self.nsppol, nk, self.mwan))
@@ -358,12 +369,15 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
         nb.cells.extend([
             nbv.new_code_cell("abiwan = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(abiwan.to_string(verbose=0)"),
+            nbv.new_code_cell("print(abiwan.to_string(verbose=0))"),
             nbv.new_code_cell("abiwan.ebands.plot();"),
             nbv.new_code_cell("abiwan.ebands.kpoints.plot();"),
             nbv.new_code_cell("abiwan.hwan.plot();"),
-            nbv.new_code_cell("abiwan.get_plotter_from_ebands(abiwan.ebands).combiplot();"),
-            nbv.new_code_cell("abiwan.interpolate_ebands()"),
+            nbv.new_code_cell("#abiwan.get_plotter_from_ebands(;file_with_abinitio_ebands').combiplot();"),
+            nbv.new_code_cell("ebands_kpath = abiwan.interpolate_ebands()"),
+            nbv.new_code_cell("ebands_kpath.plot();"),
+            nbv.new_code_cell("ebands_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])"),
+            nbv.new_code_cell("ebands_kpath.plot_with_edos(ebands_kmesh.get_edos());"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -468,10 +482,13 @@ class HWanR(object):
                 label = "spin: %d" % spin if self.nsppol == 2 else None
             if label: needs_legend = True
             ax.plot(rvals, amax_r, marker=marker_spin[spin],
-                    lw=kwargs.get("lw", 2), color=kwargs.get("color", "r"),
+                    lw=kwargs.get("lw", 2),
+                    color=kwargs.get("color", "k"),
+                    markeredgecolor="r",
+                    markerfacecolor="r",
                     label=label)
 
-            ax.set_yscale("log")
+            ax.set_yscale(yscale)
 
         if needs_legend:
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
@@ -616,6 +633,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
+        args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.AbiwanRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),

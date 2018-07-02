@@ -288,11 +288,12 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands):
 def _main():
     import sys
     plotter = ArpesPlotter.model_from_ebands(sys.argv[1]) #, aw, aw_meshes, tmesh)
-    #ebands.plot()
     print(plotter.to_string(verbose=2))
     #plotter.plot_itemp(itemp=0, estep=0.05)
-    plotter.plot_3dlines(itemp=0, estep=0.05, band_list=[1, 2, 3])
+    #plotter.plot_3dlines(itemp=0, estep=0.05, band_list=[1, 2, 3])
+    #plotter.plot_lines(itemp=0, estep=0.05, band_list=[1, 2, 3])
     #plotter.plot_surface(istep=0, estep=0.05)
+
 
 if __name__ == "__main__":
     _main()

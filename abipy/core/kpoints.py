@@ -1379,8 +1379,8 @@ class IrredZone(KpointList):
 
         app("Number of points in the IBZ: %s" % len(self))
         for i, k in enumerate(self):
-            if i > 20 and verbose == 0:
-                app(4 * " " + "...")
+            if i > 10 and verbose == 0:
+                app(4 * " " + "... (More than 10 k-points)")
                 break
             app("%6d) [%+.3f, %+.3f, %+.3f],  weight=%.3f" % (i, k[0], k[1], k[2], k.weight))
 
