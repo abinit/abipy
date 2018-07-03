@@ -212,7 +212,7 @@ class Structure(pymatgen.Structure, NotebookWriter):
 
         Returns: |Structure| object
         """
-        if filepath.endswith("_HIST") or filepath.endswith("_HIST.nc"):
+        if filepath.endswith("_HIST.nc"):
             # Abinit history file. In this case we return the last structure!
             # Note that HIST does not follow the etsf-io conventions.
             from abipy.dynamics.hist import HistFile

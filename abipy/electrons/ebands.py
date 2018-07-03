@@ -644,10 +644,7 @@ class ElectronBands(Has_Structure):
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
         """
         """
-        #if frac_bounds is None:
-        #    frac_bounds = self.structure.calc_kptbounds()
-
-        # Construct the stars of the k-points for all k-points in self..
+        # Construct the stars of the k-points for all k-points in self.
         # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for self
         # so we have to build the k-stars and find the k-points lying along the path and keep
         # track of the mapping kpt --> star --> kgw
@@ -659,9 +656,11 @@ class ElectronBands(Has_Structure):
         cart_coords = np.reshape(cart_coords, (-1, 3))
 
         # Find (star) k-points on the path.
-        from abipy.core.kpoints import find_points_along_path
+        if frac_bounds is None:
+            frac_bounds = self.structure.calc_kptbounds()
         cart_bounds = self.structure.reciprocal_lattice.get_cartesian_coords(frac_bounds)
         assert len(cart_bounds) == len(frac_bounds)
+        from abipy.core.kpoints import find_points_along_path
         p = find_points_along_path(cart_bounds, cart_coords, dist_tol=dist_tol)
         if len(p.ikfound) == 0:
             raise ValueError("Find zero points lying on the input k-path. Try to increase dist_tol")
@@ -708,15 +707,13 @@ class ElectronBands(Has_Structure):
     #@classmethod
     #def empty_with_ibz(cls, ngkpt, structure, fermie, nelect, nsppol, nspinor, nspden, mband,
     #                   shiftk=(0, 0, 0), kptopt=1, smearing=None, linewidths=None):
-    #    kpoints = IrredZone.from_ngkpt(structure, ngkpt, shiftk, kptopt=kptopt)
+    #    kpoints = IrredZone.from_ngkpt_or_kppa(structure, ngkpt, shiftk, kptopt=kptopt)
     #    new_eigens = np.zeros((nsppol, len(kpoints), mband))
     #    new_occfacts = np.zeros_like(new_eigens)
 
     #    return cls(structure, kpoints, new_eigens, fermie, new_occfacts,
     #               nelect, nspinor, nspden,
     #               smearing=smearing, linewidths=linewidths)
-
-    #def downsample_kpoints()
 
     def get_dict4pandas(self, with_spglib=True):
         """

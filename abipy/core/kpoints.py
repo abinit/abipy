@@ -1308,6 +1308,13 @@ class IrredZone(KpointList):
 
     .. inheritance-diagram:: IrredZone
     """
+    #@classmethod
+    #def from_ngkpt_or_kppa(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):
+    #    from abipy.tools import duck
+    #    if duck.is_listlike(ngkpt):
+    #        return cls.from_ngkpt(structure, ngkpt, shiftk, kptopt=kptopt, verbose=verbose)
+    #    else:
+    #        return cls.from_kppa(structure, kppa, shiftk, kptopt=kptopt, verbose=verbose)
 
     @classmethod
     def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):

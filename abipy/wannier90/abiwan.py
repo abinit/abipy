@@ -585,7 +585,8 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         return fig
 
-    def get_interpolated_ebands_plotter(self, vertices_names=None, line_density=20, kpoints=None, **kwargs):
+    def get_interpolated_ebands_plotter(self, vertices_names=None, line_density=20,
+            ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs):
         """
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -595,6 +596,8 @@ class AbiwanRobot(Robot, RobotWithEbands):
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
             line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
+            ngkpt: Mesh divisions. Used if bands should be interpolated in the IBZ.
+            shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
 
@@ -603,12 +606,17 @@ class AbiwanRobot(Robot, RobotWithEbands):
         diff_str = self.has_different_structures()
         if diff_str: cprint(diff_str, "yellow")
 
-        nc0 = self.abifiles[0]
         # Need KpointList object (assume same structures in Robot)
+        nc0 = self.abifiles[0]
         if kpoints is None:
-            if vertices_names is None:
-                vertices_names = [(k.frac_coords, k.name) for k in nc0.structure.hsym_kpoints]
-            kpoints = Kpath.from_vertices_and_names(nc0.structure, vertices_names, line_density=line_density)
+            if ngkpt is not None:
+                # IBZ sampling
+                kpoints = IrredZone.from_ngkpt(nc0.structure, ngkpt, shiftk, kptopt=1, verbose=0)
+            else:
+                # K-Path
+                if vertices_names is None:
+                    vertices_names = [(k.frac_coords, k.name) for k in nc0.structure.hsym_kpoints]
+                kpoints = Kpath.from_vertices_and_names(nc0.structure, vertices_names, line_density=line_density)
 
         plotter = ElectronBandsPlotter()
         for label, abiwan in self.items():
