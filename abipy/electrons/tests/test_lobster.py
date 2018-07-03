@@ -84,8 +84,8 @@ class ICoxpTest(AbipyTest):
             assert len(icohp.type_of_index) == 2
             assert icohp.type_of_index[0] == "Ga" and icohp.type_of_index[1] == "As"
 
-            #if self.has_matplotlib():
-            #    assert icohp.plot(title="default values", show=False)
+            if self.has_matplotlib():
+                assert icohp.plot(title="default values", show=False)
 
             if self.has_nbformat():
                 assert icohp.write_notebook(nbpath=self.get_tmpname(text=True))
