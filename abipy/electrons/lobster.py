@@ -36,8 +36,8 @@ class _LobsterFile(BaseFile, NotebookWriter):
     # and we need a latex symbol to avoid errors in matplotlib --> replace myuparrow --> uparrow
 
     # Mapping spin --> title used in subplots that depend on (collinear) spin.
-    #spin2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
-    #        {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}
+    spin2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
+            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}
 
     def __str__(self):
         return self.to_string()
@@ -281,7 +281,7 @@ class Coxp(_LobsterFile):
         yield self.plot(what="i", show=False)
 
     @add_fig_kwargs
-    def plot(self, what="d", spin=None, ax=None, exchange_xy=False, **kwargs):
+    def plot(self, what="d", spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs):
         """
         Plot COXP averaged values (DOS or IDOS depending on what).
 
@@ -290,6 +290,7 @@ class Coxp(_LobsterFile):
             spin: Select spin index if not None.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             exchange_xy: True to exchange x-y axis.
+            fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
         """
@@ -297,7 +298,7 @@ class Coxp(_LobsterFile):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        xlabel = "Energy (eV)"
+        xlabel = r"$\epsilon-\epsilon_F\;(eV)$"
         if self.cop_type == "coop":
             ysign = +1
             ylabel = {"d": "COOP", "i": "ICOOP"}[what]
@@ -315,7 +316,8 @@ class Coxp(_LobsterFile):
             key = {"d": "single", "i": "integrated"}[what]
             xs, ys = self.energies, ysign * self.averaged[spin][key]
             if exchange_xy: xs, ys = ys, xs
-            ax.plot(xs, ys, label=None, **opts)
+            ax.plot(xs, ys, label=self.spin2tex[spin] if self.nsppol == 2 else None,
+                    **opts)
 
         if exchange_xy:
             xlabel, ylabel = ylabel, xlabel
@@ -326,6 +328,9 @@ class Coxp(_LobsterFile):
 
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
+
+        if self.nsppol == 2:
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
@@ -367,7 +372,7 @@ class Coxp(_LobsterFile):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        xlabel, ylabel, ysign = "Energy (eV)", "COOP", +1
+        xlabel, ylabel, ysign = r"$\epsilon-\epsilon_F\;(eV)$", "COOP", +1
         if self.cop_type == "cohp":
             ylabel, ysign = "-COHP", -1
 
@@ -441,7 +446,7 @@ class Coxp(_LobsterFile):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        xlabel, ylabel, ysign = "Energy (eV)", "pCOOP", +1
+        xlabel, ylabel, ysign = r"$\epsilon-\epsilon_F\;(eV)$", "pCOOP", +1
         if self.cop_type == "cohp":
             ylabel, ysign = "-pCOHP", -1
 
@@ -587,15 +592,24 @@ class ICoxp(_LobsterFile):
                                ("average", d[spin]["average"]),
                                ("distance", d[spin]["distance"]),
                                ("n_bonds", d[spin]["n_bonds"]),
-                               ("pair_spin", (pair[0], pair[1], spin)),
+                               ("pair", (pair[0], pair[1])),
                             ]))
 
         return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
-    #def plot(self):
-    #    import seaborn as sns
-    #    sns.barplot(x="average", y="pair_spin", data=self.dataframe)
-    #        #label="Alcohol-involved", color="b")
+    @add_fig_kwargs
+    def plot(self, ax=None, **kwargs):
+        """Barplot with average values."""
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        import seaborn as sns
+        sns.barplot(x="average", y="pair", hue="spin", data=self.dataframe, ax=ax)
+        return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -605,11 +619,9 @@ class ICoxp(_LobsterFile):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         nb.cells.extend([
-            nbv.new_code_cell("coxp = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("icoxp = abilab.abiopen('%s')" % self.filepath),
             nbv.new_code_cell("print(coxp)"),
-            nbv.new_code_cell("coxp.plot(what='d');"),
-            nbv.new_code_cell("coxp.plot_site_pairs_total(from_site_index=[0,]);"),
-            nbv.new_code_cell("coxp.plot_site_pairs_partial(from_site_index=[0,]);"),
+            nbv.new_code_cell("icoxp.plot();"),
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
@@ -716,6 +728,7 @@ class LobsterDos(_LobsterFile):
             spin:
             exchange_xy: True to exchange x-y axis.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
 
         Returns: |matplotlib-Figure|
         """
@@ -730,12 +743,16 @@ class LobsterDos(_LobsterFile):
 
             xs, ys = self.energies, self.total_dos[spin]
             if exchange_xy: xs, ys = ys, xs
-            ax.plot(xs, ys, label=None, **opts)
+            ax.plot(xs, ys, label=self.spin2tex[spin] if self.nsppol == 2 else None,
+                    **opts)
 
-        xlabel, ylabel = "Energy (eV)", "DOS"
+        xlabel, ylabel = r"$\epsilon-\epsilon_F\;(eV)$", "DOS"
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
+
+        if self.nsppol == 2:
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
@@ -781,7 +798,7 @@ class LobsterDos(_LobsterFile):
                 label = "$%s_{%s}$" % (site_index, orb)
                 ax.plot(xs, ys, label=label)
 
-        xlabel, ylabel = "Energy (eV)", "PDOS"
+        xlabel, ylabel = r"$\epsilon-\epsilon_F\;(eV)$", "PDOS"
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -1071,29 +1088,6 @@ class LobsterAnalyzer(NotebookWriter):
                     raise RuntimeError("Found multiple files matching glob pattern: %s" % str(paths))
                 kwargs[k] = paths[0]
 
-        # Try to find a file from which we can extract the structure.
-        #structure = None
-        #if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
-        #    # Vasp mode
-        #    vr = Vasprun(os.path.join(dirpath, 'vasprun.xml'))
-        #    structure = Structure.as_structur(vr.final_structure)
-        #    #fermie = vr.efermi
-        #else:
-        #    # Abinit mode
-        #    #filenames = os.listdir(dirpath)
-        #    for trial in ("run.abi", "out_GSR.nc", "run.abo"):
-        #        apath = os.path.join(dirpath, trial)
-        #        if os.path.isfile(apath):
-        #            break
-        #        raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
-
-        #    from abipy.abilab import abiopen
-        #    with abiopen(apath) as abifile:
-        #        structure = abifile.structure
-
-        #if structure is None:
-        #    raise Runtime("Cannot find files to initialize crystalline structure. Need either ...")
-
         return cls(dirpath, prefix, **kwargs)
 
     def __init__(self, dirpath, prefix, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
@@ -1103,7 +1097,6 @@ class LobsterAnalyzer(NotebookWriter):
         self.dos = LobsterDos.from_file(lobdos_path) if lobdos_path else None
         self.dirpath = dirpath
         self.prefix = prefix
-        #self.structure = structure
 
         for a in ("coop", "cohp", "icohp", "dos"):
             obj = getattr(self, a)
@@ -1123,8 +1116,6 @@ class LobsterAnalyzer(NotebookWriter):
             if obj is None: continue
             app(marquee(header, mark="="))
             app(obj.to_string(verbose=verbose))
-
-        #app(self.structure.to_string(verbose=verbose, title="Structure"))
 
         return "\n".join(lines)
 

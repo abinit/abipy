@@ -4,7 +4,8 @@ Lobster COHPCAR
 ===============
 
 This example shows how to analyze the COHPCAR file
-produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/index.php?menuID=1>
+produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/>
+
 Use `abiopen.py FILE` with --expose or --print for a command line interface
 and --notebook to generate a jupyter notebook.
 """
