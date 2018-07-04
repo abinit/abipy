@@ -335,6 +335,89 @@ class Coxp(_LobsterFile):
         return fig
 
     @add_fig_kwargs
+    def plot_average_pairs(self, with_site_index, what="single", exchange_xy=False,
+                            fontsize=8, **kwargs):
+        """
+        Plot COXP total overlap for all sites containg `with_site_index` and average sum
+        (multiplied by the number of pairs)
+
+        Args:
+            with_site_index: int of list of integers selecting the site index to be included.
+            what: "single" for COXP DOS, "integrated" for IDOS.
+            exchange_xy: True to exchange x-y axis.
+            fontsize: fontsize for legends and titles
+
+        Returns: |matplotlib-Figure|
+        """
+        if not duck.is_listlike(with_site_index): with_site_index = [with_site_index]
+
+        # Create list of pairs.
+        all_pairs = []
+        for index in with_site_index:
+            pairs = [p for p in self.total if index in p]
+            all_pairs.append(pairs)
+            if not pairs:
+                cprint("Cannot find pairs containing  site index %s" % str(index), "yellow")
+            else:
+                print("Pairs containing site index:", index)
+                for pair in pairs:
+                    type0, type1 = self.type_of_index[pair[0]], self.type_of_index[pair[1]]
+                    print("\t%s@%s --> %s@%s" % (type0, pair[0], type1, pair[1]))
+
+        # Build (1, nsppol) grid
+        #ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=self.nsppol,
+                                                sharex=True, sharey=True, squeeze=False)
+
+        xlabel, ylabel, ysign = r"$\epsilon-\epsilon_F\;(eV)$", "COOP", +1
+        if self.cop_type == "cohp":
+            ylabel, ysign = "-COHP", -1
+        if exchange_xy:
+            xlabel, ylabel = ylabel, xlabel
+
+        # self.total[pair][spin][what]
+        for spin, ax in enumerate(ax_list.ravel()):
+            ax.grid(True)
+            sum_all = np.zeros_like(self.energies)
+            for index, pairs in zip(with_site_index, all_pairs):
+                ys = np.zeros_like(self.energies)
+                for pair in pairs:
+                    ys += self.total[pair][spin][what]
+                ys /= len(pairs)
+                sum_all += ys
+
+                #label, style = self.get_labelstyle_from_spin_pair(spin, pair)
+                label = "Average over pairs with %s@%s" % (self.type_of_index[index], index)
+                style = {}
+                xs, ys = self.energies, ysign * ys
+                if exchange_xy: xs, ys = ys, xs
+                ax.plot(xs, ys, label=label, **style)
+
+            # Plot average * num_pairs for this spin.
+            xs, ys = self.energies, ysign * self.averaged[spin][what] * len(self.total)
+            if exchange_xy: xs, ys = ys, xs
+            style = {}
+            ax.plot(xs, ys, label="Average", **style)
+
+            # Compare with sum
+            xs, ys = self.energies, ysign * sum_all
+            if exchange_xy: xs, ys = ys, xs
+            ax.plot(xs, ys, label="Sumall", **style)
+
+            if exchange_xy:
+                # Add vertical line to signal the zero.
+                ax.axvline(c="k", ls=":", lw=1)
+            else:
+                ax.axhline(c="k", ls=":", lw=1)
+
+            if self.nsppol == 2: ax.set_title(self.spin2tex[spin])
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
     def plot_site_pairs_total(self, from_site_index, what="single", exchange_xy=False, ax=None,
                               fontsize=8, **kwargs):
         """

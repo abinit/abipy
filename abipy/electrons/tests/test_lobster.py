@@ -43,6 +43,7 @@ class CoxpTest(AbipyTest):
                 assert cohp.plot(title="default values", show=False)
                 assert cohp.plot_site_pairs_total(from_site_index=[0, 1], what="single", exchange_xy=True, show=False)
                 assert cohp.plot_site_pairs_partial(from_site_index=[0, 1], what="single", exchange_xy=True, show=False)
+                assert cohp.plot_average_pairs(with_site_index=[0, 1], what="single", exchange_xy=True, show=False)
 
             if self.has_nbformat():
                 assert cohp.write_notebook(nbpath=self.get_tmpname(text=True))
