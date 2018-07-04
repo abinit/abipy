@@ -1962,7 +1962,9 @@ class ElectronBands(Has_Structure):
         #ax.scatter(xx, yy)
 
         ax.grid(True)
-        ax.set_ylabel("Linewidth")
+        ylabel = "Linewidth (eV)"
+        if exchange_xy: xlabel, ylabel = ylabel, xlabel
+        ax.set_ylabel(ylabel)
         ax.set_xlabel(xlabel)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
