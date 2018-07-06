@@ -63,7 +63,7 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.wannier90 import WoutFile
-from abipy.electrons.lobster import Coxp, ICoxp, LobsterDos, LobsterInput, LobsterAnalyzer
+from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -93,10 +93,10 @@ ext2file = collections.OrderedDict([
     ("JTH.xml", Pseudo),
     (".wout", WoutFile),
     # Lobster files.
-    ("COHPCAR.lobster", Coxp),
-    ("COOPCAR.lobster", Coxp),
-    ("ICOHPLIST.lobster", ICoxp),
-    ("DOSCAR.lobster", LobsterDos),
+    ("COHPCAR.lobster", CoxpFile),
+    ("COOPCAR.lobster", CoxpFile),
+    ("ICOHPLIST.lobster", ICoxpFile),
+    ("DOSCAR.lobster", LobsterDoscarFile),
 ])
 
 # Abinit files require a special treatment.
